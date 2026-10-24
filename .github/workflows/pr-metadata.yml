@@ -1,0 +1,116 @@
+name: PR Metadata
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  sync-metadata:
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Normalize PR metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const branchName = pr.head.ref;
+            const branchMatch = branchName.match(/^(feat|fix|hotfix|refactor|test|docs|chore)\/(\d+)-([a-z0-9-]+)$/);
+            // TODO: 실제 GitHub 사용자명으로 채운다. 예: ['your-username', 'teammate-username']
+            const defaultReviewers = [];
+
+            if (!pr.draft) {
+              const requestedReviewers = new Set(
+                (pr.requested_reviewers ?? []).map((reviewer) => reviewer.login),
+              );
+              const reviewers = defaultReviewers.filter((reviewer) => {
+                return reviewer !== pr.user.login && !requestedReviewers.has(reviewer);
+              });
+
+              if (reviewers.length > 0) {
+                try {
+                  await github.rest.pulls.requestReviewers({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: pr.number,
+                    reviewers,
+                  });
+                } catch (error) {
+                  core.warning(`Failed to request default reviewers: ${error.message}`);
+                }
+              }
+            }
+
+            if (!branchMatch) {
+              core.info(`Skip metadata sync. Branch does not match the issue branch format: ${branchName}`);
+              return;
+            }
+
+            const [, branchType, issueNumber, branchSlug] = branchMatch;
+            const labelMap = {
+              feat: '✨ Feature',
+              fix: '🐛 BugFix',
+              hotfix: '🚨 Hotfix',
+              refactor: '♻️ Refactor',
+              test: '✅ Test',
+              docs: '📝 Docs',
+              chore: '🔧 Chore',
+            };
+            const titleTypeMap = {
+              feat: 'Feat',
+              fix: 'Fix',
+              hotfix: 'Hotfix',
+              refactor: 'Refactor',
+              test: 'Test',
+              docs: 'Docs',
+              chore: 'Chore',
+            };
+
+            if ((pr.assignees ?? []).length === 0) {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                assignees: [pr.user.login],
+              });
+            }
+
+            let titleSource = branchSlug.replace(/-/g, ' ');
+            try {
+              const { data: issue } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: Number(issueNumber),
+              });
+              titleSource = issue.title.replace(/^\[[^\]]+\]\s*/, '').trim() || titleSource;
+            } catch (error) {
+              core.warning(`Issue #${issueNumber} lookup failed. Falling back to the branch slug: ${error.message}`);
+            }
+
+            const nextTitle = `[${titleTypeMap[branchType]}] ${titleSource}`;
+            if (nextTitle !== pr.title) {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                title: nextTitle,
+              });
+            }
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: [labelMap[branchType]],
+              });
+            } catch (error) {
+              core.warning(`Failed to add the PR label: ${error.message}`);
+            }
