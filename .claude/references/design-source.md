@@ -18,7 +18,22 @@ Figma에 없는 화면 상태(빈 목록, 로딩, 에러, 모바일)는 임의�
 
 ## 디자인 시스템
 
-<!-- TODO: 색상·타이포·간격 토큰과 공통 컴포넌트 목록이 정해지면 적는다. -->
+<!-- TODO: 타이포 토큰과 공통 컴포넌트 목록이 정해지면 적는다. -->
+
+색상·간격·반경·레이아웃 토큰은 `src/app/globals.css`의 `@theme`에 정의했습니다. Tailwind 기본 색상·반경·브레이크포인트는 초기화했으므로 아래 이름만 사용할 수 있습니다.
+
+| 분류           | 유틸리티 예시                                                                       | 비고                                        |
+| -------------- | ----------------------------------------------------------------------------------- | ------------------------------------------- |
+| Semantic 색    | `text-fg-neutral`, `bg-bg-brand-solid`, `border-stroke-focus-ring`                  | 화면 코드는 semantic 색을 우선 사용         |
+| Palette 색     | `bg-gray-50`, `text-green-500`                                                      | gray·green·teal·yellow·red·blue, `static-*` |
+| Padding·Gap    | `p-padding-m`, `gap-gap-l`                                                          | 숫자 유틸리티(`p-4`)도 같은 4px 그리드      |
+| Radius         | `rounded-xs` ~ `rounded-xxl`, `rounded-full`                                        | xs 4 · s 6 · m 8 · l 12 · xl 16 · xxl 24px  |
+| 브레이크포인트 | `tablet:`(768px 이상), `desktop:`(1280px 이상)                                      | 접두사 없음이 모바일                        |
+| Layout         | `px-page-padding`, `py-section-gap`, `gap-content-gap`, `max-w-page`, `layout-grid` | 브레이크포인트별 값은 CSS 변수가 자동 전환  |
+
+- `static-black-alpha-*`의 불투명도는 이름의 숫자(700 → 0.7)로 해석했습니다. Figma 값과 다르면 수정합니다.
+- `layout/container-max`의 태블릿(704)·모바일(343) 값은 frame 폭에서 page-padding을 뺀 값이라 고정하지 않고, 데스크톱 최대 폭 1200px만 `max-w-page`로 둡니다.
+- 다크 모드 토큰은 아직 없습니다.
 
 ## 인터랙션 방향
 

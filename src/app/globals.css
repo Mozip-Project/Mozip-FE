@@ -1,1 +1,237 @@
 @import 'tailwindcss';
+
+/* 디자인 시스템 외 색상·반경·브레이크포인트 사용 방지를 위해 Tailwind 기본값 초기화 */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --breakpoint-*: initial;
+
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1280px;
+
+  /* Palette */
+  --color-gray-00: #ffffff;
+  --color-gray-50: #f7f8fc;
+  --color-gray-100: #edeef5;
+  --color-gray-200: #e3e6ef;
+  --color-gray-300: #c8cfda;
+  --color-gray-400: #9ea7b9;
+  --color-gray-500: #667185;
+  --color-gray-600: #475062;
+  --color-gray-700: #303745;
+  --color-gray-800: #21252f;
+  --color-gray-900: #1a1e22;
+  --color-gray-1000: #080808;
+
+  --color-green-50: #edfcf3;
+  --color-green-100: #d5f9e4;
+  --color-green-200: #acf3ca;
+  --color-green-300: #7be7a9;
+  --color-green-400: #3fdb87;
+  --color-green-500: #00ce67;
+  --color-green-600: #00b359;
+  --color-green-700: #009148;
+  --color-green-800: #006e37;
+  --color-green-900: #004221;
+
+  --color-teal-50: #ddfdf6;
+  --color-teal-100: #caf4eb;
+  --color-teal-200: #ace5d9;
+  --color-teal-300: #7ed0c0;
+  --color-teal-400: #48baa7;
+  --color-teal-500: #04a995;
+  --color-teal-600: #038e7d;
+  --color-teal-700: #057465;
+  --color-teal-800: #18594e;
+  --color-teal-900: #1b3f39;
+  --color-teal-950: #192724;
+
+  --color-yellow-50: #fef8e8;
+  --color-yellow-100: #fdefcb;
+  --color-yellow-200: #fee099;
+  --color-yellow-300: #ffc960;
+  --color-yellow-400: #fdb01c;
+  --color-yellow-500: #ec9400;
+  --color-yellow-600: #c37606;
+  --color-yellow-700: #9a5d0e;
+  --color-yellow-800: #72450e;
+  --color-yellow-900: #4d3315;
+  --color-yellow-950: #2d2215;
+
+  --color-red-50: #fff2f0;
+  --color-red-100: #ffe2df;
+  --color-red-200: #ffc8c3;
+  --color-red-300: #ffa098;
+  --color-red-400: #fe726c;
+  --color-red-500: #f5514f;
+  --color-red-600: #d03f3f;
+  --color-red-700: #a63936;
+  --color-red-800: #7d312e;
+  --color-red-900: #572825;
+  --color-red-950: #321e1c;
+
+  --color-blue-50: #eef6ff;
+  --color-blue-100: #daecff;
+  --color-blue-200: #badbff;
+  --color-blue-300: #8ac3fe;
+  --color-blue-400: #5faaf3;
+  --color-blue-500: #3b96eb;
+  --color-blue-600: #2c7ec8;
+  --color-blue-700: #2a669f;
+  --color-blue-800: #275078;
+  --color-blue-900: #213a53;
+  --color-blue-950: #1b2530;
+
+  --color-static-white: #ffffff;
+  --color-static-transparent: transparent;
+  /* alpha 단계는 이름의 숫자를 불투명도(700 → 0.7)로 해석 */
+  --color-static-black-alpha-100: rgb(0 0 0 / 0.1);
+  --color-static-black-alpha-500: rgb(0 0 0 / 0.5);
+  --color-static-black-alpha-700: rgb(0 0 0 / 0.7);
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --radius-xl: 16px;
+  --radius-xxl: 24px;
+  --radius-full: 9999px;
+
+  /* Spacing: 기본 --spacing(4px)이 dimension.x1과 같아 숫자 유틸리티(p-1, gap-0.5)도 동일 그리드 */
+  --spacing-padding-xxs: 4px;
+  --spacing-padding-xs: 8px;
+  --spacing-padding-s: 12px;
+  --spacing-padding-m: 16px;
+  --spacing-padding-l: 20px;
+  --spacing-padding-xl: 24px;
+  --spacing-padding-xxl: 32px;
+
+  --spacing-gap-xxs: 2px;
+  --spacing-gap-xs: 4px;
+  --spacing-gap-s: 8px;
+  --spacing-gap-m: 12px;
+  --spacing-gap-l: 16px;
+  --spacing-gap-xl: 24px;
+  --spacing-gap-xxl: 40px;
+
+  /* Layout: 태블릿·모바일 container 값은 frame 폭에서 page-padding을 뺀 값이라 데스크톱 최대 폭만 고정 */
+  --container-page: 1200px;
+}
+
+/* 브레이크포인트별로 바뀌는 layout 값 */
+:root {
+  --layout-page-padding: 16px;
+  --layout-section-gap: 56px;
+  --layout-content-gap: 32px;
+  --layout-grid-gutter: 16px;
+  --layout-grid-columns: 4;
+
+  @variant tablet {
+    --layout-page-padding: 32px;
+    --layout-section-gap: 80px;
+    --layout-content-gap: 40px;
+    --layout-grid-gutter: 20px;
+    --layout-grid-columns: 8;
+  }
+
+  @variant desktop {
+    --layout-page-padding: 40px;
+    --layout-section-gap: 120px;
+    --layout-content-gap: 48px;
+    --layout-grid-gutter: 24px;
+    --layout-grid-columns: 12;
+  }
+}
+
+@theme {
+  --spacing-page-padding: var(--layout-page-padding);
+  --spacing-section-gap: var(--layout-section-gap);
+  --spacing-content-gap: var(--layout-content-gap);
+  --spacing-grid-gutter: var(--layout-grid-gutter);
+
+  /* Semantic · fg */
+  --color-fg-neutral: var(--color-gray-900);
+  --color-fg-neutral-muted: var(--color-gray-700);
+  --color-fg-neutral-subtle: var(--color-gray-600);
+  --color-fg-neutral-faint: var(--color-gray-300);
+  --color-fg-placeholder: var(--color-gray-500);
+  --color-fg-disabled: var(--color-gray-400);
+  --color-fg-on-neutral-solid: var(--color-gray-00);
+  --color-fg-brand: var(--color-green-500);
+  --color-fg-brand-contrast: var(--color-green-900);
+  --color-fg-on-brand-solid: var(--color-static-white);
+  --color-fg-positive: var(--color-teal-500);
+  --color-fg-positive-contrast: var(--color-teal-900);
+  --color-fg-on-positive-solid: var(--color-static-white);
+  --color-fg-warning: var(--color-yellow-600);
+  --color-fg-warning-contrast: var(--color-yellow-900);
+  --color-fg-on-warning-solid: var(--color-gray-900);
+  --color-fg-critical: var(--color-red-500);
+  --color-fg-critical-contrast: var(--color-red-800);
+  --color-fg-on-critical-solid: var(--color-static-white);
+  --color-fg-informative: var(--color-blue-600);
+  --color-fg-informative-contrast: var(--color-blue-900);
+  --color-fg-on-informative-solid: var(--color-static-white);
+
+  /* Semantic · bg */
+  --color-bg-layer-basement: var(--color-gray-50);
+  --color-bg-layer-default: var(--color-gray-00);
+  --color-bg-layer-default-pressed: var(--color-gray-50);
+  --color-bg-layer-floating: var(--color-gray-00);
+  --color-bg-layer-floating-pressed: var(--color-gray-50);
+  --color-bg-neutral-subtle: var(--color-gray-00);
+  --color-bg-neutral-weak: var(--color-gray-50);
+  --color-bg-neutral-weak-pressed: var(--color-gray-100);
+  --color-bg-neutral-solid: var(--color-gray-900);
+  --color-bg-neutral-solid-pressed: var(--color-gray-800);
+  --color-bg-disabled: var(--color-gray-100);
+  --color-bg-brand-solid: var(--color-green-500);
+  --color-bg-brand-solid-pressed: var(--color-green-600);
+  --color-bg-brand-weak: var(--color-green-50);
+  --color-bg-brand-weak-pressed: var(--color-green-100);
+  --color-bg-positive-solid: var(--color-teal-600);
+  --color-bg-positive-solid-pressed: var(--color-teal-700);
+  --color-bg-positive-weak: var(--color-teal-50);
+  --color-bg-positive-weak-pressed: var(--color-teal-100);
+  --color-bg-warning-solid: var(--color-yellow-400);
+  --color-bg-warning-solid-pressed: var(--color-yellow-500);
+  --color-bg-warning-weak: var(--color-yellow-50);
+  --color-bg-warning-weak-pressed: var(--color-yellow-100);
+  --color-bg-critical-solid: var(--color-red-500);
+  --color-bg-critical-solid-pressed: var(--color-red-700);
+  --color-bg-critical-weak: var(--color-red-50);
+  --color-bg-critical-weak-pressed: var(--color-red-100);
+  --color-bg-informative-solid: var(--color-blue-600);
+  --color-bg-informative-solid-pressed: var(--color-blue-700);
+  --color-bg-informative-weak: var(--color-blue-50);
+  --color-bg-informative-weak-pressed: var(--color-blue-100);
+  --color-bg-overlay: var(--color-static-black-alpha-700);
+  --color-bg-overlay-muted: var(--color-static-black-alpha-500);
+  --color-bg-transparent: var(--color-static-transparent);
+  --color-bg-transparent-pressed: var(--color-static-black-alpha-100);
+
+  /* Semantic · stroke */
+  --color-stroke-neutral-subtle: var(--color-gray-100);
+  --color-stroke-neutral-muted: var(--color-gray-200);
+  --color-stroke-neutral-weak: var(--color-gray-300);
+  --color-stroke-neutral-solid: var(--color-gray-700);
+  --color-stroke-neutral-contrast: var(--color-gray-900);
+  --color-stroke-brand-solid: var(--color-green-500);
+  --color-stroke-brand-weak: var(--color-green-300);
+  --color-stroke-positive-solid: var(--color-teal-600);
+  --color-stroke-positive-weak: var(--color-teal-300);
+  --color-stroke-warning-solid: var(--color-yellow-600);
+  --color-stroke-warning-weak: var(--color-yellow-300);
+  --color-stroke-critical-solid: var(--color-red-600);
+  --color-stroke-critical-weak: var(--color-red-300);
+  --color-stroke-informative-solid: var(--color-blue-600);
+  --color-stroke-informative-weak: var(--color-blue-300);
+  --color-stroke-focus-ring: var(--color-blue-500);
+}
+
+@utility layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--layout-grid-columns), minmax(0, 1fr));
+  column-gap: var(--layout-grid-gutter);
+}
