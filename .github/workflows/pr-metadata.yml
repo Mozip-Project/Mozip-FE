@@ -23,7 +23,6 @@ jobs:
             const pr = context.payload.pull_request;
             const branchName = pr.head.ref;
             const branchMatch = branchName.match(/^(feat|fix|hotfix|refactor|test|docs|chore)\/(\d+)-([a-z0-9-]+)$/);
-
             const defaultReviewers = ['ByeongJu0411', 'wlsldm'];
 
             if (!pr.draft) {

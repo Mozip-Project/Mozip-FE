@@ -1,6 +1,6 @@
 # Git과 PR 흐름
 
-> develop 브랜치 없이 `main` 하나로 운영합니다(2026-10-15 FE 회의). 남은 리뷰·배포 규칙은 아래 "회의 안건"을 확인하세요.
+> develop 브랜치 없이 `main` 하나로 운영합니다(2026-10-15 FE 회의).
 
 ## 한눈에 보기
 
@@ -36,6 +36,7 @@ GitHub의 **Issues → New issue → 📝 작업 이슈**에서 작업 타입과
 
 - 대상 브랜치는 `main`입니다. `main`은 항상 배포 가능한 상태로 유지합니다.
 - 이슈 브랜치에서 PR을 만들면 `pr-metadata.yml`이 제목, 라벨, 담당자를 이슈에 맞춰 정리합니다.
+- draft가 아닌 PR에는 `pr-metadata.yml`의 `defaultReviewers`에 있는 팀원(작성자 제외)에게 리뷰를 자동 요청합니다.
 - 본문에 `close #이슈번호`를 적으면 병합할 때 이슈가 자동으로 닫힙니다.
 
 ## 4. 자동 검사
@@ -51,14 +52,4 @@ CodeRabbit GitHub App이 설치되어 있으면 `.coderabbit.yaml` 설정에 따
 
 workflow가 실패해도 GitHub는 기본적으로 병합을 막지 않습니다. 실제로 막으려면 저장소 **Settings → Rules(또는 Branches)**에서 위 검사를 required status check로 지정해야 합니다.
 
-## 저장소 만들 때 할 일
-
-- [ ] GitHub 저장소 생성 후 push
-- [ ] Settings → Actions → General → Workflow permissions를 **Read and write**로 변경. 브랜치 생성과 라벨 추가에 필요합니다.
-- [ ] Settings → Rules에서 `main`에 PR 필수, CI 통과, 리뷰 승인 조건 설정. develop 출발 검사가 없으므로 `main` 보호는 이 설정이 유일한 강제 수단입니다.
-- [ ] CodeRabbit GitHub App 설치. 저장소가 private이면 요금제 확인
-
-## 회의 안건
-
-- **리뷰 규칙**: 승인 몇 명이 필요한지, 기본 리뷰어 지정(`CODEOWNERS`, `pr-metadata.yml`의 `defaultReviewers`)
-- **배포**: Vercel 등 어디에 배포할지, `main` 병합 시 자동 배포할지
+`issue-branch.yml`과 `pr-metadata.yml`은 브랜치 생성과 라벨·리뷰어 지정을 위해 **Settings → Actions → General → Workflow permissions**가 **Read and write**여야 합니다.
