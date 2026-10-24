@@ -23,7 +23,7 @@ jobs:
             const pr = context.payload.pull_request;
             const branchName = pr.head.ref;
             const branchMatch = branchName.match(/^(feat|fix|hotfix|refactor|test|docs|chore)\/(\d+)-([a-z0-9-]+)$/);
-            // TODO: 실제 GitHub 사용자명으로 채운다. 예: ['your-username', 'teammate-username']
+            // TODO: 실제 GitHub 사용자명으로 채운다. 예: ['ByeongJu0411', 'wlsldm']
             const defaultReviewers = [];
 
             if (!pr.draft) {
