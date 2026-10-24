@@ -8,8 +8,8 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 
 ## 기술 스택
 
-- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library
-- 도입 결정(2026-10-15, 미설치): shadcn/ui, TanStack Query, react-hook-form + zod, ky, Storybook. 설치는 처음 실제로 쓰는 작업에서 합니다.
+- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library, TanStack Query(`src/providers/query-provider.tsx`)
+- 도입 결정(2026-10-15, 미설치): shadcn/ui, react-hook-form + zod, ky, Storybook. 설치는 처음 실제로 쓰는 작업에서 합니다.
 - 결정 사항: 전역 상태 라이브러리 미도입, 실시간 갱신은 폴링, 인증 토큰은 httpOnly 쿠키, MSW는 필요해지면 도입. 상세는 `docs/ARCHITECTURE.md`와 `.claude/decisions/records/`를 따릅니다.
 
 ## 주요 명령어
@@ -24,7 +24,7 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 ## 작업 원칙
 
 - 사용자가 다르게 요청하지 않으면 한국어로 응답합니다.
-- `docs/ARCHITECTURE.md`의 "회의 안건"에 있는 항목(폴더 구조, 도메인 이름, URL, 계정 구분)은 임의로 결정하지 않습니다. 작업에 필요하면 결정이 필요하다고 먼저 알립니다.
+- `docs/ARCHITECTURE.md`에 정해지지 않은 구조(도메인 코드 폴더·이름, 운영진 URL, 계정 구분)는 임의로 결정하지 않습니다. 작업에 필요하면 결정이 필요하다고 먼저 알립니다.
 - `pnpm`만 사용하며, 새 production dependency·UI 라이브러리·전역 Provider는 명시 요청 없이는 추가하지 않습니다.
 - 변경은 화면 또는 상호작용 단위로 작게 유지합니다. 요청과 무관한 정리, 새 추상화, 빈 폴더는 섞지 않습니다.
 - 사용자가 명시적으로 요청하지 않으면 커밋, 푸시, PR 생성은 하지 않습니다.
