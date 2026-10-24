@@ -7,6 +7,7 @@
 - develop 브랜치 없이 모든 작업 PR은 `main`을 대상으로 합니다. `main`은 항상 배포 가능한 상태로 유지하고, PR 필수·CI 통과·리뷰 승인은 GitHub Ruleset으로 강제합니다.
 - workflow나 이슈 폼을 수정할 때는 이슈 폼 heading, 브랜치 정규식, type·라벨 매핑, 대상 브랜치, 권한을 한 묶음으로 검토합니다.
 - PR 본문에는 무엇을 왜 바꿨는지, 실제 실행한 검증, UI 변경 시 스크린샷을 남깁니다.
-- AI 코드 리뷰는 CodeRabbit을 사용합니다. 기본 리뷰어(`CODEOWNERS`, `defaultReviewers`)는 회의 안건이므로 결정 전에는 추가하지 않습니다.
+- AI 코드 리뷰는 CodeRabbit을 사용합니다. `.coderabbit.yaml` 기준으로 `main` 대상 PR을 자동 리뷰하고 draft PR은 제외합니다. type 라벨은 PR 오픈 뒤에 붙으므로 라벨로 리뷰 대상을 정하지 않습니다. 비밀값 검사는 `security.yml`의 gitleaks가 맡아 CodeRabbit의 gitleaks는 끕니다.
+- 기본 리뷰어(`CODEOWNERS`, `defaultReviewers`)는 회의 안건이므로 결정 전에는 추가하지 않습니다.
 - 커밋·푸시·PR 생성은 사용자가 명시적으로 요청한 경우에만 실행합니다.
 - 커밋 메시지와 PR 본문에 AI 출처 문구를 넣지 않습니다.

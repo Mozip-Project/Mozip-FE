@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'ko-KR'
+early_access: false
+
+tone_instructions: >-
+  파일명·함수명·타입명·변수명·코드·명령어·URL·에러 메시지만 원문을 유지한다.
+  버그·보안·접근성·성능·유지보수 위험을 최우선으로 하되, 중복 로직·불명확한 네이밍·과도한 복잡도처럼
+  근거가 명확한 유지보수성·가독성 개선도 인라인 코멘트로 남긴다. 근거 없는 단순 취향 차이만 제외한다.
+  각 인라인 코멘트는 문제·이유·최소 수정 방향만 짧게 작성한다.
+
+reviews:
+  profile: 'assertive'
+  high_level_summary: true
+  request_changes_workflow: false
+  review_status: true
+  poem: false
+  assess_linked_issues: true
+  auto_apply_labels: false
+  suggested_reviewers: false
+  collapse_walkthrough: true
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  changed_files_summary: true
+  abort_on_close: true
+
+  path_filters:
+    - '!**/.next/**'
+    - '!**/node_modules/**'
+    - '!**/pnpm-lock.yaml'
+    - '!**/*.png'
+    - '!**/*.jpg'
+    - '!**/*.jpeg'
+    - '!**/*.gif'
+    - '!**/*.webp'
+    - '!**/*.svg'
+    - '!**/*.ico'
+    - '!coverage/**'
+    - '!**/*.snap'
+
+  auto_review:
+    # 기본 브랜치(main) 대상 PR만 자동 리뷰 처리, base_branches는 기본 브랜치 외 추가용이라 생략
+    # type 라벨은 pr-metadata.yml이 PR 오픈 뒤에 붙여 판별 시점과 어긋나므로 labels 기준 미사용
+    enabled: true
+    drafts: false
+
+  path_instructions:
+    - path: 'src/app/**'
+      instructions: |
+        Next.js App Router 경계를 검토한다. page와 layout은 Server Component를 기본으로 하며, 이벤트·상태·effect·브라우저 API가 필요한 최소 경계에만 'use client'를 둔다.
+        Provider는 서로 떨어진 화면이 실제로 공유하는 상태에만 사용하고, 한 화면에만 필요한 상태는 local state나 props로 유지한다.
+        지원자 영역과 운영진 영역은 각자의 layout에서 헤더·내비게이션·권한을 분리하고, root layout에 영역별 UI를 넣지 않는다.
+        운영진 전용 코드가 지원자 화면에서 import되어 지원자 번들에 섞이지 않는지 확인한다.
+        운영진 데이터 접근 권한을 layout 렌더링에만 의존하지 않고, 데이터를 읽고 쓰는 page·API 호출 경로에서도 확인하는지 검토한다.
+
+    - path: 'src/providers/**'
+      instructions: |
+        Provider가 여러 화면이 실제로 공유하는 상태에만 쓰이는지, 'use client' 경계가 필요 이상으로 넓어지지 않는지 검토한다.
+        QueryClient가 서버에서는 요청마다 새로 만들어지고 브라우저에서만 재사용되어, 요청·사용자 간에 캐시가 공유되지 않는지 확인한다.
+
+    - path: 'src/**/*.{ts,tsx}'
+      instructions: |
+        API 호출은 공용 API 클라이언트 한 곳만 거치는지 검토한다. 컴포넌트에서 백엔드로 직접 fetch하거나 ky 인스턴스를 새로 만드는 변경을 지적한다.
+        API 응답은 다른 모양을 `as`로 단언하지 않고 raw 타입으로 받아 명시적으로 매핑하는지, 지원 상태 같은 서버 enum을 switch로 빠짐없이 처리하는지 확인한다.
+        인증 토큰은 httpOnly 쿠키로만 다루며, JS에서 읽거나 localStorage·sessionStorage·state에 저장하는 코드를 지적한다.
+        입력과 검증이 있는 폼은 react-hook-form과 zod를 사용하는지 확인한다.
+        목 데이터·테스트 fixture에 실제 이름·전화번호·이메일·학번 같은 개인정보가 들어가지 않았는지 확인한다.
+        복잡한 상태 전이, 브라우저 API, 반복 상호작용을 추가하거나 바꾼 경우에만 회귀 테스트 필요성을 검토한다. 저장소에 없는 테스트 도구를 단순 UI·문구 변경을 이유로 요구하지 않는다.
+
+    - path: '.github/workflows/**'
+      instructions: |
+        이벤트 대상 브랜치, 권한 최소화, 이슈 폼의 heading, 브랜치 정규식, type·라벨 매핑이 서로 일치하는지 검토한다.
+        develop 없이 main 단일 브랜치로 운영하므로, 모든 작업 PR과 push 트리거가 main 기준으로 맞춰져 있는지 확인한다.
+        외부에 쓰기 작업을 하는 workflow는 fork·봇 이벤트와 중복 실행을 안전하게 다루는지 확인한다.
+
+    - path: 'docs/**'
+      instructions: |
+        실제 명령어, 파일 경로, 브랜치 흐름과 모순되는 문서만 지적한다. 구현을 단순히 반복하는 설명이나 문체 취향은 지적하지 않는다.
+
+  tools:
+    # .github/workflows/security.yml의 gitleaks 검사와 중복 방지
+    gitleaks:
+      enabled: false
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - '.claude/rules/**/*.md'
+      - '.claude/references/**/*.md'
+      - 'docs/**/*.md'
+
+chat:
+  auto_reply: true

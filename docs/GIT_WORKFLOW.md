@@ -45,6 +45,10 @@ GitHub의 **Issues → New issue → 📝 작업 이슈**에서 작업 타입과
 | `ci.yml`       | main push, PR | 타입 검사 → ESLint → 테스트 → Prettier → 빌드. 결과를 PR 댓글로 남김 |
 | `security.yml` | main push, PR | Git 기록 전체에서 API 키 같은 비밀값 유출 검사 (gitleaks)            |
 
+### CodeRabbit 리뷰
+
+CodeRabbit GitHub App이 설치되어 있으면 `.coderabbit.yaml` 설정에 따라 `main` 대상 PR을 자동 리뷰합니다. draft PR은 제외되며, Ready for review로 바꾸면 리뷰가 시작됩니다. 리뷰는 한국어로 남고 `.claude/rules`, `.claude/references`, `docs`의 문서를 프로젝트 규칙으로 참고합니다. 비밀값 검사는 `security.yml`이 맡으므로 CodeRabbit의 gitleaks는 꺼 두었습니다.
+
 workflow가 실패해도 GitHub는 기본적으로 병합을 막지 않습니다. 실제로 막으려면 저장소 **Settings → Rules(또는 Branches)**에서 위 검사를 required status check로 지정해야 합니다.
 
 ## 저장소 만들 때 할 일
