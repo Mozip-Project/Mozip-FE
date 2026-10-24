@@ -2,26 +2,55 @@
   "name": "mozip-fe",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@12.3.4",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "next typegen && tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=10"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.5",
+    "@tanstack/react-query-devtools": "^5.104.5",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.4.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "husky": "^9.1.7",
+    "jsdom": "^30.1.2",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  },
-  "packageManager": "pnpm@12.3.4"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
 }
