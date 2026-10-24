@@ -52,11 +52,3 @@ body:
         - [ ] 작업 2
     validations:
       required: true
-
-  - type: textarea
-    id: references
-    attributes:
-      label: ✅ 참고 자료 (선택)
-      description: 관련 이슈, 디자인 링크, 스크린샷, 문서 등을 첨부해주세요.
-    validations:
-      required: false
