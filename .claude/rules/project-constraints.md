@@ -9,8 +9,8 @@
 
 ## 미결정 사항
 
-- `docs/ARCHITECTURE.md`의 "회의 안건"(도메인 코드 배치, 도메인 이름, URL, 계정 구분)은 팀이 결정합니다. 작업에 필요하면 임의로 정하지 않고 결정이 필요하다고 먼저 알립니다.
-- 결정된 안건은 `.claude/decisions/records/`에 기록하고, `docs/ARCHITECTURE.md`의 "확정"으로 옮깁니다.
+- `docs/ARCHITECTURE.md`에 정해지지 않은 구조(도메인 코드 폴더·이름, 운영진 URL, 계정 구분)는 팀이 결정합니다. 작업에 필요하면 임의로 정하지 않고 결정이 필요하다고 먼저 알립니다.
+- 팀이 결정한 내용은 `.claude/decisions/records/`에 기록하고 `docs/ARCHITECTURE.md`에 반영합니다.
 
 ## 사실과 콘텐츠
 

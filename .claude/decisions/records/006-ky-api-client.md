@@ -5,7 +5,7 @@
 
 ## 맥락
 
-API 호출은 공용 API 클라이언트 한 곳을 거치는 것으로 확정되어 있습니다(`docs/ARCHITECTURE.md` 확정 3번).
+API 호출은 공용 API 클라이언트 한 곳을 거치는 것으로 정해져 있습니다(`docs/ARCHITECTURE.md`의 "API 호출" 기준).
 
 ## 결정
 
