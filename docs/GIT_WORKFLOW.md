@@ -52,4 +52,4 @@ CodeRabbit GitHub App이 설치되어 있으면 `.coderabbit.yaml` 설정에 따
 
 workflow가 실패해도 GitHub는 기본적으로 병합을 막지 않습니다. 실제로 막으려면 저장소 **Settings → Rules(또는 Branches)**에서 위 검사를 required status check로 지정해야 합니다.
 
-`issue-branch.yml`과 `pr-metadata.yml`은 브랜치 생성과 라벨·리뷰어 지정을 위해 **Settings → Actions → General → Workflow permissions**가 **Read and write**여야 합니다.
+각 workflow는 필요한 권한을 `permissions`로 직접 선언합니다. 저장소의 **Settings → Actions → General → Workflow permissions**는 기본값(Read)으로 두고, 새 workflow를 추가할 때도 필요한 권한을 파일에 명시합니다.
