@@ -2,7 +2,7 @@
 name: review
 description: 이 프로젝트의 변경을 프로젝트 규칙과 근거에 따라 읽기 전용으로 검토합니다.
 user-invocable: true
-argument-hint: [file-or-ref]
+argument-hint: '[file-or-ref]'
 ---
 
 # review
