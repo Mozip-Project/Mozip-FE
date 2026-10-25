@@ -1,6 +1,6 @@
 'use client'
 
-import { isServer, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { environmentManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { ReactNode } from 'react'
 
@@ -19,7 +19,7 @@ let browserQueryClient: QueryClient | undefined
 
 function getQueryClient() {
   // 서버: 요청마다 새 클라이언트 / 브라우저: 싱글톤 재사용
-  if (isServer) {
+  if (environmentManager.isServer()) {
     return makeQueryClient()
   }
   if (!browserQueryClient) {
