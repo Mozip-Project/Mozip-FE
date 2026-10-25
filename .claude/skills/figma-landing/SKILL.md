@@ -9,7 +9,7 @@ argument-hint: <figma-url-or-node>
 
 1. `.claude/references/design-source.md`, `.claude/references/product-brief.md`, `.claude/rules/landing-ui.md`, `.claude/rules/next-architecture.md`를 읽습니다. 이미지·폰트·Client Component·스크롤 성능을 변경할 때만 `.claude/rules/next-performance.md`를, 모션을 구현할 때만 `.claude/rules/motion.md`를 추가로 읽습니다.
 2. 대상 노드의 레이아웃, 텍스트, 에셋, 상태를 확인하고, 제공되지 않은 반응형·모션 상태는 가정하지 않습니다.
-3. 파일 배치는 `docs/ARCHITECTURE.md`의 확정 기준을 따릅니다. 회의 안건으로 남은 구조(도메인 폴더 등)가 필요하면 임의로 만들지 않고 먼저 사용자에게 확인합니다.
+3. 파일 배치는 `docs/ARCHITECTURE.md`의 기준을 따릅니다. 문서에 정해지지 않은 구조(도메인 폴더 등)가 필요하면 임의로 만들지 않고 먼저 사용자에게 확인합니다.
 4. 콘텐츠·시맨틱 구조·이미지 크기부터 구현합니다. 정적 콘텐츠는 Server Component로 두고 브라우저 상호작용만 최소 Client Component로 분리합니다.
 5. 데스크톱과 좁은 화면에서 위계, 줄바꿈, overflow, 터치·키보드 조작을 확인합니다. 모션이 있으면 reduced motion도 확인합니다.
 6. 외부 참고 사이트의 에셋·카피·코드를 복제하지 않고, 제공 근거 밖의 수치·사업 주장을 추가하지 않습니다.
