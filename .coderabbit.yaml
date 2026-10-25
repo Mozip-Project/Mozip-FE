@@ -76,6 +76,12 @@ reviews:
       instructions: |
         실제 명령어, 파일 경로, 브랜치 흐름과 모순되는 문서만 지적한다. 구현을 단순히 반복하는 설명이나 문체 취향은 지적하지 않는다.
 
+    - path: '.claude/**'
+      instructions: |
+        문서·skill·agent·hook이 참조하는 파일 경로, 문서 내 섹션, skill 이름이 실제로 존재하고 서로 일치하는지 검토한다.
+        skill 폴더명과 frontmatter의 name, README의 skill 목록, skill-suggest.mjs의 안내 문구가 함께 바뀌었는지 확인한다.
+        rules 문서가 package.json·설정 파일·docs/ARCHITECTURE.md의 실제 명령, 도구, 결정 사항과 모순되는 내용만 지적한다.
+
   tools:
     # .github/workflows/security.yml의 gitleaks 검사와 중복 방지
     gitleaks:
