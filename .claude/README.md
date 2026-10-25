@@ -35,7 +35,7 @@
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
 | 파일 배치, Server/Client Component 판단, 라우팅 | `.claude/rules/next-architecture.md`, `docs/ARCHITECTURE.md`                  |
 | 기능 범위, 사용자 흐름, 화면 문구               | `.claude/references/product-brief.md`                                         |
-| Figma 기반 화면 구현, 반응형, 접근성            | `.claude/rules/landing-ui.md`, `.claude/references/design-source.md`          |
+| Figma 기반 화면 구현, 반응형, 접근성            | `.claude/rules/ui-accessibility.md`, `.claude/references/design-source.md`    |
 | Figma와 실제 화면의 시각 비교                   | `.claude/rules/visual-verification.md`, `.claude/references/design-source.md` |
 | 애니메이션, 전환, 스크롤 모션                   | `.claude/rules/motion.md`                                                     |
 | 이미지·폰트·Client Component 성능               | `.claude/rules/next-performance.md`, `.claude/rules/next-architecture.md`     |
@@ -47,7 +47,7 @@
 | 테스트 추가·테스트 전략 판단                    | `.claude/rules/testing.md`, `docs/TESTING.md`                                 |
 | 구조나 공통 규칙 변경                           | `.claude/decisions/README.md`, `.claude/known-issues/README.md`               |
 
-Figma 디자인을 구현할 때는 `.mcp.json`의 Figma MCP로 디자인 정보를 가져오고 `/figma-landing` 절차를 따릅니다.
+Figma 디자인을 구현할 때는 `.mcp.json`의 Figma MCP로 디자인 정보를 가져오고 `/figma-screen` 절차를 따릅니다.
 
 ## Project Agents
 
@@ -71,7 +71,7 @@ Figma 디자인을 구현할 때는 `.mcp.json`의 Figma MCP로 디자인 정보
 | `/review`            | 프로젝트 규칙 기준의 읽기 전용 코드 리뷰 |
 | `/refactor`          | 동작 변경 없는 좁은 리팩터링             |
 | `/performance-audit` | 이미지·Client bundle·렌더링 성능 점검    |
-| `/figma-landing`     | Figma 디자인을 화면으로 구현             |
+| `/figma-screen`      | Figma 디자인을 화면으로 구현             |
 
 ## Hooks
 

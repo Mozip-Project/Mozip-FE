@@ -18,7 +18,7 @@ const rules = [
   [/refactor|cleanup|dedupe|simplify|리팩터링|정리/, '/refactor - 동작 변경 없는 리팩터링'],
   [/review|리뷰/, '/review - 변경 코드 리뷰'],
   [/performance|성능|lighthouse|lcp/, '/performance-audit - 이미지·Client bundle·렌더링 성능 점검'],
-  [/figma|피그마|디자인/, '/figma-landing - Figma 디자인을 화면으로 구현'],
+  [/figma|피그마|디자인/, '/figma-screen - Figma 디자인을 화면으로 구현'],
 ]
 
 for (const [pattern, suggestion] of rules) {
