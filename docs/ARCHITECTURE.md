@@ -33,6 +33,17 @@ base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지
 
 Button, Modal 같은 기본 UI와 날짜 포맷 같은 유틸은 "공고"나 "지원서"를 몰라야 합니다. 도메인 코드가 공용 코드를 가져다 쓰고, 그 반대는 하지 않습니다.
 
+## 전역 스타일은 바뀌는 이유에 따라 나눕니다
+
+```text
+src/app/globals.css      # 진입점. Tailwind와 아래 파일을 import
+src/styles/
+├── tokens.css           # Figma 디자인 토큰(색상·간격·반경·layout)
+└── utilities.css        # 커스텀 Tailwind 유틸리티
+```
+
+Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 유틸리티가 생기면 `utilities.css`를 수정합니다. 컴포넌트 전용 스타일은 이 폴더에 두지 않고 Tailwind 클래스로 작성합니다.
+
 ## 라이브러리 (2026-10-15 FE 회의)
 
 | 영역        | 결정                  | 사용 기준                                                                    |
