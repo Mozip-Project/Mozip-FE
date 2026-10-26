@@ -1,4 +1,4 @@
-import { QueryProvider } from '@/providers/query-provider'
+import { QueryProvider } from '@/providers/queryProvider'
 import { pretendard } from '@/styles/fonts'
 import type { Metadata } from 'next'
 import './globals.css'

@@ -8,7 +8,7 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 
 ## 기술 스택
 
-- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library, TanStack Query(`src/providers/query-provider.tsx`), shadcn/ui(`components.json`, 컴포넌트는 `src/components/ui/`), Storybook(`.storybook/`, `@storybook/nextjs-vite`)
+- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library, TanStack Query(`src/providers/queryProvider.tsx`), shadcn/ui(`components.json`, 컴포넌트는 `src/components/ui/`), Storybook(`.storybook/`, `@storybook/nextjs-vite`)
 - 도입 결정(2026-10-15, 미설치): react-hook-form + zod, ky. 설치는 처음 실제로 쓰는 작업에서 합니다.
 - 결정 사항: 전역 상태 라이브러리 미도입, 실시간 갱신은 폴링, 인증 토큰은 httpOnly 쿠키, MSW는 필요해지면 도입. 상세는 `docs/ARCHITECTURE.md`와 `.claude/decisions/records/`를 따릅니다.
 
