@@ -8,7 +8,7 @@
 
 ## 자산과 외부 코드
 
-- 폰트는 `next/font`(`local` 또는 `google`)로 로드합니다. `public/`의 수동 `@font-face`나 외부 CSS 링크로 런타임 폰트 요청을 만들지 않습니다. 사용할 서체는 디자인 시스템이 정해지면 결정합니다.
+- 폰트는 `next/font`(`local` 또는 `google`)로 로드합니다. `public/`의 수동 `@font-face`나 외부 CSS 링크로 런타임 폰트 요청을 만들지 않습니다. 기본 서체는 Pretendard이며 `src/styles/fonts.ts`에서 로드해 root layout의 `html`에 변수 class로 적용합니다.
 - 정보성 래스터 이미지는 `next/image`를 우선 사용하고, 크기 또는 비율·`sizes`를 명시합니다. `priority`는 LCP 후보 이미지에만 사용합니다.
 - `<video poster>`, 순수 `<img src>`처럼 `next/image`를 거치지 않는 경로는 배포 환경에서도 자동 최적화되지 않습니다. 이런 경로에 쓰는 원본 파일은 미리 압축·WebP 변환해서 커밋합니다.
 - 무거운 브라우저 전용 기능과 제3자 스크립트는 사용자 가치와 측정 근거가 있을 때만 지연 로드합니다. 초기 화면에 필요 없는 분석·위젯은 초기 렌더링을 막지 않아야 합니다.

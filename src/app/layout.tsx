@@ -1,4 +1,5 @@
 import { QueryProvider } from '@/providers/query-provider'
+import { pretendard } from '@/styles/fonts'
 import type { Metadata } from 'next'
 import './globals.css'
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ko" className="h-full antialiased">
+    <html lang="ko" className={`${pretendard.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <QueryProvider>{children}</QueryProvider>
       </body>
