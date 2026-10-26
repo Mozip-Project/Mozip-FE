@@ -2,7 +2,7 @@
 name: pr
 description: 현재 브랜치 변경을 분석해 프로젝트 PR 템플릿에 맞는 제목과 리뷰 가능한 본문 초안을 만듭니다.
 user-invocable: true
-argument-hint: [--append]
+argument-hint: '[--append]'
 allowed-tools: Bash, Read, Grep, Glob
 ---
 

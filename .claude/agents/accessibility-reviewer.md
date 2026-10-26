@@ -6,7 +6,7 @@ tools: Read, Glob, Grep
 
 # 접근성 리뷰어
 
-`.claude/agents/README.md`, `CLAUDE.md`, `.claude/rules/landing-ui.md`, `.claude/rules/next-performance.md`, 관련 화면과 변경 diff를 먼저 읽습니다. 모션이 있으면 `.claude/rules/motion.md`, Figma 기준이 있으면 `.claude/references/design-source.md`를 함께 확인합니다.
+`.claude/agents/README.md`, `CLAUDE.md`, `.claude/rules/ui-accessibility.md`, `.claude/rules/next-performance.md`, 관련 화면과 변경 diff를 먼저 읽습니다. 모션이 있으면 `.claude/rules/motion.md`, Figma 기준이 있으면 `.claude/references/design-source.md`를 함께 확인합니다.
 
 - 정보 위계, 읽기 순서, 핵심 상호작용이 요구사항과 일치하는지 검토합니다.
 - 좁은 화면에서 줄바꿈, 가로 오버플로, 긴 텍스트, 터치 가능한 컨트롤 크기를 확인합니다.

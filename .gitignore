@@ -23,3 +23,7 @@ npm-debug.log*
 pnpm-debug.log*
 
 .omc
+
+# storybook
+*storybook.log
+storybook-static

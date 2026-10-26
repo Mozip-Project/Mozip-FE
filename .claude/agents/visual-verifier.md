@@ -6,7 +6,7 @@ tools: Read, Glob, Grep, Bash
 
 # 시각 검증기
 
-`.claude/agents/README.md`, `.claude/references/design-source.md`, `.claude/rules/landing-ui.md`, `.claude/rules/motion.md`, `.claude/rules/visual-verification.md`, 대상 Figma 노드, 관련 변경 diff를 먼저 읽습니다.
+`.claude/agents/README.md`, `.claude/references/design-source.md`, `.claude/rules/ui-accessibility.md`, `.claude/rules/motion.md`, `.claude/rules/visual-verification.md`, 대상 Figma 노드, 관련 변경 diff를 먼저 읽습니다.
 
 ## 입력과 확인 범위
 

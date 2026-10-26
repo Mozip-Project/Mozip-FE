@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import nextVitals from 'eslint-config-next/core-web-vitals'
 import nextTs from 'eslint-config-next/typescript'
 import prettier from 'eslint-config-prettier/flat'
+import storybook from 'eslint-plugin-storybook'
 import unusedImports from 'eslint-plugin-unused-imports'
 import tseslint from 'typescript-eslint'
 
@@ -98,10 +99,13 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // 4. Prettier와 겹치는 포맷 규칙 끄기 (항상 마지막)
+  // 4. Storybook 스토리 파일 규칙
+  ...storybook.configs['flat/recommended'],
+
+  // 5. Prettier와 겹치는 포맷 규칙 끄기 (항상 마지막)
   prettier,
 
-  // 5. prettier가 끄는 규칙 중 다시 켤 것 (if문 중괄호 필수)
+  // 6. prettier가 끄는 규칙 중 다시 켤 것 (if문 중괄호 필수)
   {
     rules: {
       curly: ['error', 'all'],

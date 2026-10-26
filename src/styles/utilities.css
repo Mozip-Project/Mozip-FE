@@ -1,0 +1,5 @@
+@utility layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--layout-grid-columns), minmax(0, 1fr));
+  column-gap: var(--layout-grid-gutter);
+}

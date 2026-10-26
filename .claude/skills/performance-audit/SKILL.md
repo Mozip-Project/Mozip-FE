@@ -2,7 +2,7 @@
 name: performance-audit
 description: 이미지, 폰트, Client Component, 스크롤 성능 위험을 읽기 전용으로 점검합니다.
 user-invocable: true
-argument-hint: [file-or-directory]
+argument-hint: '[file-or-directory]'
 ---
 
 # performance-audit

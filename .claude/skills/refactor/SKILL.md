@@ -2,7 +2,7 @@
 name: refactor
 description: 이 프로젝트에서 동작을 바꾸지 않는 좁은 리팩터링을 분석하고 적용합니다.
 user-invocable: true
-argument-hint: [file-or-scope]
+argument-hint: '[file-or-scope]'
 ---
 
 # refactor
