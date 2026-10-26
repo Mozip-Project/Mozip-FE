@@ -1,0 +1,61 @@
+name: 'Chromatic Deployment'
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/**'
+      - 'src/assets/**'
+      - 'src/styles/**'
+      - 'src/lib/utils.ts'
+      - 'src/utils/**'
+      - '**/*.stories.tsx'
+      - '.storybook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/**'
+      - 'src/assets/**'
+      - 'src/styles/**'
+      - 'src/lib/utils.ts'
+      - 'src/utils/**'
+      - '**/*.stories.tsx'
+      - '.storybook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromatic:
+    name: 'Run Chromatic'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish Storybook to Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
