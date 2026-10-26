@@ -1,12 +1,18 @@
-// 하위 경로에서도 상위 메뉴를 현재 메뉴로 표시, 홈(/)은 정확히 같을 때만 표시
-function isActivePath(pathname: string, href: string) {
+type ActivePathMatch = 'page' | 'section'
+
+// 같은 경로는 page, 하위 경로는 section으로 구분, 홈(/)은 정확히 같을 때만 표시
+function getActivePathMatch(pathname: string, href: string): ActivePathMatch | undefined {
   const [path] = href.split(/[?#]/)
 
-  if (path === '/') {
-    return pathname === '/'
+  if (pathname === path) {
+    return 'page'
   }
 
-  return pathname === path || pathname.startsWith(`${path}/`)
+  if (path !== '/' && pathname.startsWith(`${path}/`)) {
+    return 'section'
+  }
+
+  return undefined
 }
 
-export { isActivePath }
+export { getActivePathMatch, type ActivePathMatch }

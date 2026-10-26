@@ -14,7 +14,10 @@ export const Default: Story = {
   render: () => (
     <nav aria-label="메뉴" className="flex items-center gap-gap-xs">
       <NavItem href="/">메뉴</NavItem>
-      <NavItem href="/" isActive>
+      <NavItem href="/" current="page">
+        메뉴
+      </NavItem>
+      <NavItem href="/" current="section">
         메뉴
       </NavItem>
     </nav>
