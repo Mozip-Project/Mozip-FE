@@ -9,10 +9,10 @@ function Toggle({ className, ...props }: ComponentProps<typeof SwitchPrimitive.R
     <SwitchPrimitive.Root
       data-slot="toggle"
       className={cn(
-        'relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full p-[3px]',
+        'group relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full bg-gray-300 p-[3px]',
         'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none',
         'after:absolute after:-inset-x-3 after:-inset-y-2',
-        'data-checked:bg-brand-solid data-unchecked:bg-gray-300',
+        'aria-checked:bg-brand-solid',
         'disabled:pointer-events-none disabled:opacity-40',
         className,
       )}
@@ -20,7 +20,7 @@ function Toggle({ className, ...props }: ComponentProps<typeof SwitchPrimitive.R
     >
       <SwitchPrimitive.Thumb
         data-slot="toggle-thumb"
-        className="pointer-events-none block size-4.5 rounded-full bg-layer-floating transition-transform motion-reduce:transition-none data-checked:translate-x-4 data-unchecked:translate-x-0"
+        className="pointer-events-none block size-4.5 rounded-full bg-layer-floating transition-transform group-aria-checked:translate-x-4 motion-reduce:transition-none"
       />
     </SwitchPrimitive.Root>
   )
