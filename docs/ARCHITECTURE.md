@@ -38,8 +38,10 @@ Button, Modal 같은 기본 UI와 날짜 포맷 같은 유틸은 "공고"나 "�
 ```text
 src/app/globals.css      # 진입점. Tailwind와 아래 파일을 import
 src/styles/
-├── tokens.css           # Figma 디자인 토큰(색상·간격·반경·layout)
-└── utilities.css        # 커스텀 Tailwind 유틸리티
+├── tokens.css           # Figma 디자인 토큰(색상·간격·반경·텍스트·layout)
+├── utilities.css        # 커스텀 Tailwind 유틸리티
+├── fonts.ts             # next/font/local로 Pretendard 로드
+└── fonts/               # 폰트 파일과 라이선스
 ```
 
 Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 유틸리티가 생기면 `utilities.css`를 수정합니다. 컴포넌트 전용 스타일은 이 폴더에 두지 않고 Tailwind 클래스로 작성합니다.
@@ -48,13 +50,13 @@ Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 
 
 | 영역        | 결정                  | 사용 기준                                                                    |
 | ----------- | --------------------- | ---------------------------------------------------------------------------- |
-| 기본 UI     | shadcn/ui             | 컴포넌트 코드를 저장소에 복사해 디자인 시스템에 맞게 수정                    |
+| 기본 UI     | shadcn/ui             | 컴포넌트 코드를 저장소에 복사해 Figma 토큰 클래스로 바꿔 사용                |
 | 서버 상태   | TanStack Query        | 브라우저에서 서버 데이터를 읽고 쓰는 화면. 공개 조회는 Server Component 우선 |
 | 전역 상태   | 도입하지 않음         | 서버 데이터는 Query 캐시, 화면 간 공유 값은 URL·props 우선. 필요해지면 검토  |
 | 폼과 검증   | react-hook-form + zod | 지원서·문항 설정처럼 입력과 검증이 있는 화면                                 |
 | HTTP        | ky                    | 공용 API 클라이언트 한 곳에서만 사용                                         |
 | 실시간 갱신 | 폴링                  | 면접 보드처럼 다른 사람의 변경을 봐야 하는 화면. 방식 변경은 백엔드와 결정   |
-| UI 문서     | Storybook             | 공용 UI와 핵심 도메인 컴포넌트                                               |
+| UI 문서     | Storybook             | 공용 UI와 핵심 도메인 컴포넌트. 스토리는 컴포넌트 옆 `*.stories.tsx`         |
 | API 목킹    | MSW는 필요해지면 도입 | 백엔드 API가 없어 개발이 막힐 때 검토                                        |
 
 설치는 각 라이브러리를 처음 실제로 쓰는 작업에서 합니다.

@@ -17,7 +17,10 @@
 4. Dialog, Popover, Menu처럼 키보드·포커스 제어가 필요한 복잡한 동작은 shadcn/ui 컴포넌트를 가져와 사용합니다.
 
 - 기본 UI 라이브러리는 shadcn/ui입니다. shadcn/ui 외의 공용 UI 라이브러리나 아이콘 라이브러리를 임의로 추가하지 않습니다.
-- 아이콘은 먼저 프로젝트에 이미 있는 아이콘 자산을 확인합니다. 아이콘 관리 방식(SVG 컴포넌트, 아이콘 라이브러리 등)은 디자인 시스템이 정해지면 결정합니다.
+- shadcn/ui 테마 변수(`--primary`, `--border` 등)는 두지 않습니다. `pnpm exec shadcn add`로 가져온 컴포넌트는 `bg-primary`, `rounded-4xl`, `dark:` 같은 shadcn 기본 클래스를 `tokens.css`의 클래스(`bg-brand-solid`, `rounded-m` 등)로 바꾼 뒤 사용합니다.
+- `shadcn add` 후 `globals.css`에 `:root`·`.dark`·`@theme inline` 변수가 추가되면 되돌립니다. `globals.css`에는 import만 둡니다.
+- 가져온 컴포넌트의 `import { cn } from 'cn'`은 `@/lib/utils`로 바꿉니다. 기본 `cn`은 `text-body1` 같은 커스텀 토큰을 몰라 글자 색 클래스를 지웁니다. `tokens.css`에 반경·간격·텍스트 토큰을 추가하면 `src/lib/utils.ts` 목록도 함께 갱신합니다.
+- 아이콘은 먼저 `src/assets/icons/`에 이미 있는지 확인합니다. 없으면 Figma에서 SVG로 내보내 그 폴더에 두고, 색은 `currentColor`로 바꿔 `@/assets/icons/<name>.svg`로 import합니다. SVGR 변환 대상은 `next.config.ts`, `.storybook/main.ts`, `vitest.config.mts`에 같은 경로로 맞춰 둡니다. `lucide-react`는 쓰지 않습니다. `shadcn add`로 가져온 컴포넌트가 lucide 아이콘을 import하거나 `package.json`에 `lucide-react`를 다시 추가하면, 아이콘을 `src/assets/icons/`의 SVG로 바꾸고 의존성을 제거합니다.
 - 입력과 검증이 있는 폼은 react-hook-form과 zod를 사용합니다.
 - 한 번만 쓰는 UI를 범용 `Button`, `Card`, `Section`처럼 성급하게 추상화하지 않습니다. 실제 재사용 요구가 생긴 뒤에만 승격합니다.
 
