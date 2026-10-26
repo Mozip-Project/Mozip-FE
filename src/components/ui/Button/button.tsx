@@ -6,7 +6,7 @@ import type { ComponentProps } from 'react'
 const buttonVariants = cva(
   [
     'inline-flex shrink-0 cursor-pointer items-center justify-center gap-gap-xs font-semibold whitespace-nowrap select-none',
-    'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none',
+    'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none',
     'disabled:pointer-events-none',
     '[&_svg]:pointer-events-none [&_svg]:shrink-0',
   ],

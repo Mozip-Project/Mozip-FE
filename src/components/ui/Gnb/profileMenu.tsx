@@ -31,7 +31,7 @@ function ProfileMenu({ name, mode, myPageHref }: ProfileMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="프로필 메뉴"
-        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring [&_svg]:size-full"
+        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid [&_svg]:size-full"
       >
         <ProfileIcon aria-hidden />
       </DropdownMenuTrigger>

@@ -34,7 +34,7 @@ function Gnb(props: GnbProps) {
           <Link
             href="/"
             aria-label="MOZIP. 홈"
-            className="flex h-8 w-24 shrink-0 items-center rounded-s text-heading2 font-bold text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+            className="flex h-8 w-24 shrink-0 items-center rounded-s text-heading2 font-bold text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
           >
             LOGO
           </Link>

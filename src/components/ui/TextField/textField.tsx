@@ -26,7 +26,7 @@ function TextField({ label, className, id, ...props }: TextFieldProps) {
         className={cn(
           'h-12 w-full min-w-0 rounded-m border border-neutral-weak bg-layer-default px-padding-m text-body2 font-normal text-neutral placeholder:text-placeholder',
           'transition-colors outline-none not-aria-invalid:focus:border-neutral-solid motion-reduce:transition-none',
-          'aria-invalid:border-critical-solid',
+          'aria-invalid:border-critical-solid aria-invalid:focus-visible:outline-2 aria-invalid:focus-visible:outline-offset-2 aria-invalid:focus-visible:outline-focus-ring aria-invalid:focus-visible:outline-solid',
           'disabled:pointer-events-none disabled:border-neutral-muted disabled:bg-disabled disabled:text-disabled disabled:placeholder:text-disabled',
         )}
         {...props}

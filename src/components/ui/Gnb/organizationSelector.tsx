@@ -11,7 +11,7 @@ function OrganizationSelector({ name }: OrganizationSelectorProps) {
       type="button"
       aria-label={`${name} 단체 선택`}
       data-slot="organization-selector"
-      className="flex h-10 max-w-48 min-w-0 shrink cursor-pointer items-center gap-gap-xs rounded-full border border-neutral-muted px-padding-xs text-neutral outline-none hover:bg-transparent-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      className="flex h-10 max-w-48 min-w-0 shrink cursor-pointer items-center gap-gap-xs rounded-full border border-neutral-muted px-padding-xs text-neutral outline-none hover:bg-transparent-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
     >
       {/* TODO: 단체 이미지 경로, 호스트 확정 후 이름 첫 글자 대신 next/image로 교체 */}
       <span

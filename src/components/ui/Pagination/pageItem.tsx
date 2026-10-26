@@ -6,7 +6,7 @@ import type { Route } from 'next'
 
 const ITEM_BOX_CLASS = 'flex size-8 shrink-0 items-center justify-center rounded-m'
 const FOCUS_RING_CLASS =
-  'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
+  'outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
 
 type PageItemProps = {
   page: number

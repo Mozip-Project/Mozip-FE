@@ -47,7 +47,7 @@ function JobCard({
             type="button"
             aria-label={`${title} 스크랩`}
             aria-pressed={isScrapped}
-            className="relative z-10 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-neutral-subtle bg-layer-floating text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring [&_svg]:size-5"
+            className="relative z-10 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-neutral-subtle bg-layer-floating text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid [&_svg]:size-5"
           >
             {isScrapped ? <BookmarkFillIcon aria-hidden /> : <BookmarkIcon aria-hidden />}
           </button>
