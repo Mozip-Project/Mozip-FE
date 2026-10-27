@@ -41,13 +41,16 @@ describe('Tabs', () => {
     expect(screen.getByRole('tabpanel')).toHaveTextContent('평가 완료 지원자')
   })
 
-  it('방향키로 다음 탭 이동', async () => {
+  it('방향키로 다음 탭 이동 시 선택과 내용도 전환', async () => {
     const user = userEvent.setup()
     renderTabs()
 
     await user.click(screen.getByRole('tab', { name: '전체 48' }))
     await user.keyboard('{ArrowRight}')
 
-    expect(screen.getByRole('tab', { name: '평가 완료 36' })).toHaveFocus()
+    const nextTab = screen.getByRole('tab', { name: '평가 완료 36' })
+    expect(nextTab).toHaveFocus()
+    expect(nextTab).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('평가 완료 지원자')
   })
 })
