@@ -44,6 +44,12 @@ reviews:
     drafts: false
 
   path_instructions:
+    # 반응형 시안 확정 전까지 임시 적용, 시안이 나오면 이 항목 삭제
+    - path: 'src/**'
+      instructions: |
+        모바일·태블릿 반응형 시안이 아직 확정되지 않았다. 화면 폭, 좁은 컨테이너, 줄바꿈, overflow, 가로·세로 배치 같은 반응형 관련 지적은 남기지 않는다.
+        .claude/rules와 docs의 반응형 기준도 시안 확정 전까지 리뷰 근거로 사용하지 않는다.
+
     - path: 'src/app/**'
       instructions: |
         Next.js App Router 경계를 검토한다. page와 layout은 Server Component를 기본으로 하며, 이벤트·상태·effect·브라우저 API가 필요한 최소 경계에만 'use client'를 둔다.
