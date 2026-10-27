@@ -8,7 +8,8 @@
 
 ## 네이밍과 타입
 
-- 파일명과 폴더명은 kebab-case, React 컴포넌트와 타입은 PascalCase, 함수·변수는 camelCase를 사용합니다.
+- 파일명은 camelCase(`textField.tsx`), 컴포넌트 폴더는 PascalCase(`TextField/`)를 사용합니다. Next.js 라우트 파일(`page.tsx` 등)은 정해진 이름을 따릅니다.
+- React 컴포넌트와 타입은 PascalCase, 함수·변수는 camelCase를 사용합니다.
 - 모듈 수준의 고정 설정값·제한값은 `UPPER_SNAKE_CASE`로 작성합니다. JSX 안에서 계산되는 값이나 단일 함수의 지역 값까지 기계적으로 대문자화하지 않습니다.
 - 컴포넌트와 모듈 수준의 이름 있는 함수는 `function` 선언을 기본으로 합니다. 짧은 콜백과 배열 변환에는 화살표 함수를 사용합니다.
 - 타입 전용 import는 `import type`을 사용합니다.

@@ -115,6 +115,12 @@
   --spacing-gap-xxl: 40px;
 
   /* Typography: Figma Web 텍스트 스타일. 자간 -2%는 em 단위로 변환, weight는 font-* 유틸리티로 지정 */
+  --text-heading2: 20px;
+  --text-heading2--line-height: 28px;
+  --text-heading2--letter-spacing: -0.02em;
+  --text-headline2: 17px;
+  --text-headline2--line-height: 26px;
+  --text-headline2--letter-spacing: -0.02em;
   --text-body1: 16px;
   --text-body1--line-height: 24px;
   --text-body1--letter-spacing: -0.02em;
@@ -124,9 +130,15 @@
   --text-label1: 14px;
   --text-label1--line-height: 20px;
   --text-label1--letter-spacing: -0.02em;
+  --text-label2: 13px;
+  --text-label2--line-height: 18px;
+  --text-label2--letter-spacing: -0.02em;
   --text-caption1: 12px;
   --text-caption1--line-height: 16px;
   --text-caption1--letter-spacing: -0.02em;
+
+  /* Elevation: Figma Effect 스타일 */
+  --shadow-floating: 0 1px 3px 0 rgb(15 18 26 / 0.06), 0 8px 24px 0 rgb(15 18 26 / 0.08);
 
   /* Layout: 태블릿·모바일 container 값은 frame 폭에서 page-padding을 뺀 값이라 데스크톱 최대 폭만 고정 */
   --container-page: 1200px;

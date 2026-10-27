@@ -21,13 +21,15 @@ const SPACING_TOKENS = [
   'content-gap',
   'grid-gutter',
 ]
-const FONT_SIZE_TOKENS = ['body1', 'body2', 'label1', 'caption1']
+const FONT_SIZE_TOKENS = ['heading2', 'headline2', 'body1', 'body2', 'label1', 'label2', 'caption1']
+const SHADOW_TOKENS = ['floating']
 
 export const cn = createCn({
   extend: {
     theme: {
       radius: RADIUS_TOKENS,
       spacing: SPACING_TOKENS,
+      shadow: SHADOW_TOKENS,
     },
     classGroups: {
       'font-size': [{ text: FONT_SIZE_TOKENS }],
