@@ -10,14 +10,21 @@ type SegmentGroupProps = ComponentProps<typeof RadioGroupPrimitive.Root> & {
   errorMessage?: string
 }
 
-function SegmentGroup({ className, errorMessage, ...props }: SegmentGroupProps) {
+function SegmentGroup({
+  className,
+  errorMessage,
+  'aria-describedby': describedBy,
+  'aria-invalid': ariaInvalid,
+  ...props
+}: SegmentGroupProps) {
   const errorId = useId()
+  const descriptionIds = [describedBy, errorMessage && errorId].filter(Boolean).join(' ')
 
   return (
     <div data-slot="segment-group" className={cn('flex flex-col gap-gap-s', className)}>
       <RadioGroupPrimitive.Root
-        aria-invalid={errorMessage ? true : undefined}
-        aria-describedby={errorMessage ? errorId : undefined}
+        aria-invalid={errorMessage ? true : ariaInvalid}
+        aria-describedby={descriptionIds || undefined}
         orientation="horizontal"
         className={cn(
           'group/segment flex flex-wrap gap-gap-xs',

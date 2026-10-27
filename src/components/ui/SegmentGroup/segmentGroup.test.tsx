@@ -47,6 +47,26 @@ describe('SegmentGroup', () => {
     expect(group).toHaveAccessibleDescription('옵션을 선택해 주세요')
   })
 
+  it('호출자 설명과 오류 문구를 함께 연결', () => {
+    render(
+      <>
+        <p id="score-help">점수 기준 안내</p>
+        <SegmentGroup
+          aria-label="평가 결과"
+          aria-describedby="score-help"
+          aria-invalid={false}
+          errorMessage="옵션을 선택해 주세요"
+        >
+          <SegmentOption value="pass">합격</SegmentOption>
+        </SegmentGroup>
+      </>,
+    )
+    const group = screen.getByRole('radiogroup', { name: '평가 결과' })
+
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    expect(group).toHaveAccessibleDescription('점수 기준 안내 옵션을 선택해 주세요')
+  })
+
   it('오류가 없으면 invalid 표시 없음', () => {
     const { group } = renderSegmentGroup()
 
