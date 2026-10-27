@@ -70,7 +70,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && needs.chromatic.outputs.storybook-url != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # PR 대상 issues 댓글 API도 pull-requests 권한 필요
+    # PR 댓글은 issues API여도 pull-requests 권한 필요
     permissions:
       issues: write
       pull-requests: write

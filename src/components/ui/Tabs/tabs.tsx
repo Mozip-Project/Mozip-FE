@@ -32,7 +32,7 @@ function TabsTrigger({ className, children, count, ...props }: TabsTriggerProps)
       {...props}
     >
       {children}
-      {/* 접근 가능한 이름의 라벨·개수 구분용 공백. flex 안이라 화면 간격에는 영향 없음 */}
+      {/* 접근 가능한 이름의 라벨·개수 구분용 공백 */}
       {count !== undefined && (
         <>
           {' '}

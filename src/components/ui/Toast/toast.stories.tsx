@@ -16,7 +16,7 @@ type Story = StoryObj
 const TITLE = '임시 저장했어요'
 const DESCRIPTION = '모집 관리 > 작성 중에서 언제든 이어서 쓸 수 있어요'
 
-// 자동 닫힘 없이 디자인 확인용으로 고정 표시
+// 디자인 확인용 고정 표시
 export const Default: Story = {
   render: () => (
     <ToastProvider duration={Infinity}>

@@ -6,7 +6,6 @@ import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
 import { cn } from '@/lib/utils'
 
 type SegmentGroupProps = ComponentProps<typeof RadioGroupPrimitive.Root> & {
-  // 값이 있으면 Error 상태로 표시하고 그룹과 연결
   errorMessage?: string
 }
 
@@ -28,7 +27,7 @@ function SegmentGroup({
         orientation="horizontal"
         className={cn(
           'group/segment flex flex-wrap gap-gap-xs',
-          // 옵션 자체의 shrink-0·min-w-13보다 우선해 같은 폭으로 채우고, 문구보다 좁아지면 다음 줄로 배치
+          // 옵션의 shrink-0·min-w-13 대신 같은 폭 채움, 좁으면 다음 줄 배치
           '[&>[data-slot=segment-option]]:min-w-fit [&>[data-slot=segment-option]]:flex-1',
         )}
         {...props}

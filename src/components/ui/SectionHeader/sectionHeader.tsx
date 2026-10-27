@@ -5,7 +5,6 @@ import type { ComponentProps } from 'react'
 
 type SectionHeaderProps = {
   title: string
-  // 링크 목적지가 없는 섹션은 제목만 표시
   moreHref?: ComponentProps<typeof Link>['href']
   moreLabel?: string
   className?: string
@@ -25,7 +24,7 @@ function SectionHeader({
       {moreHref && (
         <Link
           href={moreHref}
-          // 섹션마다 반복되는 "전체 보기"를 대상 섹션과 함께 안내
+          // 반복되는 "전체 보기"에 섹션 이름 포함
           aria-label={`${title} ${moreLabel}`}
           className={cn(
             'flex shrink-0 items-center gap-gap-xxs rounded-xs text-body2 font-medium whitespace-nowrap text-neutral-subtle',

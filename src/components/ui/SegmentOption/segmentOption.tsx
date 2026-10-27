@@ -10,7 +10,7 @@ export const SEGMENT_SIZES = ['l', 'm', 's'] as const
 type SegmentTone = (typeof SEGMENT_TONES)[number]
 type SegmentSize = (typeof SEGMENT_SIZES)[number]
 
-// Figma 'Segment Tone' 변수 모드: Brand=합격·점수, Warning=보류, Critical=불합격
+// Figma Segment Tone: Brand=합격·점수, Warning=보류, Critical=불합격
 const SELECTED_TONE_CLASS = {
   brand: 'aria-checked:border-brand-solid aria-checked:bg-brand-weak aria-checked:text-brand',
   warning:
@@ -30,7 +30,7 @@ type SegmentOptionProps = ComponentProps<typeof RadioGroupPrimitive.Item> & {
   size?: SegmentSize
 }
 
-// Dimmed·Error는 그룹 상태에서 결정. 부모 RadioGroup에 group/segment 클래스와 aria-invalid 필요
+// Dimmed·Error는 SegmentGroup 상태로 결정
 function SegmentOption({ className, tone = 'brand', size = 'l', ...props }: SegmentOptionProps) {
   return (
     <RadioGroupPrimitive.Item

@@ -10,7 +10,7 @@ type PageHeaderProps = {
 
 function PageHeader({ title, description, actions, className }: PageHeaderProps) {
   return (
-    // Figma는 640px 이상만 정의, 모바일은 액션 버튼 잘림 방지용 세로 배치
+    // Figma 미정의인 모바일은 버튼 잘림 방지용 세로 배치
     <header
       className={cn(
         'flex flex-col items-start gap-gap-xl tablet:flex-row tablet:items-center',

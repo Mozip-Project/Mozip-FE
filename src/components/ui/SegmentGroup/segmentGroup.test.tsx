@@ -33,7 +33,7 @@ describe('SegmentGroup', () => {
     const { onValueChange } = renderSegmentGroup()
 
     await user.click(screen.getByRole('radio', { name: '합격' }))
-    // Radix는 다음 tick에 focus를 옮기므로 실제 입력처럼 키를 누른 상태 유지
+    // Radix가 다음 tick에 focus를 옮겨 키 누름 상태 유지
     await user.keyboard('{ArrowRight>}')
 
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('hold'))

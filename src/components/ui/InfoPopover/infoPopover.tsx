@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 type InfoPopoverProps = Omit<ComponentProps<typeof PopoverPrimitive.Content>, 'title'> & {
   trigger: ReactElement
   title: string
-  // 줄바꿈 문자(\n)를 그대로 줄로 표시
   description: string
 }
 
