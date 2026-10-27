@@ -72,7 +72,6 @@ jobs:
     timeout-minutes: 5
     permissions:
       issues: write
-      pull-requests: write
 
     steps:
       - name: Comment Storybook link on pull request
