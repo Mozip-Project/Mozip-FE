@@ -10,15 +10,22 @@ const TOAST_DURATION_MS = 3000
 
 function ToastProvider({
   duration = TOAST_DURATION_MS,
+  label = '알림',
   ...props
 }: ComponentProps<typeof ToastPrimitive.Provider>) {
-  return <ToastPrimitive.Provider duration={duration} {...props} />
+  return <ToastPrimitive.Provider duration={duration} label={label} {...props} />
 }
 
-function ToastViewport({ className, ...props }: ComponentProps<typeof ToastPrimitive.Viewport>) {
+function ToastViewport({
+  className,
+  // {hotkey}는 Radix가 실제 단축키(F8)로 치환
+  label = '알림 ({hotkey})',
+  ...props
+}: ComponentProps<typeof ToastPrimitive.Viewport>) {
   return (
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
+      label={label}
       className={cn(
         // 화면 하단 중앙, 아래에서 20px
         'pointer-events-none fixed inset-x-0 bottom-5 z-50 flex flex-col items-center gap-gap-s px-page-padding outline-none',

@@ -31,6 +31,26 @@ describe('Toast', () => {
     expect(screen.getByText('설명')).toBeInTheDocument()
   })
 
+  it('알림 영역과 읽기 문구를 한국어 이름으로 표시', () => {
+    renderOpenToast()
+    act(() => {
+      vi.advanceTimersByTime(100)
+    })
+
+    expect(screen.getByRole('region', { name: '알림 (F8)' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(`알림 ${TITLE}`)
+  })
+
+  it('호출자가 넘긴 label 우선 적용', () => {
+    render(
+      <ToastProvider>
+        <ToastViewport label="저장 알림 ({hotkey})" />
+      </ToastProvider>,
+    )
+
+    expect(screen.getByRole('region', { name: '저장 알림 (F8)' })).toBeInTheDocument()
+  })
+
   it('3초 뒤 자동으로 닫힘', () => {
     const { onOpenChange } = renderOpenToast()
 
