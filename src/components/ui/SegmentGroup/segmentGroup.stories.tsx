@@ -1,5 +1,5 @@
-import { SegmentOption } from '@/components/ui/SegmentOption/segmentOption'
 import { SegmentGroup } from './segmentGroup'
+import { SegmentOption } from './segmentOption'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {

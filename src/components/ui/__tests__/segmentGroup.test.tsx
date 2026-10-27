@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { SegmentOption } from '@/components/ui/SegmentOption/segmentOption'
-import { SegmentGroup } from './segmentGroup'
+import { SegmentGroup } from '@/components/ui/SegmentGroup/segmentGroup'
+import { SegmentOption } from '@/components/ui/SegmentGroup/segmentOption'
 
 function renderSegmentGroup(props: { errorMessage?: string } = {}) {
   const onValueChange = vi.fn()

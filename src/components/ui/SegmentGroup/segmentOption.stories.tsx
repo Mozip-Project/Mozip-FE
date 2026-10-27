@@ -1,9 +1,9 @@
-import { SegmentGroup } from '@/components/ui/SegmentGroup/segmentGroup'
+import { SegmentGroup } from './segmentGroup'
 import { SEGMENT_SIZES, SEGMENT_TONES, SegmentOption } from './segmentOption'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/SegmentOption',
+  title: 'UI/SegmentGroup/SegmentOption',
   component: SegmentOption,
   parameters: { controls: { disable: true } },
 } satisfies Meta<typeof SegmentOption>
