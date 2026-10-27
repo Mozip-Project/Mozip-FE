@@ -1,13 +1,12 @@
 'use client'
 
 import { Popover as PopoverPrimitive } from 'radix-ui'
-import { useId, type ComponentProps, type ReactNode } from 'react'
+import { useId, type ComponentProps, type ReactElement } from 'react'
 import CloseIcon from '@/assets/icons/close.svg'
 import { cn } from '@/lib/utils'
 
 type InfoPopoverProps = Omit<ComponentProps<typeof PopoverPrimitive.Content>, 'title'> & {
-  // 팝오버를 여는 요소. Radix Trigger의 asChild로 전달
-  trigger: ReactNode
+  trigger: ReactElement
   title: string
   // 줄바꿈 문자(\n)를 그대로 줄로 표시
   description: string
