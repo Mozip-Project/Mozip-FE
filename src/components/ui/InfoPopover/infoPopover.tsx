@@ -21,6 +21,7 @@ function InfoPopover({
   ...props
 }: InfoPopoverProps) {
   const titleId = useId()
+  const descriptionId = useId()
 
   return (
     <PopoverPrimitive.Root>
@@ -29,6 +30,7 @@ function InfoPopover({
         <PopoverPrimitive.Content
           data-slot="info-popover"
           aria-labelledby={titleId}
+          aria-describedby={descriptionId}
           align={align}
           sideOffset={sideOffset}
           className={cn(
@@ -54,7 +56,10 @@ function InfoPopover({
               <CloseIcon aria-hidden />
             </PopoverPrimitive.Close>
           </div>
-          <p className="text-label1 break-words whitespace-pre-line text-neutral-muted">
+          <p
+            id={descriptionId}
+            className="text-label1 break-words whitespace-pre-line text-neutral-muted"
+          >
             {description}
           </p>
         </PopoverPrimitive.Content>
