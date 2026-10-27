@@ -20,9 +20,9 @@ function SegmentGroup({ className, errorMessage, ...props }: SegmentGroupProps) 
         aria-describedby={errorMessage ? errorId : undefined}
         orientation="horizontal"
         className={cn(
-          'group/segment flex gap-gap-xs',
-          // 옵션 자체의 shrink-0·min-w-13보다 우선해 같은 폭으로 채움
-          '[&>[data-slot=segment-option]]:min-w-0 [&>[data-slot=segment-option]]:flex-1',
+          'group/segment flex flex-wrap gap-gap-xs',
+          // 옵션 자체의 shrink-0·min-w-13보다 우선해 같은 폭으로 채우고, 문구보다 좁아지면 다음 줄로 배치
+          '[&>[data-slot=segment-option]]:min-w-fit [&>[data-slot=segment-option]]:flex-1',
         )}
         {...props}
       />
