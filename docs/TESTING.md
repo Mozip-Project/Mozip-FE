@@ -7,7 +7,7 @@
 
 ## 파일 위치와 이름
 
-테스트는 대상 파일 바로 옆에 둡니다. Vitest는 `*.test.ts`, `*.test.tsx` 파일을 자동으로 찾습니다.
+테스트는 대상 파일 바로 옆에 둡니다. 단, `src/components/ui/`의 공용 컴포넌트는 폴더에 컴포넌트와 스토리만 두므로 테스트를 `src/components/ui/__tests__/`에 둡니다. Vitest는 `*.test.ts`, `*.test.tsx` 파일을 자동으로 찾습니다.
 
 ```text
 find-overlap.ts

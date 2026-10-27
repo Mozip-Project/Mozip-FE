@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { InfoPopover } from './infoPopover'
+import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
 
 function renderInfoPopover() {
   render(
@@ -15,13 +15,14 @@ function renderInfoPopover() {
 }
 
 describe('InfoPopover', () => {
-  it('트리거 클릭 시 제목으로 이름 붙은 dialog 표시', async () => {
+  it('트리거 클릭 시 제목과 설명이 연결된 dialog 표시', async () => {
     const user = userEvent.setup()
     const { trigger } = renderInfoPopover()
 
     await user.click(trigger)
 
-    expect(screen.getByRole('dialog', { name: '권한 안내' })).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog', { name: '권한 안내' })
+    expect(dialog).toHaveAccessibleDescription('설명')
     expect(trigger).toHaveAttribute('aria-expanded', 'true')
   })
 

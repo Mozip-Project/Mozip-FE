@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Toast, ToastProvider, ToastViewport } from './toast'
+import { Toast, ToastProvider, ToastViewport } from '@/components/ui/Toast/toast'
 
 const TITLE = '임시 저장했어요'
 
