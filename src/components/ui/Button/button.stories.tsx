@@ -43,3 +43,7 @@ export const Secondary: Story = {
 export const Tertiary: Story = {
   render: () => <SizeMatrix variant="tertiary" />,
 }
+
+export const Critical: Story = {
+  render: () => <SizeMatrix variant="critical" />,
+}
