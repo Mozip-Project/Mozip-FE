@@ -1,3 +1,4 @@
+import CloseIcon from '@/assets/icons/close.svg'
 import { Chip } from './chip'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
@@ -16,4 +17,20 @@ export const Default: Story = {
 
 export const Selected: Story = {
   render: () => <Chip defaultPressed>칩</Chip>,
+}
+
+// Figma Chip의 Removable 아이콘 대응
+export const WithIcon: Story = {
+  render: () => (
+    <div className="flex items-center gap-gap-m">
+      <Chip>
+        칩
+        <CloseIcon aria-hidden />
+      </Chip>
+      <Chip defaultPressed>
+        칩
+        <CloseIcon aria-hidden />
+      </Chip>
+    </div>
+  ),
 }

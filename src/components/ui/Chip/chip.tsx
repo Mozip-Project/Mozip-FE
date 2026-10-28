@@ -11,6 +11,8 @@ const chipVariants = cva([
   'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none',
   'aria-pressed:border-brand-weak aria-pressed:bg-brand-weak aria-pressed:text-brand',
   "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  // Figma Icon/close는 선택 여부와 관계없이 fg-neutral
+  '[&_svg]:text-neutral',
 ])
 
 function Chip({ className, ...props }: ComponentProps<typeof TogglePrimitive.Root>) {
