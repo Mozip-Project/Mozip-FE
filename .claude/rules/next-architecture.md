@@ -4,15 +4,15 @@
 
 ## 구조
 
-| 위치                     | 용도                                                           |
-| ------------------------ | -------------------------------------------------------------- |
-| `src/app/layout.tsx`     | root layout. `html`·`body`, 전역 metadata·폰트·스타일·Provider |
-| `src/app/(auth)/`        | 로그인·회원가입                                                |
-| `src/app/(applicant)/`   | 지원자 영역과 지원자용 layout                                  |
-| `src/app/<운영진 경로>/` | 운영진 영역과 운영진용 layout. 경로 이름은 미정                |
-| `src/components/ui/`     | 기본 UI. 컴포넌트 폴더에는 컴포넌트와 스토리만                 |
-| `src/lib/`               | 라이브러리 설정·래퍼                                           |
-| `src/utils/`             | 도메인을 모르는 순수 함수와 테스트                             |
+| 위치                     | 용도                                                                  |
+| ------------------------ | --------------------------------------------------------------------- |
+| `src/app/layout.tsx`     | root layout. `html`·`body`, 전역 metadata·폰트·스타일·Provider        |
+| `src/app/(auth)/`        | 로그인·회원가입                                                       |
+| `src/app/(applicant)/`   | 지원자 영역과 지원자용 layout                                         |
+| `src/app/<운영진 경로>/` | 운영진 영역과 운영진용 layout. 경로 이름은 미정                       |
+| `src/components/ui/`     | 기본 UI. 컴포넌트 폴더에는 컴포넌트와 스토리만, 테스트는 `__tests__/` |
+| `src/lib/`               | 라이브러리 설정·래퍼                                                  |
+| `src/utils/`             | 도메인을 모르는 순수 함수와 테스트                                    |
 
 - `app/`은 라우팅만 담당합니다. `page.tsx`는 화면 구성 순서와 데이터 전달만 보여 주고, API 호출·비즈니스 로직·큰 UI 덩어리는 `app/` 밖에 둡니다.
 - 한 화면에서만 쓰는 작은 UI는 해당 route 옆 `_components/`에 둘 수 있습니다.

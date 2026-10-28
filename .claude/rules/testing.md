@@ -6,6 +6,7 @@
 - `pnpm test`는 감시 모드, `pnpm test:run`은 CI용 단발 실행입니다.
 - 사람이 읽는 예시와 설명은 `docs/TESTING.md`에 있습니다.
 - 테스트는 대상 파일 가까이에 둡니다. 유틸리티는 `.test.ts`, React 컴포넌트는 `.test.tsx`를 사용합니다.
+- `src/components/ui/`의 공용 컴포넌트는 폴더에 컴포넌트와 스토리만 두므로, 테스트는 `src/components/ui/__tests__/`에 둡니다.
 
 ```text
 feature-name/

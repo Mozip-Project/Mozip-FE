@@ -11,7 +11,7 @@
   --color-gray-00: #ffffff;
   --color-gray-50: #f7f8fc;
   --color-gray-100: #edeef5;
-  --color-gray-200: #e3e6ef;
+  --color-gray-200: #e1e6ea;
   --color-gray-300: #c8cfda;
   --color-gray-400: #9ea7b9;
   --color-gray-500: #667185;
@@ -115,6 +115,9 @@
   --spacing-gap-xxl: 40px;
 
   /* Typography: Figma Web 텍스트 스타일. 자간 -2%는 em 단위로 변환, weight는 font-* 유틸리티로 지정 */
+  --text-title3: 28px;
+  --text-title3--line-height: 38px;
+  --text-title3--letter-spacing: -0.02em;
   --text-heading2: 20px;
   --text-heading2--line-height: 28px;
   --text-heading2--letter-spacing: -0.02em;
