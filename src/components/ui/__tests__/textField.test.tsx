@@ -24,6 +24,19 @@ describe('TextField', () => {
     )
   })
 
+  it('id를 지정해도 helper id가 외부 요소와 겹치지 않음', () => {
+    render(
+      <>
+        <p id="email-helper">기존 설명</p>
+        <TextField id="email" label="이메일" helper="새 도움말" aria-describedby="email-helper" />
+      </>,
+    )
+
+    expect(screen.getByRole('textbox', { name: '이메일' })).toHaveAccessibleDescription(
+      '기존 설명 새 도움말',
+    )
+  })
+
   it('required면 * 표시를 이름에서 제외하고 필수로 전달', () => {
     render(<TextField label="이름" required />)
 

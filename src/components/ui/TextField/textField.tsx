@@ -17,7 +17,7 @@ function TextField({
 }: TextFieldProps) {
   const generatedId = useId()
   const inputId = id ?? generatedId
-  const helperId = `${inputId}-helper`
+  const helperId = `${generatedId}-helper`
   const descriptionIds = [describedBy, helper && helperId].filter(Boolean).join(' ')
 
   return (
