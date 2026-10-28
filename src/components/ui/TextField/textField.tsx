@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 type TextFieldProps = ComponentProps<'input'> & {
   label?: ReactNode
-  helper?: ReactNode
+  helper?: string
 }
 
 function TextField({
