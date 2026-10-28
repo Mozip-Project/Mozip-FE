@@ -26,9 +26,9 @@ function SegmentGroup({
         aria-describedby={descriptionIds || undefined}
         orientation="horizontal"
         className={cn(
-          'group/segment flex flex-wrap gap-gap-xs',
-          // 옵션의 shrink-0·min-w-13 대신 같은 폭 채움, 좁으면 다음 줄 배치
-          '[&>[data-slot=segment-option]]:min-w-fit [&>[data-slot=segment-option]]:flex-1',
+          'group/segment flex gap-gap-xs',
+          // 옵션의 shrink-0·min-w-13 대신 라벨 길이와 무관한 같은 폭 분배, Figma 기준 한 줄 유지
+          '[&>[data-slot=segment-option]]:min-w-0 [&>[data-slot=segment-option]]:flex-1',
         )}
         {...props}
       />
