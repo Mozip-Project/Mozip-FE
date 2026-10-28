@@ -2,7 +2,7 @@
 
 import { RadioGroup as RadioGroupPrimitive } from 'radix-ui'
 import { useId, type ComponentProps } from 'react'
-import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
+import InfoIcon from '@/assets/icons/info.svg'
 import { cn } from '@/lib/utils'
 
 type SegmentGroupProps = ComponentProps<typeof RadioGroupPrimitive.Root> & {
@@ -37,7 +37,7 @@ function SegmentGroup({
           id={errorId}
           className="flex items-center gap-gap-xxs self-start text-caption1 font-medium text-critical"
         >
-          <AlertCircleIcon aria-hidden className="shrink-0" />
+          <InfoIcon aria-hidden className="shrink-0" />
           {errorMessage}
         </p>
       )}
