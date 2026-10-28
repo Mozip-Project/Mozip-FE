@@ -25,6 +25,10 @@ const buttonVariants = cva(
           'text-neutral-muted hover:bg-transparent-pressed hover:text-neutral',
           'disabled:text-disabled',
         ],
+        critical: [
+          'bg-critical-weak text-critical hover:bg-critical-weak-pressed',
+          'disabled:bg-disabled disabled:text-disabled',
+        ],
       },
       size: {
         l: "h-12 rounded-m px-padding-xl text-body1 [&_svg:not([class*='size-'])]:size-5",
