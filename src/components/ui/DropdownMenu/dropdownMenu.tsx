@@ -1,6 +1,8 @@
 'use client'
 
 import { DropdownMenu as DropdownMenuPrimitive } from 'radix-ui'
+import CheckIcon from '@/assets/icons/check.svg'
+import { CheckboxMark } from '@/components/ui/Checkbox/checkboxMark'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
@@ -62,6 +64,80 @@ function DropdownMenuItem({
   )
 }
 
+// TODO: Figma MultiSelectOption 값 반영 (현재 스크린샷 기준 임시값)
+function DropdownMenuCheckboxItem({
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
+  return (
+    <DropdownMenuPrimitive.CheckboxItem
+      data-slot="dropdown-menu-checkbox-item"
+      className={cn(
+        'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
+        'focus:bg-layer-floating-pressed',
+        'data-disabled:pointer-events-none data-disabled:text-disabled',
+        className,
+      )}
+      {...props}
+    >
+      <CheckboxMark />
+      {children}
+    </DropdownMenuPrimitive.CheckboxItem>
+  )
+}
+
+function DropdownMenuRadioGroup(props: ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
+  return <DropdownMenuPrimitive.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
+}
+
+// TODO: Figma SelectMenu 값 반영 (현재 스크린샷 기준 임시값)
+function DropdownMenuRadioItem({
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      data-slot="dropdown-menu-radio-item"
+      className={cn(
+        'relative flex h-10 cursor-pointer items-center rounded-m pr-10 pl-padding-s text-label1 font-normal text-neutral-muted outline-none select-none',
+        'focus:bg-layer-floating-pressed',
+        'data-[state=checked]:font-semibold data-[state=checked]:text-neutral',
+        'data-disabled:pointer-events-none data-disabled:text-disabled',
+        className,
+      )}
+      {...props}
+    >
+      <span
+        data-slot="dropdown-menu-radio-item-indicator"
+        className="pointer-events-none absolute right-padding-s flex items-center justify-center text-brand"
+      >
+        <DropdownMenuPrimitive.ItemIndicator>
+          <CheckIcon aria-hidden className="size-4" />
+        </DropdownMenuPrimitive.ItemIndicator>
+      </span>
+      {children}
+    </DropdownMenuPrimitive.RadioItem>
+  )
+}
+
+function DropdownMenuLabel({
+  className,
+  ...props
+}: ComponentProps<typeof DropdownMenuPrimitive.Label>) {
+  return (
+    <DropdownMenuPrimitive.Label
+      data-slot="dropdown-menu-label"
+      className={cn(
+        'px-padding-s py-padding-xs text-caption1 font-medium text-neutral-subtle',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
 function DropdownMenuSeparator({
   className,
   ...props
@@ -77,9 +153,13 @@ function DropdownMenuSeparator({
 
 export {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 }
