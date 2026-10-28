@@ -29,7 +29,7 @@ function TextField({
           className="flex w-fit items-center gap-gap-xs text-label1 font-semibold text-neutral group-has-disabled:text-disabled"
         >
           {label}
-          {/* 필수 여부는 input required로 전달, 시각 표시만 담당 */}
+          {/* 필수 여부는 input required로 전달 */}
           {required && (
             <span aria-hidden className="text-critical group-has-disabled:text-disabled">
               *

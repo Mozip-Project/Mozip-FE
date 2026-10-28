@@ -32,7 +32,6 @@ export const Default: Story = {
   ),
 }
 
-// Figma TextField의 Required·Helper 대응
 export const RequiredWithHelper: Story = {
   render: () => (
     <div className="grid grid-cols-2 gap-gap-xl">

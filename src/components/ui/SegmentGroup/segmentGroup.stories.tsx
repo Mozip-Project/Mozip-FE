@@ -49,7 +49,6 @@ export const Error: Story = {
   ),
 }
 
-// Figma SegmentGroup 옵션 5개 구성, 한 줄에 같은 폭 분배
 const FIVE_OPTIONS = ['합격', '보류', '불합격', '옵션 4', '옵션 5'] as const
 
 function FiveOptions() {

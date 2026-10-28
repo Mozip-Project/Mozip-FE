@@ -19,7 +19,6 @@ export const Selected: Story = {
   render: () => <Chip defaultPressed>칩</Chip>,
 }
 
-// Figma Chip의 Removable 아이콘 대응
 export const WithIcon: Story = {
   render: () => (
     <div className="flex items-center gap-gap-m">

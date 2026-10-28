@@ -51,7 +51,6 @@ export const Critical: Story = {
   render: () => <SizeMatrix variant="critical" />,
 }
 
-// Figma Button의 Left·Right Icon 슬롯 대응, 아이콘 크기·색은 size·variant 스타일 적용
 export const WithIcons: Story = {
   render: () => (
     <div className="flex flex-col gap-gap-l">
