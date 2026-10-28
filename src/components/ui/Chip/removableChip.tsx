@@ -14,7 +14,7 @@ type RemovableChipProps = {
 
 function RemovableChip({ children, onRemove, removeLabel, className }: RemovableChipProps) {
   return (
-    <span data-slot="removable-chip" className={cn(CHIP_SHAPE_CLASS, className)}>
+    <span data-slot="removable-chip" className={cn(CHIP_SHAPE_CLASS, 'cursor-default', className)}>
       {children}
       <button
         type="button"
