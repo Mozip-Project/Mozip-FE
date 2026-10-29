@@ -80,10 +80,6 @@ function MultiSelectMenu<TValue extends string>({
       <SelectMenuTrigger label={label}>
         {getTriggerText(label, selectedLabels, isAllSelected)}
       </SelectMenuTrigger>
-      {/* 메뉴는 열릴 때만 그려져 오류 알림은 메뉴 밖 상시 영역에서 처리 */}
-      <span role="status" className="sr-only">
-        {errorMessage}
-      </span>
 
       <DropdownMenuContent
         align="end"
@@ -118,15 +114,18 @@ function MultiSelectMenu<TValue extends string>({
           ))}
         </DropdownMenuGroup>
 
-        {errorMessage && (
-          <p
-            id={errorMessageId}
-            className="flex items-center gap-gap-xs px-padding-s py-padding-xs text-caption1 font-medium text-critical"
-          >
-            <AlertCircleIcon aria-hidden className="size-4 shrink-0" />
-            {errorMessage}
-          </p>
-        )}
+        {/* 모달 메뉴가 열리면 바깥 요소가 보조 기술에서 숨겨져, 메뉴 안 상시 영역에서 오류 알림 */}
+        <div role="status">
+          {errorMessage && (
+            <p
+              id={errorMessageId}
+              className="flex items-center gap-gap-xs px-padding-s py-padding-xs text-caption1 font-medium text-critical"
+            >
+              <AlertCircleIcon aria-hidden className="size-4 shrink-0" />
+              {errorMessage}
+            </p>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )
