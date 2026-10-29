@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu/dropdownMenu'
+import { usePointerFocus } from '@/hooks/usePointerFocus'
 import type { Route } from 'next'
 
 type ProfileMenuMode = 'applicant' | 'organizer'
@@ -27,16 +28,20 @@ type ProfileMenuProps = {
 }
 
 function ProfileMenu({ name, mode, myPageHref }: ProfileMenuProps) {
+  const { isPointerFocus, markPointerFocus } = usePointerFocus()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="프로필 메뉴"
-        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid [&_svg]:size-full"
+        data-pointer-focus={isPointerFocus ? '' : undefined}
+        onPointerDown={markPointerFocus}
+        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid data-pointer-focus:focus-visible:outline-none [&_svg]:size-full"
       >
         <ProfileIcon aria-hidden />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" sideOffset={20} className="w-60">
+      <DropdownMenuContent align="end" className="w-60">
         <p className="truncate px-padding-m pt-5 pb-padding-s text-headline2 font-semibold text-neutral">
           {name}
         </p>

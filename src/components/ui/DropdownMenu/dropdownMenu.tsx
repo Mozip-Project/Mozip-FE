@@ -14,10 +14,13 @@ function DropdownMenuTrigger(props: ComponentProps<typeof DropdownMenuPrimitive.
   return <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
 }
 
+// 드롭다운 공통 열림 간격
+const MENU_SIDE_OFFSET_PX = 16
+
 function DropdownMenuContent({
   className,
   align = 'start',
-  sideOffset = 4,
+  sideOffset = MENU_SIDE_OFFSET_PX,
   ...props
 }: ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -28,11 +31,10 @@ function DropdownMenuContent({
         align={align}
         className={cn(
           'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-48 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-l border border-neutral-subtle bg-layer-floating shadow-floating',
-          'duration-100 data-[state=closed]:overflow-hidden',
-          'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-          'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-          'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-          'motion-reduce:animate-none',
+          'data-[state=closed]:overflow-hidden',
+          // 모션 감소 설정 사용자에게는 애니메이션 미적용
+          'data-[state=open]:duration-150 data-[state=open]:ease-out data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-1 motion-safe:data-[state=open]:animate-in',
+          'data-[state=closed]:duration-100 data-[state=closed]:ease-in data-[state=closed]:fade-out-0 motion-safe:data-[state=closed]:animate-out',
           className,
         )}
         {...props}
@@ -64,7 +66,6 @@ function DropdownMenuItem({
   )
 }
 
-// TODO: Figma MultiSelectOption 값 반영 (현재 스크린샷 기준 임시값)
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -75,7 +76,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
         'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
-        'focus:bg-layer-floating-pressed',
+        'focus:bg-neutral-weak',
         'data-disabled:pointer-events-none data-disabled:text-disabled',
         className,
       )}
@@ -91,7 +92,6 @@ function DropdownMenuRadioGroup(props: ComponentProps<typeof DropdownMenuPrimiti
   return <DropdownMenuPrimitive.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
 }
 
-// TODO: Figma SelectMenu 값 반영 (현재 스크린샷 기준 임시값)
 function DropdownMenuRadioItem({
   className,
   children,
@@ -101,23 +101,21 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        'relative flex h-10 cursor-pointer items-center rounded-m pr-10 pl-padding-s text-label1 font-normal text-neutral-muted outline-none select-none',
-        'focus:bg-layer-floating-pressed',
-        'data-[state=checked]:font-semibold data-[state=checked]:text-neutral',
+        'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
+        'focus:bg-neutral-weak',
+        'data-[state=checked]:font-semibold',
         'data-disabled:pointer-events-none data-disabled:text-disabled',
         className,
       )}
       {...props}
     >
-      <span
-        data-slot="dropdown-menu-radio-item-indicator"
-        className="pointer-events-none absolute right-padding-s flex items-center justify-center text-brand"
-      >
-        <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon aria-hidden className="size-4" />
-        </DropdownMenuPrimitive.ItemIndicator>
-      </span>
       {children}
+      <DropdownMenuPrimitive.ItemIndicator
+        data-slot="dropdown-menu-radio-item-indicator"
+        className="ml-auto flex shrink-0"
+      >
+        <CheckIcon aria-hidden className="size-4 text-neutral-muted" />
+      </DropdownMenuPrimitive.ItemIndicator>
     </DropdownMenuPrimitive.RadioItem>
   )
 }
@@ -130,7 +128,7 @@ function DropdownMenuLabel({
     <DropdownMenuPrimitive.Label
       data-slot="dropdown-menu-label"
       className={cn(
-        'px-padding-s py-padding-xs text-caption1 font-medium text-neutral-subtle',
+        'px-padding-s py-padding-xxs text-caption1 font-medium text-neutral-subtle',
         className,
       )}
       {...props}
