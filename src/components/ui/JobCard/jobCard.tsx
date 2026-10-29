@@ -29,7 +29,10 @@ function JobCard({
   isScrapped = false,
 }: JobCardProps) {
   return (
-    <article data-slot="job-card" className="relative flex flex-col rounded-l bg-layer-default">
+    <article
+      data-slot="job-card"
+      className="group/job-card relative flex flex-col rounded-l bg-layer-default"
+    >
       <div className="relative h-40 overflow-hidden rounded-l bg-neutral-weak">
         {thumbnailSrc && (
           <Image
@@ -37,7 +40,8 @@ function JobCard({
             alt=""
             fill
             sizes="(min-width: 1280px) 282px, 100vw"
-            className="object-cover"
+            // 썸네일 영역 안에서만 확대, 카드 크기 유지
+            className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover/job-card:scale-120"
           />
         )}
         <div className="relative flex items-start justify-between p-padding-s">
