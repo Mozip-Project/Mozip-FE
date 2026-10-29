@@ -28,10 +28,17 @@ const SORT_OPTIONS = [
   { value: 'nameDesc', label: '이름 역순' },
 ] as const
 
+const STATUS_TABS = [
+  { value: 'all', label: '전체', count: 48 },
+  { value: 'pending', label: '내 평가 전', count: 16 },
+  { value: 'done', label: '내 평가 완료', count: 32 },
+] as const
+
 type PositionValue = (typeof POSITION_OPTIONS)[number]['value']
 type SortValue = (typeof SORT_OPTIONS)[number]['value']
+type StatusValue = (typeof STATUS_TABS)[number]['value']
 
-function ListToolBarPreview() {
+function ListToolBarControls() {
   const [positions, setPositions] = useState<PositionValue[]>(
     POSITION_OPTIONS.map((option) => option.value),
   )
@@ -39,30 +46,49 @@ function ListToolBarPreview() {
   const [keyword, setKeyword] = useState('')
 
   return (
-    <ListToolBar>
+    <>
       <MultiSelectMenu
         label="포지션"
         options={POSITION_OPTIONS}
         values={positions}
         onValuesChange={setPositions}
         totalCount={48}
+        errorMessage={positions.length === 0 ? '포지션을 1개 이상 선택해 주세요' : undefined}
       />
       <SelectMenu label="정렬" options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
       <SearchField
         size="s"
         className="w-55"
         aria-label="지원자 검색"
-        placeholder="이름을 검색해 주세요"
+        placeholder="이름 검색"
         value={keyword}
         onValueChange={setKeyword}
       />
+    </>
+  )
+}
+
+function ListToolBarPreview() {
+  const [status, setStatus] = useState<StatusValue>('all')
+  const statusLabel = STATUS_TABS.find((tab) => tab.value === status)?.label
+
+  return (
+    <ListToolBar
+      tabs={STATUS_TABS}
+      tabsLabel="지원자 평가 상태"
+      value={status}
+      onValueChange={setStatus}
+      controls={<ListToolBarControls />}
+    >
+      <p className="pt-padding-m text-body2">{statusLabel} 지원자 목록</p>
     </ListToolBar>
   )
 }
 
+// Figma 기준 폭 940px, 선택값 길이에 따라 툴바 전체 폭이 바뀌지 않도록 고정
 export const Default: Story = {
   render: () => (
-    <div className="h-80 p-padding-xl">
+    <div className="h-80 w-235">
       <ListToolBarPreview />
     </div>
   ),
