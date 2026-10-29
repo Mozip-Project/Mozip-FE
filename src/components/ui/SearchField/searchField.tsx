@@ -35,22 +35,32 @@ function SearchField({ className, size = 'l', value, onValueChange, ...props }: 
         'flex items-center gap-gap-s rounded-m border border-neutral-muted bg-layer-default',
         'transition-colors focus-within:border-neutral-solid motion-reduce:transition-none',
         sizeClass.field,
+        canClear && sizeClass.endPadding,
         className,
       )}
     >
-      <SearchIcon aria-hidden className={cn('shrink-0 text-neutral-subtle', sizeClass.icon)} />
-      <input
-        ref={inputRef}
-        type="search"
-        data-slot="search-field-input"
-        value={value}
-        onChange={(event) => onValueChange(event.target.value)}
+      {/* 지우기 버튼은 label 밖에 두고, 아이콘·여백 클릭 시 입력창 포커스 유지 */}
+      <label
         className={cn(
-          'h-full min-w-0 flex-1 truncate bg-transparent text-neutral outline-none placeholder:text-placeholder [&::-webkit-search-cancel-button]:appearance-none',
-          sizeClass.input,
+          'flex h-full min-w-0 flex-1 cursor-text items-center gap-gap-s',
+          sizeClass.label,
+          !canClear && sizeClass.endPadding,
         )}
-        {...props}
-      />
+      >
+        <SearchIcon aria-hidden className={cn('shrink-0 text-neutral-subtle', sizeClass.icon)} />
+        <input
+          ref={inputRef}
+          type="search"
+          data-slot="search-field-input"
+          value={value}
+          onChange={(event) => onValueChange(event.target.value)}
+          className={cn(
+            'h-full min-w-0 flex-1 truncate bg-transparent text-neutral outline-none placeholder:text-placeholder [&::-webkit-search-cancel-button]:appearance-none',
+            sizeClass.input,
+          )}
+          {...props}
+        />
+      </label>
       {canClear && (
         <button
           type="button"
