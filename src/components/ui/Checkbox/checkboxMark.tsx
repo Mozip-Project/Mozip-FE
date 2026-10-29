@@ -11,8 +11,8 @@ function CheckboxMark() {
         'flex size-5 shrink-0 items-center justify-center rounded-xs border-[1.5px] border-neutral-weak bg-layer-default text-on-brand-solid',
         'transition-colors motion-reduce:transition-none',
         'in-aria-checked:border-transparent in-aria-checked:bg-brand-solid',
-        'in-disabled:border-neutral-muted in-disabled:bg-disabled',
-        'in-disabled:in-aria-checked:border-transparent in-disabled:in-aria-checked:bg-disabled in-disabled:in-aria-checked:text-disabled',
+        'in-data-disabled:border-neutral-muted in-data-disabled:bg-disabled',
+        'in-data-disabled:in-aria-checked:border-transparent in-data-disabled:in-aria-checked:bg-disabled in-data-disabled:in-aria-checked:text-disabled',
       )}
     >
       <CheckIcon className="invisible size-3.5 in-aria-checked:visible" />
