@@ -5,9 +5,13 @@ import { Toggle as TogglePrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
+// Chip·RemovableChip 공통 알약 모양
+export const CHIP_SHAPE_CLASS =
+  'inline-flex h-8 shrink-0 items-center justify-center gap-gap-xs rounded-full border border-neutral-muted bg-layer-default px-padding-s text-label1 font-medium whitespace-nowrap text-neutral-muted'
+
 const chipVariants = cva([
-  'inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-gap-xs rounded-full border border-neutral-muted bg-layer-default px-padding-s',
-  'text-label1 font-medium whitespace-nowrap text-neutral-muted select-none',
+  CHIP_SHAPE_CLASS,
+  'cursor-pointer select-none',
   'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring motion-reduce:transition-none',
   'aria-pressed:border-brand-weak aria-pressed:bg-brand-weak aria-pressed:text-brand',
   "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",

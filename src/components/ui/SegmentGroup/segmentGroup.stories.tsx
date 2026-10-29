@@ -48,3 +48,26 @@ export const Error: Story = {
     </SegmentGroup>
   ),
 }
+
+const FIVE_OPTIONS = ['합격', '보류', '불합격', '옵션 4', '옵션 5'] as const
+
+function FiveOptions() {
+  return FIVE_OPTIONS.map((label) => (
+    <SegmentOption key={label} value={label}>
+      {label}
+    </SegmentOption>
+  ))
+}
+
+export const WithFiveOptions: Story = {
+  render: () => (
+    <div className="flex items-start gap-gap-xl">
+      <SegmentGroup aria-label="옵션 5개" className="w-90">
+        <FiveOptions />
+      </SegmentGroup>
+      <SegmentGroup aria-label="옵션 5개" errorMessage="옵션을 선택해 주세요" className="w-90">
+        <FiveOptions />
+      </SegmentGroup>
+    </div>
+  ),
+}
