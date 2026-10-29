@@ -51,11 +51,15 @@ function SelectMenu<TValue extends string>({
     <DropdownMenu>
       <SelectMenuTrigger label={label}>{selectedLabel}</SelectMenuTrigger>
 
-      <DropdownMenuContent className="p-padding-xs">
+      <DropdownMenuContent
+        align="end"
+        className="flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted p-padding-xs"
+      >
         {groupLabel && <DropdownMenuLabel id={groupLabelId}>{groupLabel}</DropdownMenuLabel>}
 
         <DropdownMenuRadioGroup
           aria-labelledby={groupLabel ? groupLabelId : undefined}
+          className="flex flex-col gap-gap-xxs"
           value={value}
           onValueChange={handleValueChange}
         >
@@ -82,10 +86,10 @@ type SelectMenuActionProps = {
   children: ReactNode
 }
 
-// TODO: Figma 값 반영, brand 글자색 대비 디자이너 확인
+// TODO: brand 글자색 대비 디자이너 확인
 function SelectMenuAction({ href, children }: SelectMenuActionProps) {
   return (
-    <DropdownMenuItem asChild className="text-brand [&_svg]:text-neutral-subtle">
+    <DropdownMenuItem asChild className="text-brand [&_svg]:text-neutral">
       <Link href={href}>{children}</Link>
     </DropdownMenuItem>
   )

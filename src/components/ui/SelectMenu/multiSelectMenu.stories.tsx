@@ -20,7 +20,12 @@ const POSITION_OPTIONS = [
 
 type PositionValue = (typeof POSITION_OPTIONS)[number]['value']
 
-function MultiSelectMenuPreview({ initialValues }: { initialValues: PositionValue[] }) {
+type MultiSelectMenuPreviewProps = {
+  initialValues: PositionValue[]
+  groupLabel?: string
+}
+
+function MultiSelectMenuPreview({ initialValues, groupLabel }: MultiSelectMenuPreviewProps) {
   const [positions, setPositions] = useState(initialValues)
 
   return (
@@ -30,6 +35,8 @@ function MultiSelectMenuPreview({ initialValues }: { initialValues: PositionValu
       values={positions}
       onValuesChange={setPositions}
       totalCount={48}
+      groupLabel={groupLabel}
+      errorMessage={positions.length === 0 ? '포지션을 1개 이상 선택해 주세요' : undefined}
     />
   )
 }
@@ -38,8 +45,6 @@ export const Default: Story = {
   render: () => (
     <div className="flex h-80 gap-gap-xxl p-padding-xl">
       <MultiSelectMenuPreview initialValues={['design', 'development', 'planning']} />
-      <MultiSelectMenuPreview initialValues={['design']} />
-      <MultiSelectMenuPreview initialValues={['design', 'development']} />
       <MultiSelectMenuPreview initialValues={[]} />
     </div>
   ),

@@ -25,20 +25,6 @@ type SortValue = (typeof SORT_OPTIONS)[number]['value']
 function SelectMenuPreview() {
   const [sort, setSort] = useState<SortValue>('submittedDesc')
 
-  return <SelectMenu label="정렬" options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
-}
-
-export const Default: Story = {
-  render: () => (
-    <div className="h-80 p-padding-xl">
-      <SelectMenuPreview />
-    </div>
-  ),
-}
-
-function SelectMenuWithActionsPreview() {
-  const [sort, setSort] = useState<SortValue>('submittedDesc')
-
   return (
     <SelectMenu
       label="정렬"
@@ -61,10 +47,10 @@ function SelectMenuWithActionsPreview() {
   )
 }
 
-export const WithActions: Story = {
+export const Default: Story = {
   render: () => (
     <div className="h-100 p-padding-xl">
-      <SelectMenuWithActionsPreview />
+      <SelectMenuPreview />
     </div>
   ),
 }

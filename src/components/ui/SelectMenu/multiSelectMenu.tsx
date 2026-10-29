@@ -1,13 +1,16 @@
 'use client'
 
+import { useId } from 'react'
+import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/DropdownMenu/dropdownMenu'
+import { MultiSelectOption } from './multiSelectOption'
 import { SelectMenuTrigger } from './selectMenuTrigger'
-import type { ReactNode } from 'react'
 
 type MultiSelectMenuOption<TValue extends string> = {
   value: TValue
@@ -21,9 +24,10 @@ type MultiSelectMenuProps<TValue extends string> = {
   values: readonly TValue[]
   onValuesChange: (values: TValue[]) => void
   totalCount?: number
+  groupLabel?: string
+  errorMessage?: string
 }
 
-// TODO: 선택 없음·여러 개 선택 시 트리거 문구 디자이너 확인 (임시로 라벨만, "첫 항목 외 N")
 function getTriggerText(label: string, selectedLabels: readonly string[], isAllSelected: boolean) {
   if (isAllSelected) {
     return `${label} 전체`
@@ -39,7 +43,7 @@ function getTriggerText(label: string, selectedLabels: readonly string[], isAllS
     return firstLabel
   }
 
-  return `${firstLabel} 외 ${restLabels.length}`
+  return `${firstLabel} 외 ${restLabels.length}개`
 }
 
 function MultiSelectMenu<TValue extends string>({
@@ -48,10 +52,15 @@ function MultiSelectMenu<TValue extends string>({
   values,
   onValuesChange,
   totalCount,
+  groupLabel,
+  errorMessage,
 }: MultiSelectMenuProps<TValue>) {
+  const groupLabelId = useId()
+  const errorMessageId = useId()
   const selectedLabels = options
     .filter((option) => values.includes(option.value))
     .map((option) => option.label)
+
   const isAllSelected = options.length > 0 && selectedLabels.length === options.length
 
   function handleAllCheckedChange(isChecked: boolean) {
@@ -71,53 +80,55 @@ function MultiSelectMenu<TValue extends string>({
       <SelectMenuTrigger label={label}>
         {getTriggerText(label, selectedLabels, isAllSelected)}
       </SelectMenuTrigger>
+      {/* 메뉴는 열릴 때만 그려져 오류 알림은 메뉴 밖 상시 영역에서 처리 */}
+      <span role="status" className="sr-only">
+        {errorMessage}
+      </span>
 
-      <DropdownMenuContent className="p-padding-xs">
-        <MultiSelectOption
-          checked={isAllSelected}
-          onCheckedChange={handleAllCheckedChange}
-          count={totalCount}
+      <DropdownMenuContent
+        align="end"
+        aria-describedby={errorMessage ? errorMessageId : undefined}
+        className="flex w-60 flex-col gap-gap-xxs rounded-m border-neutral-muted p-padding-xs"
+      >
+        {groupLabel && <DropdownMenuLabel id={groupLabelId}>{groupLabel}</DropdownMenuLabel>}
+
+        <DropdownMenuGroup
+          aria-labelledby={groupLabel ? groupLabelId : undefined}
+          className="flex flex-col gap-gap-xxs"
         >
-          전체
-        </MultiSelectOption>
-
-        <DropdownMenuSeparator className="my-gap-xs" />
-
-        {options.map((option) => (
           <MultiSelectOption
-            key={option.value}
-            checked={values.includes(option.value)}
-            onCheckedChange={(isChecked) => handleOptionCheckedChange(option.value, isChecked)}
-            count={option.count}
+            checked={isAllSelected}
+            onCheckedChange={handleAllCheckedChange}
+            count={totalCount}
           >
-            {option.label}
+            전체
           </MultiSelectOption>
-        ))}
+
+          <DropdownMenuSeparator className="my-gap-xs" />
+
+          {options.map((option) => (
+            <MultiSelectOption
+              key={option.value}
+              checked={values.includes(option.value)}
+              onCheckedChange={(isChecked) => handleOptionCheckedChange(option.value, isChecked)}
+              count={option.count}
+            >
+              {option.label}
+            </MultiSelectOption>
+          ))}
+        </DropdownMenuGroup>
+
+        {errorMessage && (
+          <p
+            id={errorMessageId}
+            className="flex items-center gap-gap-xs px-padding-s py-padding-xs text-caption1 font-medium text-critical"
+          >
+            <AlertCircleIcon aria-hidden className="size-4 shrink-0" />
+            {errorMessage}
+          </p>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-type MultiSelectOptionProps = {
-  checked: boolean
-  onCheckedChange: (isChecked: boolean) => void
-  count?: number
-  children: ReactNode
-}
-
-function MultiSelectOption({ count, children, ...props }: MultiSelectOptionProps) {
-  return (
-    <DropdownMenuCheckboxItem
-      // 여러 항목을 이어서 고를 수 있게 선택 후에도 메뉴 유지
-      onSelect={(event) => event.preventDefault()}
-      className="data-[state=checked]:font-semibold"
-      {...props}
-    >
-      <span className="min-w-0 flex-1 truncate">{children}</span>
-      {count !== undefined && (
-        <span className="shrink-0 font-medium text-neutral-subtle">{count}</span>
-      )}
-    </DropdownMenuCheckboxItem>
   )
 }
 
