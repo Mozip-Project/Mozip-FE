@@ -10,7 +10,7 @@ import type { Ref } from 'react'
 type SelectMenuTriggerProps = {
   label: string
   children: string
-  // 화살표 자리에 다른 버튼을 겹칠 때 빈 자리만 유지
+  // 화살표 자리만 비워 둠
   isChevronHidden?: boolean
   className?: string
   ref?: Ref<HTMLButtonElement>

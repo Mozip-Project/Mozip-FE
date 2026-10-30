@@ -41,7 +41,7 @@ function MultiSelectMenuPreview({ initialValues, groupLabel }: MultiSelectMenuPr
   )
 }
 
-// 두 번째 메뉴는 남은 1개를 해제해 오류 흔들림 확인용
+// 두 번째 메뉴: 오류 흔들림 확인용
 export const Default: Story = {
   render: () => (
     <div className="flex h-80 gap-gap-xxl p-padding-xl">

@@ -55,7 +55,7 @@ function DropdownMenuItem({
   variant = 'default',
   ...props
 }: ComponentProps<typeof DropdownMenuPrimitive.Item> & {
-  // critical: 삭제·나가기 등 위험한 동작
+  // critical: 삭제·나가기 등 위험 동작
   variant?: 'default' | 'critical'
 }) {
   return (

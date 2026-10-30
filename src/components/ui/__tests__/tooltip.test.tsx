@@ -12,7 +12,7 @@ function renderTooltip() {
   return { trigger: screen.getByRole('button', { name: '평가 현황' }) }
 }
 
-// jsdom 미지원, Radix 화살표 크기 측정용
+// jsdom 미지원
 class ResizeObserverStub {
   observe() {}
   unobserve() {}

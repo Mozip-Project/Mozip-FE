@@ -37,7 +37,7 @@ export const Default: Story = {
   ),
 }
 
-// status label은 Figma 미정의라 예시 문구 사용
+// label은 예시 문구, Figma 미정의
 const STATUS_EXAMPLES = [
   { tone: 'positive', label: '정상' },
   { tone: 'critical', label: '확인 필요' },

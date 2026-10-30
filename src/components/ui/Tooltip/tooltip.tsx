@@ -3,9 +3,8 @@
 import { Tooltip as TooltipPrimitive } from 'radix-ui'
 import type { ReactElement } from 'react'
 
-// Figma 기준 노출 지연
 const SHOW_DELAY_MS = 300
-// 화살표 끝과 트리거 사이 간격, Figma 미정의
+// Figma 미정의
 const TRIGGER_OFFSET_PX = 4
 
 type TooltipProps = {
@@ -16,7 +15,7 @@ type TooltipProps = {
 
 function Tooltip({ label, side = 'top', children }: TooltipProps) {
   return (
-    // 전역 Provider 없이 툴팁마다 지연 시간 적용
+    // 전역 Provider 대신 툴팁별 Provider
     <TooltipPrimitive.Provider delayDuration={SHOW_DELAY_MS}>
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>

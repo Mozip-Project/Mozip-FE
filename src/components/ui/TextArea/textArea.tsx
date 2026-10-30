@@ -26,7 +26,7 @@ function TextArea({
   }
 
   return (
-    // 사용처별 최소 높이는 className으로 조정
+    // 최소 높이는 className으로 조정
     <div data-slot="text-area" className={cn('relative flex min-h-24 flex-col', className)}>
       <textarea
         data-slot="text-area-input"
@@ -39,7 +39,7 @@ function TextArea({
           'field-sizing-content w-full flex-1 resize-none rounded-m border border-neutral-muted bg-layer-default px-padding-m py-padding-s text-body2 font-normal text-neutral placeholder:text-placeholder',
           'transition-colors outline-none focus:border-brand-solid motion-reduce:transition-none',
           'read-only:border-neutral-subtle read-only:bg-neutral-weak',
-          // 글자 수가 내용과 겹치지 않도록 하단 여백에 카운터 높이 확보
+          // 카운터 높이만큼 하단 여백 확보
           hasCounter && 'pb-7',
         )}
         {...props}

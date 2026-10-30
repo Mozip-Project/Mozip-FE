@@ -22,7 +22,7 @@ const STATUS_DOT_CLASS = {
 
 type TabsTriggerProps = ComponentProps<typeof TabsPrimitive.Trigger> & {
   count?: number
-  // 색만으로 상태를 전달하지 않도록 label을 보조 기술에 함께 제공
+  // 색 외에 보조 기술용 label 제공
   status?: { tone: TabStatusTone; label: string }
 }
 

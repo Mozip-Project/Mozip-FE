@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils'
 import { MultiSelectOption } from './multiSelectOption'
 import { SelectMenuTrigger } from './selectMenuTrigger'
 
-// Figma 기준 트리거 아래 간격
 const MENU_SIDE_OFFSET_PX = 8
 const SHAKE_OFFSETS_PX = [0, 6, -6, 4, -4, 2, 0]
 const SHAKE_DURATION_MS = 300
@@ -54,7 +53,7 @@ function getTriggerText(label: string, selectedLabels: readonly string[], isAllS
   return `${firstLabel} 외 ${restLabels.length}개`
 }
 
-// 다시 시도할 때마다 처음부터 재생되도록 Web Animations API 사용
+// 재시도마다 처음부터 재생
 function shakeElement(element: HTMLElement) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return
@@ -84,7 +83,7 @@ function MultiSelectMenu<TValue extends string>({
   const contentRef = useRef<HTMLDivElement>(null)
   const { isPointerFocus: isResetByPointer, markPointerFocus: markResetByPointer } =
     usePointerFocus()
-  // 0이면 오류 숨김, 막힌 시도마다 증가해 오류 문구 재알림
+  // 막힌 시도 횟수, 0이면 오류 숨김
   const [blockedAttemptCount, setBlockedAttemptCount] = useState(0)
   const isErrorVisible = blockedAttemptCount > 0
 
@@ -98,7 +97,7 @@ function MultiSelectMenu<TValue extends string>({
   function handleFilterReset() {
     onValuesChange(options.map((option) => option.value))
 
-    // 사라지는 초기화 버튼 대신 트리거로 focus 복귀
+    // 사라지는 버튼 대신 트리거로 focus 이동
     triggerRef.current?.focus()
   }
 
@@ -138,8 +137,7 @@ function MultiSelectMenu<TValue extends string>({
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
-      {/* 버튼 중첩 없이 화살표 자리에 초기화 버튼을 겹쳐 배치 */}
-      {/* h-fit: 부모가 늘려도 트리거 높이 기준으로 초기화 버튼 세로 중앙 유지 */}
+      {/* 버튼 중첩 없이 화살표 자리에 초기화 버튼 배치, h-fit으로 세로 중앙 유지 */}
       <div
         data-pointer-focus={isResetByPointer ? '' : undefined}
         className="group/filter relative inline-flex h-fit"
@@ -149,9 +147,9 @@ function MultiSelectMenu<TValue extends string>({
           label={label}
           isChevronHidden={isFiltered}
           className={cn(
-            // 초기화 버튼 hover 중에도 트리거 hover 모양 유지
+            // 초기화 버튼 hover 시 트리거 hover 유지
             'group-has-[[data-slot=filter-reset]:hover]/filter:bg-transparent-pressed group-has-[[data-slot=filter-reset]:hover]/filter:text-neutral',
-            // 포인터로 초기화한 뒤 옮겨 온 focus의 링 숨김
+            // 포인터로 초기화 시 focus 링 숨김
             'group-data-pointer-focus/filter:focus-visible:outline-none',
           )}
         >
@@ -165,7 +163,7 @@ function MultiSelectMenu<TValue extends string>({
             onPointerDown={markResetByPointer}
             onClick={handleFilterReset}
             className={cn(
-              // 16px 아이콘 대신 24px 클릭 영역 확보
+              // 클릭 영역 24px 확보
               "absolute top-1/2 right-padding-s size-4 -translate-y-1/2 cursor-pointer rounded-xs text-neutral-muted after:absolute after:-inset-1 after:content-['']",
               'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
             )}
@@ -213,7 +211,7 @@ function MultiSelectMenu<TValue extends string>({
         {/* 모달 메뉴가 열리면 바깥 요소가 보조 기술에서 숨겨져, 메뉴 안 상시 영역에서 오류 알림 */}
         <div role="status">
           {isErrorVisible && (
-            // 같은 문구도 다시 읽히도록 시도마다 새 요소로 교체
+            // 같은 문구 재알림용 새 요소
             <p
               key={blockedAttemptCount}
               id={errorMessageId}

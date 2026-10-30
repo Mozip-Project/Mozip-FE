@@ -38,9 +38,8 @@ function AttachmentItem({ type, name, meta, href, className }: AttachmentItemPro
       )}
     >
       <Icon aria-hidden className="size-5 shrink-0 text-neutral-muted" />
-      {/* {' '}: 이름·정보·동작이 붙어 읽히지 않도록 단어 구분 */}
+      {/* {' '}: 스크린리더 단어 구분 */}
       <span className="flex min-w-0 flex-col">
-        {/* 말줄임된 이름 전체를 hover로 확인 */}
         <span title={name} className="max-w-35 truncate text-label1 font-semibold text-neutral">
           {name}
         </span>{' '}

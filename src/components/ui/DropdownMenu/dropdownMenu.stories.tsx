@@ -17,7 +17,6 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-// Figma SelectOption 상태 확인용으로 메뉴를 연 상태로 표시
 export const Options: Story = {
   render: () => (
     <div className="h-80 p-padding-xl">

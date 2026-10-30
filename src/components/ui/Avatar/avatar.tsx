@@ -1,7 +1,7 @@
 import UserIcon from '@/assets/icons/user.svg'
 import { cn } from '@/lib/utils'
 
-// 40은 Figma 미정의, GNB 프로필 버튼 크기 유지용
+// 40: GNB 프로필용, Figma 미정의
 type AvatarSize = 28 | 40 | 48 | 72
 
 const SIZE_CLASS = {
@@ -16,7 +16,7 @@ type AvatarProps = {
   className?: string
 }
 
-// 프로필 이미지 상태는 Figma 미정의로 기본 아이콘만 표시
+// 프로필 이미지 상태는 Figma 미정의
 function Avatar({ size = 28, className }: AvatarProps) {
   return (
     <span

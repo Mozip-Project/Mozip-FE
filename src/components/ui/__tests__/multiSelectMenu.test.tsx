@@ -27,7 +27,7 @@ function MultiSelectMenuHarness({ initialValues }: { initialValues: PositionValu
   )
 }
 
-// 필터 적용 시 초기화 버튼과 구분되는 메뉴 트리거
+// 초기화 버튼과 구분
 function getMenuTrigger() {
   return screen.getByRole('button', { expanded: false })
 }
@@ -51,13 +51,13 @@ describe('MultiSelectMenu', () => {
 
   beforeEach(() => {
     animate.mockClear()
-    // jsdom 미지원 Web Animations API 대체
+    // jsdom 미지원
     Element.prototype.animate = animate
     mockReducedMotion(false)
   })
 
   afterEach(() => {
-    // @ts-expect-error jsdom 원래 상태(미정의)로 복구
+    // @ts-expect-error jsdom 기본값(미정의)으로 복구
     delete Element.prototype.animate
     vi.unstubAllGlobals()
   })
