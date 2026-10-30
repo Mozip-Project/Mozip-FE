@@ -36,16 +36,17 @@ function MultiSelectMenuPreview({ initialValues, groupLabel }: MultiSelectMenuPr
       onValuesChange={setPositions}
       totalCount={48}
       groupLabel={groupLabel}
-      errorMessage={positions.length === 0 ? '포지션을 1개 이상 선택해 주세요' : undefined}
+      minSelectionMessage="포지션을 1개 이상 선택해 주세요"
     />
   )
 }
 
+// 두 번째 메뉴는 남은 1개를 해제해 오류 흔들림 확인용
 export const Default: Story = {
   render: () => (
     <div className="flex h-80 gap-gap-xxl p-padding-xl">
       <MultiSelectMenuPreview initialValues={['design', 'development', 'planning']} />
-      <MultiSelectMenuPreview initialValues={[]} />
+      <MultiSelectMenuPreview initialValues={['design']} />
     </div>
   ),
 }

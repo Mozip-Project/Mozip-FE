@@ -53,7 +53,7 @@ function ListToolBarControls() {
         values={positions}
         onValuesChange={setPositions}
         totalCount={48}
-        errorMessage={positions.length === 0 ? '포지션을 1개 이상 선택해 주세요' : undefined}
+        minSelectionMessage="포지션을 1개 이상 선택해 주세요"
       />
       <SelectMenu label="정렬" options={SORT_OPTIONS} value={sort} onValueChange={setSort} />
       <SearchField
