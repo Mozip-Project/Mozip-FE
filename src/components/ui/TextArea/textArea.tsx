@@ -5,6 +5,11 @@ import { cn } from '@/lib/utils'
 
 type TextAreaProps = ComponentProps<'textarea'>
 
+// 브라우저 maxLength와 같은 기준으로 \r\n을 한 글자로 계산
+function getTextLength(text: TextAreaProps['value']) {
+  return String(text ?? '').replace(/\r\n?/g, '\n').length
+}
+
 function TextArea({
   className,
   maxLength,
@@ -15,8 +20,8 @@ function TextArea({
   ...props
 }: TextAreaProps) {
   const counterId = useId()
-  const [uncontrolledLength, setUncontrolledLength] = useState(String(defaultValue ?? '').length)
-  const length = value === undefined ? uncontrolledLength : String(value).length
+  const [uncontrolledLength, setUncontrolledLength] = useState(getTextLength(defaultValue))
+  const length = value === undefined ? uncontrolledLength : getTextLength(value)
   const hasCounter = maxLength !== undefined
   const descriptionIds = [describedBy, hasCounter && counterId].filter(Boolean).join(' ')
 

@@ -42,6 +42,12 @@ describe('TextArea', () => {
     expect(textarea).toHaveAccessibleDescription('5/10')
   })
 
+  it('초기값의 \\r\\n 줄바꿈을 한 글자로 계산', () => {
+    render(<TextArea aria-label="의견" maxLength={10} defaultValue={'가\r\n나'} />)
+
+    expect(screen.getByRole('textbox', { name: '의견' })).toHaveAccessibleDescription('3/10')
+  })
+
   it('한도를 넘는 입력 차단', async () => {
     const user = userEvent.setup()
     render(<TextArea aria-label="의견" maxLength={3} />)
