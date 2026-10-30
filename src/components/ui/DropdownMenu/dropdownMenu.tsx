@@ -47,6 +47,9 @@ function DropdownMenuGroup(props: ComponentProps<typeof DropdownMenuPrimitive.Gr
   return <DropdownMenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+const MENU_ITEM_BASE_CLASS =
+  'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none focus:bg-neutral-weak data-disabled:pointer-events-none data-disabled:text-disabled'
+
 function DropdownMenuItem({
   className,
   ...props
@@ -55,9 +58,7 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
-        'focus:bg-layer-floating-pressed',
-        'data-disabled:pointer-events-none data-disabled:text-disabled',
+        MENU_ITEM_BASE_CLASS,
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
         className,
       )}
@@ -74,12 +75,7 @@ function DropdownMenuCheckboxItem({
   return (
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
-      className={cn(
-        'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
-        'focus:bg-neutral-weak',
-        'data-disabled:pointer-events-none data-disabled:text-disabled',
-        className,
-      )}
+      className={cn(MENU_ITEM_BASE_CLASS, className)}
       {...props}
     >
       <CheckboxMark />
@@ -100,13 +96,7 @@ function DropdownMenuRadioItem({
   return (
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
-      className={cn(
-        'relative flex h-10 cursor-pointer items-center gap-gap-s rounded-m px-padding-s text-label1 font-medium text-neutral outline-none select-none',
-        'focus:bg-neutral-weak',
-        'data-[state=checked]:font-semibold',
-        'data-disabled:pointer-events-none data-disabled:text-disabled',
-        className,
-      )}
+      className={cn(MENU_ITEM_BASE_CLASS, 'data-[state=checked]:font-semibold', className)}
       {...props}
     >
       {children}
