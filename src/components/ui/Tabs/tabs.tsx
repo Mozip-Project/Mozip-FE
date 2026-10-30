@@ -1,8 +1,9 @@
 'use client'
 
 import { Tabs as TabsPrimitive } from 'radix-ui'
+import { usePointerFocus } from '@/hooks/usePointerFocus'
 import { cn } from '@/lib/utils'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, PointerEvent } from 'react'
 
 function Tabs(props: ComponentProps<typeof TabsPrimitive.Root>) {
   return <TabsPrimitive.Root data-slot="tabs" {...props} />
@@ -16,14 +17,23 @@ type TabsTriggerProps = ComponentProps<typeof TabsPrimitive.Trigger> & {
   count?: number
 }
 
-function TabsTrigger({ className, children, count, ...props }: TabsTriggerProps) {
+function TabsTrigger({ className, children, count, onPointerDown, ...props }: TabsTriggerProps) {
+  const { isPointerFocus, markPointerFocus } = usePointerFocus()
+
+  function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
+    onPointerDown?.(event)
+    markPointerFocus()
+  }
+
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
+      data-pointer-focus={isPointerFocus ? '' : undefined}
+      onPointerDown={handlePointerDown}
       className={cn(
         'relative inline-flex shrink-0 cursor-pointer items-center gap-gap-xs p-padding-s',
         'text-body1 font-medium whitespace-nowrap text-neutral-subtle select-none',
-        'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
+        'outline-none not-data-pointer-focus:focus-visible:outline-2 not-data-pointer-focus:focus-visible:-outline-offset-2 not-data-pointer-focus:focus-visible:outline-focus-ring not-data-pointer-focus:focus-visible:outline-solid',
         'data-[state=active]:font-semibold data-[state=active]:text-neutral',
         'after:absolute after:inset-x-0 after:bottom-0 after:border-b-2 after:border-neutral-contrast after:opacity-0 data-[state=active]:after:opacity-100',
         'disabled:pointer-events-none disabled:text-disabled',

@@ -1,3 +1,4 @@
+import sampleThumbnail from '@/assets/images/sampleThumbnail.png'
 import { JobCard } from './jobCard'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
@@ -25,6 +26,14 @@ export const Default: Story = {
     <div className="grid grid-cols-[repeat(2,282px)] gap-gap-xl">
       <JobCard {...SAMPLE_JOB} />
       <JobCard {...SAMPLE_JOB} isScrapped />
+    </div>
+  ),
+}
+
+export const WithThumbnail: Story = {
+  render: () => (
+    <div className="w-[282px]">
+      <JobCard {...SAMPLE_JOB} thumbnailSrc={sampleThumbnail.src} />
     </div>
   ),
 }

@@ -36,6 +36,7 @@ Button, Modal 같은 기본 UI와 날짜 포맷 같은 유틸은 "공고"나 "�
 ```text
 src/
 ├── components/ui/   # 기본 UI. 컴포넌트 폴더마다 컴포넌트와 스토리만 둠, 테스트는 ui/__tests__/
+├── hooks/           # 도메인을 모르는 공용 hook과 테스트
 ├── lib/             # 라이브러리 설정·래퍼
 └── utils/           # 의존성 없는 순수 함수와 테스트
 ```

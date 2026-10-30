@@ -24,7 +24,7 @@ function PageItem({ page, href, isCurrent }: PageItemProps) {
       className={cn(
         ITEM_BOX_CLASS,
         FOCUS_RING_CLASS,
-        'text-label1 font-medium text-neutral-muted',
+        'text-label1 font-medium text-neutral-muted hover:bg-transparent-pressed',
         'aria-[current=page]:bg-neutral-solid aria-[current=page]:font-semibold aria-[current=page]:text-on-neutral-solid',
       )}
     >

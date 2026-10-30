@@ -21,7 +21,14 @@ function toStoryRoute(path: string) {
   return path as Route
 }
 
-const SIGNED_IN_NAV_ITEMS = [
+const APPLICANT_NAV_ITEMS = [
+  { label: '전체 공고', href: toStoryRoute('/recruits') },
+  { label: '스크랩', href: toStoryRoute('/scraps') },
+  { label: '내 지원', href: toStoryRoute('/applications') },
+  { label: '캘린더', href: toStoryRoute('/calendar') },
+]
+
+const ORGANIZER_NAV_ITEMS = [
   { label: '전체 공고', href: toStoryRoute('/recruits') },
   { label: '단체 관리', href: toStoryRoute('/organizations') },
   { label: '모집 관리', href: toStoryRoute('/manage') },
@@ -38,7 +45,7 @@ const SIGNED_IN_USER = {
 }
 
 export const Applicant: Story = {
-  render: () => <Gnb type="applicant" navItems={SIGNED_IN_NAV_ITEMS} {...SIGNED_IN_USER} />,
+  render: () => <Gnb type="applicant" navItems={APPLICANT_NAV_ITEMS} {...SIGNED_IN_USER} />,
 }
 
 export const Organizer: Story = {
@@ -46,7 +53,7 @@ export const Organizer: Story = {
   render: () => (
     <Gnb
       type="organizer"
-      navItems={SIGNED_IN_NAV_ITEMS}
+      navItems={ORGANIZER_NAV_ITEMS}
       organizationName="UXUX"
       {...SIGNED_IN_USER}
     />
