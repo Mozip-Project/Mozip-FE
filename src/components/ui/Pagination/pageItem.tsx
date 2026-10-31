@@ -8,16 +8,32 @@ const ITEM_BOX_CLASS = 'flex size-8 shrink-0 items-center justify-center rounded
 const FOCUS_RING_CLASS =
   'outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
 
+// 호출자가 화면 안 이동을 직접 처리할 때 사용, ⌘/Ctrl+클릭 새 탭은 Link 기본 동작 유지
+type PageNavigateHandler = (href: Route) => void
+
+function getNavigateHandler(href: Route, onNavigate?: PageNavigateHandler) {
+  if (!onNavigate) {
+    return undefined
+  }
+
+  return (event: { preventDefault: () => void }) => {
+    event.preventDefault()
+    onNavigate(href)
+  }
+}
+
 type PageItemProps = {
   page: number
   href: Route
   isCurrent: boolean
+  onNavigate?: PageNavigateHandler
 }
 
-function PageItem({ page, href, isCurrent }: PageItemProps) {
+function PageItem({ page, href, isCurrent, onNavigate }: PageItemProps) {
   return (
     <Link
       href={href}
+      onNavigate={getNavigateHandler(href, onNavigate)}
       aria-label={`${page}페이지`}
       aria-current={isCurrent ? 'page' : undefined}
       data-slot="page-item"
@@ -43,9 +59,10 @@ const ARROW_CONTENT = {
 type PageArrowProps = {
   direction: ArrowDirection
   href?: Route
+  onNavigate?: PageNavigateHandler
 }
 
-function PageArrow({ direction, href }: PageArrowProps) {
+function PageArrow({ direction, href, onNavigate }: PageArrowProps) {
   const { label, Icon } = ARROW_CONTENT[direction]
 
   // 이동할 페이지가 없으면 링크 대신 비활성 표시만 남겨 화살표 자리 유지
@@ -64,6 +81,7 @@ function PageArrow({ direction, href }: PageArrowProps) {
   return (
     <Link
       href={href}
+      onNavigate={getNavigateHandler(href, onNavigate)}
       aria-label={label}
       data-slot="page-arrow"
       className={cn(ITEM_BOX_CLASS, FOCUS_RING_CLASS, 'text-neutral-subtle [&_svg]:size-4.5')}
@@ -73,4 +91,4 @@ function PageArrow({ direction, href }: PageArrowProps) {
   )
 }
 
-export { PageArrow, PageItem }
+export { PageArrow, PageItem, type PageNavigateHandler }
