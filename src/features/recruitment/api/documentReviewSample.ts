@@ -49,7 +49,7 @@ const DOCUMENT_REVIEW_SAMPLE = [
     name: '최두리',
     position: 'planning',
     submittedAt: '2026-10-13T20:15',
-    isEvaluated: true,
+    isEvaluated: false,
   },
   {
     id: '8',
@@ -84,7 +84,7 @@ const DOCUMENT_REVIEW_SAMPLE = [
     name: '이서아',
     position: 'planning',
     submittedAt: '2026-10-12T01:07',
-    isEvaluated: true,
+    isEvaluated: false,
   },
   {
     id: '13',
