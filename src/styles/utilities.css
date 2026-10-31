@@ -3,3 +3,40 @@
   grid-template-columns: repeat(var(--layout-grid-columns), minmax(0, 1fr));
   column-gap: var(--layout-grid-gutter);
 }
+
+/* Figma Table/ApplicantSkeletonRow 주석 기준 */
+@theme {
+  /* 밝은 띠 좌→우 이동, 1.2s linear 반복 */
+  --animate-skeleton-shimmer: skeleton-shimmer 1.2s linear infinite;
+  /* 300ms 이하 로딩에서 깜빡임 방지 */
+  --animate-skeleton-delayed-show: skeleton-delayed-show 0s linear 300ms both;
+  /* 로딩 중 이전 목록을 300ms 뒤 숨김 */
+  --animate-skeleton-delayed-hide: skeleton-delayed-hide 0s linear 300ms both;
+
+  @keyframes skeleton-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  @keyframes skeleton-delayed-show {
+    from {
+      visibility: hidden;
+    }
+    to {
+      visibility: visible;
+    }
+  }
+
+  @keyframes skeleton-delayed-hide {
+    from {
+      visibility: visible;
+    }
+    to {
+      visibility: hidden;
+    }
+  }
+}

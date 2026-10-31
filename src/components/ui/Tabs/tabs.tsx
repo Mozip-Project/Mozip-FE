@@ -21,7 +21,8 @@ const STATUS_DOT_CLASS = {
 } satisfies Record<TabStatusTone, string>
 
 type TabsTriggerProps = ComponentProps<typeof TabsPrimitive.Trigger> & {
-  count?: number
+  // null은 개수 확인 중, '-'로 표시
+  count?: number | null
   // 색 외에 보조 기술용 label 제공
   status?: { tone: TabStatusTone; label: string }
 }
@@ -62,7 +63,8 @@ function TabsTrigger({
       {count !== undefined && (
         <>
           {' '}
-          <span>{count}</span>
+          {/* 스크린리더의 '하이픈' 읽기 방지 */}
+          {count === null ? <span aria-hidden>-</span> : <span>{count}</span>}
         </>
       )}
       {status && (

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 type ListToolBarTab<TValue extends string> = {
   value: TValue
   label: string
-  count?: number
+  count?: number | null
 }
 
 type ListToolBarProps<TValue extends string> = {
