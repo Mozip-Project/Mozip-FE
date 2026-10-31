@@ -24,21 +24,20 @@ const SKELETON_BAR_CLASS = cn(
 type ApplicantTableProps = {
   label: string
   isLoading?: boolean
+  // 표 구조(행) 밖이지만 같은 테두리 안, 헤더 아래에 표시
+  emptyState?: ReactNode
   children: ReactNode
 }
 
 // 좁은 화면에서는 표 영역만 가로 스크롤, relative로 sr-only 텍스트까지 스크롤 영역 안에 유지
-function ApplicantTable({ label, isLoading = false, children }: ApplicantTableProps) {
+function ApplicantTable({ label, isLoading = false, emptyState, children }: ApplicantTableProps) {
   return (
-    <div className="relative max-w-page overflow-x-auto">
-      <div
-        role="table"
-        aria-label={label}
-        aria-busy={isLoading}
-        data-slot="applicant-table"
-        className="min-w-[802px]"
-      >
-        {children}
+    <div className="relative max-w-page overflow-x-auto rounded-l border border-neutral-weak bg-layer-default">
+      <div className="min-w-[802px]">
+        <div role="table" aria-label={label} aria-busy={isLoading} data-slot="applicant-table">
+          {children}
+        </div>
+        {emptyState}
       </div>
     </div>
   )
