@@ -2,10 +2,10 @@
 
 ## 경계
 
-- 한 번만 사용되는 화면 내부 조합은 해당 기능·페이지 폴더에 둡니다.
+- 한 번만 사용되는 화면 내부 조합은 `src/features/<도메인>/components/`에 둡니다.
 - 두 개 이상 화면에서 재사용되는 작고 안정적인 UI만 공통 컴포넌트로 추출합니다.
 - 페이지는 화면 구성 요소를 조립하고, 각 구성 요소는 레이아웃·콘텐츠·상호작용을 책임집니다.
-- 특정 화면 전용 하위 컴포넌트·상수·타입은 해당 화면 폴더에 co-locate합니다. 다른 화면이 실제로 필요로 할 때만 승격합니다.
+- 특정 화면 전용 하위 컴포넌트·상수·타입은 해당 도메인 폴더에 둡니다. 다른 도메인이 실제로 필요로 할 때만 승격합니다.
 - 컴포넌트 안에 새 컴포넌트를 선언하지 않습니다. 렌더링마다 컴포넌트 타입이 바뀌고 책임 경계가 흐려집니다.
 - Next.js의 `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`를 제외하면 named export를 기본으로 사용합니다.
 
@@ -61,7 +61,7 @@
 
 ## 파일과 테스트 배치
 
-- 화면 전용 파일은 해당 폴더에 함께 둡니다. 예를 들어 `feature-name/feature-section.tsx`, `feature-name/feature-content.ts`, `feature-name/feature-section.test.tsx`처럼 배치합니다.
+- 화면 전용 파일은 해당 도메인 폴더에 함께 둡니다. 예를 들어 `features/recruitment/components/recruitFilter.tsx`, `features/recruitment/components/recruitFilter.test.tsx`처럼 배치합니다.
 - 재사용 컴포넌트의 테스트도 가까이에 두되, `src/components/ui/`의 공용 컴포넌트는 `src/components/ui/__tests__/`에 둡니다. 테스트는 사용자에게 보이는 계약과 실패 가능성이 있는 상호작용을 검증합니다.
 - 정적 콘텐츠·정적 마크업에는 테스트를 강제하지 않습니다.
 

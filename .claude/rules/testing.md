@@ -9,11 +9,9 @@
 - `src/components/ui/`의 공용 컴포넌트는 폴더에 컴포넌트와 스토리만 두므로, 테스트는 `src/components/ui/__tests__/`에 둡니다.
 
 ```text
-feature-name/
-├── feature-navigation.ts
-├── feature-navigation.test.ts
-├── feature-section.tsx
-└── feature-section.test.tsx
+src/features/recruitment/components/
+├── recruitFilter.tsx
+└── recruitFilter.test.tsx
 ```
 
 ## 테스트 선택
