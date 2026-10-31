@@ -1,22 +1,10 @@
-import Link from 'next/link'
+import { ActiveLink } from '@/components/ui/ActiveLink/activeLink'
 import { cn } from '@/lib/utils'
-import type { ActivePathMatch } from '@/utils/activePath'
 import type { ComponentProps } from 'react'
 
-type NavItemProps = ComponentProps<typeof Link> & {
-  current?: ActivePathMatch
-}
-
-// 하위 경로의 상위 메뉴는 현재 페이지가 아니라 현재 영역으로 안내
-const ARIA_CURRENT = {
-  page: 'page',
-  section: 'true',
-} as const satisfies Record<ActivePathMatch, ComponentProps<'a'>['aria-current']>
-
-function NavItem({ className, current, ...props }: NavItemProps) {
+function NavItem({ className, ...props }: ComponentProps<typeof ActiveLink>) {
   return (
-    <Link
-      aria-current={current && ARIA_CURRENT[current]}
+    <ActiveLink
       data-slot="nav-item"
       className={cn(
         'inline-flex h-10 shrink-0 items-center rounded-m px-padding-m text-body2 font-medium whitespace-nowrap text-neutral-muted',
