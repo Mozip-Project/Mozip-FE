@@ -16,16 +16,14 @@ export default meta
 // 필수 props를 render 안에서 직접 넘겨 args 타입 연결 제외
 type Story = StoryObj
 
-// 실제 route가 아직 없어 typedRoutes 검사를 피하려고 문자열을 Route로 변환
+// 실제 route가 아닌 표시용 경로라 typedRoutes 검사를 피하려고 문자열을 Route로 변환
 function toStoryRoute(path: string) {
   return path as Route
 }
 
 const APPLICANT_NAV_ITEMS = [
   { label: '전체 공고', href: toStoryRoute('/recruits') },
-  { label: '스크랩', href: toStoryRoute('/scraps') },
   { label: '내 지원', href: toStoryRoute('/applications') },
-  { label: '캘린더', href: toStoryRoute('/calendar') },
 ]
 
 const ORGANIZER_NAV_ITEMS = [
@@ -42,6 +40,8 @@ const LOGGED_OUT_NAV_ITEMS = [
 const SIGNED_IN_USER = {
   userName: '김모집',
   myPageHref: toStoryRoute('/mypage'),
+  switchModeHref: toStoryRoute('/manage'),
+  logoutHref: toStoryRoute('/'),
 }
 
 export const Applicant: Story = {

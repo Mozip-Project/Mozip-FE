@@ -10,7 +10,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ko" className={`${pretendard.variable} h-full antialiased`}>
+    // scroll-pt-16: 고정 GNB(64px)에 키보드 focus 요소가 가려지는 문제 방지
+    <html lang="ko" className={`${pretendard.variable} h-full scroll-pt-16 antialiased`}>
       <body className="flex min-h-full flex-col">
         <QueryProvider>{children}</QueryProvider>
       </body>

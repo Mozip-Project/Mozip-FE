@@ -7,7 +7,7 @@
 - 파일: https://www.figma.com/design/HrYXJqfKzS28pI5hq8scH3/-MOZIP.--Design
 - 디자인 시스템 페이지: `design system`(node `17:868`). 공통 컴포넌트는 `Shared Components` frame에 있습니다.
 - 지원자 화면: 미정
-- 운영진 화면: 미정
+- 운영진 화면: `handoff` 페이지(node `1:7`)의 서류 평가. 나머지 화면은 미정
 
 ## 자료 해석 우선순위
 

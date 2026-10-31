@@ -1,7 +1,3 @@
-'use client'
-
-import { usePathname } from 'next/navigation'
-import { getActivePathMatch } from '@/utils/activePath'
 import { NavItem } from './navItem'
 import type { Route } from 'next'
 
@@ -15,16 +11,12 @@ type GnbNavProps = {
 }
 
 function GnbNav({ items }: GnbNavProps) {
-  const pathname = usePathname()
-
   return (
     <nav aria-label="주요 메뉴">
       <ul className="flex items-center gap-gap-xxs">
         {items.map((item) => (
           <li key={item.href}>
-            <NavItem href={item.href} current={getActivePathMatch(pathname, item.href)}>
-              {item.label}
-            </NavItem>
+            <NavItem href={item.href}>{item.label}</NavItem>
           </li>
         ))}
       </ul>
