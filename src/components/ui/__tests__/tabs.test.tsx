@@ -41,6 +41,20 @@ describe('Tabs', () => {
     expect(screen.getByRole('tabpanel')).toHaveTextContent('평가 완료 지원자')
   })
 
+  it('상태 점은 숨기고 label을 탭 이름에 포함', () => {
+    render(
+      <Tabs defaultValue="all">
+        <TabsList aria-label="지원자 상태">
+          <TabsTrigger value="all" count={48} status={{ tone: 'critical', label: '확인 필요' }}>
+            전체
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>,
+    )
+
+    expect(screen.getByRole('tab', { name: '전체 48 확인 필요' })).toBeInTheDocument()
+  })
+
   it('방향키로 다음 탭 이동 시 선택과 내용도 전환', async () => {
     const user = userEvent.setup()
     renderTabs()

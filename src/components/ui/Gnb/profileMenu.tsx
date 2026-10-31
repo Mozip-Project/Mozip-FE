@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import ProfileIcon from '@/assets/icons/profile.svg'
 import RefreshIcon from '@/assets/icons/refresh.svg'
+import { Avatar } from '@/components/ui/Avatar/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,9 +36,9 @@ function ProfileMenu({ name, mode, myPageHref }: ProfileMenuProps) {
         aria-label="프로필 메뉴"
         data-pointer-focus={isPointerFocus ? '' : undefined}
         onPointerDown={markPointerFocus}
-        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid data-pointer-focus:focus-visible:outline-none [&_svg]:size-full"
+        className="size-10 shrink-0 cursor-pointer rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid data-pointer-focus:focus-visible:outline-none"
       >
-        <ProfileIcon aria-hidden />
+        <Avatar size={40} />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-60">

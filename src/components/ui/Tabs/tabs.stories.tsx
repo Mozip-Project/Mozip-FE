@@ -36,3 +36,28 @@ export const Default: Story = {
     </Tabs>
   ),
 }
+
+// label은 예시 문구, Figma 미정의
+const STATUS_EXAMPLES = [
+  { tone: 'positive', label: '정상' },
+  { tone: 'critical', label: '확인 필요' },
+] as const
+
+export const WithStatus: Story = {
+  render: () => (
+    <div className="flex">
+      {STATUS_EXAMPLES.map((status) => (
+        <Tabs key={status.tone} defaultValue="selected">
+          <TabsList aria-label={`${status.label} 상태 예시`}>
+            <TabsTrigger value="default" count={48} status={status}>
+              전체
+            </TabsTrigger>
+            <TabsTrigger value="selected" count={48} status={status}>
+              전체
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ))}
+    </div>
+  ),
+}

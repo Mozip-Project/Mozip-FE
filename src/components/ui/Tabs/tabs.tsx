@@ -13,11 +13,27 @@ function TabsList({ className, ...props }: ComponentProps<typeof TabsPrimitive.L
   return <TabsPrimitive.List data-slot="tabs-list" className={cn('flex', className)} {...props} />
 }
 
+type TabStatusTone = 'positive' | 'critical'
+
+const STATUS_DOT_CLASS = {
+  positive: 'bg-positive-solid',
+  critical: 'bg-critical-solid',
+} satisfies Record<TabStatusTone, string>
+
 type TabsTriggerProps = ComponentProps<typeof TabsPrimitive.Trigger> & {
   count?: number
+  // 색 외에 보조 기술용 label 제공
+  status?: { tone: TabStatusTone; label: string }
 }
 
-function TabsTrigger({ className, children, count, onPointerDown, ...props }: TabsTriggerProps) {
+function TabsTrigger({
+  className,
+  children,
+  count,
+  status,
+  onPointerDown,
+  ...props
+}: TabsTriggerProps) {
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
 
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
@@ -47,6 +63,17 @@ function TabsTrigger({ className, children, count, onPointerDown, ...props }: Ta
         <>
           {' '}
           <span>{count}</span>
+        </>
+      )}
+      {status && (
+        <>
+          {' '}
+          <span
+            aria-hidden
+            data-slot="tabs-trigger-status"
+            className={cn('size-1.5 shrink-0 rounded-full', STATUS_DOT_CLASS[status.tone])}
+          />
+          <span className="sr-only">{status.label}</span>
         </>
       )}
     </TabsPrimitive.Trigger>

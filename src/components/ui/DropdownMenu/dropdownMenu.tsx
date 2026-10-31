@@ -52,13 +52,19 @@ const MENU_ITEM_BASE_CLASS =
 
 function DropdownMenuItem({
   className,
+  variant = 'default',
   ...props
-}: ComponentProps<typeof DropdownMenuPrimitive.Item>) {
+}: ComponentProps<typeof DropdownMenuPrimitive.Item> & {
+  // critical: 삭제·나가기 등 위험 동작
+  variant?: 'default' | 'critical'
+}) {
   return (
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
+      data-variant={variant}
       className={cn(
         MENU_ITEM_BASE_CLASS,
+        'data-[variant=critical]:text-critical data-[variant=critical]:focus:bg-critical-weak',
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
         className,
       )}
