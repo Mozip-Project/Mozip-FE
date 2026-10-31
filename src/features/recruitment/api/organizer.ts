@@ -91,8 +91,7 @@ function countBy<TKey extends string>(
   ) as Record<TKey, number>
 }
 
-// 마감 시각 이후에는 평가 저장·수정 불가, 마감 시각 자체도 마감으로 처리
-// 형식을 알 수 없는 값은 수정 가능으로 오판하지 않도록 마감으로 처리
+// 마감 시각부터 수정 불가, 읽을 수 없는 값도 수정 불가로 처리
 function canEditDocumentReview(deadline: string, now: Date) {
   const deadlineTime = Date.parse(deadline)
 
@@ -103,7 +102,7 @@ function canEditDocumentReview(deadline: string, now: Date) {
   return now.getTime() < deadlineTime
 }
 
-// TODO: 서류 평가 지원자 목록 API 확정 후 실제 요청으로 교체, 지금은 샘플에 서버 조건을 흉내 내 적용
+// TODO: 서류 평가 지원자 목록 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function getDocumentReviewApplicants(
   _recruitmentId: string,
@@ -114,7 +113,7 @@ async function getDocumentReviewApplicants(
   const matchesPositions = (applicant: DocumentReviewApplicant) =>
     query.positions.includes(applicant.position)
 
-  // Figma 화면 공통 규칙: 탭 × 필터 × 검색 AND, 탭 숫자는 필터·검색 적용 결과 기준
+  // Figma 공통 규칙: 탭 숫자는 필터·검색 적용 결과 기준
   const filtered = DOCUMENT_REVIEW_SAMPLE.filter(
     (applicant) => matchesKeyword(applicant) && matchesPositions(applicant),
   )

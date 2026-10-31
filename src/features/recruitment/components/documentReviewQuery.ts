@@ -75,7 +75,7 @@ function getDocumentReviewHref(recruitmentId: string, query: DocumentReviewQuery
   const pathname = `/manage/recruitments/${recruitmentId}/documents`
   const href = queryString ? `${pathname}?${queryString}` : pathname
 
-  // typedRoutes는 리터럴만 검사하므로 Next 문서 안내대로 조합한 경로를 Route로 단언
+  // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
   return href as Route
 }
 

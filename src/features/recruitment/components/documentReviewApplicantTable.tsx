@@ -22,10 +22,10 @@ type DocumentReviewApplicantTableProps = {
   recruitmentId: string
   applicants: readonly DocumentReviewApplicant[]
   status: DocumentReviewStatus
-  // 필터·검색 적용 후 전체 탭 인원, 조건이 없을 때 0이면 모집에 지원자가 없음
+  // 필터·검색 적용 후 전체 탭 인원
   totalCount: number
   keyword: string
-  // 포지션 필터가 걸린 경우에만 전달, 결과가 0명이면 필터 초기화 안내 표시
+  // 포지션 필터가 걸린 경우에만 전달
   resetFilterHref?: Route
 }
 
@@ -36,8 +36,7 @@ type EmptyStateContext = Pick<
   'recruitmentId' | 'status' | 'totalCount' | 'keyword' | 'resetFilterHref'
 >
 
-// 조건(검색·포지션)에 맞는 전체 인원으로 원인 구분
-// 1명 이상이면 탭 상태(평가 모두 완료), 0명이면 검색어 → 포지션 필터 → 지원자 없음 순
+// 조건에 맞는 인원이 있으면 탭 상태, 없으면 검색어 → 포지션 필터 → 지원자 없음 순으로 원인 안내
 function getEmptyState({
   recruitmentId,
   status,
@@ -45,10 +44,9 @@ function getEmptyState({
   keyword,
   resetFilterHref,
 }: EmptyStateContext) {
-  // 조건에 맞는 지원자가 있는데 이 탭만 비었으면 탭 상태가 원인
   if (totalCount > 0) {
     if (status === 'pending') {
-      // typedRoutes는 리터럴만 검사하므로 Next 문서 안내대로 조합한 경로를 Route로 단언
+      // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
       const summaryHref = `/manage/recruitments/${recruitmentId}/documents/summary` as Route
 
       return (
@@ -69,11 +67,10 @@ function getEmptyState({
       )
     }
 
-    // TODO: 평가 완료 탭이 0명(아직 평가 전)일 때의 빈 상태는 Figma 미정의
+    // TODO: 평가 완료 탭 0명 빈 상태는 Figma 확정 후 추가
     return null
   }
 
-  // 조건에 맞는 지원자가 아예 없으면 검색어 → 포지션 필터 → 지원자 없음 순으로 원인 안내
   if (keyword !== '') {
     return (
       <EmptyState
@@ -115,7 +112,7 @@ function getEmptyState({
   )
 }
 
-// TODO: 서류 평가 마감 후 '평가 수정' 버튼 상태는 디자이너 확인 후 canEditDocumentReview로 분기
+// TODO: 마감 후 '평가 수정' 버튼 상태는 Figma 확정 후 canEditDocumentReview로 분기
 function DocumentReviewApplicantTable({
   recruitmentId,
   applicants,
@@ -141,7 +138,7 @@ function DocumentReviewApplicantTable({
       {applicants.map((applicant) => (
         <ApplicantRow
           key={applicant.id}
-          // typedRoutes는 리터럴만 검사하므로 Next 문서 안내대로 조합한 경로를 Route로 단언
+          // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
           href={`/manage/recruitments/${recruitmentId}/documents/${applicant.id}` as Route}
           name={applicant.name}
           position={DOCUMENT_REVIEW_POSITION_LABEL[applicant.position]}

@@ -63,7 +63,7 @@ function TabsTrigger({
       {count !== undefined && (
         <>
           {' '}
-          {/* 확인 중 표시는 보조 기술에서 '하이픈'으로 읽히지 않도록 제외 */}
+          {/* 스크린리더의 '하이픈' 읽기 방지 */}
           {count === null ? <span aria-hidden>-</span> : <span>{count}</span>}
         </>
       )}

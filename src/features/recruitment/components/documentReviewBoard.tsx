@@ -33,10 +33,9 @@ import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentRevie
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 import type { Route } from 'next'
 
-// Figma 이름 검색 주석: 입력 300ms 후 자동 검색
 const SEARCH_DEBOUNCE_MS = 300
 
-// 툴바 검색창 입력값은 이 컴포넌트의 지역 상태라, 표 안의 빈 상태 버튼이 같은 경로로 지우도록 전달
+// 툴바 지역 상태인 검색어를 표 안 빈 상태 버튼에서도 지우도록 전달
 const SearchClearContext = createContext<(() => void) | null>(null)
 
 const SORT_OPTIONS = DOCUMENT_REVIEW_SORTS.map((sort) => ({
@@ -49,7 +48,7 @@ type QueryChange = Partial<Omit<DocumentReviewQuery, 'page'>>
 type DocumentReviewBoardProps = {
   recruitmentId: string
   query: DocumentReviewQuery
-  // null은 첫 진입 로딩 중, 탭 숫자를 '-'로 표시
+  // null은 첫 진입 로딩 중
   statusCounts: Record<DocumentReviewStatus, number> | null
   positionCounts: Record<DocumentReviewPosition, number> | null
   currentPage: number
@@ -70,7 +69,6 @@ function DocumentReviewBoard({
   const sectionRef = useRef<HTMLElement>(null)
   // 서버 응답 전에도 선택한 탭·필터를 바로 표시
   const [optimisticQuery, setOptimisticQuery] = useOptimistic(query)
-  // 탭·필터·정렬·검색·페이지 변경 응답 대기 상태, 표 스켈레톤 표시에 사용
   const [isPending, startTransition] = useTransition()
   // 입력 중 글자가 서버 응답을 기다리지 않도록 검색어만 지역 상태로 관리
   const [keyword, setKeyword] = useState(query.keyword)
@@ -92,7 +90,7 @@ function DocumentReviewBoard({
     ? Object.values(positionCounts).reduce((total, count) => total + count, 0)
     : undefined
 
-  // Figma 화면 공통 규칙: 조건 변경 시 표 상단으로 스크롤, 툴바가 이미 보이면 검색창 가림 방지로 유지
+  // Figma 공통 규칙: 조건 변경 시 표 상단으로, 툴바가 보이면 검색창 가림 방지로 유지
   function scrollToTableTop() {
     const section = sectionRef.current
 
@@ -107,7 +105,7 @@ function DocumentReviewBoard({
     }
   }
 
-  // 페이지 변경도 조건 변경과 같은 전환으로 처리해 로딩 상태 공유, 이동 기록은 남김
+  // 조건 변경과 같은 전환으로 로딩 상태 공유, 이동 기록은 남김
   function handlePageNavigate(href: Route) {
     startTransition(() => {
       router.push(href, { scroll: false })
@@ -187,8 +185,7 @@ function DocumentReviewBoard({
           }
         >
           <SearchClearContext value={clearKeyword}>
-            {/* Figma 로딩 주석: 300ms 안에 응답하면 이전 목록 유지, 넘으면 같은 자리에서 스켈레톤으로 교체 */}
-            {/* grid-cols-1(minmax(0,1fr))로 표 최소 폭이 칸을 넓히지 않고 표 안에서만 가로 스크롤 */}
+            {/* 300ms까지 이전 목록 유지 후 스켈레톤으로 교체, grid-cols-1로 표 최소 폭의 칸 확장 방지 */}
             <div className="grid grid-cols-1 pt-gap-xl">
               <div className={cn('[grid-area:1/1]', isPending && 'animate-skeleton-delayed-hide')}>
                 {children}
@@ -212,8 +209,7 @@ function DocumentReviewBoard({
   )
 }
 
-// Figma 로딩 화면: 첫 진입 시 기본 조건의 툴바와 '-' 숫자, 데이터 전이라 조작 불가
-// URL 조건을 읽기 전 정적 셸에서 그려지므로 기본 조건으로 표시
+// 첫 진입 로딩용, URL을 읽기 전 정적 셸이라 기본 조건으로 표시하고 조작 차단
 function DocumentReviewBoardPlaceholder({ children }: { children: ReactNode }) {
   return (
     <div inert>

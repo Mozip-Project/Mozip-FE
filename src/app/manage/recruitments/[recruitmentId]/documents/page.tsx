@@ -11,9 +11,9 @@ export default function RecruitmentDocumentsPage({
 }: PageProps<'/manage/recruitments/[recruitmentId]/documents'>) {
   return (
     <div className="flex flex-col gap-gap-xxl">
-      {/* Figma 헤더 행 높이 40px(버튼 영역 기준)에 맞춤 */}
+      {/* Figma 헤더 높이 40px 기준 */}
       <PageHeader title="서류 평가" className="min-h-10" />
-      {/* URL 조건을 읽는 목록만 요청 시점에 렌더링, 제목은 정적 셸 유지 */}
+      {/* 제목만 정적 셸, URL 조건을 읽는 목록은 요청 시 렌더링 */}
       <Suspense fallback={<DocumentReviewContentFallback />}>
         <DocumentReviewContent params={params} searchParams={searchParams} />
       </Suspense>

@@ -8,7 +8,7 @@ type DocumentReviewFilterResetButtonProps = {
   href: Route
 }
 
-// 현재 화면의 조건 변경이므로 링크 대신 버튼, 툴바 조건 변경과 같이 기록을 쌓지 않고 교체
+// 화면 안 조건 변경이라 링크 대신 버튼, 툴바처럼 기록 없이 교체
 function DocumentReviewFilterResetButton({ href }: DocumentReviewFilterResetButtonProps) {
   const router = useRouter()
 

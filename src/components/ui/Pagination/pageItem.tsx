@@ -8,7 +8,7 @@ const ITEM_BOX_CLASS = 'flex size-8 shrink-0 items-center justify-center rounded
 const FOCUS_RING_CLASS =
   'outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-focus-ring'
 
-// 호출자가 화면 안 이동을 직접 처리할 때 사용, ⌘/Ctrl+클릭 새 탭은 Link 기본 동작 유지
+// ⌘/Ctrl+클릭 새 탭은 Link 기본 동작 유지
 type PageNavigateHandler = (href: Route) => void
 
 function getNavigateHandler(href: Route, onNavigate?: PageNavigateHandler) {

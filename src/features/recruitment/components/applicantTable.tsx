@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 import type { Route } from 'next'
 import type { ReactNode } from 'react'
 
-// 헤더·행·스켈레톤 행이 같은 열 너비를 쓰도록 한곳에서 관리
 const COLUMN_CLASS = {
   name: 'w-50 shrink-0',
   position: 'w-35 shrink-0',
@@ -24,12 +23,12 @@ const SKELETON_BAR_CLASS = cn(
 type ApplicantTableProps = {
   label: string
   isLoading?: boolean
-  // 표 구조(행) 밖이지만 같은 테두리 안, 헤더 아래에 표시
+  // role=table 밖, 같은 테두리 안에 표시
   emptyState?: ReactNode
   children: ReactNode
 }
 
-// 좁은 화면에서는 표 영역만 가로 스크롤, relative로 sr-only 텍스트까지 스크롤 영역 안에 유지
+// relative로 sr-only 텍스트의 스크롤 영역 밖 넘침 방지
 function ApplicantTable({ label, isLoading = false, emptyState, children }: ApplicantTableProps) {
   return (
     <div className="relative max-w-page overflow-x-auto rounded-l border border-neutral-weak bg-layer-default">
@@ -121,7 +120,7 @@ function ApplicantRow({
             isEvaluated
               ? 'hover:border-neutral-muted hover:bg-layer-default'
               : 'hover:bg-brand-solid',
-            // 행 전체 클릭 영역, ⌘/Ctrl+클릭 새 탭은 기본 링크 동작 사용
+            // 행 전체 클릭 영역
             'after:absolute after:inset-0',
           )}
         >

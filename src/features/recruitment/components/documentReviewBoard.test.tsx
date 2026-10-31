@@ -79,7 +79,7 @@ describe('DocumentReviewBoard 이름 검색', () => {
       vi.advanceTimersByTime(300)
     })
 
-    // 테스트용 replace는 즉시 끝나 탭 전환이 중복 호출될 수 있으므로 호출 내용으로 검증
+    // 가짜 replace는 즉시 끝나 탭 전환이 중복 호출될 수 있어 호출 내용으로 검증
     expect(replace).not.toHaveBeenCalledWith('/manage/recruitments/1/documents?q=%EA%B9%80', {
       scroll: false,
     })

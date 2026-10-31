@@ -18,7 +18,7 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
   const { applicants, statusCounts, positionCounts, currentPage, totalPages } =
     await getDocumentReviewApplicants(recruitmentId, query)
   const isPositionFiltered = query.positions.length < DOCUMENT_REVIEW_POSITIONS.length
-  // 툴바의 포지션 필터 초기화와 같게 포지션만 전체로, 탭·정렬·검색어는 유지
+  // 포지션만 전체로, 탭·정렬·검색어는 유지
   const resetFilterHref = isPositionFiltered
     ? getDocumentReviewHref(recruitmentId, {
         ...query,
