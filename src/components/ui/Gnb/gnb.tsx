@@ -8,14 +8,18 @@ import type { Route } from 'next'
 
 type SignedInProps = {
   navItems: GnbNavItem[]
+  homeHref?: Route
   userName: string
   myPageHref: Route
+  switchModeHref: Route
+  logoutHref: Route
 }
 
 type GnbProps =
   | {
       type: 'loggedOut'
       navItems: GnbNavItem[]
+      homeHref?: Route
       loginHref: Route
       signupHref: Route
     }
@@ -26,13 +30,13 @@ function Gnb(props: GnbProps) {
   return (
     <header
       data-slot="gnb"
-      className="border-b border-neutral-subtle bg-layer-default px-page-padding"
+      className="sticky top-0 z-20 border-b border-neutral-subtle bg-layer-default px-page-padding"
     >
       <div className="mx-auto flex h-16 w-full max-w-page items-center gap-gap-xl">
         <div className="flex min-w-0 items-center gap-8">
           {/* TODO: 실제 로고로 교체 */}
           <Link
-            href="/"
+            href={props.homeHref ?? '/'}
             aria-label="MOZIP. 홈"
             className="flex h-8 w-24 shrink-0 items-center rounded-s text-heading2 font-bold text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
           >
@@ -70,7 +74,13 @@ function GnbActions(props: GnbProps) {
       <Button variant="tertiary" size="m" aria-label="알림" className="size-10 text-neutral">
         <BellIcon aria-hidden className="size-4.5" />
       </Button>
-      <ProfileMenu name={props.userName} mode={props.type} myPageHref={props.myPageHref} />
+      <ProfileMenu
+        name={props.userName}
+        mode={props.type}
+        myPageHref={props.myPageHref}
+        switchModeHref={props.switchModeHref}
+        logoutHref={props.logoutHref}
+      />
     </>
   )
 }

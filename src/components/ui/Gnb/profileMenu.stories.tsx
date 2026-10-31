@@ -14,8 +14,20 @@ type Story = StoryObj
 export const Default: Story = {
   render: () => (
     <div className="flex h-80 justify-end gap-gap-xxl p-padding-xl">
-      <ProfileMenu name="김모집" mode="applicant" myPageHref="/" />
-      <ProfileMenu name="김모집" mode="organizer" myPageHref="/" />
+      <ProfileMenu
+        name="김모집"
+        mode="applicant"
+        myPageHref="/"
+        switchModeHref="/"
+        logoutHref="/"
+      />
+      <ProfileMenu
+        name="김모집"
+        mode="organizer"
+        myPageHref="/"
+        switchModeHref="/"
+        logoutHref="/"
+      />
     </div>
   ),
 }

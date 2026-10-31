@@ -20,14 +20,16 @@ const SWITCH_MODE_LABEL = {
   organizer: '지원자 모드로 전환',
 } satisfies Record<ProfileMenuMode, string>
 
-// TODO: 모드 전환·로그아웃 동작 연결 (인증·계정 구분 방식 결정 후)
+// TODO: 실제 모드 전환·로그아웃 연결 (인증·계정 구분 방식 결정 후), 현재는 화면 이동만 처리
 type ProfileMenuProps = {
   name: string
   mode: ProfileMenuMode
   myPageHref: Route
+  switchModeHref: Route
+  logoutHref: Route
 }
 
-function ProfileMenu({ name, mode, myPageHref }: ProfileMenuProps) {
+function ProfileMenu({ name, mode, myPageHref, switchModeHref, logoutHref }: ProfileMenuProps) {
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
 
   return (
@@ -55,14 +57,19 @@ function ProfileMenu({ name, mode, myPageHref }: ProfileMenuProps) {
         <DropdownMenuSeparator />
 
         <div className="p-padding-xs">
-          <DropdownMenuItem>
-            <RefreshIcon aria-hidden />
-            {SWITCH_MODE_LABEL[mode]}
+          <DropdownMenuItem asChild>
+            <Link href={switchModeHref}>
+              <RefreshIcon aria-hidden />
+              {SWITCH_MODE_LABEL[mode]}
+            </Link>
           </DropdownMenuItem>
         </div>
 
-        <DropdownMenuItem className="h-auto justify-center rounded-none bg-neutral-weak px-0 py-padding-s text-neutral-subtle focus:bg-neutral-weak-pressed">
-          로그아웃
+        <DropdownMenuItem
+          asChild
+          className="h-auto justify-center rounded-none bg-neutral-weak px-0 py-padding-s text-neutral-subtle focus:bg-neutral-weak-pressed"
+        >
+          <Link href={logoutHref}>로그아웃</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
