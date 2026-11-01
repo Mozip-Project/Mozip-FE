@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { parseDocumentReviewQuery } from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewBoard } from './documentReviewBoard'
-import { parseDocumentReviewQuery } from './documentReviewQuery'
 
 const replace = vi.fn()
 

@@ -1,8 +1,11 @@
 import { getDocumentReviewApplicants } from '@/features/recruitment/api/organizer'
 import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/types'
+import {
+  getDocumentReviewHref,
+  parseDocumentReviewQuery,
+} from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
-import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 
 type DocumentReviewContentProps = Pick<

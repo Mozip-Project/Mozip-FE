@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  getDocumentReviewHref,
+  parseDocumentReviewQuery,
+} from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard } from './documentReviewBoard'
-import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 
 const replace = vi.fn()
 const RESET_HREF = getDocumentReviewHref('1', parseDocumentReviewQuery({ status: 'pending' }))

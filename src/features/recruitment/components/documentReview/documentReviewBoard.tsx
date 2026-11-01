@@ -28,8 +28,11 @@ import {
   type DocumentReviewQuery,
   type DocumentReviewStatus,
 } from '@/features/recruitment/types'
+import {
+  getDocumentReviewHref,
+  parseDocumentReviewQuery,
+} from '@/features/recruitment/utils/documentReviewQuery'
 import { cn } from '@/lib/utils'
-import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 import type { Route } from 'next'
 
