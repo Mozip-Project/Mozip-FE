@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import { clampPage, getVisiblePages } from '@/utils/pagination'
-import { PageArrow, PageItem } from './pageItem'
+import { PageArrow, PageItem, type PageNavigateHandler } from './pageItem'
 import type { Route } from 'next'
 
 const PAGE_GROUP_SIZE = 5
@@ -9,10 +9,17 @@ type PaginationProps = {
   currentPage: number
   totalPages: number
   getPageHref: (page: number) => Route
+  onPageNavigate?: PageNavigateHandler
   className?: string
 }
 
-function Pagination({ currentPage, totalPages, getPageHref, className }: PaginationProps) {
+function Pagination({
+  currentPage,
+  totalPages,
+  getPageHref,
+  onPageNavigate,
+  className,
+}: PaginationProps) {
   if (totalPages <= 1) {
     return null
   }
@@ -33,17 +40,24 @@ function Pagination({ currentPage, totalPages, getPageHref, className }: Paginat
           <PageArrow
             direction="previous"
             href={hasPreviousPage ? getPageHref(safeCurrentPage - 1) : undefined}
+            onNavigate={onPageNavigate}
           />
         </li>
         {pages.map((page) => (
           <li key={page}>
-            <PageItem page={page} href={getPageHref(page)} isCurrent={page === safeCurrentPage} />
+            <PageItem
+              page={page}
+              href={getPageHref(page)}
+              isCurrent={page === safeCurrentPage}
+              onNavigate={onPageNavigate}
+            />
           </li>
         ))}
         <li>
           <PageArrow
             direction="next"
             href={hasNextPage ? getPageHref(safeCurrentPage + 1) : undefined}
+            onNavigate={onPageNavigate}
           />
         </li>
       </ul>

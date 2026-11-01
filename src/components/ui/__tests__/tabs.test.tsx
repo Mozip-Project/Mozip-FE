@@ -67,4 +67,20 @@ describe('Tabs', () => {
     expect(nextTab).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tabpanel')).toHaveTextContent('평가 완료 지원자')
   })
+
+  it('개수 확인 중(null)이면 - 표시, 접근 가능한 이름에서는 제외', () => {
+    render(
+      <Tabs defaultValue="all">
+        <TabsList aria-label="지원자 상태">
+          <TabsTrigger value="all" count={null}>
+            전체
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>,
+    )
+
+    const tab = screen.getByRole('tab', { name: '전체' })
+
+    expect(tab).toHaveTextContent('전체 -')
+  })
 })
