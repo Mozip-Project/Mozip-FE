@@ -48,17 +48,6 @@ function countBy<TKey extends string>(
   ) as Record<TKey, number>
 }
 
-// 마감 시각부터 수정 불가, 읽을 수 없는 값도 수정 불가로 처리
-function canEditDocumentReview(deadline: string, now: Date) {
-  const deadlineTime = Date.parse(deadline)
-
-  if (Number.isNaN(deadlineTime)) {
-    return false
-  }
-
-  return now.getTime() < deadlineTime
-}
-
 // TODO: 서류 평가 지원자 목록 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function getDocumentReviewApplicants(
@@ -101,4 +90,4 @@ async function getDocumentReviewApplicants(
   }
 }
 
-export { canEditDocumentReview, getDocumentReviewApplicants }
+export { getDocumentReviewApplicants }
