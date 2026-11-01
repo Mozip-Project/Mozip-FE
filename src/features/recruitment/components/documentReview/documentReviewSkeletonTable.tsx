@@ -1,4 +1,4 @@
-import { DOCUMENT_REVIEW_PAGE_SIZE } from '@/features/recruitment/api/organizer'
+import { DOCUMENT_REVIEW_PAGE_SIZE } from '@/features/recruitment/types'
 import { ApplicantSkeletonRow, ApplicantTable, ApplicantTableHead } from './applicantTable'
 
 const SKELETON_ROW_KEYS = Array.from({ length: DOCUMENT_REVIEW_PAGE_SIZE }, (_, index) => index)

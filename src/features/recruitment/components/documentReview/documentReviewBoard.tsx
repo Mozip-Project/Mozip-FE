@@ -27,7 +27,7 @@ import {
   type DocumentReviewPosition,
   type DocumentReviewQuery,
   type DocumentReviewStatus,
-} from '@/features/recruitment/api/organizer'
+} from '@/features/recruitment/types'
 import { cn } from '@/lib/utils'
 import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'

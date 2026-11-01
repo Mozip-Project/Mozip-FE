@@ -1,4 +1,4 @@
-import type { DocumentReviewApplicant } from './organizer'
+import type { DocumentReviewApplicant } from '@/features/recruitment/types'
 
 // TODO: 서류 평가 지원자 목록 API 확정 후 삭제, 이름은 모두 가상 인물
 const DOCUMENT_REVIEW_SAMPLE = [

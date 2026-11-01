@@ -1,7 +1,5 @@
-import {
-  DOCUMENT_REVIEW_POSITIONS,
-  getDocumentReviewApplicants,
-} from '@/features/recruitment/api/organizer'
+import { getDocumentReviewApplicants } from '@/features/recruitment/api/organizer'
+import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/types'
 import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
 import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'

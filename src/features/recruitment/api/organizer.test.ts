@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-  DOCUMENT_REVIEW_POSITIONS,
-  canEditDocumentReview,
-  getDocumentReviewApplicants,
-  type DocumentReviewQuery,
-} from './organizer'
+import { DOCUMENT_REVIEW_POSITIONS, type DocumentReviewQuery } from '@/features/recruitment/types'
+import { canEditDocumentReview, getDocumentReviewApplicants } from './organizer'
 
 const BASE_QUERY = {
   status: 'all',

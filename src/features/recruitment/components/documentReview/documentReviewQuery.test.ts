@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/api/organizer'
+import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/types'
 import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 
 describe('parseDocumentReviewQuery', () => {

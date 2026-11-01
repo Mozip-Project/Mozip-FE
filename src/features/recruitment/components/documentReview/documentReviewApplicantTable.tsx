@@ -11,7 +11,7 @@ import {
   DOCUMENT_REVIEW_POSITION_LABEL,
   type DocumentReviewApplicant,
   type DocumentReviewStatus,
-} from '@/features/recruitment/api/organizer'
+} from '@/features/recruitment/types'
 import { formatMonthDayWithWeekday } from '@/utils/date'
 import { ApplicantRow, ApplicantTable, ApplicantTableHead } from './applicantTable'
 import { DocumentReviewSearchClearButton } from './documentReviewBoard'

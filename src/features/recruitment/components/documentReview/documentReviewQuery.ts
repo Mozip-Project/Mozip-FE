@@ -3,7 +3,7 @@ import {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUSES,
   type DocumentReviewQuery,
-} from '@/features/recruitment/api/organizer'
+} from '@/features/recruitment/types'
 import type { Route } from 'next'
 
 type SearchParams = Record<string, string | string[] | undefined>
