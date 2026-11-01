@@ -4,7 +4,6 @@
   column-gap: var(--layout-grid-gutter);
 }
 
-/* Figma Table/ApplicantSkeletonRow 주석 기준 */
 @theme {
   /* 밝은 띠 좌→우 이동, 1.2s linear 반복 */
   --animate-skeleton-shimmer: skeleton-shimmer 1.2s linear infinite;

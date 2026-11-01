@@ -41,7 +41,7 @@ describe('DocumentReviewEmptyState', () => {
     })
   })
 
-  it('조건 없이 평가 완료 탭이 0명이면 안내 미표시(Figma 미정의)', () => {
+  it('조건 없이 평가 완료 탭이 0명이면 안내 미표시', () => {
     render(<DocumentReviewEmptyState recruitmentId="1" status="done" totalCount={12} keyword="" />)
 
     expect(screen.queryByRole('status')).not.toBeInTheDocument()

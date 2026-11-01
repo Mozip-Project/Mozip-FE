@@ -93,7 +93,6 @@ function DocumentReviewBoard({
     ? Object.values(positionCounts).reduce((total, count) => total + count, 0)
     : undefined
 
-  // Figma 공통 규칙: 조건 변경 시 표 상단으로, 툴바가 보이면 검색창 가림 방지로 유지
   function scrollToTableTop() {
     const section = sectionRef.current
 

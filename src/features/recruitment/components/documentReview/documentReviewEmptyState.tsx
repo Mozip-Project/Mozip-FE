@@ -55,7 +55,7 @@ function getEmptyState({
       )
     }
 
-    // TODO: 평가 완료 탭 0명 빈 상태는 Figma 확정 후 추가
+    // TODO: 평가 완료 탭 0명 빈 상태는 디자인 확정 후 추가
     return null
   }
 

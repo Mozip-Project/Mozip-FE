@@ -14,7 +14,7 @@ type DocumentReviewApplicantTableProps = {
   emptyState: ReactNode
 }
 
-// TODO: 마감 후 '평가 수정' 버튼 상태는 Figma 확정 후 canEditDocumentReview로 분기
+// TODO: 마감 후 '평가 수정' 버튼 상태는 디자인 확정 후 canEditDocumentReview로 분기
 function DocumentReviewApplicantTable({
   recruitmentId,
   applicants,

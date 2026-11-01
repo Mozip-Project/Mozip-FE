@@ -59,7 +59,6 @@ async function getDocumentReviewApplicants(
   const matchesPositions = (applicant: DocumentReviewApplicant) =>
     query.positions.includes(applicant.position)
 
-  // Figma 공통 규칙: 탭 숫자는 필터·검색 적용 결과 기준
   const filtered = DOCUMENT_REVIEW_SAMPLE.filter(
     (applicant) => matchesKeyword(applicant) && matchesPositions(applicant),
   )

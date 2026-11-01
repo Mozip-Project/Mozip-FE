@@ -15,7 +15,7 @@ function getPage(change: Partial<DocumentReviewQuery>) {
 }
 
 describe('getDocumentReviewApplicants', () => {
-  it('조건이 없으면 Figma 기준 탭 숫자와 첫 페이지 10명을 반환', async () => {
+  it('조건이 없으면 기본 탭 숫자와 첫 페이지 10명을 반환', async () => {
     const result = await getPage({})
 
     expect(result.statusCounts).toEqual({ all: 48, pending: 16, done: 32 })

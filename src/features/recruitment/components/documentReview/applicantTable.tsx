@@ -115,7 +115,6 @@ function ApplicantRow({
           variant={isEvaluated ? 'secondary' : 'primary'}
           size="s"
           className={cn(
-            // Figma 행 hover 상태에서 버튼 색 유지
             'h-9 w-24',
             isEvaluated
               ? 'hover:border-neutral-muted hover:bg-layer-default'
