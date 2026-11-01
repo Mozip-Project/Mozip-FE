@@ -6,6 +6,7 @@ import {
 } from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
+import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 
 type DocumentReviewContentProps = Pick<
@@ -40,10 +41,15 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
       <DocumentReviewApplicantTable
         recruitmentId={recruitmentId}
         applicants={applicants}
-        status={query.status}
-        totalCount={statusCounts.all}
-        keyword={query.keyword.trim()}
-        resetFilterHref={resetFilterHref}
+        emptyState={
+          <DocumentReviewEmptyState
+            recruitmentId={recruitmentId}
+            status={query.status}
+            totalCount={statusCounts.all}
+            keyword={query.keyword.trim()}
+            resetFilterHref={resetFilterHref}
+          />
+        }
       />
     </DocumentReviewBoard>
   )
