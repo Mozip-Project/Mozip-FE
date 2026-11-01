@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import {
   DocumentReviewContent,
   DocumentReviewContentFallback,
-} from '@/features/recruitment/components/documentReviewContent'
+} from '@/features/recruitment/components/documentReview/documentReviewContent'
 
 export default function RecruitmentDocumentsPage({
   params,

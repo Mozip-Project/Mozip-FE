@@ -1,4 +1,4 @@
-import { RecruitmentNav } from '@/features/recruitment/components/recruitmentNav'
+import { RecruitmentNav } from '@/features/recruitment/components/recruitmentNav/recruitmentNav'
 
 export default function RecruitmentLayout({
   children,

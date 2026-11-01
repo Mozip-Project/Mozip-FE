@@ -87,6 +87,14 @@ src/features/recruitment/
 
 지원자·운영진 구분은 `api/`와 `components/` 안에서만 합니다. 위 구조는 양쪽 코드가 모두 있을 때의 모습입니다. 폴더와 파일은 실제 코드가 생길 때 만들고, 한쪽 역할의 코드만 있는 동안은 `applicant/`·`organizer/` 없이 `components/` 바로 아래에 둡니다.
 
+`components/` 안에서는 함께 바뀌는 화면·영역 단위로 camelCase 폴더를 만들어 묶습니다. 폴더 이름은 그 영역의 진입 컴포넌트 이름을 따르고, 하위 컴포넌트·쿼리 유틸·테스트·스토리를 같은 폴더에 둡니다. 역할 폴더가 생기면 그 안에서 같은 방식으로 묶습니다.
+
+```text
+src/features/recruitment/components/
+├── documentReview/   # 서류 평가 목록 (documentReviewContent가 진입)
+└── recruitmentNav/   # 모집 관리 LNB (recruitmentNav가 진입)
+```
+
 | 코드                                     | 위치                 |
 | ---------------------------------------- | -------------------- |
 | 라우트 파일(`page.tsx`, `layout.tsx` 등) | `app/`               |
