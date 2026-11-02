@@ -58,7 +58,9 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
 function DocumentReviewContentFallback() {
   return (
     <DocumentReviewBoardPlaceholder>
-      <DocumentReviewSkeletonTable />
+      <div className="animate-skeleton-delayed-show">
+        <DocumentReviewSkeletonTable />
+      </div>
     </DocumentReviewBoardPlaceholder>
   )
 }
