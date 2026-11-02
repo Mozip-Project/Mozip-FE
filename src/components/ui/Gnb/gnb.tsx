@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import BellIcon from '@/assets/icons/bell.svg'
 import { Button } from '@/components/ui/Button/button'
+import { NotificationPanel } from '@/components/ui/Notification/notificationPanel'
 import { GnbNav, type GnbNavItem } from './gnbNav'
 import { OrganizationSelector } from './organizationSelector'
 import { ProfileMenu } from './profileMenu'
@@ -70,10 +70,7 @@ function GnbActions(props: GnbProps) {
   return (
     <>
       {props.type === 'organizer' && <OrganizationSelector name={props.organizationName} />}
-      {/* TODO: 알림 패널 디자인 확정 후 동작 연결 */}
-      <Button variant="tertiary" size="m" aria-label="알림" className="size-10 text-neutral">
-        <BellIcon aria-hidden className="size-4.5" />
-      </Button>
+      <NotificationPanel notifications={[]} settingsHref={props.myPageHref} />
       <ProfileMenu
         name={props.userName}
         mode={props.type}
