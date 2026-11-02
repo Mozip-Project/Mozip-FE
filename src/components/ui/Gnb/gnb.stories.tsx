@@ -1,4 +1,9 @@
+import Link from 'next/link'
+import BellIcon from '@/assets/icons/bell.svg'
+import { Button } from '@/components/ui/Button/button'
 import { Gnb } from './gnb'
+import { OrganizationSelector } from './organizationSelector'
+import { ProfileMenu } from './profileMenu'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 import type { Route } from 'next'
 
@@ -37,25 +42,46 @@ const LOGGED_OUT_NAV_ITEMS = [
   { label: '단체 둘러보기', href: toStoryRoute('/organizations') },
 ]
 
-const SIGNED_IN_USER = {
-  userName: '김모집',
+const PROFILE_MENU_PROPS = {
+  name: '김모집',
   myPageHref: toStoryRoute('/mypage'),
   switchModeHref: toStoryRoute('/manage'),
   logoutHref: toStoryRoute('/'),
 }
 
+// ui가 features를 import하지 않도록 트리거 모양만 표시
+const NOTIFICATION_TRIGGER = (
+  <Button variant="tertiary" size="m" aria-label="알림" className="size-10 text-neutral">
+    <BellIcon aria-hidden className="size-4.5" />
+  </Button>
+)
+
 export const Applicant: Story = {
-  render: () => <Gnb type="applicant" navItems={APPLICANT_NAV_ITEMS} {...SIGNED_IN_USER} />,
+  render: () => (
+    <Gnb
+      navItems={APPLICANT_NAV_ITEMS}
+      actions={
+        <>
+          {NOTIFICATION_TRIGGER}
+          <ProfileMenu mode="applicant" {...PROFILE_MENU_PROPS} />
+        </>
+      }
+    />
+  ),
 }
 
 export const Organizer: Story = {
   parameters: { nextjs: { appDirectory: true, navigation: { pathname: '/manage' } } },
   render: () => (
     <Gnb
-      type="organizer"
       navItems={ORGANIZER_NAV_ITEMS}
-      organizationName="UXUX"
-      {...SIGNED_IN_USER}
+      actions={
+        <>
+          <OrganizationSelector name="UXUX" />
+          {NOTIFICATION_TRIGGER}
+          <ProfileMenu mode="organizer" {...PROFILE_MENU_PROPS} />
+        </>
+      }
     />
   ),
 }
@@ -63,10 +89,17 @@ export const Organizer: Story = {
 export const LoggedOut: Story = {
   render: () => (
     <Gnb
-      type="loggedOut"
       navItems={LOGGED_OUT_NAV_ITEMS}
-      loginHref={toStoryRoute('/login')}
-      signupHref={toStoryRoute('/signup')}
+      actions={
+        <>
+          <Button asChild variant="tertiary" size="m">
+            <Link href={toStoryRoute('/login')}>로그인</Link>
+          </Button>
+          <Button asChild variant="primary" size="m">
+            <Link href={toStoryRoute('/signup')}>회원가입</Link>
+          </Button>
+        </>
+      }
     />
   ),
 }

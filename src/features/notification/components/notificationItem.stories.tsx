@@ -2,7 +2,7 @@ import { NotificationItem } from './notificationItem'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/Notification/NotificationItem',
+  title: 'Features/Notification/NotificationItem',
   component: NotificationItem,
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta<typeof NotificationItem>

@@ -61,7 +61,7 @@ function PanelFrame({ children }: { children: ReactNode }) {
 }
 
 const meta = {
-  title: 'UI/Notification/NotificationPanel',
+  title: 'Features/Notification/NotificationPanel',
   component: NotificationPanel,
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta<typeof NotificationPanel>
