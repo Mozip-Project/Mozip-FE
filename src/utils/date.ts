@@ -13,4 +13,25 @@ function formatMonthDayWithWeekday(isoDate: string) {
   return `${month}/${day} (${weekday})`
 }
 
-export { formatMonthDayWithWeekday }
+function isSameLocalDate(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function formatSavedTime(savedAt: Date, now: Date) {
+  const hours = String(savedAt.getHours()).padStart(2, '0')
+  const minutes = String(savedAt.getMinutes()).padStart(2, '0')
+  const time = `${hours}:${minutes}`
+
+  if (isSameLocalDate(savedAt, now)) {
+    return time
+  }
+
+  const weekday = WEEKDAY_LABELS[savedAt.getDay()]
+  return `${savedAt.getMonth() + 1}/${savedAt.getDate()} (${weekday}) ${time}`
+}
+
+export { formatMonthDayWithWeekday, formatSavedTime }
