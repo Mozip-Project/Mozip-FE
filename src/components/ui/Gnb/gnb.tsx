@@ -1,32 +1,15 @@
 import Link from 'next/link'
-import BellIcon from '@/assets/icons/bell.svg'
-import { Button } from '@/components/ui/Button/button'
 import { GnbNav, type GnbNavItem } from './gnbNav'
-import { OrganizationSelector } from './organizationSelector'
-import { ProfileMenu } from './profileMenu'
 import type { Route } from 'next'
+import type { ReactNode } from 'react'
 
-type SignedInProps = {
+type GnbProps = {
   navItems: GnbNavItem[]
   homeHref?: Route
-  userName: string
-  myPageHref: Route
-  switchModeHref: Route
-  logoutHref: Route
+  actions: ReactNode
 }
 
-type GnbProps =
-  | {
-      type: 'loggedOut'
-      navItems: GnbNavItem[]
-      homeHref?: Route
-      loginHref: Route
-      signupHref: Route
-    }
-  | ({ type: 'applicant' } & SignedInProps)
-  | ({ type: 'organizer'; organizationName: string } & SignedInProps)
-
-function Gnb(props: GnbProps) {
+function Gnb({ navItems, homeHref, actions }: GnbProps) {
   return (
     <header
       data-slot="gnb"
@@ -36,52 +19,18 @@ function Gnb(props: GnbProps) {
         <div className="flex min-w-0 items-center gap-8">
           {/* TODO: 실제 로고로 교체 */}
           <Link
-            href={props.homeHref ?? '/'}
+            href={homeHref ?? '/'}
             aria-label="MOZIP. 홈"
             className="flex h-8 w-24 shrink-0 items-center rounded-s text-heading2 font-bold text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
           >
             LOGO
           </Link>
 
-          <GnbNav items={props.navItems} />
+          <GnbNav items={navItems} />
         </div>
-        <div className="ml-auto flex min-w-0 items-center gap-gap-m">
-          <GnbActions {...props} />
-        </div>
+        <div className="ml-auto flex min-w-0 items-center gap-gap-m">{actions}</div>
       </div>
     </header>
-  )
-}
-
-function GnbActions(props: GnbProps) {
-  if (props.type === 'loggedOut') {
-    return (
-      <>
-        <Button asChild variant="tertiary" size="m">
-          <Link href={props.loginHref}>로그인</Link>
-        </Button>
-        <Button asChild variant="primary" size="m">
-          <Link href={props.signupHref}>회원가입</Link>
-        </Button>
-      </>
-    )
-  }
-
-  return (
-    <>
-      {props.type === 'organizer' && <OrganizationSelector name={props.organizationName} />}
-      {/* TODO: 알림 패널 디자인 확정 후 동작 연결 */}
-      <Button variant="tertiary" size="m" aria-label="알림" className="size-10 text-neutral">
-        <BellIcon aria-hidden className="size-4.5" />
-      </Button>
-      <ProfileMenu
-        name={props.userName}
-        mode={props.type}
-        myPageHref={props.myPageHref}
-        switchModeHref={props.switchModeHref}
-        logoutHref={props.logoutHref}
-      />
-    </>
   )
 }
 
