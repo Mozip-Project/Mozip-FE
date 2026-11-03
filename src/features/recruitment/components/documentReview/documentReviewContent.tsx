@@ -8,6 +8,7 @@ import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
 import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
+import type { Route } from 'next'
 
 type DocumentReviewContentProps = Pick<
   PageProps<'/manage/recruitments/[recruitmentId]/documents'>,
@@ -28,6 +29,28 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
         page: 1,
       })
     : undefined
+  const startReviewHref = await getStartReviewHref()
+
+  // 평가 완료 탭이 비었을 때만 같은 조건·정렬의 평가 전 목록에서 첫 지원자 조회
+  async function getStartReviewHref() {
+    if (query.status !== 'done' || applicants.length > 0 || statusCounts.all === 0) {
+      return undefined
+    }
+
+    const { applicants: pendingApplicants } = await getDocumentReviewApplicants(recruitmentId, {
+      ...query,
+      status: 'pending',
+      page: 1,
+    })
+    const firstApplicant = pendingApplicants.at(0)
+
+    if (!firstApplicant) {
+      return undefined
+    }
+
+    // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
+    return `/manage/recruitments/${recruitmentId}/documents/${firstApplicant.id}` as Route
+  }
 
   return (
     <DocumentReviewBoard
@@ -48,6 +71,7 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
             totalCount={statusCounts.all}
             keyword={query.keyword.trim()}
             resetFilterHref={resetFilterHref}
+            startReviewHref={startReviewHref}
           />
         }
       />

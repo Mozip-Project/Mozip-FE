@@ -7,9 +7,11 @@ import {
 } from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewBoard } from './documentReviewBoard'
 import { DocumentReviewEmptyState } from './documentReviewEmptyState'
+import type { Route } from 'next'
 
 const replace = vi.fn()
 const RESET_HREF = getDocumentReviewHref('1', parseDocumentReviewQuery({ status: 'pending' }))
+const START_REVIEW_HREF = '/manage/recruitments/1/documents/3' as Route
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
@@ -41,10 +43,22 @@ describe('DocumentReviewEmptyState', () => {
     })
   })
 
-  it('조건 없이 평가 완료 탭이 0명이면 안내 미표시', () => {
-    render(<DocumentReviewEmptyState recruitmentId="1" status="done" totalCount={12} keyword="" />)
+  it('지원자가 있는데 평가 완료 탭이 0명이면 평가 전 첫 지원자의 평가 화면으로 이동 안내 표시', () => {
+    render(
+      <DocumentReviewEmptyState
+        recruitmentId="1"
+        status="done"
+        totalCount={12}
+        keyword=""
+        startReviewHref={START_REVIEW_HREF}
+      />,
+    )
 
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('아직 평가한 지원자가 없어요')
+    expect(screen.getByRole('link', { name: '평가 시작하기' })).toHaveAttribute(
+      'href',
+      '/manage/recruitments/1/documents/3',
+    )
   })
 
   it('검색 결과가 0명이면 포지션 필터보다 검색 안내를 먼저 표시하고, 검색어 삭제 시 검색창까지 비움', async () => {

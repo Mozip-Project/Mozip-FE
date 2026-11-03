@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import CheckIcon from '@/assets/icons/check.svg'
+import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
+import FileTextIcon from '@/assets/icons/fileText.svg'
 import FilterIcon from '@/assets/icons/filter.svg'
 import LinkIcon from '@/assets/icons/link.svg'
 import SearchIcon from '@/assets/icons/search.svg'
@@ -22,6 +24,8 @@ type DocumentReviewEmptyStateProps = {
   keyword: string
   // 포지션 필터가 걸린 경우에만 전달
   resetFilterHref?: Route
+  // 평가 완료 탭이 비었을 때 평가 전 첫 지원자의 평가 화면
+  startReviewHref?: Route
 }
 
 // 조건에 맞는 인원이 있으면 탭 상태, 없으면 검색어 → 포지션 필터 → 지원자 없음 순으로 원인 안내
@@ -31,6 +35,7 @@ function getEmptyState({
   totalCount,
   keyword,
   resetFilterHref,
+  startReviewHref,
 }: DocumentReviewEmptyStateProps) {
   if (totalCount > 0) {
     if (status === 'pending') {
@@ -55,7 +60,27 @@ function getEmptyState({
       )
     }
 
-    // TODO: 평가 완료 탭 0명 빈 상태는 디자인 확정 후 추가
+    if (status === 'done') {
+      return (
+        <EmptyState
+          icon={<FileTextIcon className="size-7" />}
+          title="아직 평가한 지원자가 없어요"
+          description="평가를 마친 지원자가 이곳에 모여요"
+          actions={
+            startReviewHref && (
+              <Button asChild size="m">
+                <Link href={startReviewHref}>
+                  평가 시작하기
+                  <ChevronRightIcon aria-hidden />
+                </Link>
+              </Button>
+            )
+          }
+          className={EMPTY_STATE_CLASS}
+        />
+      )
+    }
+
     return null
   }
 
