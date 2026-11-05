@@ -1,11 +1,10 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type FocusEvent } from 'react'
 import ChevronLeftIcon from '@/assets/icons/chevronLeft.svg'
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
 import { ApplicantChip } from '@/components/ui/ApplicantChip/applicantChip'
+import { useHorizontalSlide } from '@/hooks/useHorizontalSlide'
 import { cn } from '@/lib/utils'
-import { getRevealOffset, getSlideOffset } from '@/utils/slideOffset'
 
 type StripApplicant = {
   id: string
@@ -28,60 +27,18 @@ function ApplicantChipStrip({
   onSelect,
   className,
 }: ApplicantChipStripProps) {
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const listRef = useRef<HTMLUListElement>(null)
-  const [offset, setOffset] = useState(0)
-  const [maxOffset, setMaxOffset] = useState(0)
-  const [isPositioned, setIsPositioned] = useState(false)
-
-  const visibleOffset = Math.min(offset, maxOffset)
-  const canSlidePrev = visibleOffset > 0
-  const canSlideNext = visibleOffset < maxOffset
-
-  useLayoutEffect(() => {
-    const viewport = viewportRef.current
-    const list = listRef.current
-    if (!viewport || !list) {
-      return
-    }
-
-    const updateMaxOffset = () => {
-      setMaxOffset(Math.max(list.scrollWidth - viewport.clientWidth, 0))
-    }
-    updateMaxOffset()
-    const observer = new ResizeObserver(updateMaxOffset)
-    observer.observe(viewport)
-    observer.observe(list)
-    return () => observer.disconnect()
-  }, [])
-
-  useLayoutEffect(() => {
-    const currentItem = listRef.current?.querySelector<HTMLElement>(
-      `[data-applicant-id="${CSS.escape(currentId)}"]`,
-    )
-    if (currentItem) {
-      setOffset((previousPx) => getItemRevealOffset(previousPx, currentItem, viewportRef.current))
-    }
-  }, [currentId])
-
-  // 첫 위치는 애니메이션 없이 적용
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setIsPositioned(true))
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
-  // 연속 클릭 시 목표 위치 누적
-  function slideBy(direction: 1 | -1) {
-    const stepPx = getSlideStep(listRef.current)
-    setOffset((previous) =>
-      getSlideOffset(Math.min(previous, maxOffset), direction * stepPx, maxOffset),
-    )
-  }
-
-  function handleItemFocus(event: FocusEvent<HTMLLIElement>) {
-    const item = event.currentTarget
-    setOffset((previousPx) => getItemRevealOffset(previousPx, item, viewportRef.current))
-  }
+  const currentIndex = applicants.findIndex((applicant) => applicant.id === currentId)
+  const {
+    viewportRef,
+    listRef,
+    offsetPx,
+    isAnimated,
+    canSlidePrev,
+    canSlideNext,
+    slidePrev,
+    slideNext,
+    revealItem,
+  } = useHorizontalSlide(currentIndex)
 
   return (
     <div
@@ -90,7 +47,7 @@ function ApplicantChipStrip({
       data-slot="applicant-chip-strip"
       className={cn('flex w-full max-w-page min-w-70 items-center gap-gap-s', className)}
     >
-      <SlideButton direction="prev" disabled={!canSlidePrev} onClick={() => slideBy(-1)} />
+      <SlideButton direction="prev" disabled={!canSlidePrev} onClick={slidePrev} />
       {/* overflow-clip: focus 시 자동 스크롤 방지 */}
       <div ref={viewportRef} className="min-w-0 flex-1 overflow-clip">
         <ul
@@ -98,14 +55,14 @@ function ApplicantChipStrip({
           role="list"
           className={cn(
             'flex w-max gap-gap-s',
-            isPositioned &&
+            isAnimated &&
               'transition-transform duration-300 ease-out motion-reduce:transition-none',
           )}
           // 런타임 측정값이라 style 사용
-          style={{ transform: `translateX(-${visibleOffset}px)` }}
+          style={{ transform: `translateX(-${offsetPx}px)` }}
         >
           {applicants.map((applicant) => (
-            <li key={applicant.id} data-applicant-id={applicant.id} onFocus={handleItemFocus}>
+            <li key={applicant.id} onFocus={(event) => revealItem(event.currentTarget)}>
               <ApplicantChip
                 name={applicant.name}
                 isDone={applicant.isDone}
@@ -116,26 +73,9 @@ function ApplicantChipStrip({
           ))}
         </ul>
       </div>
-      <SlideButton direction="next" disabled={!canSlideNext} onClick={() => slideBy(1)} />
+      <SlideButton direction="next" disabled={!canSlideNext} onClick={slideNext} />
     </div>
   )
-}
-
-function getSlideStep(list: HTMLElement | null) {
-  const [firstItem, secondItem] = list?.children ?? []
-  if (!(firstItem instanceof HTMLElement) || !(secondItem instanceof HTMLElement)) {
-    return 0
-  }
-  return secondItem.offsetLeft - firstItem.offsetLeft
-}
-
-function getItemRevealOffset(previousPx: number, item: HTMLElement, viewport: HTMLElement | null) {
-  return getRevealOffset({
-    previousPx,
-    itemStartPx: item.offsetLeft,
-    itemEndPx: item.offsetLeft + item.offsetWidth,
-    viewportWidthPx: viewport?.clientWidth ?? 0,
-  })
 }
 
 const SLIDE_BUTTON_CONTENT = {
