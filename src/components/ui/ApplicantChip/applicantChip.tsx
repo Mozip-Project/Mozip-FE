@@ -3,6 +3,22 @@ import { Avatar } from '@/components/ui/Avatar/avatar'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
+type ChipState = 'default' | 'current' | 'done'
+
+const CHIP_STYLE = {
+  default: { box: 'border-neutral-muted bg-layer-default', name: 'font-medium text-neutral' },
+  current: { box: 'border-brand-solid bg-brand-weak', name: 'font-semibold text-neutral' },
+  done: { box: 'border-neutral-muted bg-layer-default', name: 'font-medium text-neutral-muted' },
+} satisfies Record<ChipState, { box: string; name: string }>
+
+// 현재 지원자 표시가 평가 완료보다 우선
+function getChipState(isCurrent: boolean, isDone: boolean): ChipState {
+  if (isCurrent) {
+    return 'current'
+  }
+  return isDone ? 'done' : 'default'
+}
+
 type ApplicantChipProps = Omit<ComponentProps<'button'>, 'children'> & {
   name: string
   isCurrent?: boolean
@@ -16,12 +32,7 @@ function ApplicantChip({
   className,
   ...props
 }: ApplicantChipProps) {
-  const nameClassName = cn(
-    'min-w-0 flex-1 truncate text-left text-label1',
-    isCurrent && 'font-semibold text-neutral',
-    !isCurrent && isDone && 'font-medium text-neutral-muted',
-    !isCurrent && !isDone && 'font-medium text-neutral',
-  )
+  const style = CHIP_STYLE[getChipState(isCurrent, isDone)]
 
   return (
     <button
@@ -31,7 +42,7 @@ function ApplicantChip({
       className={cn(
         'flex h-12 w-50 cursor-pointer items-center gap-gap-s rounded-m border py-padding-xs pr-padding-xs pl-padding-s',
         'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
-        isCurrent ? 'border-brand-solid bg-brand-weak' : 'border-neutral-muted bg-layer-default',
+        style.box,
         className,
       )}
       {...props}
@@ -44,7 +55,10 @@ function ApplicantChip({
       ) : (
         <Avatar size={28} className={cn(isCurrent && 'bg-layer-default')} />
       )}
-      <span title={name} className={nameClassName}>
+      <span
+        title={name}
+        className={cn('min-w-0 flex-1 truncate text-left text-label1', style.name)}
+      >
         {name}
       </span>
       {isDone && (
