@@ -10,4 +10,22 @@ describe('ScoreRow', () => {
     expect(group).toHaveAttribute('aria-invalid', 'true')
     expect(group).toHaveAccessibleDescription('점수를 선택해 주세요')
   })
+
+  it('호출자 설명과 오류 설명을 함께 연결', () => {
+    render(
+      <>
+        <p id="score-guide">1점은 부족, 5점은 매우 우수</p>
+        <ScoreRow
+          label="Q1. 지원 동기"
+          errorMessage="점수를 선택해 주세요"
+          aria-describedby="score-guide"
+          aria-invalid={false}
+        />
+      </>,
+    )
+
+    const group = screen.getByRole('radiogroup', { name: 'Q1. 지원 동기' })
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    expect(group).toHaveAccessibleDescription('1점은 부족, 5점은 매우 우수 점수를 선택해 주세요')
+  })
 })

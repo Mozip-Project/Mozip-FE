@@ -16,10 +16,18 @@ type ScoreRowProps = Omit<
 }
 
 // 오류 문구는 SegmentGroup 대신 라벨 줄에 표시
-function ScoreRow({ label, errorMessage, className, ...props }: ScoreRowProps) {
+function ScoreRow({
+  label,
+  errorMessage,
+  className,
+  'aria-describedby': describedBy,
+  'aria-invalid': ariaInvalid,
+  ...props
+}: ScoreRowProps) {
   const labelId = useId()
   const errorId = useId()
   const hasError = Boolean(errorMessage)
+  const descriptionIds = [describedBy, hasError && errorId].filter(Boolean).join(' ')
 
   return (
     <div data-slot="score-row" className={cn('flex min-w-70 flex-col gap-gap-xs', className)}>
@@ -43,10 +51,10 @@ function ScoreRow({ label, errorMessage, className, ...props }: ScoreRowProps) {
         )}
       </div>
       <SegmentGroup
-        aria-labelledby={labelId}
-        aria-invalid={hasError || undefined}
-        aria-describedby={hasError ? errorId : undefined}
         {...props}
+        aria-labelledby={labelId}
+        aria-invalid={hasError || ariaInvalid}
+        aria-describedby={descriptionIds || undefined}
       >
         {SCORE_OPTIONS.map((score) => (
           <SegmentOption key={score} value={score}>
