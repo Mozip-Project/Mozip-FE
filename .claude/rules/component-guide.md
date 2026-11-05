@@ -62,7 +62,7 @@
 ## 파일과 테스트 배치
 
 - 화면 전용 파일은 해당 도메인 폴더에 함께 둡니다. 예를 들어 `features/recruitment/components/recruitFilter.tsx`, `features/recruitment/components/recruitFilter.test.tsx`처럼 배치합니다.
-- 재사용 컴포넌트의 테스트도 가까이에 두되, `src/components/ui/`의 공용 컴포넌트는 `src/components/ui/__tests__/`에 둡니다. 테스트는 사용자에게 보이는 계약과 실패 가능성이 있는 상호작용을 검증합니다.
+- 재사용 컴포넌트의 테스트도 가까이에 두되, `src/components/ui/`의 공용 컴포넌트는 `src/components/ui/__tests__/`에 둡니다. 공용 컴포넌트 테스트 범위는 `.claude/rules/testing.md`의 "테스트 선택"을 따릅니다.
 - 정적 콘텐츠·정적 마크업에는 테스트를 강제하지 않습니다.
 
 ## Client Component
