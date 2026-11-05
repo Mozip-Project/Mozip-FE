@@ -25,7 +25,7 @@ const NOTIFICATION_FILTERS = [
 
 type NotificationFilter = (typeof NOTIFICATION_FILTERS)[number]['value']
 
-export type NotificationEntry = ComponentProps<typeof NotificationItem> & {
+type NotificationEntry = ComponentProps<typeof NotificationItem> & {
   id: string
   audience: Exclude<NotificationFilter, 'all'>
   href: Route
@@ -47,11 +47,7 @@ function filterNotifications(notifications: NotificationEntry[], filter: Notific
   return notifications.filter((notification) => notification.audience === filter)
 }
 
-export function NotificationPanel({
-  notifications,
-  settingsHref,
-  defaultOpen,
-}: NotificationPanelProps) {
+function NotificationPanel({ notifications, settingsHref, defaultOpen }: NotificationPanelProps) {
   const titleId = useId()
   const [filter, setFilter] = useState<NotificationFilter>('all')
   const visibleNotifications = filterNotifications(notifications, filter)
@@ -157,3 +153,6 @@ export function NotificationPanel({
     </Popover>
   )
 }
+
+export { NotificationPanel }
+export type { NotificationEntry }

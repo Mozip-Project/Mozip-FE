@@ -1,4 +1,4 @@
-export function getSlideOffset(previousPx: number, deltaPx: number, maxPx: number) {
+function getSlideOffset(previousPx: number, deltaPx: number, maxPx: number) {
   return Math.min(Math.max(previousPx + deltaPx, 0), maxPx)
 }
 
@@ -9,12 +9,7 @@ type RevealRange = {
   viewportWidthPx: number
 }
 
-export function getRevealOffset({
-  previousPx,
-  itemStartPx,
-  itemEndPx,
-  viewportWidthPx,
-}: RevealRange) {
+function getRevealOffset({ previousPx, itemStartPx, itemEndPx, viewportWidthPx }: RevealRange) {
   if (itemStartPx < previousPx) {
     return itemStartPx
   }
@@ -23,3 +18,5 @@ export function getRevealOffset({
   }
   return previousPx
 }
+
+export { getRevealOffset, getSlideOffset }
