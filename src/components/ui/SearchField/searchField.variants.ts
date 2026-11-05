@@ -1,6 +1,6 @@
-export const SEARCH_FIELD_SIZES = ['l', 's'] as const
+const SEARCH_FIELD_SIZES = ['l', 's'] as const
 
-export type SearchFieldSize = (typeof SEARCH_FIELD_SIZES)[number]
+type SearchFieldSize = (typeof SEARCH_FIELD_SIZES)[number]
 
 type SearchFieldSizeClass = {
   field: string
@@ -10,7 +10,7 @@ type SearchFieldSizeClass = {
   input: string
 }
 
-export const SEARCH_FIELD_SIZE_CLASS = {
+const SEARCH_FIELD_SIZE_CLASS = {
   l: {
     field: 'h-13',
     label: 'pl-padding-m',
@@ -26,3 +26,6 @@ export const SEARCH_FIELD_SIZE_CLASS = {
     input: 'text-label1 font-medium',
   },
 } satisfies Record<SearchFieldSize, SearchFieldSizeClass>
+
+export { SEARCH_FIELD_SIZE_CLASS, SEARCH_FIELD_SIZES }
+export type { SearchFieldSize }

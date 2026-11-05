@@ -34,7 +34,7 @@ function Checkbox({
     <label
       data-slot="checkbox-label"
       className={cn(
-        'inline-flex cursor-pointer items-center gap-gap-s text-body2 font-medium text-neutral has-disabled:pointer-events-none has-disabled:text-disabled',
+        'inline-flex cursor-pointer items-center gap-gap-s text-body2 font-normal text-neutral has-disabled:pointer-events-none has-disabled:text-disabled',
         className,
       )}
     >

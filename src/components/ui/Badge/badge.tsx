@@ -1,15 +1,8 @@
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
-export const BADGE_TONES = [
-  'brand',
-  'neutral',
-  'positive',
-  'warning',
-  'critical',
-  'informative',
-] as const
-export const BADGE_VARIANTS = ['solid', 'weak'] as const
+const BADGE_TONES = ['brand', 'neutral', 'positive', 'warning', 'critical', 'informative'] as const
+const BADGE_VARIANTS = ['solid', 'weak'] as const
 
 type BadgeTone = (typeof BADGE_TONES)[number]
 type BadgeVariant = (typeof BADGE_VARIANTS)[number]
@@ -46,7 +39,7 @@ type BadgeProps = ComponentProps<'span'> & {
   variant?: BadgeVariant
 }
 
-export function Badge({ tone = 'brand', variant = 'solid', className, ...props }: BadgeProps) {
+function Badge({ tone = 'brand', variant = 'solid', className, ...props }: BadgeProps) {
   return (
     <span
       className={cn(
@@ -58,3 +51,5 @@ export function Badge({ tone = 'brand', variant = 'solid', className, ...props }
     />
   )
 }
+
+export { Badge, BADGE_TONES, BADGE_VARIANTS }

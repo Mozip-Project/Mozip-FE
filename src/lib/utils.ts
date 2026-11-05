@@ -33,7 +33,7 @@ const FONT_SIZE_TOKENS = [
 ]
 const SHADOW_TOKENS = ['floating']
 
-export const cn = createCn({
+const cn = createCn({
   extend: {
     theme: {
       radius: RADIUS_TOKENS,
@@ -45,3 +45,5 @@ export const cn = createCn({
     },
   },
 })
+
+export { cn }

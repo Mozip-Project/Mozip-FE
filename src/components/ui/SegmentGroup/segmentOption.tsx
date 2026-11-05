@@ -4,8 +4,8 @@ import { RadioGroup as RadioGroupPrimitive } from 'radix-ui'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
-export const SEGMENT_TONES = ['brand', 'warning', 'critical'] as const
-export const SEGMENT_SIZES = ['l', 'm', 's'] as const
+const SEGMENT_TONES = ['brand', 'warning', 'critical'] as const
+const SEGMENT_SIZES = ['l', 'm', 's'] as const
 
 type SegmentTone = (typeof SEGMENT_TONES)[number]
 type SegmentSize = (typeof SEGMENT_SIZES)[number]
@@ -52,4 +52,4 @@ function SegmentOption({ className, tone = 'brand', size = 'l', ...props }: Segm
   )
 }
 
-export { SegmentOption }
+export { SEGMENT_SIZES, SEGMENT_TONES, SegmentOption }

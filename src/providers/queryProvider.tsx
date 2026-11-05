@@ -28,7 +28,7 @@ function getQueryClient() {
   return browserQueryClient
 }
 
-export function QueryProvider({ children }: { children: ReactNode }) {
+function QueryProvider({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient()
 
   return (
@@ -38,3 +38,5 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     </QueryClientProvider>
   )
 }
+
+export { QueryProvider }

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 
 // Chip·RemovableChip 공통 알약 모양
-export const CHIP_SHAPE_CLASS =
+const CHIP_SHAPE_CLASS =
   'inline-flex h-8 shrink-0 items-center justify-center gap-gap-xs rounded-full border border-neutral-muted bg-layer-default px-padding-s text-label1 font-medium whitespace-nowrap text-neutral-muted'
 
 const chipVariants = cva([
@@ -23,4 +23,4 @@ function Chip({ className, ...props }: ComponentProps<typeof TogglePrimitive.Roo
   )
 }
 
-export { Chip, chipVariants }
+export { Chip, CHIP_SHAPE_CLASS, chipVariants }

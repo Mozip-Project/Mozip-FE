@@ -39,7 +39,7 @@ function Radio({ className, children, ...props }: ComponentProps<typeof RadioGro
     <label
       data-slot="radio-label"
       className={cn(
-        'inline-flex cursor-pointer items-center gap-gap-s text-label1 font-normal text-neutral has-disabled:pointer-events-none has-disabled:opacity-40',
+        'inline-flex cursor-pointer items-center gap-gap-s text-body2 font-normal text-neutral has-disabled:pointer-events-none has-disabled:opacity-40',
         className,
       )}
     >
