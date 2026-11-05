@@ -75,6 +75,16 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // named export는 파일 끝 export { }로 통일 (라우트 파일·stories는 형식상 예외)
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/app/**', '**/*.stories.tsx'],
+    rules: {
+      'import/exports-last': 'error',
+      'import/group-exports': 'error',
+    },
+  },
+
   // 3. src 안의 TS 파일: 타입 정보를 사용하는 더 깊은 검사
   {
     files: ['src/**/*.{ts,tsx}'],

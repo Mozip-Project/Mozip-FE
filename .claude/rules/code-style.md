@@ -13,6 +13,7 @@
 - 모듈 수준의 고정 설정값·제한값은 `UPPER_SNAKE_CASE`로 작성합니다. JSX 안에서 계산되는 값이나 단일 함수의 지역 값까지 기계적으로 대문자화하지 않습니다.
 - 컴포넌트와 모듈 수준의 이름 있는 함수는 `function` 선언을 기본으로 합니다. 짧은 콜백과 배열 변환에는 화살표 함수를 사용합니다.
 - 타입 전용 import는 `import type`을 사용합니다.
+- named export는 선언 앞에 붙이지 않고 파일 끝의 `export { }` 하나에 모으며, 타입은 `export type { }`으로 분리합니다. 라우트 파일의 `export default`와 `*.stories.tsx`는 형식상 예외입니다. ESLint `import/exports-last`·`import/group-exports`가 검사합니다.
 - 외부 입력의 형태를 모를 때는 `any` 대신 `unknown`으로 시작하고, 사용하는 경계에서 필요한 만큼 좁힙니다.
 - 문자열 union이 여러 위치에서 반복되면 `as const` 배열에서 타입을 파생합니다. 값별 설정은 `Record`와 `satisfies`로 누락을 막습니다.
 
