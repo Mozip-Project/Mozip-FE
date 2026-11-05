@@ -1,7 +1,7 @@
 'use client'
 
 import { RadioGroup as RadioGroupPrimitive } from 'radix-ui'
-import { useId, type ComponentProps } from 'react'
+import { useId, useState, type ComponentProps, type MouseEvent } from 'react'
 import InfoIcon from '@/assets/icons/info.svg'
 import { cn } from '@/lib/utils'
 
@@ -12,12 +12,36 @@ type SegmentGroupProps = ComponentProps<typeof RadioGroupPrimitive.Root> & {
 function SegmentGroup({
   className,
   errorMessage,
+  value,
+  defaultValue,
+  onValueChange,
+  onClick,
   'aria-describedby': describedBy,
   'aria-invalid': ariaInvalid,
   ...props
 }: SegmentGroupProps) {
   const errorId = useId()
   const descriptionIds = [describedBy, errorMessage && errorId].filter(Boolean).join(' ')
+  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? '')
+  const selectedValue = value ?? uncontrolledValue
+
+  function handleValueChange(nextValue: string) {
+    if (value === undefined) {
+      setUncontrolledValue(nextValue)
+    }
+    onValueChange?.(nextValue)
+  }
+
+  // 선택된 옵션을 다시 누르면 선택 해제
+  function handleClick(event: MouseEvent<HTMLDivElement>) {
+    onClick?.(event)
+
+    const option = event.target instanceof Element ? event.target.closest('[role="radio"]') : null
+
+    if (option?.getAttribute('aria-checked') === 'true') {
+      handleValueChange('')
+    }
+  }
 
   return (
     <div data-slot="segment-group" className={cn('flex flex-col gap-gap-s', className)}>
@@ -31,6 +55,9 @@ function SegmentGroup({
           '[&>[data-slot=segment-option]]:min-w-0 [&>[data-slot=segment-option]]:flex-1',
         )}
         {...props}
+        value={selectedValue}
+        onValueChange={handleValueChange}
+        onClick={handleClick}
       />
       {errorMessage && (
         <p
