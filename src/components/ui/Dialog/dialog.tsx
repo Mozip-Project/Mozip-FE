@@ -4,7 +4,8 @@ import { Dialog as DialogPrimitive, Progress as ProgressPrimitive } from 'radix-
 import { cn } from '@/lib/utils'
 import type { ComponentProps, ReactNode } from 'react'
 
-function Dialog(props: ComponentProps<typeof DialogPrimitive.Root>) {
+// Content가 modal 전용 Overlay 안에 있어 비모달 미지원
+function Dialog(props: Omit<ComponentProps<typeof DialogPrimitive.Root>, 'modal'>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
