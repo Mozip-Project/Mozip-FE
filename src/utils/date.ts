@@ -21,17 +21,21 @@ function isSameLocalDate(a: Date, b: Date) {
   )
 }
 
-function formatSavedTime(savedAt: Date, now: Date) {
-  const hours = String(savedAt.getHours()).padStart(2, '0')
-  const minutes = String(savedAt.getMinutes()).padStart(2, '0')
-  const time = `${hours}:${minutes}`
+function formatTime(date: Date) {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
 
-  if (isSameLocalDate(savedAt, now)) {
-    return time
-  }
-
-  const weekday = WEEKDAY_LABELS[savedAt.getDay()]
-  return `${savedAt.getMonth() + 1}/${savedAt.getDate()} (${weekday}) ${time}`
+  return `${hours}:${minutes}`
 }
 
-export { formatMonthDayWithWeekday, formatSavedTime }
+function formatDateTimeWithWeekday(date: Date) {
+  const weekday = WEEKDAY_LABELS[date.getDay()]
+
+  return `${date.getMonth() + 1}/${date.getDate()} (${weekday}) ${formatTime(date)}`
+}
+
+function formatSavedTime(savedAt: Date, now: Date) {
+  return isSameLocalDate(savedAt, now) ? formatTime(savedAt) : formatDateTimeWithWeekday(savedAt)
+}
+
+export { formatDateTimeWithWeekday, formatMonthDayWithWeekday, formatSavedTime }

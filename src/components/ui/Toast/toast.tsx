@@ -3,7 +3,7 @@
 import { Toast as ToastPrimitive } from 'radix-ui'
 import CheckIcon from '@/assets/icons/check.svg'
 import { cn } from '@/lib/utils'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 // Figma 사양: 3초 뒤 자동 닫힘
 const TOAST_DURATION_MS = 3000
@@ -38,9 +38,17 @@ function ToastViewport({
 type ToastProps = Omit<ComponentProps<typeof ToastPrimitive.Root>, 'title'> & {
   title: string
   description?: string
+  icon?: ReactNode
 }
 
-function Toast({ title, description, className, type = 'background', ...props }: ToastProps) {
+function Toast({
+  title,
+  description,
+  icon = <CheckIcon aria-hidden className="shrink-0 text-brand" />,
+  className,
+  type = 'background',
+  ...props
+}: ToastProps) {
   return (
     <ToastPrimitive.Root
       data-slot="toast"
@@ -56,7 +64,7 @@ function Toast({ title, description, className, type = 'background', ...props }:
       )}
       {...props}
     >
-      <CheckIcon aria-hidden className="shrink-0 text-brand" />
+      {icon}
       <ToastPrimitive.Title className="shrink-0 text-label1 font-semibold whitespace-nowrap text-on-neutral-solid">
         {title}
       </ToastPrimitive.Title>

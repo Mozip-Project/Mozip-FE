@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMonthDayWithWeekday, formatSavedTime } from './date'
+import { formatDateTimeWithWeekday, formatMonthDayWithWeekday, formatSavedTime } from './date'
 
 describe('formatSavedTime', () => {
   const now = new Date(2026, 10, 4, 15, 0)
@@ -12,6 +12,12 @@ describe('formatSavedTime', () => {
   it('오늘 이전이면 월/일 (요일) 시:분 표시', () => {
     expect(formatSavedTime(new Date(2026, 10, 3, 23, 59), now)).toBe('11/3 (화) 23:59')
     expect(formatSavedTime(new Date(2025, 10, 4, 9, 7), now)).toBe('11/4 (화) 09:07')
+  })
+})
+
+describe('formatDateTimeWithWeekday', () => {
+  it('월/일 (요일) 시:분 표시', () => {
+    expect(formatDateTimeWithWeekday(new Date(2026, 9, 20, 13, 40))).toBe('10/20 (화) 13:40')
   })
 })
 
