@@ -1,16 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  getDocumentReviewHref,
-  parseDocumentReviewQuery,
-} from '@/features/recruitment/utils/documentReviewQuery'
+import { parseDocumentReviewQuery } from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewBoard } from './documentReviewBoard'
 import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import type { Route } from 'next'
 
 const replace = vi.fn()
-const RESET_HREF = getDocumentReviewHref('1', parseDocumentReviewQuery({ status: 'pending' }))
 const START_REVIEW_HREF = '/manage/recruitments/1/documents/3' as Route
 
 vi.mock('next/navigation', () => ({
@@ -22,16 +18,25 @@ afterEach(() => {
 })
 
 describe('DocumentReviewEmptyState', () => {
-  it('포지션 필터 결과가 0명이면 안내와 필터 초기화 버튼 표시', async () => {
+  it('포지션 필터 결과가 0명이면 안내 표시, 필터 초기화 시 포지션만 전체로 바꾸고 포지션 메뉴로 focus 이동', async () => {
     const user = userEvent.setup()
     render(
-      <DocumentReviewEmptyState
+      <DocumentReviewBoard
         recruitmentId="1"
-        status="pending"
-        totalCount={0}
-        keyword=""
-        resetFilterHref={RESET_HREF}
-      />,
+        query={parseDocumentReviewQuery({ status: 'pending', position: 'design', page: '2' })}
+        statusCounts={{ all: 0, pending: 0, done: 0 }}
+        positionCounts={{ design: 0, development: 0, planning: 0 }}
+        currentPage={1}
+        totalPages={0}
+      >
+        <DocumentReviewEmptyState
+          recruitmentId="1"
+          status="pending"
+          totalCount={0}
+          keyword=""
+          isPositionFiltered
+        />
+      </DocumentReviewBoard>,
     )
 
     expect(screen.getByRole('status')).toHaveTextContent('조건에 맞는 지원자가 없어요')
@@ -41,6 +46,7 @@ describe('DocumentReviewEmptyState', () => {
     expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents?status=pending', {
       scroll: false,
     })
+    expect(document.activeElement).toHaveAccessibleName(/^포지션\s?(전체|디자인)$/)
   })
 
   it('지원자가 있는데 평가 완료 탭이 0명이면 평가 전 첫 지원자의 평가 화면으로 이동 안내 표시', () => {
@@ -50,6 +56,7 @@ describe('DocumentReviewEmptyState', () => {
         status="done"
         totalCount={12}
         keyword=""
+        isPositionFiltered={false}
         startReviewHref={START_REVIEW_HREF}
       />,
     )
@@ -77,7 +84,7 @@ describe('DocumentReviewEmptyState', () => {
           status="all"
           totalCount={0}
           keyword="홍길동"
-          resetFilterHref={RESET_HREF}
+          isPositionFiltered
         />
       </DocumentReviewBoard>,
     )
@@ -97,7 +104,13 @@ describe('DocumentReviewEmptyState', () => {
 
   it('필터·검색 없이 전체 지원자가 0명이면 지원자 없음 안내 표시', () => {
     render(
-      <DocumentReviewEmptyState recruitmentId="1" status="pending" totalCount={0} keyword="" />,
+      <DocumentReviewEmptyState
+        recruitmentId="1"
+        status="pending"
+        totalCount={0}
+        keyword=""
+        isPositionFiltered={false}
+      />,
     )
 
     expect(screen.getByRole('status')).toHaveTextContent('아직 지원자가 없어요')
@@ -106,7 +119,13 @@ describe('DocumentReviewEmptyState', () => {
 
   it('지원자가 있는데 평가 전 탭이 0명이면 평가 결과 취합으로 이동 안내 표시', () => {
     render(
-      <DocumentReviewEmptyState recruitmentId="1" status="pending" totalCount={48} keyword="" />,
+      <DocumentReviewEmptyState
+        recruitmentId="1"
+        status="pending"
+        totalCount={48}
+        keyword=""
+        isPositionFiltered={false}
+      />,
     )
 
     expect(screen.getByRole('status')).toHaveTextContent('모든 지원서 평가를 마쳤어요')
@@ -123,7 +142,7 @@ describe('DocumentReviewEmptyState', () => {
         status="pending"
         totalCount={6}
         keyword=""
-        resetFilterHref={RESET_HREF}
+        isPositionFiltered
       />,
     )
 

@@ -1,14 +1,11 @@
 import { getDocumentReviewApplicants } from '@/features/recruitment/api/organizer'
-import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/types'
-import {
-  getDocumentReviewHref,
-  parseDocumentReviewQuery,
-} from '@/features/recruitment/utils/documentReviewQuery'
+import { hasPositionFilter } from '@/features/recruitment/utils/boardQuery'
+import { parseDocumentReviewQuery } from '@/features/recruitment/utils/documentReviewQuery'
+import { getApplicantReviewPath } from '@/features/recruitment/utils/recruitmentRoutes'
 import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
 import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
 import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
-import type { Route } from 'next'
 
 type DocumentReviewContentProps = Pick<
   PageProps<'/manage/recruitments/[recruitmentId]/documents'>,
@@ -20,15 +17,6 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
   const query = parseDocumentReviewQuery(await searchParams)
   const { applicants, statusCounts, positionCounts, currentPage, totalPages } =
     await getDocumentReviewApplicants(recruitmentId, query)
-  const isPositionFiltered = query.positions.length < DOCUMENT_REVIEW_POSITIONS.length
-  // 포지션만 전체로, 탭·정렬·검색어는 유지
-  const resetFilterHref = isPositionFiltered
-    ? getDocumentReviewHref(recruitmentId, {
-        ...query,
-        positions: DOCUMENT_REVIEW_POSITIONS,
-        page: 1,
-      })
-    : undefined
   const startReviewHref = await getStartReviewHref()
 
   // 평가 완료 탭이 비었을 때만 같은 조건·정렬의 평가 전 목록에서 첫 지원자 조회
@@ -48,8 +36,7 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
       return undefined
     }
 
-    // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
-    return `/manage/recruitments/${recruitmentId}/documents/${firstApplicant.id}` as Route
+    return getApplicantReviewPath(recruitmentId, firstApplicant.id)
   }
 
   return (
@@ -70,7 +57,7 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
             status={query.status}
             totalCount={statusCounts.all}
             keyword={query.keyword.trim()}
-            resetFilterHref={resetFilterHref}
+            isPositionFiltered={hasPositionFilter(query.positions)}
             startReviewHref={startReviewHref}
           />
         }

@@ -35,13 +35,16 @@ type DocumentReviewApplicant = {
   isEvaluated: boolean
 }
 
-type DocumentReviewQuery = {
-  status: DocumentReviewStatus
+// 탭·포지션·정렬·검색·페이지를 URL로 관리하는 모집 관리 목록 공통 조건
+type RecruitmentBoardQuery<TStatus extends string, TSort extends string> = {
+  status: TStatus
   positions: readonly DocumentReviewPosition[]
-  sort: DocumentReviewSort
+  sort: TSort
   keyword: string
   page: number
 }
+
+type DocumentReviewQuery = RecruitmentBoardQuery<DocumentReviewStatus, DocumentReviewSort>
 
 type DocumentReviewApplicantPage = {
   applicants: DocumentReviewApplicant[]
@@ -67,4 +70,5 @@ export type {
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,
+  RecruitmentBoardQuery,
 }

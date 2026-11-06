@@ -14,12 +14,6 @@ const COLUMN_CLASS = {
 
 const ROW_CLASS = 'flex items-center gap-gap-xl px-padding-l py-padding-s'
 
-const SKELETON_BAR_CLASS = cn(
-  'relative shrink-0 overflow-hidden bg-neutral-weak',
-  'after:absolute after:inset-0 after:animate-skeleton-shimmer after:bg-linear-to-r after:from-static-transparent after:via-static-white after:to-static-transparent',
-  'motion-reduce:after:hidden',
-)
-
 type ApplicantTableProps = {
   label: string
   isLoading?: boolean
@@ -144,17 +138,17 @@ function ApplicantSkeletonRow() {
       )}
     >
       <span className={cn(COLUMN_CLASS.name, 'flex items-center gap-gap-s')}>
-        <span className={cn(SKELETON_BAR_CLASS, 'size-7 rounded-full')} />
-        <span className={cn(SKELETON_BAR_CLASS, 'h-3.5 w-15 rounded-full')} />
+        <span className="skeleton-bar size-7 rounded-full" />
+        <span className="skeleton-bar h-3.5 w-15 rounded-full" />
       </span>
       <span className={cn(COLUMN_CLASS.position, 'flex items-center')}>
-        <span className={cn(SKELETON_BAR_CLASS, 'h-3.5 w-16.5 rounded-full')} />
+        <span className="skeleton-bar h-3.5 w-16.5 rounded-full" />
       </span>
       <span className={cn(COLUMN_CLASS.submittedAt, 'flex items-center')}>
-        <span className={cn(SKELETON_BAR_CLASS, 'h-3.5 w-12.5 rounded-full')} />
+        <span className="skeleton-bar h-3.5 w-12.5 rounded-full" />
       </span>
       <span className={COLUMN_CLASS.action}>
-        <span className={cn(SKELETON_BAR_CLASS, 'h-9 w-24 rounded-m')} />
+        <span className="skeleton-bar h-9 w-24 rounded-m" />
       </span>
     </div>
   )

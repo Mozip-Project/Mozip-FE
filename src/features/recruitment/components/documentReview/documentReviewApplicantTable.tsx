@@ -2,9 +2,9 @@ import {
   DOCUMENT_REVIEW_POSITION_LABEL,
   type DocumentReviewApplicant,
 } from '@/features/recruitment/types'
+import { getApplicantReviewPath } from '@/features/recruitment/utils/recruitmentRoutes'
 import { formatMonthDayWithWeekday } from '@/utils/date'
 import { ApplicantRow, ApplicantTable, ApplicantTableHead } from './applicantTable'
-import type { Route } from 'next'
 import type { ReactNode } from 'react'
 
 type DocumentReviewApplicantTableProps = {
@@ -29,8 +29,7 @@ function DocumentReviewApplicantTable({
       {applicants.map((applicant) => (
         <ApplicantRow
           key={applicant.id}
-          // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
-          href={`/manage/recruitments/${recruitmentId}/documents/${applicant.id}` as Route}
+          href={getApplicantReviewPath(recruitmentId, applicant.id)}
           name={applicant.name}
           position={DOCUMENT_REVIEW_POSITION_LABEL[applicant.position]}
           submittedAt={formatMonthDayWithWeekday(applicant.submittedAt)}
