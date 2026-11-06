@@ -9,7 +9,16 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 const meta = {
   title: 'Features/Recruitment/Lnb',
   component: Lnb,
-  parameters: { controls: { disable: true } },
+  parameters: {
+    controls: { disable: true },
+    nextjs: {
+      appDirectory: true,
+      navigation: {
+        pathname: '/manage/recruitments/1/documents',
+        segments: [['recruitmentId', '1']],
+      },
+    },
+  },
   decorators: [
     (Story) => (
       <div className="w-55">
@@ -48,7 +57,10 @@ export const Default: Story = {
         />
       </li>
       <li>
-        <LnbSubItem label="서류 평가" isActive />
+        <LnbSubItem label="서류 평가" path="documents" />
+      </li>
+      <li>
+        <LnbSubItem label="서류 평가 취합" path="documents/summary" />
       </li>
     </Lnb>
   ),
