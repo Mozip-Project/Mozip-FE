@@ -54,7 +54,83 @@ type DocumentReviewApplicantPage = {
   totalPages: number
 }
 
+const DOCUMENT_RESULT_PAGE_SIZE = 10
+
+const DOCUMENT_RESULTS = ['pass', 'hold', 'fail'] as const
+const DOCUMENT_RESULT_STATUSES = ['all', ...DOCUMENT_RESULTS] as const
+// 순위 기준은 서버 담당, 점수 있는 공고는 평균 점수·없는 공고는 합격 의견 수
+const DOCUMENT_RESULT_SORTS = ['rankDesc', 'rankAsc', 'nameAsc', 'nameDesc'] as const
+
+type DocumentResult = (typeof DOCUMENT_RESULTS)[number]
+type DocumentResultStatus = (typeof DOCUMENT_RESULT_STATUSES)[number]
+type DocumentResultSort = (typeof DOCUMENT_RESULT_SORTS)[number]
+
+const DOCUMENT_RESULT_STATUS_LABEL = {
+  all: '전체',
+  pass: '합격',
+  hold: '보류',
+  fail: '불합격',
+} satisfies Record<DocumentResultStatus, string>
+
+const DOCUMENT_RESULT_SORT_LABEL = {
+  rankDesc: '점수 높은순',
+  rankAsc: '점수 낮은순',
+  nameAsc: '이름 가나다순',
+  nameDesc: '이름 역순',
+} satisfies Record<DocumentResultSort, string>
+
+// 점수 없는 공고는 합격 의견 많은순만 제공
+const DOCUMENT_RESULT_NO_SCORE_SORTS = [
+  'rankDesc',
+  'nameAsc',
+  'nameDesc',
+] as const satisfies readonly DocumentResultSort[]
+
+const DOCUMENT_RESULT_NO_SCORE_SORT_LABEL = {
+  ...DOCUMENT_RESULT_SORT_LABEL,
+  rankDesc: '합격 의견 많은순',
+} satisfies Record<(typeof DOCUMENT_RESULT_NO_SCORE_SORTS)[number], string>
+
+type DocumentResultApplicant = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  rank: number
+  opinionCounts: Record<DocumentResult, number>
+  // null은 점수 없는 공고
+  averageScore: number | null
+  result: DocumentResult
+}
+
+type DocumentResultQuery = RecruitmentBoardQuery<DocumentResultStatus, DocumentResultSort>
+
+type DocumentResultApplicantPage = {
+  applicants: DocumentResultApplicant[]
+  statusCounts: Record<DocumentResultStatus, number>
+  positionCounts: Record<DocumentReviewPosition, number>
+  currentPage: number
+  totalPages: number
+  // 지원서 양식에서 점수를 받는 공고인지
+  hasScore: boolean
+  // 확정 버튼 활성·확정 팝업 요약용, 필터·검색과 무관한 공고 전체 기준
+  totalResultCounts: Record<DocumentResult, number>
+}
+
+type DocumentResultOverview = {
+  hasInterview: boolean
+  // null은 확정 전
+  confirmedAt: string | null
+}
+
 export {
+  DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
+  DOCUMENT_RESULT_NO_SCORE_SORTS,
+  DOCUMENT_RESULT_PAGE_SIZE,
+  DOCUMENT_RESULT_SORT_LABEL,
+  DOCUMENT_RESULT_SORTS,
+  DOCUMENT_RESULT_STATUS_LABEL,
+  DOCUMENT_RESULT_STATUSES,
+  DOCUMENT_RESULTS,
   DOCUMENT_REVIEW_PAGE_SIZE,
   DOCUMENT_REVIEW_POSITION_LABEL,
   DOCUMENT_REVIEW_POSITIONS,
@@ -64,6 +140,13 @@ export {
   DOCUMENT_REVIEW_STATUSES,
 }
 export type {
+  DocumentResult,
+  DocumentResultApplicant,
+  DocumentResultApplicantPage,
+  DocumentResultOverview,
+  DocumentResultQuery,
+  DocumentResultSort,
+  DocumentResultStatus,
   DocumentReviewApplicant,
   DocumentReviewApplicantPage,
   DocumentReviewPosition,
