@@ -24,6 +24,7 @@ const SPACING_TOKENS = [
 const FONT_SIZE_TOKENS = [
   'title3',
   'heading2',
+  'headline1',
   'headline2',
   'body1',
   'body2',

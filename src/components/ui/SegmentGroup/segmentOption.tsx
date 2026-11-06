@@ -12,11 +12,11 @@ type SegmentSize = (typeof SEGMENT_SIZES)[number]
 
 // Figma Segment Tone: Brand=합격·점수, Warning=보류, Critical=불합격
 const SELECTED_TONE_CLASS = {
-  brand: 'aria-checked:border-brand-solid aria-checked:bg-brand-weak aria-checked:text-brand',
+  brand: 'aria-checked:border-brand-weak aria-checked:bg-brand-weak aria-checked:text-brand',
   warning:
-    'aria-checked:border-warning-solid aria-checked:bg-warning-weak aria-checked:text-warning',
+    'aria-checked:border-warning-weak aria-checked:bg-warning-weak aria-checked:text-warning',
   critical:
-    'aria-checked:border-critical-solid aria-checked:bg-critical-weak aria-checked:text-critical',
+    'aria-checked:border-critical-weak aria-checked:bg-critical-weak aria-checked:text-critical',
 } as const satisfies Record<SegmentTone, string>
 
 const SIZE_CLASS = {
