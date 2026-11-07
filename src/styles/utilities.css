@@ -4,6 +4,33 @@
   column-gap: var(--layout-grid-gutter);
 }
 
+/* 회색 막대 위로 밝은 띠가 지나가는 로딩 스켈레톤, 크기·반경은 사용처에서 지정 */
+@utility skeleton-bar {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: var(--background-color-neutral-weak);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      to right,
+      var(--color-static-transparent),
+      var(--color-static-white),
+      var(--color-static-transparent)
+    );
+    animation: var(--animate-skeleton-shimmer);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      display: none;
+    }
+  }
+}
+
 @theme {
   /* 밝은 띠 좌→우 이동, 1.2s linear 반복 */
   --animate-skeleton-shimmer: skeleton-shimmer 1.2s linear infinite;
