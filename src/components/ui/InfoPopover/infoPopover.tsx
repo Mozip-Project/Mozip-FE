@@ -60,7 +60,7 @@ function InfoPopover({
         </div>
         <p
           id={descriptionId}
-          className="text-label1 break-words whitespace-pre-line text-neutral-muted"
+          className="text-label1 break-words break-keep whitespace-pre-line text-neutral-muted"
         >
           {description}
         </p>

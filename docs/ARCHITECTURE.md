@@ -93,8 +93,10 @@ src/features/recruitment/
 ```text
 src/features/recruitment/components/
 ├── documentReview/   # 서류 평가 목록 (documentReviewContent가 진입)
+├── documentResult/   # 서류 평가 취합 (documentResultContent가 진입)
 ├── recruitmentBoard/ # 모집 관리 목록 공통 툴바·검색·페이지네이션
-└── recruitmentNav/   # 모집 관리 LNB (recruitmentNav가 진입)
+├── recruitmentNav/   # 모집 관리 LNB (recruitmentNav가 진입)
+└── resultTable/      # 평가 결과 취합 표·평가자 의견 막대
 ```
 
 | 코드                                     | 위치                 |
