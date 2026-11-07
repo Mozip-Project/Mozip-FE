@@ -9,8 +9,8 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
 }))
 
-function renderBoard(searchParams: Record<string, string> = {}) {
-  render(
+function getBoard(searchParams: Record<string, string> = {}) {
+  return (
     <DocumentReviewBoard
       recruitmentId="1"
       query={parseDocumentReviewQuery(searchParams)}
@@ -20,8 +20,12 @@ function renderBoard(searchParams: Record<string, string> = {}) {
       totalPages={5}
     >
       <p>지원자 표</p>
-    </DocumentReviewBoard>,
+    </DocumentReviewBoard>
   )
+}
+
+function renderBoard(searchParams: Record<string, string> = {}) {
+  return render(getBoard(searchParams))
 }
 
 beforeEach(() => {
@@ -65,6 +69,41 @@ describe('DocumentReviewBoard 이름 검색', () => {
     fireEvent.click(screen.getByRole('button', { name: '검색어 지우기' }))
 
     expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents', { scroll: false })
+  })
+
+  it('URL의 검색어가 바뀌면 검색창과 다음 조건 변경에 반영', () => {
+    const { rerender } = renderBoard({ q: '김' })
+
+    rerender(getBoard())
+
+    expect(screen.getByRole('searchbox', { name: '지원자 이름 검색' })).toHaveValue('')
+
+    fireEvent.mouseDown(screen.getByRole('tab', { name: '평가 전 14' }))
+
+    expect(replace).toHaveBeenLastCalledWith('/manage/recruitments/1/documents?status=pending', {
+      scroll: false,
+    })
+  })
+
+  it('입력 후 URL 반영 전에는 URL이 바뀌어도 입력값 유지', () => {
+    const { rerender } = renderBoard({ q: '김' })
+    const searchbox = screen.getByRole('searchbox', { name: '지원자 이름 검색' })
+
+    fireEvent.change(searchbox, { target: { value: '김모' } })
+    rerender(getBoard())
+
+    expect(searchbox).toHaveValue('김모')
+  })
+
+  it('입력값이 URL에 반영된 뒤에는 다시 URL을 따름', () => {
+    const { rerender } = renderBoard()
+    const searchbox = screen.getByRole('searchbox', { name: '지원자 이름 검색' })
+
+    fireEvent.change(searchbox, { target: { value: '김' } })
+    rerender(getBoard({ q: '김' }))
+    rerender(getBoard())
+
+    expect(searchbox).toHaveValue('')
   })
 
   it('검색 대기 중 탭을 바꾸면 대기 검색 없이 탭과 검색어를 함께 적용', () => {

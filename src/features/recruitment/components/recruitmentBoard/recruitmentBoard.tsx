@@ -73,9 +73,15 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
 }: RecruitmentBoardProps<TStatus, TSort>) {
   const sectionRef = useRef<HTMLElement>(null)
   const positionMenuRef = useRef<HTMLDivElement>(null)
-  // 입력 중 글자가 응답을 기다리지 않도록 검색어만 지역 상태로 관리
-  const [keyword, setKeyword] = useState(query.keyword)
+  // 입력 중 글자가 응답을 기다리지 않도록 URL 반영 전 값만 지역 상태로 관리
+  const [draftKeyword, setDraftKeyword] = useState<string | null>(null)
+  const keyword = draftKeyword ?? query.keyword
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  // URL에 반영되면 이후 URL 변경을 따르도록 입력값 해제
+  if (draftKeyword === query.keyword) {
+    setDraftKeyword(null)
+  }
 
   useEffect(() => () => clearTimeout(searchTimerRef.current), [])
 
@@ -120,7 +126,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
 
   // 검색어를 모두 지우면 기다리지 않고 전체 목록으로 복귀
   function handleKeywordChange(nextKeyword: string) {
-    setKeyword(nextKeyword)
+    setDraftKeyword(nextKeyword)
 
     if (nextKeyword === '') {
       applyQueryChange({ keyword: nextKeyword })

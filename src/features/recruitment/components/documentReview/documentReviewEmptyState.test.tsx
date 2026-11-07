@@ -70,10 +70,10 @@ describe('DocumentReviewEmptyState', () => {
 
   it('검색 결과가 0명이면 포지션 필터보다 검색 안내를 먼저 표시하고, 검색어 삭제 시 검색창까지 비움', async () => {
     const user = userEvent.setup()
-    render(
+    const getBoard = (searchParams: Record<string, string>) => (
       <DocumentReviewBoard
         recruitmentId="1"
-        query={parseDocumentReviewQuery({ q: '홍길동', position: 'design' })}
+        query={parseDocumentReviewQuery(searchParams)}
         statusCounts={{ all: 0, pending: 0, done: 0 }}
         positionCounts={{ design: 0, development: 0, planning: 0 }}
         currentPage={1}
@@ -86,8 +86,9 @@ describe('DocumentReviewEmptyState', () => {
           keyword="홍길동"
           isPositionFiltered
         />
-      </DocumentReviewBoard>,
+      </DocumentReviewBoard>
     )
+    const { rerender } = render(getBoard({ q: '홍길동', position: 'design' }))
     const searchbox = screen.getByRole('searchbox', { name: '지원자 이름 검색' })
 
     expect(screen.getByRole('status')).toHaveTextContent("'홍길동'에 해당하는 지원자가 없어요")
@@ -95,11 +96,15 @@ describe('DocumentReviewEmptyState', () => {
 
     await user.click(screen.getByRole('button', { name: '검색어 삭제' }))
 
-    expect(searchbox).toHaveValue('')
     expect(searchbox).toHaveFocus()
     expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents?position=design', {
       scroll: false,
     })
+
+    // 가짜 라우터는 URL을 바꾸지 않아 이동 결과를 직접 전달
+    rerender(getBoard({ position: 'design' }))
+
+    expect(searchbox).toHaveValue('')
   })
 
   it('필터·검색 없이 전체 지원자가 0명이면 지원자 없음 안내 표시', () => {
