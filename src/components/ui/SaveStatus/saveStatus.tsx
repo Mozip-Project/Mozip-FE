@@ -73,3 +73,4 @@ function SaveStatusContent(state: SaveState) {
 }
 
 export { SaveStatus }
+export type { SaveState }

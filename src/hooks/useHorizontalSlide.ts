@@ -1,16 +1,24 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { getRevealOffset, getSlideOffset } from '@/utils/slideOffset'
 
-// viewport 안의 목록을 transform으로 좌우 이동, activeIndex 항목은 보이는 위치로 맞춤
+type SlideState = {
+  canSlidePrev: boolean
+  canSlideNext: boolean
+}
+
+// 가로 스크롤 영역을 버튼으로도 이동, activeIndex 항목은 보이는 위치로 맞춤
 function useHorizontalSlide<TList extends HTMLElement = HTMLUListElement>(activeIndex: number) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<TList>(null)
-  const [offset, setOffset] = useState(0)
-  const [maxOffset, setMaxOffset] = useState(0)
-  const [isAnimated, setIsAnimated] = useState(false)
+  const hasRevealedRef = useRef(false)
+  // 부드러운 스크롤 도중 다시 누르면 현재 위치가 아닌 목표 위치에서 이어서 계산
+  const slideTargetPxRef = useRef<number | null>(null)
+  const [slideState, setSlideState] = useState<SlideState>({
+    canSlidePrev: false,
+    canSlideNext: false,
+  })
 
-  const offsetPx = Math.min(offset, maxOffset)
-
+  // 스크롤 위치·크기가 바뀔 때마다 이전·다음 버튼 상태 갱신
   useLayoutEffect(() => {
     const viewport = viewportRef.current
     const list = listRef.current
@@ -18,51 +26,90 @@ function useHorizontalSlide<TList extends HTMLElement = HTMLUListElement>(active
       return
     }
 
-    const updateMaxOffset = () => {
-      setMaxOffset(Math.max(list.scrollWidth - viewport.clientWidth, 0))
+    const updateSlideState = () => {
+      const maxPx = viewport.scrollWidth - viewport.clientWidth
+      // 소수점 스크롤 위치에서 끝에 닿아도 버튼이 남는 문제 방지
+      const nextState = {
+        canSlidePrev: viewport.scrollLeft > 1,
+        canSlideNext: viewport.scrollLeft < maxPx - 1,
+      }
+      setSlideState((previous) =>
+        previous.canSlidePrev === nextState.canSlidePrev &&
+        previous.canSlideNext === nextState.canSlideNext
+          ? previous
+          : nextState,
+      )
     }
-    updateMaxOffset()
-    const observer = new ResizeObserver(updateMaxOffset)
+    const handleScroll = () => {
+      updateSlideState()
+      const targetPx = slideTargetPxRef.current
+      if (targetPx !== null && Math.abs(viewport.scrollLeft - targetPx) <= 1) {
+        slideTargetPxRef.current = null
+      }
+    }
+    const clearSlideTarget = () => {
+      slideTargetPxRef.current = null
+    }
+
+    updateSlideState()
+    viewport.addEventListener('scroll', handleScroll, { passive: true })
+    viewport.addEventListener('scrollend', clearSlideTarget)
+    const observer = new ResizeObserver(updateSlideState)
     observer.observe(viewport)
     observer.observe(list)
-    return () => observer.disconnect()
+    return () => {
+      viewport.removeEventListener('scroll', handleScroll)
+      viewport.removeEventListener('scrollend', clearSlideTarget)
+      observer.disconnect()
+    }
   }, [])
 
   useLayoutEffect(() => {
+    const viewport = viewportRef.current
     const activeItem = listRef.current?.children[activeIndex]
-    if (activeItem instanceof HTMLElement) {
-      setOffset((previousPx) => getItemRevealOffset(previousPx, activeItem, viewportRef.current))
+    if (!viewport || !(activeItem instanceof HTMLElement)) {
+      return
     }
+
+    const viewportLeftPx = viewport.getBoundingClientRect().left
+    const itemRect = activeItem.getBoundingClientRect()
+    const itemStartPx = itemRect.left - viewportLeftPx + viewport.scrollLeft
+
+    slideTargetPxRef.current = null
+    viewport.scrollTo({
+      left: getRevealOffset({
+        previousPx: viewport.scrollLeft,
+        itemStartPx,
+        itemEndPx: itemStartPx + itemRect.width,
+        viewportWidthPx: viewport.clientWidth,
+      }),
+      // 첫 위치는 애니메이션 없이 적용, 이후는 CSS scroll-behavior 사용
+      behavior: hasRevealedRef.current ? 'auto' : 'instant',
+    })
+    hasRevealedRef.current = true
   }, [activeIndex])
 
-  // 첫 위치는 애니메이션 없이 적용
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setIsAnimated(true))
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
-  // 연속 클릭 시 목표 위치 누적
   function slideBy(direction: 1 | -1) {
-    const stepPx = getSlideStep(listRef.current)
-    setOffset((previous) =>
-      getSlideOffset(Math.min(previous, maxOffset), direction * stepPx, maxOffset),
-    )
-  }
+    const viewport = viewportRef.current
+    if (!viewport) {
+      return
+    }
 
-  function revealItem(item: HTMLElement) {
-    setOffset((previousPx) => getItemRevealOffset(previousPx, item, viewportRef.current))
+    const targetPx = getSlideOffset(
+      slideTargetPxRef.current ?? viewport.scrollLeft,
+      direction * getSlideStep(listRef.current),
+      viewport.scrollWidth - viewport.clientWidth,
+    )
+    slideTargetPxRef.current = targetPx
+    viewport.scrollTo({ left: targetPx })
   }
 
   return {
     viewportRef,
     listRef,
-    offsetPx,
-    isAnimated,
-    canSlidePrev: offsetPx > 0,
-    canSlideNext: offsetPx < maxOffset,
+    ...slideState,
     slidePrev: () => slideBy(-1),
     slideNext: () => slideBy(1),
-    revealItem,
   }
 }
 
@@ -72,15 +119,6 @@ function getSlideStep(list: HTMLElement | null) {
     return 0
   }
   return secondItem.offsetLeft - firstItem.offsetLeft
-}
-
-function getItemRevealOffset(previousPx: number, item: HTMLElement, viewport: HTMLElement | null) {
-  return getRevealOffset({
-    previousPx,
-    itemStartPx: item.offsetLeft,
-    itemEndPx: item.offsetLeft + item.offsetWidth,
-    viewportWidthPx: viewport?.clientWidth ?? 0,
-  })
 }
 
 export { useHorizontalSlide }
