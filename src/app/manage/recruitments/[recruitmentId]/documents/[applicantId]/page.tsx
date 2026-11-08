@@ -1,6 +1,12 @@
-import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
+import { Suspense } from 'react'
+import { DocumentEvaluationContent } from '@/features/recruitment/components/documentEvaluation/documentEvaluationContent'
 
-// TODO: 평가하기 화면 디자인 확정 후 구현
-export default function DocumentEvaluationPage() {
-  return <PageHeader title="서류 평가" />
+export default function DocumentEvaluationPage({
+  params,
+}: PageProps<'/manage/recruitments/[recruitmentId]/documents/[applicantId]'>) {
+  return (
+    <Suspense>
+      <DocumentEvaluationContent params={params} />
+    </Suspense>
+  )
 }
