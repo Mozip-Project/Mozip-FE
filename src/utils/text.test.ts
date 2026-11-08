@@ -39,4 +39,11 @@ describe('trimTextBeforeCaret', () => {
   it('이모지를 쪼개지 않고 글자 단위로 제거', () => {
     expect(trimTextBeforeCaret('👍👍👍', 6, 2)).toEqual({ text: '👍👍', caret: 4 })
   })
+
+  it('커서가 결합 문자 사이에 있어도 전체 글자 수가 한도 이내면 유지', () => {
+    // 결합 악센트(U+0301) 앞에 'e'를 입력해 'é' 한 글자가 된 상태
+    const text = 'é'
+
+    expect(trimTextBeforeCaret(text, 1, 1)).toEqual({ text, caret: 1 })
+  })
 })
