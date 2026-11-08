@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { useState } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SegmentGroup } from '@/components/ui/SegmentGroup/segmentGroup'
 import { SegmentOption } from '@/components/ui/SegmentGroup/segmentOption'
 
@@ -16,7 +17,43 @@ function renderSegmentGroup(props: { errorMessage?: string } = {}) {
   return { onValueChange, group: screen.getByRole('radiogroup', { name: '평가 결과' }) }
 }
 
+// 평가 폼처럼 form 안에서 value를 밖에서 관리하는 경우(Radix가 form 안에서 클릭 전파 중단)
+function FormSegmentGroup({ onValueChange }: { onValueChange: (value: string) => void }) {
+  const [value, setValue] = useState('pass')
+
+  return (
+    <form>
+      <SegmentGroup
+        aria-label="평가 결과"
+        value={value}
+        onValueChange={(nextValue) => {
+          setValue(nextValue)
+          onValueChange(nextValue)
+        }}
+      >
+        <SegmentOption value="pass">합격</SegmentOption>
+        <SegmentOption value="hold">보류</SegmentOption>
+      </SegmentGroup>
+    </form>
+  )
+}
+
+// jsdom 미지원, form 안에서 Radix 숨김 input이 사용
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
 describe('SegmentGroup', () => {
+  beforeEach(() => {
+    vi.stubGlobal('ResizeObserver', ResizeObserverStub)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('옵션 클릭 시 하나만 선택', async () => {
     const user = userEvent.setup()
     const { onValueChange } = renderSegmentGroup()
@@ -26,6 +63,32 @@ describe('SegmentGroup', () => {
     expect(onValueChange).toHaveBeenCalledWith('hold')
     expect(screen.getByRole('radio', { name: '보류' })).toBeChecked()
     expect(screen.getByRole('radio', { name: '합격' })).not.toBeChecked()
+  })
+
+  it('선택된 옵션을 다시 누르면 빈 값으로 선택 해제', async () => {
+    const user = userEvent.setup()
+    const { onValueChange } = renderSegmentGroup()
+    const holdOption = screen.getByRole('radio', { name: '보류' })
+
+    await user.click(holdOption)
+    await user.click(holdOption)
+
+    expect(onValueChange).toHaveBeenLastCalledWith('')
+    expect(holdOption).not.toBeChecked()
+  })
+
+  it('form 안에서 value를 밖에서 관리해도 다시 누르면 선택 해제', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(<FormSegmentGroup onValueChange={onValueChange} />)
+    const passOption = screen.getByRole('radio', { name: '합격' })
+    expect(passOption).toBeChecked()
+
+    await user.click(passOption)
+
+    expect(onValueChange).toHaveBeenLastCalledWith('')
+    expect(passOption).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: '보류' })).not.toBeChecked()
   })
 
   it('방향키로 다음 옵션 선택', async () => {

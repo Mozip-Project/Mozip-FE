@@ -15,7 +15,7 @@ function SegmentGroup({
   value,
   defaultValue,
   onValueChange,
-  onClick,
+  onClickCapture,
   'aria-describedby': describedBy,
   'aria-invalid': ariaInvalid,
   ...props
@@ -33,8 +33,9 @@ function SegmentGroup({
   }
 
   // 선택된 옵션을 다시 누르면 선택 해제
-  function handleClick(event: MouseEvent<HTMLDivElement>) {
-    onClick?.(event)
+  // form 안에서는 Radix가 옵션 클릭 전파를 막아 capture 단계에서 처리
+  function handleClickCapture(event: MouseEvent<HTMLDivElement>) {
+    onClickCapture?.(event)
 
     const option = event.target instanceof Element ? event.target.closest('[role="radio"]') : null
 
@@ -57,7 +58,7 @@ function SegmentGroup({
         {...props}
         value={selectedValue}
         onValueChange={handleValueChange}
-        onClick={handleClick}
+        onClickCapture={handleClickCapture}
       />
       {errorMessage && (
         <p
