@@ -55,11 +55,23 @@ describe('createSubmitSchema', () => {
     ])
   })
 
-  it('문항 목록에 없는 점수 키는 검사하지 않음', () => {
+  it('임시저장 평가에 문항 키가 아예 없어도 점수 필수 오류로 표시', () => {
+    const result = submitSchema.safeParse({
+      ...EMPTY_VALUES,
+      opinion: 'pass',
+      scores: { conflict: '3' },
+    })
+
+    expect(result.error?.issues).toEqual([
+      expect.objectContaining({ path: ['scores', 'motivation'], message: '점수를 선택해 주세요' }),
+    ])
+  })
+
+  it('문항 목록에 없는 점수 키는 빈 점수여도 검사하지 않음', () => {
     const result = createSubmitSchema(['motivation']).safeParse({
       ...EMPTY_VALUES,
       opinion: 'fail',
-      scores: { motivation: '1' },
+      scores: { motivation: '1', removedQuestion: '', unknownQuestion: undefined },
     })
 
     expect(result.success).toBe(true)
