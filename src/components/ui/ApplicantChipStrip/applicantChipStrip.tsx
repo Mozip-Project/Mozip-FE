@@ -28,17 +28,8 @@ function ApplicantChipStrip({
   className,
 }: ApplicantChipStripProps) {
   const currentIndex = applicants.findIndex((applicant) => applicant.id === currentId)
-  const {
-    viewportRef,
-    listRef,
-    offsetPx,
-    isAnimated,
-    canSlidePrev,
-    canSlideNext,
-    slidePrev,
-    slideNext,
-    revealItem,
-  } = useHorizontalSlide(currentIndex)
+  const { viewportRef, listRef, canSlidePrev, canSlideNext, slidePrev, slideNext } =
+    useHorizontalSlide(currentIndex)
 
   return (
     <div
@@ -48,21 +39,21 @@ function ApplicantChipStrip({
       className={cn('flex w-full max-w-page min-w-70 items-center gap-gap-s', className)}
     >
       <SlideButton direction="prev" disabled={!canSlidePrev} onClick={slidePrev} />
-      {/* overflow-clip: focus 시 자동 스크롤 방지 */}
-      <div ref={viewportRef} className="min-w-0 flex-1 overflow-clip">
-        <ul
-          ref={listRef}
-          role="list"
-          className={cn(
-            'flex w-max gap-gap-s',
-            isAnimated &&
-              'transition-transform duration-300 ease-out motion-reduce:transition-none',
-          )}
-          // 런타임 측정값이라 style 사용
-          style={{ transform: `translateX(-${offsetPx}px)` }}
-        >
+      <div
+        ref={viewportRef}
+        className={cn(
+          // relative: 칩 안 sr-only(absolute)가 스크롤 영역 밖으로 페이지 폭을 늘리는 문제 방지
+          'relative min-w-0 flex-1 overflow-x-auto overscroll-x-contain',
+          'scroll-smooth motion-reduce:scroll-auto',
+          // 스크롤바는 숨기고 버튼·트랙패드·터치로 이동(마우스 세로 휠은 Shift 필요)
+          '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          // 칩 포커스 링이 스크롤 영역에 잘리지 않게 여백 확보
+          '-m-1 p-1',
+        )}
+      >
+        <ul ref={listRef} role="list" className="flex w-max gap-gap-s">
           {applicants.map((applicant) => (
-            <li key={applicant.id} onFocus={(event) => revealItem(event.currentTarget)}>
+            <li key={applicant.id}>
               <ApplicantChip
                 name={applicant.name}
                 isDone={applicant.isDone}
