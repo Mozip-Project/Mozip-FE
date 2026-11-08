@@ -3,6 +3,7 @@ import type { GnbNavItem } from '@/components/ui/Gnb/gnbNav'
 import { OrganizationSelector } from '@/components/ui/Gnb/organizationSelector'
 import { ProfileMenu } from '@/components/ui/Gnb/profileMenu'
 import { NotificationPanel } from '@/features/notification/components/notificationPanel'
+import { ToastProvider } from '@/providers/toastProvider'
 
 const NAV_ITEMS = [
   { label: '전체 공고', href: '/manage/postings' },
@@ -12,7 +13,7 @@ const NAV_ITEMS = [
 
 export default function ManageLayout({ children }: LayoutProps<'/manage'>) {
   return (
-    <>
+    <ToastProvider>
       {/* TODO: 로그인 사용자·단체 정보, 알림 목록 연결 */}
       <Gnb
         homeHref="/manage"
@@ -34,6 +35,6 @@ export default function ManageLayout({ children }: LayoutProps<'/manage'>) {
       <div className="px-page-padding pt-12 pb-20">
         <div className="mx-auto w-full max-w-page">{children}</div>
       </div>
-    </>
+    </ToastProvider>
   )
 }
