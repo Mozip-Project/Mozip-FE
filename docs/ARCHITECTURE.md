@@ -82,6 +82,7 @@ src/features/recruitment/
 │   ├── applicant/       # 지원자 전용 컴포넌트
 │   └── organizer/       # 운영진 전용 컴포넌트
 ├── hooks/
+├── schemas/             # 폼 검증 zod 스키마와 폼 값 타입
 ├── utils/               # 도메인을 아는 순수 함수 (URL 쿼리 변환 등)
 └── types.ts
 ```
