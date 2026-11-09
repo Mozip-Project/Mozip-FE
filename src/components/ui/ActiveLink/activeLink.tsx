@@ -32,4 +32,4 @@ function PathnameLink(props: ActiveLinkProps) {
   return <Link aria-current={match && ARIA_CURRENT[match]} {...props} />
 }
 
-export { ActiveLink }
+export { ActiveLink, ARIA_CURRENT }

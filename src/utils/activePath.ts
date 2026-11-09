@@ -15,4 +15,20 @@ function getActivePathMatch(pathname: string, href: string): ActivePathMatch | u
   return undefined
 }
 
-export { getActivePathMatch, type ActivePathMatch }
+// 여러 메뉴가 함께 일치하면 가장 긴 경로 하나만 현재 메뉴로 선택
+function getClosestActivePath<THref extends string>(pathname: string, hrefs: readonly THref[]) {
+  let closest: { href: THref; match: ActivePathMatch; length: number } | undefined
+
+  for (const href of hrefs) {
+    const match = getActivePathMatch(pathname, href)
+    const [path = href] = href.split(/[?#]/)
+
+    if (match && (!closest || path.length > closest.length)) {
+      closest = { href, match, length: path.length }
+    }
+  }
+
+  return closest && { href: closest.href, match: closest.match }
+}
+
+export { getActivePathMatch, getClosestActivePath, type ActivePathMatch }

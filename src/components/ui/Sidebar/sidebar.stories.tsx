@@ -51,3 +51,18 @@ export const Organization: Story = {
     />
   ),
 }
+
+export const NestedPath: Story = {
+  parameters: {
+    nextjs: { appDirectory: true, navigation: { pathname: '/manage/organization/teams' } },
+  },
+  render: () => (
+    <Sidebar
+      title="단체 관리"
+      items={[
+        { label: '단체 프로필', href: '/manage/organization' },
+        { label: '팀 설정', href: '/manage/organization/teams' as Route },
+      ]}
+    />
+  ),
+}
