@@ -36,7 +36,7 @@ Figma에 없는 화면 상태(빈 목록, 로딩, 에러, 모바일)는 임의�
 - 기본 서체는 Pretendard(`font-sans`)입니다. Figma 텍스트 스타일의 weight는 `font-*` 유틸리티로 따로 지정합니다.
 
 - `static-black-alpha-*`는 Figma 변수 기준으로 `#080808`에 불투명도 100=0.04, 200=0.08, 500=0.4, 700=0.64를 적용했습니다.
-- `layout/container-max`의 태블릿(704)·모바일(343) 값은 frame 폭에서 page-padding을 뺀 값이라 고정하지 않고, 데스크톱 최대 폭 1200px만 `max-w-page`로 둡니다.
+- `layout/container-max`의 태블릿(704)·모바일(343) 값은 frame 폭에서 page-padding을 뺀 값이라 고정하지 않고, 데스크톱 최대 폭 1280px만 `max-w-page`로 둡니다.
 - 다크 모드 토큰은 아직 없습니다.
 
 ## 인터랙션 방향

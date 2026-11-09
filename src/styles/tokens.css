@@ -147,7 +147,7 @@
   --shadow-floating: 0 1px 3px 0 rgb(15 18 26 / 0.06), 0 8px 24px 0 rgb(15 18 26 / 0.08);
 
   /* Layout: 태블릿·모바일 container 값은 frame 폭에서 page-padding을 뺀 값이라 데스크톱 최대 폭만 고정 */
-  --container-page: 1200px;
+  --container-page: 1280px;
 }
 
 /* next/font 변수는 html class에서 정의되므로 inline으로 사용 위치에서 해석 */
@@ -277,7 +277,7 @@
   }
 
   @variant desktop {
-    --layout-page-padding: 40px;
+    --layout-page-padding: 80px;
     --layout-section-gap: 120px;
     --layout-content-gap: 48px;
     --layout-grid-gutter: 24px;

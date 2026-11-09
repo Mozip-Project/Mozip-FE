@@ -17,7 +17,7 @@ const ROW_CLASS = 'flex items-center gap-gap-xl px-padding-l py-padding-s'
 type ApplicantTableProps = {
   label: string
   isLoading?: boolean
-  // role=table 밖, 같은 테두리 안에 표시
+  // role=table 밖, 같은 스크롤 영역 안에 표시
   emptyState?: ReactNode
   children: ReactNode
 }
@@ -25,7 +25,7 @@ type ApplicantTableProps = {
 // relative로 sr-only 텍스트의 스크롤 영역 밖 넘침 방지
 function ApplicantTable({ label, isLoading = false, emptyState, children }: ApplicantTableProps) {
   return (
-    <div className="relative max-w-page overflow-x-auto rounded-l border border-neutral-weak bg-layer-default">
+    <div className="relative max-w-page overflow-x-auto bg-layer-default">
       <div className="min-w-[802px]">
         <div role="table" aria-label={label} aria-busy={isLoading} data-slot="applicant-table">
           {children}

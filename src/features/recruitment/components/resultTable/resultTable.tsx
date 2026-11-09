@@ -49,7 +49,7 @@ type ResultTableProps = {
   // 로딩 중에는 children 대신 스켈레톤 행 표시
   isLoading?: boolean
   loadingRowCount?: number
-  // role=table 밖, 같은 테두리 안에 표시
+  // role=table 밖, 같은 스크롤 영역 안에 표시
   emptyState?: ReactNode
   children?: ReactNode
 }
@@ -65,7 +65,7 @@ function ResultTable({
   const skeletonRowKeys = Array.from({ length: loadingRowCount }, (_, index) => index)
 
   return (
-    <div className="relative overflow-x-auto rounded-l border border-neutral-muted bg-layer-default">
+    <div className="relative overflow-x-auto bg-layer-default">
       {/* 고정 열 폭 합계, 좁은 화면에서는 표 안 가로 스크롤 */}
       <div className={hasScore ? 'min-w-[877px]' : 'min-w-[769px]'}>
         <div role="table" aria-label={label} aria-busy={isLoading} data-slot="result-table">
