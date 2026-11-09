@@ -64,8 +64,12 @@ src/
 ├── components/ui/   # 기본 UI. 컴포넌트 폴더마다 컴포넌트와 스토리만 둠, 테스트는 ui/__tests__/
 ├── hooks/           # 도메인을 모르는 공용 hook과 테스트
 ├── lib/             # 라이브러리 설정·래퍼
+├── mocks/           # MSW 설정. 도메인 handler를 모으는 handler.ts와 browser.ts·server.ts
+├── providers/       # 전역 Provider (Query, 토스트, MSW 대기)
 └── utils/           # 의존성 없는 순수 함수와 테스트
 ```
+
+`src/mocks/handler.ts`는 앱 전체의 handler를 한곳에 연결하는 자리라서, 예외적으로 `features/*/mocks/`를 import합니다.
 
 컴포넌트 폴더에 계산 함수를 두지 않고 `utils/`로 뺍니다. 디자인 값은 컴포넌트에 두고 함수에 인자로 넘깁니다.
 
@@ -82,6 +86,7 @@ src/features/recruitment/
 │   ├── applicant/       # 지원자 전용 컴포넌트
 │   └── organizer/       # 운영진 전용 컴포넌트
 ├── hooks/
+├── mocks/               # MSW handler와 샘플 데이터
 ├── schemas/             # 폼 검증 zod 스키마와 폼 값 타입
 ├── utils/               # 도메인을 아는 순수 함수 (URL 쿼리 변환 등)
 └── types.ts
@@ -134,9 +139,23 @@ Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 
 | HTTP        | ky                    | 공용 API 클라이언트 한 곳에서만 사용                                         |
 | 실시간 갱신 | 폴링                  | 면접 보드처럼 다른 사람의 변경을 봐야 하는 화면. 방식 변경은 백엔드와 결정   |
 | UI 문서     | Storybook             | 공용 UI와 핵심 도메인 컴포넌트. 스토리는 컴포넌트 옆 `*.stories.tsx`         |
-| API 목킹    | MSW는 필요해지면 도입 | 백엔드 API가 없어 개발이 막힐 때 검토                                        |
+| API 목킹    | MSW                   | 개발 서버에서만. 아래 "API 목킹" 참고                                        |
 
 설치는 각 라이브러리를 처음 실제로 쓰는 작업에서 합니다.
+
+## API 목킹은 MSW로 합니다
+
+handler 목록 하나를 브라우저, Next 서버, 테스트가 함께 씁니다(결정 기록 014).
+
+| 요청이 나가는 곳 | 설정                   | 시작하는 곳                                                    |
+| ---------------- | ---------------------- | -------------------------------------------------------------- |
+| 브라우저         | `src/mocks/browser.ts` | `src/providers/mockProvider.tsx` (worker 준비까지 렌더링 대기) |
+| Next 서버        | `src/mocks/server.ts`  | `src/instrumentation.ts`의 `register()`                        |
+| Vitest           | `src/mocks/server.ts`  | API 연동 테스트가 생기면 `src/test/setup.ts`에 연결            |
+
+- `.env.local`에 `NEXT_PUBLIC_API_MOCKING=enabled`를 두면 `pnpm dev`에서 켜집니다. production build에서는 값과 관계없이 꺼집니다.
+- handler는 도메인의 `features/<도메인>/mocks/`에 작성하고 `src/mocks/handler.ts`에 추가합니다.
+- `public/mockServiceWorker.js`는 msw가 만드는 파일이라 직접 고치지 않습니다. msw 버전을 올리면 `pnpm exec msw init`으로 다시 만듭니다.
 
 ## 인증 토큰은 httpOnly 쿠키로 받습니다
 
