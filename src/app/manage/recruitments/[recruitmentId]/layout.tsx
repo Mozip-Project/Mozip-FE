@@ -4,7 +4,7 @@ export default function RecruitmentLayout({
   children,
 }: LayoutProps<'/manage/recruitments/[recruitmentId]'>) {
   return (
-    <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-gap-xxl">
+    <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-12">
       <RecruitmentNav />
       <main className="min-w-0">{children}</main>
     </div>
