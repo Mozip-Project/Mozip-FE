@@ -16,6 +16,7 @@
 - 백엔드 주소는 환경 변수로만 읽고 코드·문서에 실제 값을 적지 않습니다. `.env.example`에는 변수명만 남깁니다.
 - 브라우저에서 직접 읽어야 하는 값만 `NEXT_PUBLIC_` 접두사를 붙입니다. 비밀 키(AI API 키 등)는 절대 `NEXT_PUBLIC_`으로 노출하지 않습니다.
 - 변수 이름은 인증 방식 결정과 함께 정합니다.
+- MSW 켜기는 `NEXT_PUBLIC_API_MOCKING` 하나로 서버·브라우저가 함께 읽습니다. 서버 전용 변수를 따로 만들지 않습니다.
 
 ## 사용 방식
 
@@ -24,7 +25,15 @@
 - 인증 토큰은 백엔드가 httpOnly 쿠키로 발급합니다. 토큰을 JS에서 읽거나 `localStorage`·state에 저장하지 않습니다.
 - 다른 사용자의 변경을 반영해야 하는 화면은 폴링(`refetchInterval`)으로 갱신하고, 화면이 보이지 않을 때는 멈춥니다. WebSocket·SSE 전환은 백엔드와 결정합니다.
 - 서버 데이터를 전역 상태 라이브러리에 복제하지 않습니다. 전역 상태 라이브러리는 도입하지 않았습니다.
-- MSW는 아직 도입하지 않았습니다. 백엔드 API 없이 개발이 막히면 도입을 제안합니다.
+
+## MSW
+
+구성과 이유는 `docs/ARCHITECTURE.md`의 "API 목킹"과 `.claude/decisions/records/014-msw-mocking.md`를 따릅니다.
+
+- handler와 샘플 데이터는 `src/features/<도메인>/mocks/`에 두고 `src/mocks/handler.ts`의 배열에 추가합니다. 서버용·브라우저용 handler를 따로 만들지 않습니다.
+- `msw/node`는 `src/mocks/server.ts`에서만, `msw/browser`는 `src/mocks/browser.ts`에서만 import합니다. `server.ts`는 `src/instrumentation.ts`와 테스트 setup에서만, `browser.ts`는 `MockProvider`의 `typeof window` 분기 안에서만 불러옵니다. 반대쪽 번들에 섞이면 빌드가 깨집니다.
+- msw v3의 미처리 요청 옵션은 `onUnhandledFrame`입니다. v2 예제의 `onUnhandledRequest`를 쓰지 않습니다.
+- handler 응답 모양은 백엔드 스키마·API 문서를 따르고, 문서에 없는 필드를 만들지 않습니다.
 
 ## 로딩·에러·빈 상태
 
