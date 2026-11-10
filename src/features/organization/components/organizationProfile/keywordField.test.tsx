@@ -80,4 +80,21 @@ describe('KeywordField', () => {
 
     expect(screen.queryByText('UX')).not.toBeInTheDocument()
   })
+
+  it('10개 등록 시 메뉴 대신 안내 문구 표시, 하나 삭제하면 안내 제거', async () => {
+    const user = userEvent.setup()
+    const input = renderKeywordField()
+
+    for (let index = 1; index <= 10; index += 1) {
+      await user.type(input, `키워드${index}{Enter}`)
+    }
+    await user.type(input, '추가')
+
+    expect(screen.getByText('키워드는 최대 10개까지 등록 가능해요')).toBeInTheDocument()
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '키워드1 삭제' }))
+
+    expect(screen.queryByText('키워드는 최대 10개까지 등록 가능해요')).not.toBeInTheDocument()
+  })
 })

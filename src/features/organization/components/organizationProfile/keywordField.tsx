@@ -16,6 +16,7 @@ type KeywordFieldProps = {
 function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldProps) {
   const inputId = useId()
   const listboxId = useId()
+  const maxHelperId = useId()
   const [query, setQuery] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isMenuDismissed, setIsMenuDismissed] = useState(false)
@@ -24,7 +25,8 @@ function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldPr
   const trimmedQuery = query.trim()
   const visibleSuggestions = suggestions.filter((suggestion) => !keywords.includes(suggestion))
   const directAddIndex = visibleSuggestions.length
-  const isMenuOpen = isFocused && !isMenuDismissed && trimmedQuery !== ''
+  const isAtMaxCount = keywords.length >= KEYWORD_MAX_COUNT
+  const isMenuOpen = isFocused && !isMenuDismissed && !isAtMaxCount && trimmedQuery !== ''
   const getOptionId = (index: number) => `${listboxId}-${index}`
 
   function selectKeyword(keyword: string) {
@@ -111,6 +113,7 @@ function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldPr
             isMenuOpen && activeIndex >= 0 ? getOptionId(activeIndex) : undefined
           }
           aria-required
+          aria-describedby={isAtMaxCount ? maxHelperId : undefined}
           value={query}
           placeholder={
             keywords.length > 0 ? undefined : '키워드 입력 후 Enter를 눌러 추가해 주세요'
@@ -119,9 +122,14 @@ function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldPr
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="h-5.5 min-w-20 flex-1 bg-transparent text-body2 text-neutral outline-none placeholder:text-placeholder"
+          className="h-5.5 w-0 min-w-12 flex-1 bg-transparent text-body2 text-neutral outline-none placeholder:text-placeholder"
         />
       </div>
+      {isAtMaxCount && (
+        <p id={maxHelperId} className="text-label2 font-normal text-critical">
+          키워드는 최대 {KEYWORD_MAX_COUNT}개까지 등록 가능해요
+        </p>
+      )}
       {isMenuOpen && (
         <KeywordMenu
           id={listboxId}
