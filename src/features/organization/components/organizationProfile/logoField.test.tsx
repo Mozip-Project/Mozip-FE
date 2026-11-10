@@ -24,10 +24,10 @@ describe('LogoField', () => {
     revokeObjectURL.mockClear()
   })
 
-  it('이미지 업로드 전에는 초기화 비활성', () => {
+  it('이미지 업로드 전에는 초기화 버튼 없음', () => {
     render(<ControlledLogoField />)
 
-    expect(screen.getByRole('button', { name: '초기화' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: '초기화' })).not.toBeInTheDocument()
   })
 
   it('이미지 선택 시 미리보기 표시, 초기화 시 기본 상태로 복귀', async () => {
@@ -47,7 +47,7 @@ describe('LogoField', () => {
     await user.click(resetButton)
 
     expect(screen.queryByRole('img', { name: '선택한 로고' })).not.toBeInTheDocument()
-    expect(resetButton).toBeDisabled()
+    expect(resetButton).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '이미지 업로드' })).toHaveFocus()
     expect(revokeObjectURL).toHaveBeenCalledWith(PREVIEW_URL)
   })
