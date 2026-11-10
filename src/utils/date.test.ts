@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { formatDateTimeWithWeekday, formatMonthDayWithWeekday, formatSavedTime } from './date'
+import {
+  formatDateTimeWithWeekday,
+  formatMonthDayWithWeekday,
+  formatRemainingTime,
+  formatSavedTime,
+} from './date'
 
 describe('formatSavedTime', () => {
   const now = new Date(2026, 10, 4, 15, 0)
@@ -29,5 +34,14 @@ describe('formatMonthDayWithWeekday', () => {
 
   it('한 자리 월·일은 0을 붙이지 않음', () => {
     expect(formatMonthDayWithWeekday('2026-03-01')).toBe('3/1 (일)')
+  })
+})
+
+describe('formatRemainingTime', () => {
+  it('분:초로 표시하고 초는 두 자리로 맞춤', () => {
+    expect(formatRemainingTime(180)).toBe('3:00')
+    expect(formatRemainingTime(179)).toBe('2:59')
+    expect(formatRemainingTime(65)).toBe('1:05')
+    expect(formatRemainingTime(0)).toBe('0:00')
   })
 })

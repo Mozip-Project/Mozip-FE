@@ -2,7 +2,7 @@ import { Gnb } from '@/components/ui/Gnb/gnb'
 import type { GnbNavItem } from '@/components/ui/Gnb/gnbNav'
 import { OrganizationSelector } from '@/components/ui/Gnb/organizationSelector'
 import { ProfileMenu } from '@/components/ui/Gnb/profileMenu'
-import { NotificationPanel } from '@/features/notification/components/notificationPanel'
+import { NotificationPanel } from '@/features/notification/components/notificationPanel/notificationPanel'
 import { ToastProvider } from '@/providers/toastProvider'
 
 const NAV_ITEMS = [
@@ -21,11 +21,11 @@ export default function ManageLayout({ children }: LayoutProps<'/manage'>) {
         actions={
           <>
             <OrganizationSelector name="UXUX" />
-            <NotificationPanel notifications={[]} settingsHref="/mypage" />
+            <NotificationPanel notifications={[]} settingsHref="/manage/mypage/notifications" />
             <ProfileMenu
               name="김모집"
               mode="organizer"
-              myPageHref="/mypage"
+              myPageHref="/manage/mypage"
               switchModeHref="/postings"
               logoutHref="/"
             />

@@ -52,6 +52,16 @@ export const WithPrimaryAction: Story = {
   ),
 }
 
+export const WithBackLink: Story = {
+  render: () => (
+    <PageHeader
+      title="정보 수정"
+      backLink={{ href: '/manage/mypage', label: '계정 설정' }}
+      actions={<Button size="m">저장</Button>}
+    />
+  ),
+}
+
 export const TitleOnly: Story = {
   render: () => <PageHeader title="지원자 목록" />,
 }

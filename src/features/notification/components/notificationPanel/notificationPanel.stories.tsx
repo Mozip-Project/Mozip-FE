@@ -6,7 +6,7 @@ const NOTIFICATIONS: NotificationEntry[] = [
   {
     id: '1',
     audience: 'organizer',
-    href: '/mypage',
+    href: '/manage/mypage',
     isRead: false,
     source: 'UXUX',
     title: '대표자 요청이 도착했어요',
@@ -15,7 +15,7 @@ const NOTIFICATIONS: NotificationEntry[] = [
   {
     id: '2',
     audience: 'organizer',
-    href: '/mypage',
+    href: '/manage/mypage',
     isRead: false,
     source: 'UXUX',
     title: '대표자 신청이 승인되었어요',
@@ -24,7 +24,7 @@ const NOTIFICATIONS: NotificationEntry[] = [
   {
     id: '3',
     audience: 'organizer',
-    href: '/mypage',
+    href: '/manage/mypage',
     isRead: false,
     source: '멋쟁이개발자',
     title: '대표자 신청이 거절되었어요',
@@ -33,7 +33,7 @@ const NOTIFICATIONS: NotificationEntry[] = [
   {
     id: '4',
     audience: 'organizer',
-    href: '/mypage',
+    href: '/manage/mypage',
     isRead: true,
     source: '밴드 소리샘',
     title: '대표자 신청이 승인되었어요',
@@ -42,7 +42,7 @@ const NOTIFICATIONS: NotificationEntry[] = [
   {
     id: '5',
     audience: 'applicant',
-    href: '/mypage',
+    href: '/manage/mypage',
     isRead: true,
     source: 'UXUX',
     title: '모집 기간이 10월 20일까지 연장됐어요',
@@ -73,7 +73,11 @@ type Story = StoryObj
 export const List: Story = {
   render: () => (
     <PanelFrame>
-      <NotificationPanel defaultOpen notifications={NOTIFICATIONS} settingsHref="/mypage" />
+      <NotificationPanel
+        defaultOpen
+        notifications={NOTIFICATIONS}
+        settingsHref="/manage/mypage/notifications"
+      />
     </PanelFrame>
   ),
 }
@@ -81,7 +85,11 @@ export const List: Story = {
 export const Empty: Story = {
   render: () => (
     <PanelFrame>
-      <NotificationPanel defaultOpen notifications={[]} settingsHref="/mypage" />
+      <NotificationPanel
+        defaultOpen
+        notifications={[]}
+        settingsHref="/manage/mypage/notifications"
+      />
     </PanelFrame>
   ),
 }
@@ -89,7 +97,11 @@ export const Empty: Story = {
 export const ManyItems: Story = {
   render: () => (
     <PanelFrame>
-      <NotificationPanel defaultOpen notifications={MANY_NOTIFICATIONS} settingsHref="/mypage" />
+      <NotificationPanel
+        defaultOpen
+        notifications={MANY_NOTIFICATIONS}
+        settingsHref="/manage/mypage/notifications"
+      />
     </PanelFrame>
   ),
 }
