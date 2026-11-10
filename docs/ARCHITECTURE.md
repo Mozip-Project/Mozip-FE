@@ -34,10 +34,12 @@ src/app/
 | `/postings`                                      | 전체 공고                              | 지원자   |
 | `/applications`                                  | 내 지원                                | 지원자   |
 | `/organizations`                                 | 단체 둘러보기                          | 지원자   |
-| `/mypage`                                        | 마이페이지                             | 지원자   |
 | `/manage`                                        | 대시보드                               | 운영진   |
 | `/manage/postings`                               | 전체 공고                              | 운영진   |
 | `/manage/organization`                           | 단체 관리                              | 운영진   |
+| `/manage/mypage`                                 | 마이페이지 계정 설정. 사이드바 + 본문  | 운영진   |
+| `/manage/mypage/edit`                            | 마이페이지 정보 수정                   | 운영진   |
+| `/manage/mypage/notifications`                   | 마이페이지 알림 설정                   | 운영진   |
 | `/manage/recruitments`                           | 모집 관리 진입. 지금은 임시 ID로 이동  | 운영진   |
 | `/manage/recruitments/[recruitmentId]/documents` | 서류 평가. 사이드바 220px + 본문의 2단 | 운영진   |
 
@@ -49,7 +51,7 @@ src/app/
 - 로그인·회원가입은 `/postings`, 로그아웃은 `/`로 이동만 합니다.
 - 모드 전환은 지원자에서 `/manage`, 운영진에서 `/postings`로 이동만 합니다.
 - 로그아웃 GNB에서 메뉴를 누르면 지원자 GNB가 나옵니다.
-- 마이페이지는 `/mypage` 하나를 함께 쓰므로 운영진 모드에서도 지원자 GNB가 나옵니다.
+- 마이페이지는 Figma 시안에 맞춰 `/manage/mypage` 하나만 두므로 지원자 모드에서 들어가도 운영진 GNB가 나옵니다.
 
 ## API 호출은 한 곳의 클라이언트를 거칩니다
 
