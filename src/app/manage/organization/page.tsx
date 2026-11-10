@@ -1,9 +1,11 @@
-import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
+import { Suspense } from 'react'
+import { OrganizationProfileContent } from '@/features/organization/components/organizationProfile/organizationProfileContent'
 
 export default function OrganizationPage() {
   return (
-    <main>
-      <PageHeader title="단체 관리" />
-    </main>
+    // TODO: 로딩 화면 디자인 확정 후 fallback 추가
+    <Suspense>
+      <OrganizationProfileContent />
+    </Suspense>
   )
 }
