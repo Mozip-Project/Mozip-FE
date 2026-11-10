@@ -12,7 +12,6 @@ import { formatPhoneNumber } from '@/utils/phone'
 
 const VERIFICATION_DURATION_SECONDS = 180
 const PHONE_PATTERN = /^01[016789]-\d{3,4}-\d{4}$/
-const FORMATTED_PHONE_MAX_LENGTH = 13
 const CODE_SENT_MESSAGE = '인증번호가 발송되었습니다.'
 
 type PhoneSectionProps = {
@@ -80,7 +79,6 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           inputMode="numeric"
           autoComplete="tel"
           placeholder="010-0000-0000"
-          maxLength={FORMATTED_PHONE_MAX_LENGTH}
           required={isChangingPhone}
           helper={isCodeSent ? CODE_SENT_MESSAGE : undefined}
           className="min-w-0 flex-1"
