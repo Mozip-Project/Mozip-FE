@@ -13,6 +13,7 @@ import {
 import { NameSection } from './nameSection'
 import { PasswordSection } from './passwordSection'
 import { PhoneSection } from './phoneSection'
+import { ProfileImageSection } from './profileImageSection'
 
 // TODO: 로그인 사용자 계정 정보 API 연결 후 샘플 데이터 제거
 function AccountEditContent() {
@@ -27,6 +28,7 @@ function AccountEditContent() {
     mode: 'onTouched',
     resolver: zodResolver(accountEditSchema),
     defaultValues: {
+      profileImage: null,
       name: profile.name,
       newPhone: '',
       verificationCode: '',
@@ -62,6 +64,7 @@ function AccountEditContent() {
         }
       />
       <div className="flex flex-col gap-gap-xxl">
+        <ProfileImageSection control={control} />
         <NameSection control={control} />
         <PhoneSection
           control={control}

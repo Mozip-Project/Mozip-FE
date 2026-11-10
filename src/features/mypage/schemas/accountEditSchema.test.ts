@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { accountEditSchema, type AccountEditValues } from './accountEditSchema'
 
 const EMPTY_VALUES: AccountEditValues = {
+  profileImage: null,
   name: '김모집',
   newPhone: '',
   verificationCode: '',
@@ -20,6 +21,10 @@ function getIssues(values: Partial<AccountEditValues>) {
 describe('accountEditSchema', () => {
   it('휴대폰·비밀번호를 바꾸지 않아 비어 있으면 통과', () => {
     expect(getIssues({})).toEqual([])
+  })
+
+  it('프로필 이미지 파일을 고르면 통과', () => {
+    expect(getIssues({ profileImage: new File([''], 'profile.png') })).toEqual([])
   })
 
   describe('비밀번호 변경 시작', () => {

@@ -10,6 +10,7 @@ const VERIFICATION_CODE_MESSAGE = '인증번호 6자리를 입력해 주세요'
 
 const accountEditSchema = z
   .object({
+    profileImage: z.instanceof(File).nullable(),
     name: z.string(),
     newPhone: z.string(),
     verificationCode: z
