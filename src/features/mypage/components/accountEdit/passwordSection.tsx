@@ -8,6 +8,8 @@ import type { ChangeEvent } from 'react'
 
 const PASSWORD_MATCH_MESSAGE = '비밀번호가 일치해요'
 
+type PasswordFieldName = 'currentPassword' | 'newPassword' | 'newPasswordConfirm'
+
 type PasswordSectionProps = {
   control: Control<AccountEditValues>
   trigger: UseFormTrigger<AccountEditValues>
@@ -33,12 +35,36 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
   const confirmHelper =
     confirmState.error?.message ?? (isConfirmMatched ? PASSWORD_MATCH_MESSAGE : undefined)
 
+  // superRefine 오류는 칸마다 따로 갱신되므로 오류가 있는(또는 확인 칸이 touched인) 다른 칸만 재검사
+  function revalidateOtherPasswordFields(changed: PasswordFieldName) {
+    const staleFields = (
+      [
+        ['currentPassword', currentState.invalid],
+        ['newPassword', newState.invalid],
+        ['newPasswordConfirm', confirmState.invalid || confirmState.isTouched],
+      ] as const
+    )
+      .filter(([name, needsRevalidation]) => name !== changed && needsRevalidation)
+      .map(([name]) => name)
+
+    if (staleFields.length > 0) {
+      void trigger(staleFields)
+    }
+  }
+
+  function handleCurrentPasswordChange(event: ChangeEvent<HTMLInputElement>) {
+    currentField.onChange(event)
+    revalidateOtherPasswordFields('currentPassword')
+  }
+
   function handleNewPasswordChange(event: ChangeEvent<HTMLInputElement>) {
     newField.onChange(event)
+    revalidateOtherPasswordFields('newPassword')
+  }
 
-    if (confirmState.isTouched) {
-      void trigger('newPasswordConfirm')
-    }
+  function handleConfirmPasswordChange(event: ChangeEvent<HTMLInputElement>) {
+    confirmField.onChange(event)
+    revalidateOtherPasswordFields('newPasswordConfirm')
   }
 
   return (
@@ -52,6 +78,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
       {/* TODO: 현재 비밀번호 확인 방식(저장 시 함께 전송 또는 확인 API) 백엔드와 결정 */}
       <TextField
         {...currentField}
+        onChange={handleCurrentPasswordChange}
         label="현재 비밀번호"
         type="password"
         autoComplete="current-password"
@@ -75,6 +102,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
         />
         <TextField
           {...confirmField}
+          onChange={handleConfirmPasswordChange}
           label="새 비밀번호 확인"
           type="password"
           autoComplete="new-password"
