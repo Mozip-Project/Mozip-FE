@@ -47,6 +47,14 @@ function TextField({
     onBlur?.(event)
   }
 
+  function handleLabelPointerDown() {
+    // 비활성 입력은 포커스·blur가 없어 표시가 해제되지 않으므로 제외
+    if (props.disabled) {
+      return
+    }
+    setIsPointerFocus(true)
+  }
+
   const input = (
     <input
       id={inputId}
@@ -73,7 +81,7 @@ function TextField({
         <label
           htmlFor={inputId}
           // 라벨 클릭으로 들어온 포커스도 포인터 포커스로 처리
-          onPointerDown={() => setIsPointerFocus(true)}
+          onPointerDown={handleLabelPointerDown}
           data-slot="text-field-label"
           className="flex w-fit items-center gap-gap-xs text-label1 font-semibold text-neutral group-has-disabled:text-disabled"
         >
