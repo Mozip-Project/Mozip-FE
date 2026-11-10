@@ -1,15 +1,24 @@
 'use client'
 
 import { createContext, use, useRef, useState, type ReactNode } from 'react'
+import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
+import CheckIcon from '@/assets/icons/check.svg'
 import {
   Toast,
   ToastProvider as RadixToastProvider,
   ToastViewport,
 } from '@/components/ui/Toast/toast'
 
+const TOAST_ICON = {
+  check: <CheckIcon aria-hidden className="shrink-0 text-brand" />,
+  alert: <AlertCircleIcon aria-hidden className="shrink-0 text-brand" />,
+} satisfies Record<string, ReactNode>
+
 type ToastMessage = {
   title: string
   description?: string
+  // 기본은 완료 안내용 체크
+  icon?: keyof typeof TOAST_ICON
 }
 
 type ToastItem = ToastMessage & {
@@ -42,7 +51,7 @@ function ToastProvider({ children }: { children: ReactNode }) {
     <ShowToastContext value={showToast}>
       <RadixToastProvider>
         {children}
-        {toasts.map(({ id, title, description, isOpen }) => (
+        {toasts.map(({ id, title, description, icon = 'check', isOpen }) => (
           <Toast
             key={id}
             open={isOpen}
@@ -53,6 +62,7 @@ function ToastProvider({ children }: { children: ReactNode }) {
             }}
             title={title}
             description={description}
+            icon={TOAST_ICON[icon]}
           />
         ))}
         <ToastViewport />
