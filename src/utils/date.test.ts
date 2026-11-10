@@ -4,6 +4,7 @@ import {
   formatMonthDayWithWeekday,
   formatRemainingTime,
   formatSavedTime,
+  formatYearMonth,
 } from './date'
 
 describe('formatSavedTime', () => {
@@ -43,5 +44,16 @@ describe('formatRemainingTime', () => {
     expect(formatRemainingTime(179)).toBe('2:59')
     expect(formatRemainingTime(65)).toBe('1:05')
     expect(formatRemainingTime(0)).toBe('0:00')
+  })
+})
+
+describe('formatYearMonth', () => {
+  it('연도. 월 형식으로 표시', () => {
+    expect(formatYearMonth('2025-03-14')).toBe('2025. 03')
+    expect(formatYearMonth('2026-11-01T09:00:00+09:00')).toBe('2026. 11')
+  })
+
+  it('형식이 맞지 않으면 빈 문자열', () => {
+    expect(formatYearMonth('')).toBe('')
   })
 })
