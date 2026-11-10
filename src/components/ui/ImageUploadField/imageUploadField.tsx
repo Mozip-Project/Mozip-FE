@@ -9,8 +9,15 @@ import { Button } from '@/components/ui/Button/button'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 
 const PREVIEW_SIZE_PX = 72
-const IMAGE_ACCEPT = 'image/png,image/jpeg'
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg']
 const IMAGE_MAX_SIZE_BYTES = 10 * 1024 * 1024
+
+type UploadError = 'invalidType' | 'oversized'
+
+const UPLOAD_ERROR_MESSAGES = {
+  invalidType: 'PNG, JPG 이미지만 업로드 가능해요',
+  oversized: '10MB 이하의 이미지만 업로드 가능해요',
+} satisfies Record<UploadError, string>
 
 type ImageUploadFieldProps = {
   value: File | null
@@ -25,7 +32,7 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadButtonRef = useRef<HTMLButtonElement>(null)
   const previewUrl = useObjectUrl(value)
-  const [isOversized, setIsOversized] = useState(false)
+  const [uploadError, setUploadError] = useState<UploadError | null>(null)
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -36,15 +43,22 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
       return
     }
 
-    const isFileOversized = file.size > IMAGE_MAX_SIZE_BYTES
-    setIsOversized(isFileOversized)
-    if (!isFileOversized) {
-      onChange(file)
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setUploadError('invalidType')
+      return
     }
+    if (file.size > IMAGE_MAX_SIZE_BYTES) {
+      setUploadError('oversized')
+      return
+    }
+
+    setUploadError(null)
+    onChange(file)
   }
 
   function handleReset() {
     onChange(null)
+    setUploadError(null)
     // 초기화 버튼이 사라지며 잃는 포커스를 업로드 버튼으로 이동
     uploadButtonRef.current?.focus()
   }
@@ -75,7 +89,7 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
             <input
               ref={fileInputRef}
               type="file"
-              accept={IMAGE_ACCEPT}
+              accept={ACCEPTED_IMAGE_TYPES.join(',')}
               tabIndex={-1}
               aria-hidden
               className="hidden"
@@ -90,9 +104,9 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
           </div>
         </div>
       </div>
-      {isOversized && (
+      {uploadError && (
         <p role="alert" className="text-label2 font-normal text-critical">
-          10MB 이하의 이미지만 업로드 가능해요
+          {UPLOAD_ERROR_MESSAGES[uploadError]}
         </p>
       )}
     </div>
