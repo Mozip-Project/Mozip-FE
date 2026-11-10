@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { TextField } from '@/components/ui/TextField/textField'
@@ -44,6 +44,9 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
     defaultValues: EMPTY_PROFILE_VALUES,
   })
   const canSave = isValid && isDirty
+  // 최대 글자수에 도달하면 더 입력되지 않으므로 안내만 표시
+  const isIntroductionAtMax =
+    useWatch({ control, name: 'introduction' }).length >= INTRODUCTION_MAX_LENGTH
 
   // 저장한 값을 새 기준으로 삼아 다시 바꿀 때까지 저장 비활성
   useEffect(() => {
@@ -83,6 +86,12 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
           label={`한 줄 소개 (최대 ${INTRODUCTION_MAX_LENGTH}자)`}
           placeholder="단체 소개를 입력해 주세요"
           maxLength={INTRODUCTION_MAX_LENGTH}
+          aria-invalid={isIntroductionAtMax}
+          helper={
+            isIntroductionAtMax
+              ? `최대 ${INTRODUCTION_MAX_LENGTH}자까지 입력할 수 있어요`
+              : undefined
+          }
           required
         />
         {!profile.isStudentCouncil && (

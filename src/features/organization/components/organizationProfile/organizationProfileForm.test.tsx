@@ -70,4 +70,19 @@ describe('OrganizationProfileForm', () => {
     await user.click(saveButton)
     await waitFor(() => expect(saveButton).toBeDisabled())
   })
+
+  it('한 줄 소개가 최대 글자수에 도달하면 안내 문구 표시', async () => {
+    const user = userEvent.setup()
+    renderForm(true)
+    const introduction = screen.getByRole('textbox', { name: /한 줄 소개/ })
+
+    await user.type(introduction, '가'.repeat(39))
+    expect(screen.queryByText('최대 40자까지 입력할 수 있어요')).not.toBeInTheDocument()
+
+    await user.type(introduction, '나다')
+
+    expect(introduction).toHaveValue(`${'가'.repeat(39)}나`)
+    expect(introduction).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('최대 40자까지 입력할 수 있어요')).toBeInTheDocument()
+  })
 })
