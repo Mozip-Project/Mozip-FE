@@ -31,7 +31,7 @@
 구성과 이유는 `docs/ARCHITECTURE.md`의 "API 목킹"과 `.claude/decisions/records/014-msw-mocking.md`를 따릅니다.
 
 - handler와 샘플 데이터는 `src/features/<도메인>/mocks/`에 두고 `src/mocks/handler.ts`의 배열에 추가합니다. 서버용·브라우저용 handler를 따로 만들지 않습니다.
-- `msw/browser`는 `src/mocks/browser.ts`와 `MockProvider`의 `typeof window` 분기 안에서만, `msw/node`는 `src/instrumentation.ts`와 테스트 setup에서만 import합니다. 반대쪽 번들에 섞이면 빌드가 깨집니다.
+- `msw/node`는 `src/mocks/server.ts`에서만, `msw/browser`는 `src/mocks/browser.ts`에서만 import합니다. `server.ts`는 `src/instrumentation.ts`와 테스트 setup에서만, `browser.ts`는 `MockProvider`의 `typeof window` 분기 안에서만 불러옵니다. 반대쪽 번들에 섞이면 빌드가 깨집니다.
 - msw v3의 미처리 요청 옵션은 `onUnhandledFrame`입니다. v2 예제의 `onUnhandledRequest`를 쓰지 않습니다.
 - handler 응답 모양은 백엔드 스키마·API 문서를 따르고, 문서에 없는 필드를 만들지 않습니다.
 
