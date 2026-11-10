@@ -13,6 +13,7 @@ import { formatPhoneNumber } from '@/utils/phone'
 const VERIFICATION_DURATION_SECONDS = 180
 const PHONE_PATTERN = /^01[016789]-\d{3,4}-\d{4}$/
 const CODE_SENT_MESSAGE = '인증번호가 발송되었습니다.'
+const VERIFIED_MESSAGE = '인증이 완료되었습니다.'
 
 type PhoneSectionProps = {
   control: Control<AccountEditValues>
@@ -41,6 +42,13 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
   const remainingTimeMessage = canEnterCode
     ? `남은 시간 ${formatRemainingTime(countdown.remainingSeconds)}`
     : undefined
+
+  let verificationStatus = ''
+  if (isVerified) {
+    verificationStatus = VERIFIED_MESSAGE
+  } else if (isCodeSent) {
+    verificationStatus = CODE_SENT_MESSAGE
+  }
 
   function handleNewPhoneChange(event: ChangeEvent<HTMLInputElement>) {
     newPhoneField.onChange(formatPhoneNumber(event.target.value))
@@ -101,7 +109,7 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           autoComplete="one-time-code"
           placeholder="인증번호 6자리"
           maxLength={6}
-          required
+          required={isChangingPhone}
           disabled={!canEnterCode}
           aria-invalid={codeState.invalid}
           helper={codeState.error?.message ?? remainingTimeMessage}
@@ -117,7 +125,7 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
         </Button>
       </div>
       <p role="status" className="sr-only">
-        {isCodeSent && !isVerified ? CODE_SENT_MESSAGE : ''}
+        {verificationStatus}
       </p>
     </section>
   )
