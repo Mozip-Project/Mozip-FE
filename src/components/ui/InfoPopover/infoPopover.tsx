@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, type ComponentProps, type ReactElement } from 'react'
+import { useId, type ComponentProps, type ReactElement, type ReactNode } from 'react'
 import CloseIcon from '@/assets/icons/close.svg'
 import {
   Popover,
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 type InfoPopoverProps = Omit<ComponentProps<typeof PopoverContent>, 'title'> & {
   trigger: ReactElement
   title: string
-  description: string
+  description: ReactNode
 }
 
 function InfoPopover({
@@ -58,12 +58,12 @@ function InfoPopover({
             <CloseIcon aria-hidden />
           </PopoverClose>
         </div>
-        <p
+        <div
           id={descriptionId}
           className="text-label1 break-words break-keep whitespace-pre-line text-neutral-muted"
         >
           {description}
-        </p>
+        </div>
       </PopoverContent>
     </Popover>
   )

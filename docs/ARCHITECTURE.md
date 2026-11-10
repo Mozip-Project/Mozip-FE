@@ -28,23 +28,17 @@ src/app/
 
 ## 라우팅 구조
 
-| 주소                                             | 화면                                   | GNB      |
-| ------------------------------------------------ | -------------------------------------- | -------- |
-| `/`                                              | 로그아웃 홈                            | 로그아웃 |
-| `/postings`                                      | 전체 공고                              | 지원자   |
-| `/applications`                                  | 내 지원                                | 지원자   |
-| `/organizations`                                 | 단체 둘러보기                          | 지원자   |
-| `/manage`                                        | 대시보드                               | 운영진   |
-| `/manage/postings`                               | 전체 공고                              | 운영진   |
-| `/manage/organization`                           | 단체 관리                              | 운영진   |
-| `/manage/mypage`                                 | 마이페이지 계정 설정. 사이드바 + 본문  | 운영진   |
-| `/manage/mypage/edit`                            | 마이페이지 정보 수정                   | 운영진   |
-| `/manage/mypage/notifications`                   | 마이페이지 알림 설정                   | 운영진   |
-| `/manage/recruitments`                           | 모집 관리 진입. 지금은 임시 ID로 이동  | 운영진   |
-| `/manage/recruitments/[recruitmentId]/documents` | 서류 평가. 사이드바 220px + 본문의 2단 | 운영진   |
+전체 경로 목록은 `src/app/`의 폴더 구조가 기준이며 이 문서에 따로 적지 않습니다. `typedRoutes`가 켜져 있어 존재하지 않는 경로로 링크하면 타입 오류가 납니다.
+
+| 주소 범위                            | 영역        | GNB      |
+| ------------------------------------ | ----------- | -------- |
+| `/`                                  | 로그아웃 홈 | 로그아웃 |
+| `(applicant)/` 아래 (`/postings` 등) | 지원자      | 지원자   |
+| `/manage` 아래                       | 운영진      | 운영진   |
 
 - 공고는 `postings`, 모집은 `recruitments`로 부르고, 목록 경로는 복수형을 씁니다.
 - 조직 ID의 URL 포함 여부는 정하지 않았습니다.
+- 사이드바 + 본문의 2단 화면은 해당 영역의 `layout.tsx`에서 `components/ui/Sidebar/sidebarLayout.tsx`의 `SidebarLayout`으로 구성합니다.
 
 인증이 정해지기 전까지 GNB 상태는 주소로만 구분합니다. 임시 동작이므로 인증과 모드 저장 방식이 정해지면 다시 정합니다.
 

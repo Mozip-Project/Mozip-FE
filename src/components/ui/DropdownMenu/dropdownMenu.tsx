@@ -156,4 +156,5 @@ export {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  MENU_ITEM_BASE_CLASS,
 }

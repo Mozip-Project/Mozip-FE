@@ -13,11 +13,14 @@ import { cn } from '@/lib/utils'
 type TextFieldProps = ComponentProps<'input'> & {
   label?: ReactNode
   helper?: string
+  // 입력창 안 오른쪽 끝 버튼 자리
+  trailing?: ReactNode
 }
 
 function TextField({
   label,
   helper,
+  trailing,
   className,
   id,
   required,
@@ -44,6 +47,26 @@ function TextField({
     onBlur?.(event)
   }
 
+  const input = (
+    <input
+      id={inputId}
+      data-slot="text-field-input"
+      required={required}
+      aria-describedby={descriptionIds || undefined}
+      data-pointer-focus={isPointerFocus ? '' : undefined}
+      onPointerDown={handlePointerDown}
+      onBlur={handleBlur}
+      className={cn(
+        'h-12 w-full min-w-0 rounded-m border border-neutral-weak bg-layer-default px-padding-m text-body2 font-normal text-neutral placeholder:text-placeholder',
+        'transition-colors outline-none not-aria-invalid:focus:border-neutral-solid motion-reduce:transition-none',
+        'aria-invalid:border-critical-solid aria-invalid:not-data-pointer-focus:focus-visible:outline-2 aria-invalid:not-data-pointer-focus:focus-visible:outline-offset-2 aria-invalid:not-data-pointer-focus:focus-visible:outline-focus-ring aria-invalid:not-data-pointer-focus:focus-visible:outline-solid',
+        'disabled:pointer-events-none disabled:border-neutral-muted disabled:bg-disabled disabled:text-disabled disabled:placeholder:text-disabled',
+        trailing && 'pr-11',
+      )}
+      {...props}
+    />
+  )
+
   return (
     <div data-slot="text-field" className={cn('group flex flex-col gap-gap-s', className)}>
       {label && (
@@ -63,22 +86,15 @@ function TextField({
           )}
         </label>
       )}
-      <input
-        id={inputId}
-        data-slot="text-field-input"
-        required={required}
-        aria-describedby={descriptionIds || undefined}
-        data-pointer-focus={isPointerFocus ? '' : undefined}
-        onPointerDown={handlePointerDown}
-        onBlur={handleBlur}
-        className={cn(
-          'h-12 w-full min-w-0 rounded-m border border-neutral-weak bg-layer-default px-padding-m text-body2 font-normal text-neutral placeholder:text-placeholder',
-          'transition-colors outline-none not-aria-invalid:focus:border-neutral-solid motion-reduce:transition-none',
-          'aria-invalid:border-critical-solid aria-invalid:not-data-pointer-focus:focus-visible:outline-2 aria-invalid:not-data-pointer-focus:focus-visible:outline-offset-2 aria-invalid:not-data-pointer-focus:focus-visible:outline-focus-ring aria-invalid:not-data-pointer-focus:focus-visible:outline-solid',
-          'disabled:pointer-events-none disabled:border-neutral-muted disabled:bg-disabled disabled:text-disabled disabled:placeholder:text-disabled',
-        )}
-        {...props}
-      />
+      {trailing ? (
+        <div className="relative">
+          {input}
+          {/* 입력 텍스트와 같은 안쪽 여백(테두리 1px + padding-m) */}
+          <div className="absolute inset-y-0 right-4.25 flex items-center">{trailing}</div>
+        </div>
+      ) : (
+        input
+      )}
       {helper && (
         <p
           id={helperId}
