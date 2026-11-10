@@ -38,4 +38,16 @@ function formatSavedTime(savedAt: Date, now: Date) {
   return isSameLocalDate(savedAt, now) ? formatTime(savedAt) : formatDateTimeWithWeekday(savedAt)
 }
 
-export { formatDateTimeWithWeekday, formatMonthDayWithWeekday, formatSavedTime }
+function formatRemainingTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = String(totalSeconds % 60).padStart(2, '0')
+
+  return `${minutes}:${seconds}`
+}
+
+export {
+  formatDateTimeWithWeekday,
+  formatMonthDayWithWeekday,
+  formatRemainingTime,
+  formatSavedTime,
+}
