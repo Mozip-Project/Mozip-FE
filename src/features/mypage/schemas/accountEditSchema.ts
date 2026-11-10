@@ -7,11 +7,12 @@ const PASSWORD_RULE_MESSAGE = '영문/숫자/특수문자 포함 8자 이상 입
 const PASSWORD_MISMATCH_MESSAGE = '비밀번호가 일치하지 않습니다'
 const CURRENT_PASSWORD_REQUIRED_MESSAGE = '현재 비밀번호를 입력해 주세요'
 const VERIFICATION_CODE_MESSAGE = '인증번호 6자리를 입력해 주세요'
+const NAME_REQUIRED_MESSAGE = '이름을 입력해 주세요'
 
 const accountEditSchema = z
   .object({
     profileImage: z.instanceof(File).nullable(),
-    name: z.string(),
+    name: z.string().trim().min(1, NAME_REQUIRED_MESSAGE),
     newPhone: z.string(),
     verificationCode: z
       .string()

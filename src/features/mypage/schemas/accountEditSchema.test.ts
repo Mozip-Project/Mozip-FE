@@ -27,6 +27,21 @@ describe('accountEditSchema', () => {
     expect(getIssues({ profileImage: new File([''], 'profile.png') })).toEqual([])
   })
 
+  describe('이름', () => {
+    it.each([
+      ['비어 있음', ''],
+      ['공백만 입력', '   '],
+    ])('%s이면 필수 오류', (_, name) => {
+      expect(getIssues({ name })).toEqual([
+        expect.objectContaining({ path: ['name'], message: '이름을 입력해 주세요' }),
+      ])
+    })
+
+    it('앞뒤 공백은 제거해 저장', () => {
+      expect(accountEditSchema.parse({ ...EMPTY_VALUES, name: ' 김모집 ' }).name).toBe('김모집')
+    })
+  })
+
   describe('비밀번호 변경 시작', () => {
     it('세 칸을 모두 올바르게 입력하면 통과', () => {
       expect(
