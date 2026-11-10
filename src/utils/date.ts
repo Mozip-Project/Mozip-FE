@@ -45,9 +45,21 @@ function formatRemainingTime(totalSeconds: number) {
   return `${minutes}:${seconds}`
 }
 
+// 날짜 부분만 잘라 써서 시간대와 무관하게 표시
+function formatYearMonth(isoDate: string) {
+  const [year, month] = isoDate.slice(0, 7).split('-')
+
+  if (!year || !month) {
+    return ''
+  }
+
+  return `${year}. ${month}`
+}
+
 export {
   formatDateTimeWithWeekday,
   formatMonthDayWithWeekday,
   formatRemainingTime,
   formatSavedTime,
+  formatYearMonth,
 }

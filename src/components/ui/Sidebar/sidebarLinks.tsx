@@ -15,10 +15,10 @@ const LINK_CLASS = cn(
   'aria-[current]:bg-neutral-weak aria-[current]:font-semibold aria-[current]:text-brand',
 )
 
-type SidebarItem = {
-  label: string
-  href: Route
-}
+// href가 없는 항목은 이동 대신 onSelect 실행 (준비 중 안내 등)
+type SidebarItem =
+  | { label: string; href: Route; onSelect?: never }
+  | { label: string; href?: never; onSelect: () => void }
 
 type SidebarLinksProps = {
   items: SidebarItem[]
@@ -37,7 +37,7 @@ function PathnameSidebarLinks({ items }: SidebarLinksProps) {
   const pathname = usePathname()
   const current = getClosestActivePath(
     pathname,
-    items.map((item) => item.href),
+    items.flatMap((item) => (item.href ? [item.href] : [])),
   )
 
   return <SidebarLinkList items={items} current={current} />
@@ -51,14 +51,24 @@ function SidebarLinkList({ items, current }: SidebarLinkListProps) {
   return (
     <ul className="flex flex-col gap-gap-xs">
       {items.map((item) => (
-        <li key={item.href}>
-          <Link
-            href={item.href}
-            aria-current={current?.href === item.href ? ARIA_CURRENT[current.match] : undefined}
-            className={LINK_CLASS}
-          >
-            {item.label}
-          </Link>
+        <li key={item.label}>
+          {item.href ? (
+            <Link
+              href={item.href}
+              aria-current={current?.href === item.href ? ARIA_CURRENT[current.match] : undefined}
+              className={LINK_CLASS}
+            >
+              {item.label}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={item.onSelect}
+              className={cn(LINK_CLASS, 'w-full cursor-pointer text-left')}
+            >
+              {item.label}
+            </button>
+          )}
         </li>
       ))}
     </ul>
