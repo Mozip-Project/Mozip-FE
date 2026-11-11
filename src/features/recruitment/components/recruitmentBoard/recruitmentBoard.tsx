@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, use, useRef, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button/button'
 import { ListToolBar } from '@/components/ui/ListToolBar/listToolBar'
 import { Pagination } from '@/components/ui/Pagination/pagination'
@@ -14,10 +14,9 @@ import {
   type RecruitmentBoardQuery,
 } from '@/features/recruitment/types'
 import { hasPositionFilter } from '@/features/recruitment/utils/boardQuery'
+import { useDebounce } from '@/hooks/useDebounce'
 import { cn } from '@/lib/utils'
 import type { Route } from 'next'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 type BoardActions = {
   clearKeyword: () => void
@@ -76,14 +75,12 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
   // 입력 중 글자가 응답을 기다리지 않도록 URL 반영 전 값만 지역 상태로 관리
   const [draftKeyword, setDraftKeyword] = useState<string | null>(null)
   const keyword = draftKeyword ?? query.keyword
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const searchDebounce = useDebounce()
 
   // URL에 반영되면 이후 URL 변경을 따르도록 입력값 해제
   if (draftKeyword === query.keyword) {
     setDraftKeyword(null)
   }
-
-  useEffect(() => () => clearTimeout(searchTimerRef.current), [])
 
   const positionOptions = DOCUMENT_REVIEW_POSITIONS.map((position) => ({
     value: position,
@@ -119,7 +116,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
 
   function applyQueryChange(change: RecruitmentBoardQueryChange<TStatus, TSort>) {
     // 대기 중인 검색은 지금 검색어로 함께 적용되므로 취소
-    clearTimeout(searchTimerRef.current)
+    searchDebounce.cancel()
     onQueryChange({ keyword, ...change })
     scrollToTableTop()
   }
@@ -133,11 +130,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
       return
     }
 
-    clearTimeout(searchTimerRef.current)
-    searchTimerRef.current = setTimeout(
-      () => applyQueryChange({ keyword: nextKeyword }),
-      SEARCH_DEBOUNCE_MS,
-    )
+    searchDebounce.schedule(() => applyQueryChange({ keyword: nextKeyword }))
   }
 
   // 사라지는 빈 상태 버튼 대신 검색창으로 focus 이동
