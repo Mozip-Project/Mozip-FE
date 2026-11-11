@@ -122,6 +122,22 @@ type DocumentResultOverview = {
   confirmedAt: string | null
 }
 
+// 결과 안내 메시지는 합격·불합격 두 종류만 발송
+type ResultNoticeTarget = Extract<DocumentResult, 'pass' | 'fail'>
+
+// TODO: 결과 안내 API 명세 확정 후 서버 변수명과 맞추기
+const RESULT_NOTICE_VARIABLES = ['이름', '포지션', '면접 기간', '면접 일시', '면접 장소'] as const
+
+type ResultNoticeVariable = (typeof RESULT_NOTICE_VARIABLES)[number]
+
+// 값이 없는 변수는 미리보기에 `{변수}` 그대로 표시
+type ResultNoticeVariableValues = Partial<Record<ResultNoticeVariable, string>>
+
+type ResultNoticeMessage = {
+  subject: string
+  body: string
+}
+
 export {
   DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
   DOCUMENT_RESULT_NO_SCORE_SORTS,
@@ -138,6 +154,7 @@ export {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
+  RESULT_NOTICE_VARIABLES,
 }
 export type {
   DocumentResult,
@@ -154,4 +171,8 @@ export type {
   DocumentReviewSort,
   DocumentReviewStatus,
   RecruitmentBoardQuery,
+  ResultNoticeMessage,
+  ResultNoticeTarget,
+  ResultNoticeVariable,
+  ResultNoticeVariableValues,
 }
