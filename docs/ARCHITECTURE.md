@@ -74,11 +74,11 @@ src/
 ```text
 src/features/recruitment/
 ├── api/
-│   ├── recruitment.ts   # 공통 API (공고 목록 조회 등)
+│   ├── recruitment.ts   # 공통 API (지원 현황 조회 등)
 │   ├── applicant.ts     # 지원자 전용 API (지원하기 등)
 │   └── organizer.ts     # 운영진 전용 API (평가하기 등)
 ├── components/
-│   ├── jobCard.tsx      # 양쪽이 쓰는 컴포넌트
+│   ├── applicationStatusBadge.tsx # 양쪽이 쓰는 컴포넌트
 │   ├── applicant/       # 지원자 전용 컴포넌트
 │   └── organizer/       # 운영진 전용 컴포넌트
 ├── hooks/
@@ -87,6 +87,8 @@ src/features/recruitment/
 ├── utils/               # 도메인을 아는 순수 함수 (URL 쿼리 변환 등)
 └── types.ts
 ```
+
+공고와 모집은 다른 도메인입니다. 공고 탐색·스크랩·UP·공고 등록처럼 공고 데이터와 노출은 `features/posting/`, 지원 이후의 지원자 관리·평가·면접·선발은 `features/recruitment/`에 둡니다.
 
 지원자·운영진 구분은 `api/`와 `components/` 안에서만 합니다. 위 구조는 양쪽 코드가 모두 있을 때의 모습입니다. 폴더와 파일은 실제 코드가 생길 때 만들고, 한쪽 역할의 코드만 있는 동안은 `applicant/`·`organizer/` 없이 `components/` 바로 아래에 둡니다.
 
