@@ -1,21 +1,17 @@
 import { PostingFilterChips } from '@/features/posting/components/postingFilter/postingFilterChips'
 import { PostingFilterPanel } from '@/features/posting/components/postingFilter/postingFilterPanel'
 import { getPostingListSample } from '@/features/posting/mocks/postingListSample'
-import {
-  getPostingListHref,
-  parsePostingListQuery,
-} from '@/features/posting/utils/postingListQuery'
+import { parsePostingListQuery } from '@/features/posting/utils/postingListQuery'
 import type { SearchParamsSource } from '@/utils/searchParams'
 import { PostingListContent } from './postingListContent'
+import { PostingListPagination } from './postingListPagination'
 import { PostingSortSelect } from './postingSortSelect'
-import type { Route } from 'next'
 
 type PostingListBoardProps = {
-  pathname: Route
   searchParams: Promise<SearchParamsSource>
 }
 
-async function PostingListBoard({ pathname, searchParams }: PostingListBoardProps) {
+async function PostingListBoard({ searchParams }: PostingListBoardProps) {
   const query = parsePostingListQuery(await searchParams)
   // TODO: 공고 목록 API 연결 후 샘플 데이터 교체, 검색·필터·정렬 조건 반영
   const { totalCount, totalPages, postings } = getPostingListSample(query.page)
@@ -29,11 +25,9 @@ async function PostingListBoard({ pathname, searchParams }: PostingListBoardProp
         <PostingListContent
           totalCount={totalCount}
           postings={postings}
-          currentPage={query.page}
-          totalPages={totalPages}
-          getPageHref={(page) => getPostingListHref(pathname, { ...query, page })}
           sortControl={<PostingSortSelect />}
           appliedFilters={<PostingFilterChips />}
+          pagination={<PostingListPagination totalPages={totalPages} />}
         />
       </div>
     </div>

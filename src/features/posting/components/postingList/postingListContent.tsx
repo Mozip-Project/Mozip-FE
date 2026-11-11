@@ -1,6 +1,4 @@
 import { JobCard } from '@/components/ui/JobCard/jobCard'
-import { Pagination } from '@/components/ui/Pagination/pagination'
-import type { Route } from 'next'
 import type { ComponentProps, ReactNode } from 'react'
 
 type PostingListItem = ComponentProps<typeof JobCard> & {
@@ -11,22 +9,18 @@ type PostingListContentProps = {
   // 필터가 반영된 공고 수
   totalCount: number
   postings: readonly PostingListItem[]
-  currentPage: number
-  totalPages: number
-  getPageHref: (page: number) => Route
-  // 개수 오른쪽 정렬, 개수 아래 적용된 필터
+  // 개수 오른쪽 정렬, 개수 아래 적용된 필터, 목록 아래 페이지 이동
   sortControl?: ReactNode
   appliedFilters?: ReactNode
+  pagination?: ReactNode
 }
 
 function PostingListContent({
   totalCount,
   postings,
-  currentPage,
-  totalPages,
-  getPageHref,
   sortControl,
   appliedFilters,
+  pagination,
 }: PostingListContentProps) {
   return (
     <div className="flex flex-col gap-gap-xl">
@@ -48,7 +42,7 @@ function PostingListContent({
           ))}
         </ul>
       </section>
-      <Pagination currentPage={currentPage} totalPages={totalPages} getPageHref={getPageHref} />
+      {pagination}
     </div>
   )
 }

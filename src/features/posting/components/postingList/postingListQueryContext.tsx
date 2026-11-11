@@ -8,6 +8,7 @@ import {
   parsePostingListQuery,
 } from '@/features/posting/utils/postingListQuery'
 import { useDebouncedSearch } from '@/hooks/useDebouncedSearch'
+import type { Route } from 'next'
 
 type PostingListQueryChange = Partial<Omit<PostingListQuery, 'page'>>
 
@@ -17,6 +18,8 @@ type PostingListQueryContextValue = {
   keyword: string
   changeQuery: (change: PostingListQueryChange) => void
   changeKeyword: (keyword: string) => void
+  getPageHref: (page: number) => Route
+  navigateToPage: (href: Route) => void
 }
 
 const PostingListQueryContext = createContext<PostingListQueryContextValue | null>(null)
@@ -46,6 +49,15 @@ function PostingListQueryProvider({ children }: PostingListQueryProviderProps) {
     })
   }
 
+  function getPageHref(page: number) {
+    return getPostingListHref(pathname, { ...optimisticQuery, page })
+  }
+
+  function navigateToPage(href: Route) {
+    search.discardDraft()
+    router.push(href)
+  }
+
   return (
     <PostingListQueryContext
       value={{
@@ -53,6 +65,8 @@ function PostingListQueryProvider({ children }: PostingListQueryProviderProps) {
         keyword: search.keyword,
         changeQuery,
         changeKeyword: search.changeKeyword,
+        getPageHref,
+        navigateToPage,
       }}
     >
       {children}

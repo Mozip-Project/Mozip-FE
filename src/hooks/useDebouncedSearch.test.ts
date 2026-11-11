@@ -64,9 +64,34 @@ describe('useDebouncedSearch', () => {
     const { result, rerender } = renderSearch()
 
     act(() => result.current.changeKeyword('UX'))
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_MS)
+    })
     rerender({ appliedKeyword: 'UX' })
     rerender({ appliedKeyword: '디자인' })
 
+    expect(result.current.keyword).toBe('디자인')
+  })
+
+  it('이전 검색 이동 중 원래 검색어로 되돌려도 입력값을 유지', () => {
+    const { result, rerender, onSearch } = renderSearch('foo')
+
+    act(() => result.current.changeKeyword('food'))
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    act(() => result.current.changeKeyword('foo'))
+    rerender({ appliedKeyword: 'food' })
+
+    expect(result.current.keyword).toBe('foo')
+
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_MS)
+    })
+    expect(onSearch).toHaveBeenLastCalledWith('foo')
+
+    rerender({ appliedKeyword: 'foo' })
+    rerender({ appliedKeyword: '디자인' })
     expect(result.current.keyword).toBe('디자인')
   })
 

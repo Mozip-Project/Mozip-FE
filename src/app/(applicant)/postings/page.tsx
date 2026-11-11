@@ -12,7 +12,7 @@ export default function PostingsPage({ searchParams }: PageProps<'/postings'>) {
       <Suspense fallback={<PageHeader title={PAGE_TITLE} />}>
         <PostingListQueryProvider>
           <PageHeader title={PAGE_TITLE} actions={<PostingSearchField />} />
-          <PostingListBoard pathname="/postings" searchParams={searchParams} />
+          <PostingListBoard searchParams={searchParams} />
         </PostingListQueryProvider>
       </Suspense>
     </main>

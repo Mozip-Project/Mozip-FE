@@ -102,6 +102,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
   }
 
   function handlePageNavigate(href: Route) {
+    search.discardDraft()
     onPageNavigate(href)
     scrollToTableTop()
   }

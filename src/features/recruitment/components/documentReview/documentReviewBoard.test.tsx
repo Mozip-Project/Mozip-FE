@@ -2,11 +2,29 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseDocumentReviewQuery } from '@/features/recruitment/utils/documentReviewQuery'
 import { DocumentReviewBoard } from './documentReviewBoard'
+import type { ComponentProps } from 'react'
 
 const replace = vi.fn()
+const push = vi.fn()
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace }),
+  useRouter: () => ({ replace, push }),
+}))
+
+// 테스트 환경의 next/link는 라우터 context가 없으면 onNavigate를 부르지 않아 클릭 전달만 재현
+vi.mock('next/link', () => ({
+  default: ({
+    onNavigate,
+    ...props
+  }: ComponentProps<'a'> & { onNavigate?: (event: { preventDefault: () => void }) => void }) => (
+    <a
+      {...props}
+      onClick={(event) => {
+        event.preventDefault()
+        onNavigate?.({ preventDefault: () => {} })
+      }}
+    />
+  ),
 }))
 
 function getBoard(searchParams: Record<string, string> = {}) {
@@ -35,6 +53,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   replace.mockClear()
+  push.mockClear()
 })
 
 describe('DocumentReviewBoard 이름 검색', () => {
@@ -100,6 +119,9 @@ describe('DocumentReviewBoard 이름 검색', () => {
     const searchbox = screen.getByRole('searchbox', { name: '지원자 이름 검색' })
 
     fireEvent.change(searchbox, { target: { value: '김' } })
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
     rerender(getBoard({ q: '김' }))
     rerender(getBoard())
 
@@ -126,5 +148,22 @@ describe('DocumentReviewBoard 이름 검색', () => {
       '/manage/recruitments/1/documents?status=pending&q=%EA%B9%80',
       { scroll: false },
     )
+  })
+
+  it('검색 대기 중 페이지를 고르면 입력값을 버리고 현재 조건의 해당 페이지로 이동', () => {
+    renderBoard()
+    const searchbox = screen.getByRole('searchbox', { name: '지원자 이름 검색' })
+
+    fireEvent.change(searchbox, { target: { value: '김' } })
+    fireEvent.click(screen.getByRole('link', { name: '2페이지' }))
+    act(() => {
+      vi.advanceTimersByTime(300)
+    })
+
+    expect(replace).not.toHaveBeenCalled()
+    expect(push).toHaveBeenCalledExactlyOnceWith('/manage/recruitments/1/documents?page=2', {
+      scroll: false,
+    })
+    expect(searchbox).toHaveValue('')
   })
 })
