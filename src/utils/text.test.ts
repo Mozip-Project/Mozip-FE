@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { getTextLength, trimTextBeforeCaret } from './text'
+import { getTextLength, insertTextAt, trimTextBeforeCaret } from './text'
+
+describe('insertTextAt', () => {
+  it('커서 위치에 넣고 넣은 글자 뒤로 커서 이동', () => {
+    expect(insertTextAt('안녕하세요', '{이름}', 2, 2)).toEqual({
+      text: '안녕{이름}하세요',
+      caret: 6,
+    })
+  })
+
+  it('선택 영역이 있으면 그 부분을 바꿈', () => {
+    expect(insertTextAt('안녕하세요', '{이름}', 0, 2)).toEqual({ text: '{이름}하세요', caret: 4 })
+  })
+
+  it('커서가 글자 수보다 뒤에 있으면 끝에 넣음', () => {
+    expect(insertTextAt('안녕', '{이름}', 10, 10)).toEqual({ text: '안녕{이름}', caret: 6 })
+  })
+})
 
 describe('getTextLength', () => {
   it('빈 문자열은 0자', () => {

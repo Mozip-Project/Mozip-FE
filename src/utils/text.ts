@@ -23,4 +23,16 @@ function trimTextBeforeCaret(text: string, caret: number, maxLength: number) {
   return { text: trimmedBefore + after, caret: trimmedBefore.length }
 }
 
-export { getTextLength, trimTextBeforeCaret }
+// 선택 영역을 넣을 글자로 바꾸고, 넣은 글자 바로 뒤 커서 위치 반환
+function insertTextAt(text: string, insertion: string, start: number, end: number) {
+  // 값이 바뀌어 저장해 둔 커서가 범위를 벗어나도 끝에 넣도록 보정
+  const safeStart = Math.min(Math.max(start, 0), text.length)
+  const safeEnd = Math.min(Math.max(end, safeStart), text.length)
+
+  return {
+    text: text.slice(0, safeStart) + insertion + text.slice(safeEnd),
+    caret: safeStart + insertion.length,
+  }
+}
+
+export { getTextLength, insertTextAt, trimTextBeforeCaret }
