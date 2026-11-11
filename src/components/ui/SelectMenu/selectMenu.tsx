@@ -1,23 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useId, type ReactNode } from 'react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/DropdownMenu/dropdownMenu'
+import { DropdownMenu, DropdownMenuItem } from '@/components/ui/DropdownMenu/dropdownMenu'
+import { SelectMenuContent, type SelectMenuOption } from './selectMenuContent'
 import { SelectMenuTrigger } from './selectMenuTrigger'
 import type { Route } from 'next'
-
-type SelectMenuOption<TValue extends string> = {
-  value: TValue
-  label: string
-}
+import type { ReactNode } from 'react'
 
 type SelectMenuProps<TValue extends string> = {
   label: string
@@ -36,47 +24,18 @@ function SelectMenu<TValue extends string>({
   groupLabel,
   actions,
 }: SelectMenuProps<TValue>) {
-  const groupLabelId = useId()
   const selectedLabel = options.find((option) => option.value === value)?.label ?? ''
-
-  function handleValueChange(nextValue: string) {
-    const nextOption = options.find((option) => option.value === nextValue)
-
-    if (nextOption) {
-      onValueChange(nextOption.value)
-    }
-  }
 
   return (
     <DropdownMenu>
       <SelectMenuTrigger label={label}>{selectedLabel}</SelectMenuTrigger>
-
-      <DropdownMenuContent
-        align="end"
-        className="flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted p-padding-xs"
-      >
-        {groupLabel && <DropdownMenuLabel id={groupLabelId}>{groupLabel}</DropdownMenuLabel>}
-
-        <DropdownMenuRadioGroup
-          aria-labelledby={groupLabel ? groupLabelId : undefined}
-          className="flex flex-col gap-gap-xxs"
-          value={value}
-          onValueChange={handleValueChange}
-        >
-          {options.map((option) => (
-            <DropdownMenuRadioItem key={option.value} value={option.value}>
-              {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-
-        {actions && (
-          <>
-            <DropdownMenuSeparator className="my-gap-xs" />
-            {actions}
-          </>
-        )}
-      </DropdownMenuContent>
+      <SelectMenuContent
+        options={options}
+        value={value}
+        onValueChange={onValueChange}
+        groupLabel={groupLabel}
+        actions={actions}
+      />
     </DropdownMenu>
   )
 }

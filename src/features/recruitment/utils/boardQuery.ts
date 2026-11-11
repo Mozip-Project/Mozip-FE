@@ -4,30 +4,19 @@ import {
   type RecruitmentBoardQuery,
 } from '@/features/recruitment/types'
 import { isOneOf } from '@/utils/isOneOf'
+import {
+  getHrefWithSearchParams,
+  getPageParam,
+  getParamValues,
+  type SearchParamsSource,
+} from '@/utils/searchParams'
 import type { Route } from 'next'
-
-// 서버 page의 searchParams와 클라이언트 useSearchParams 모두 지원
-type BoardSearchParams = Record<string, string | string[] | undefined> | URLSearchParams
 
 type BoardQueryConfig<TStatus extends string, TSort extends string> = {
   statuses: readonly TStatus[]
   sorts: readonly TSort[]
   defaultStatus: TStatus
   defaultSort: TSort
-}
-
-function getParamValues(searchParams: BoardSearchParams, key: string) {
-  if (searchParams instanceof URLSearchParams) {
-    return searchParams.getAll(key)
-  }
-
-  const value = searchParams[key]
-
-  if (value === undefined) {
-    return []
-  }
-
-  return Array.isArray(value) ? value : [value]
 }
 
 function getBoardSortOptions<TSort extends string>(
@@ -56,13 +45,12 @@ function hasPositionFilter(positions: readonly DocumentReviewPosition[]) {
 
 // 직접 입력한 URL 등 범위 밖 값은 기본값으로 처리
 function parseBoardQuery<TStatus extends string, TSort extends string>(
-  searchParams: BoardSearchParams,
+  searchParams: SearchParamsSource,
   config: BoardQueryConfig<TStatus, TSort>,
 ): RecruitmentBoardQuery<TStatus, TSort> {
   const [status] = getParamValues(searchParams, 'status')
   const [sort] = getParamValues(searchParams, 'sort')
   const [keyword = ''] = getParamValues(searchParams, 'q')
-  const page = Math.trunc(Number(getParamValues(searchParams, 'page')[0]))
   const positions = DOCUMENT_REVIEW_POSITIONS.filter((position) =>
     getParamValues(searchParams, 'position').includes(position),
   )
@@ -72,7 +60,7 @@ function parseBoardQuery<TStatus extends string, TSort extends string>(
     positions: positions.length > 0 ? positions : DOCUMENT_REVIEW_POSITIONS,
     sort: isOneOf(config.sorts, sort) ? sort : config.defaultSort,
     keyword,
-    page: Number.isFinite(page) && page > 1 ? page : 1,
+    page: getPageParam(searchParams),
   }
 }
 
@@ -100,12 +88,8 @@ function getBoardHref<TStatus extends string, TSort extends string>(
     searchParams.set('page', String(query.page))
   }
 
-  const queryString = searchParams.toString()
-  const href = queryString ? `${pathname}?${queryString}` : pathname
-
-  // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
-  return href as Route
+  return getHrefWithSearchParams(pathname, searchParams)
 }
 
 export { getBoardHref, getBoardSortOptions, getBoardStatusTabs, hasPositionFilter, parseBoardQuery }
-export type { BoardQueryConfig, BoardSearchParams }
+export type { BoardQueryConfig }

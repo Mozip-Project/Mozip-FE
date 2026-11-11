@@ -6,7 +6,6 @@ import { NotificationPanel } from '@/features/notification/components/notificati
 import { ToastProvider } from '@/providers/toastProvider'
 
 const NAV_ITEMS = [
-  { label: '전체 공고', href: '/manage/postings' },
   { label: '단체 관리', href: '/manage/organization' },
   { label: '모집 관리', href: '/manage/recruitments' },
 ] satisfies GnbNavItem[]

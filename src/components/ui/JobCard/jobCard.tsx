@@ -10,7 +10,6 @@ type JobCardProps = {
   title: string
   organizationType: string
   organizationName: string
-  summary: string
   deadlineLabel: string
   tags: readonly string[]
   thumbnailSrc?: string
@@ -22,7 +21,6 @@ function JobCard({
   title,
   organizationType,
   organizationName,
-  summary,
   deadlineLabel,
   tags,
   thumbnailSrc,
@@ -31,7 +29,7 @@ function JobCard({
   return (
     <article
       data-slot="job-card"
-      className="group/job-card relative flex flex-col rounded-l bg-layer-default"
+      className="group/job-card relative flex flex-col rounded-xl bg-layer-default"
     >
       <div className="relative h-40 overflow-hidden rounded-l bg-neutral-weak">
         {thumbnailSrc && (
@@ -39,7 +37,7 @@ function JobCard({
             src={thumbnailSrc}
             alt=""
             fill
-            sizes="(min-width: 1280px) 282px, 100vw"
+            sizes="(min-width: 1280px) 322px, 100vw"
             // 썸네일 영역 안에서만 확대, 카드 크기 유지
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover/job-card:scale-120"
           />
@@ -59,7 +57,7 @@ function JobCard({
       </div>
 
       <div className="flex flex-col gap-gap-s px-0.5 py-padding-m">
-        <div className="flex flex-col gap-gap-xxs">
+        <div className="flex flex-col gap-gap-xs">
           <p className="flex min-w-0 items-center gap-gap-xs text-label2 text-neutral-subtle">
             <span className="shrink-0">{organizationType}</span>
             <span aria-hidden>|</span>
@@ -69,12 +67,11 @@ function JobCard({
           <h3 className="text-headline2 font-semibold text-neutral">
             <Link
               href={href}
-              className="outline-none after:absolute after:inset-0 after:rounded-l focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus-ring"
+              className="outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus-ring"
             >
               {title}
             </Link>
           </h3>
-          <p className="text-label2 text-neutral-subtle">{summary}</p>
         </div>
         <ul className="flex flex-wrap gap-gap-xs">
           {tags.map((tag) => (

@@ -1,9 +1,20 @@
+import { Suspense } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
+import { PostingListBoard } from '@/features/posting/components/postingList/postingListBoard'
+import { PostingListQueryProvider } from '@/features/posting/components/postingList/postingListQueryContext'
+import { PostingSearchField } from '@/features/posting/components/postingList/postingSearchField'
 
-export default function PostingsPage() {
+const PAGE_TITLE = '전체 공고'
+
+export default function PostingsPage({ searchParams }: PageProps<'/postings'>) {
   return (
-    <main>
-      <PageHeader title="전체 공고" />
+    <main className="flex flex-col gap-12">
+      <Suspense fallback={<PageHeader title={PAGE_TITLE} />}>
+        <PostingListQueryProvider>
+          <PageHeader title={PAGE_TITLE} actions={<PostingSearchField />} />
+          <PostingListBoard searchParams={searchParams} />
+        </PostingListQueryProvider>
+      </Suspense>
     </main>
   )
 }
