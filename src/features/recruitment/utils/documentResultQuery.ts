@@ -5,12 +5,8 @@ import {
   type DocumentResultSort,
   type DocumentResultStatus,
 } from '@/features/recruitment/types'
-import {
-  getBoardHref,
-  parseBoardQuery,
-  type BoardQueryConfig,
-  type BoardSearchParams,
-} from './boardQuery'
+import type { SearchParamsSource } from '@/utils/searchParams'
+import { getBoardHref, parseBoardQuery, type BoardQueryConfig } from './boardQuery'
 import { getDocumentResultPath } from './recruitmentRoutes'
 
 const DOCUMENT_RESULT_QUERY_CONFIG = {
@@ -20,7 +16,7 @@ const DOCUMENT_RESULT_QUERY_CONFIG = {
   defaultSort: 'rankDesc',
 } satisfies BoardQueryConfig<DocumentResultStatus, DocumentResultSort>
 
-function parseDocumentResultQuery(searchParams: BoardSearchParams): DocumentResultQuery {
+function parseDocumentResultQuery(searchParams: SearchParamsSource): DocumentResultQuery {
   return parseBoardQuery(searchParams, DOCUMENT_RESULT_QUERY_CONFIG)
 }
 
