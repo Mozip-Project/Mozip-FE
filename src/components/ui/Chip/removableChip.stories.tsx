@@ -43,3 +43,16 @@ function KeywordList() {
 export const Keywords: Story = {
   render: () => <KeywordList />,
 }
+
+export const Brand: Story = {
+  render: () => (
+    <div className="flex gap-gap-s">
+      <RemovableChip tone="brand" onRemove={() => {}} removeLabel="교내 공고 필터 해제">
+        교내 공고
+      </RemovableChip>
+      <RemovableChip tone="brand" onRemove={() => {}} removeLabel="동아리 필터 해제">
+        동아리
+      </RemovableChip>
+    </div>
+  ),
+}
