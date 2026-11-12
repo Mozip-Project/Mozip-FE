@@ -36,3 +36,13 @@ export const Narrow: Story = {
     />
   ),
 }
+
+export const InformativeTitleOnly: Story = {
+  render: () => (
+    <Callout
+      tone="informative"
+      title="모집이 연장되면 공고 일정을 직접 수정하고 지원자에게 공지로 알려주세요"
+      className="w-200"
+    />
+  ),
+}

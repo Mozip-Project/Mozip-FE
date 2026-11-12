@@ -134,7 +134,7 @@ Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 
 | 서버 상태   | TanStack Query        | 브라우저에서 서버 데이터를 읽고 쓰는 화면. 공개 조회는 Server Component 우선 |
 | 전역 상태   | 도입하지 않음         | 서버 데이터는 Query 캐시, 화면 간 공유 값은 URL·props 우선. 필요해지면 검토  |
 | 폼과 검증   | react-hook-form + zod | 지원서·문항 설정처럼 입력과 검증이 있는 화면                                 |
-| HTTP        | ky                    | 공용 API 클라이언트 한 곳에서만 사용                                         |
+| HTTP        | graphql-request       | 공용 GraphQL 클라이언트 한 곳에서만 사용. ky 대신 사용(결정 기록 015)        |
 | 실시간 갱신 | 폴링                  | 면접 보드처럼 다른 사람의 변경을 봐야 하는 화면. 방식 변경은 백엔드와 결정   |
 | UI 문서     | Storybook             | 공용 UI와 핵심 도메인 컴포넌트. 스토리는 컴포넌트 옆 `*.stories.tsx`         |
 | API 목킹    | MSW                   | 개발 서버에서만. 아래 "API 목킹" 참고                                        |

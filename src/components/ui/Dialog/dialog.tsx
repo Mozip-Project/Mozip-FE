@@ -17,13 +17,21 @@ function DialogClose(props: ComponentProps<typeof DialogPrimitive.Close>) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
-function DialogContent({ className, ...props }: ComponentProps<typeof DialogPrimitive.Content>) {
+type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
+  // 큰 팝업의 화면 위아래 여백 조정용
+  overlayClassName?: string
+}
+
+function DialogContent({ className, overlayClassName, ...props }: DialogContentProps) {
   return (
     <DialogPrimitive.Portal>
       {/* 긴 내용 스크롤용 overlay 안 배치 */}
       <DialogPrimitive.Overlay
         data-slot="dialog-overlay"
-        className="fixed inset-0 z-50 flex flex-col items-center overflow-y-auto bg-overlay-muted px-page-padding py-25"
+        className={cn(
+          'fixed inset-0 z-50 flex flex-col items-center overflow-y-auto bg-overlay-muted px-page-padding py-25',
+          overlayClassName,
+        )}
       >
         <DialogPrimitive.Content
           data-slot="dialog-content"
@@ -55,7 +63,7 @@ function DialogHeader({ title, description, icon }: DialogHeaderProps) {
           {icon}
         </span>
       )}
-      <div className="flex w-full flex-col gap-gap-xxs text-center break-words break-keep">
+      <div className="flex w-full flex-col gap-gap-s text-center break-words break-keep">
         <DialogPrimitive.Title className="text-heading2 font-bold text-neutral">
           {title}
         </DialogPrimitive.Title>
@@ -67,6 +75,15 @@ function DialogHeader({ title, description, icon }: DialogHeaderProps) {
       </div>
     </div>
   )
+}
+
+// 가운데 정렬 DialogHeader와 다른 배치의 팝업에서 제목·설명 연결용
+function DialogTitle(props: ComponentProps<typeof DialogPrimitive.Title>) {
+  return <DialogPrimitive.Title data-slot="dialog-title" {...props} />
+}
+
+function DialogDescription(props: ComponentProps<typeof DialogPrimitive.Description>) {
+  return <DialogPrimitive.Description data-slot="dialog-description" {...props} />
 }
 
 function DialogFooter({ className, ...props }: ComponentProps<'div'>) {
@@ -90,6 +107,32 @@ function DialogSummary({ className, ...props }: ComponentProps<'dl'>) {
       )}
       {...props}
     />
+  )
+}
+
+const SUMMARY_ROW_TONE_CLASS = {
+  default: 'text-neutral',
+  positive: 'text-positive',
+  subtle: 'text-neutral-subtle',
+} satisfies Record<string, string>
+
+type DialogSummaryRowProps = {
+  label: string
+  children: ReactNode
+  tone?: keyof typeof SUMMARY_ROW_TONE_CLASS
+}
+
+// DialogSummary 안 라벨·값 한 줄
+function DialogSummaryRow({ label, children, tone = 'default' }: DialogSummaryRowProps) {
+  return (
+    <div className="flex items-center justify-between gap-gap-s">
+      <dt className="min-w-0 text-label2 font-normal text-neutral-subtle">{label}</dt>
+      <dd
+        className={cn('shrink-0 text-right text-label1 font-medium', SUMMARY_ROW_TONE_CLASS[tone])}
+      >
+        {children}
+      </dd>
+    </div>
   )
 }
 
@@ -130,9 +173,12 @@ export {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogProgress,
   DialogSummary,
+  DialogSummaryRow,
+  DialogTitle,
   DialogTrigger,
 }
