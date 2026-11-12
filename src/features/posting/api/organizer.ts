@@ -22,7 +22,7 @@ async function deleteManagedPosting(postingId: string) {
   managedPostingState = managedPostingState.filter((posting) => posting.id !== postingId)
 }
 
-// TODO: 공고 관리 상세 API 확정 후 실제 요청으로 교체
+// TODO: 공고 관리 상세 API 확정 후 교체, 다른 모집의 공고가 열리지 않도록 모집 ID와 공고 ID 함께 조회
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function getManagedPostingDetail(postingId: string): Promise<ManagedPostingDetail | null> {
   return MANAGED_POSTING_DETAIL_SAMPLE.find((posting) => posting.id === postingId) ?? null
