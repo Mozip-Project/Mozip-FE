@@ -126,7 +126,14 @@ type DocumentResultOverview = {
 type ResultNoticeTarget = Extract<DocumentResult, 'pass' | 'fail'>
 
 // TODO: 결과 안내 API 명세 확정 후 서버 변수명과 맞추기
-const RESULT_NOTICE_VARIABLES = ['이름', '포지션', '면접 기간', '면접 일시', '면접 장소'] as const
+const RESULT_NOTICE_VARIABLES = [
+  '이름',
+  '공고명',
+  '포지션',
+  '면접 기간',
+  '면접 일시',
+  '면접 장소',
+] as const
 
 type ResultNoticeVariable = (typeof RESULT_NOTICE_VARIABLES)[number]
 
@@ -136,6 +143,34 @@ type ResultNoticeVariableValues = Partial<Record<ResultNoticeVariable, string>>
 type ResultNoticeMessage = {
   subject: string
   body: string
+}
+
+// TODO: 모집 단계 API 명세 확정 후 서버 enum으로 교체
+const RECRUITMENT_STAGES = [
+  'posting',
+  'application',
+  'documentReview',
+  'documentResult',
+  'interviewReview',
+  'finalResult',
+] as const
+
+type RecruitmentStage = (typeof RECRUITMENT_STAGES)[number]
+
+// 완료일은 해당 단계를 마친 뒤에만 존재
+type RecruitmentSchedule = {
+  postingCompletedAt: string | null
+  applicationDeadline: string
+  documentReviewCompletedAt: string | null
+  documentResultDate: string
+  interviewReviewCompletedAt: string | null
+  finalResultDate: string
+}
+
+type RecruitmentProgress = {
+  stage: RecruitmentStage
+  hasInterview: boolean
+  schedule: RecruitmentSchedule
 }
 
 export {
@@ -154,6 +189,7 @@ export {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
+  RECRUITMENT_STAGES,
   RESULT_NOTICE_VARIABLES,
 }
 export type {
@@ -171,6 +207,9 @@ export type {
   DocumentReviewSort,
   DocumentReviewStatus,
   RecruitmentBoardQuery,
+  RecruitmentProgress,
+  RecruitmentSchedule,
+  RecruitmentStage,
   ResultNoticeMessage,
   ResultNoticeTarget,
   ResultNoticeVariable,
