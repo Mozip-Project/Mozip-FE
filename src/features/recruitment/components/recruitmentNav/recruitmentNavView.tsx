@@ -28,7 +28,18 @@ function RecruitmentNavView({ overview }: RecruitmentNavViewProps) {
       }
     >
       <li>
-        <LnbStageItem icon={<MegaphoneIcon aria-hidden />} label="공고 관리" statusLabel="마감" />
+        <LnbStageItem
+          icon={<MegaphoneIcon aria-hidden />}
+          label="공고 관리"
+          statusLabel="마감"
+          isExpanded
+        />
+      </li>
+      <li>
+        <LnbSubItem label="공고 관리" path="postings" />
+      </li>
+      <li>
+        <LnbSubItem label="공고 작성" path="postings/new" />
       </li>
       <li>
         <LnbStageItem icon={<UsersIcon aria-hidden />} label="지원자 관리" />
