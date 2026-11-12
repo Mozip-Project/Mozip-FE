@@ -11,7 +11,7 @@
 
 - HTTP 클라이언트는 ky 대신 graphql-request를 사용합니다. 설치는 처음 실제 요청을 붙이는 작업에서 합니다.
 - 공용 클라이언트는 `src/lib/`의 `GraphQLClient` 인스턴스 하나입니다. 엔드포인트 주소, 쿠키 전송(`credentials: 'include'`), GraphQL `errors` 응답의 공통 처리는 이 클라이언트에만 둡니다.
-- query·mutation 문서는 도메인 API 함수(`src/features/<도메인>/api/`)에 둡니다. 컴포넌트는 API 함수를 감싼 TanStack Query hook만 호출합니다.
+- query·mutation 문서는 도메인 API 함수(`src/features/<도메인>/api/`)에 둡니다. 공개 조회는 Server Component에서 도메인 API 함수를 직접 호출하고, Client Component는 API 함수를 감싼 TanStack Query hook을 사용합니다.
 - 서버 데이터 캐시는 TanStack Query 하나로 관리합니다.
 
 ## 근거
