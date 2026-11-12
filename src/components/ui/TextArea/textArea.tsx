@@ -106,8 +106,10 @@ function TextArea({
           data-slot="text-area-counter"
           className="pointer-events-none absolute right-padding-m bottom-padding-s text-caption1 font-medium text-disabled"
         >
-          <span className={cn('font-semibold', length > 0 && 'text-neutral-muted')}>{length}</span>
-          {`/${maxLength}`}
+          <span className={cn('font-semibold', length > 0 && 'text-neutral-muted')}>
+            {length.toLocaleString('ko-KR')}
+          </span>
+          {`/${maxLength.toLocaleString('ko-KR')}`}
         </p>
       )}
     </div>

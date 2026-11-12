@@ -19,7 +19,7 @@ function PageHeader({ backLink, title, description, actions, className }: PageHe
 
       {/* Figma 미정의인 모바일은 버튼 잘림 방지용 세로 배치 */}
       <div className="flex w-full flex-col items-start gap-gap-xl tablet:flex-row tablet:items-center">
-        <div className="flex w-full min-w-0 flex-col gap-gap-xs break-words tablet:flex-1">
+        <div className="flex w-full min-w-0 flex-col gap-gap-xs break-words break-keep tablet:flex-1">
           <h1 className="text-title3 font-bold text-neutral">{title}</h1>
           {description && <p className="text-body2 text-neutral-muted">{description}</p>}
         </div>

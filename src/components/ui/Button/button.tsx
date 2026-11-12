@@ -25,6 +25,10 @@ const buttonVariants = cva(
           'text-neutral-muted hover:bg-transparent-pressed hover:text-neutral',
           'disabled:text-disabled',
         ],
+        brand: [
+          'bg-brand-weak text-brand hover:bg-brand-weak-pressed',
+          'disabled:bg-disabled disabled:text-disabled',
+        ],
         critical: [
           'bg-critical-weak text-critical hover:bg-critical-weak-pressed',
           'disabled:bg-disabled disabled:text-disabled',
