@@ -29,6 +29,7 @@
 ## 영향 범위
 
 - `src/features/recruitment/hooks/`, `src/features/recruitment/components/documentResult/`
+- `src/features/posting/hooks/useManagedPostings.ts`, `src/features/posting/components/postingManage/` (공고 관리 목록·UP·삭제)
 - 서류 평가 목록(`documentReview/`)은 아직 Server Component 조회이며, MSW 도입 시 이 기준으로 옮길지 팀 합의 필요
 - 팀 합의 후 `docs/ARCHITECTURE.md`의 "서버 상태" 사용 기준 갱신
 
@@ -36,3 +37,5 @@
 
 - 2026-11-05: 서류 평가 취합 화면을 구현하며 제안
 - 2026-11-10: 대안에서 추가 비용으로 본 `msw/node` 설정은 [014](./014-msw-mocking.md)로 마침
+- 2026-11-12: 공고 관리 목록을 삭제·UP 결과 즉시 반영을 위해 이 기준으로 전환
+- 2026-11-12: 맥락의 graphql-request 도입은 [015](./015-graphql-request.md)로 확정
