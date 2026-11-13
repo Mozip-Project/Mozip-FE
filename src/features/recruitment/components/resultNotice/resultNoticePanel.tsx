@@ -5,40 +5,71 @@ import { Badge } from '@/components/ui/Badge/badge'
 import type { ResultNoticeFormValues } from '@/features/recruitment/schemas/resultNoticeMessageSchema'
 import {
   RESULT_NOTICE_TARGET_LABEL,
+  type ResultNoticeDeliverySummary,
+  type ResultNoticeKind,
   type ResultNoticeRecipient,
   type ResultNoticeTarget,
+  type ResultNoticeTargetSendResult,
   type ResultNoticeVariable,
 } from '@/features/recruitment/types'
 import {
   countEmailCheckRecipients,
+  getDeliverySummary,
   getRecipientVariableValues,
 } from '@/features/recruitment/utils/resultNoticeRecipient'
+import { cn } from '@/lib/utils'
 import { MessageEditor } from './messageEditor'
 import { MessagePreview } from './messagePreview'
-import { RecipientTable } from './recipientTable'
+import { RecipientTable, type RecipientFocusRequest } from './recipientTable'
+import { SentMessageCard } from './sentMessageCard'
 
 const MESSAGE_TITLE = {
   pass: '합격 안내 메시지',
   fail: '불합격 안내 메시지',
 } satisfies Record<ResultNoticeTarget, string>
 
-// TODO: 면접 일정 연결 후 면접 변수(기간·일시·장소) 노출 기준 정하기
-const NOTICE_VARIABLES = ['이름', '포지션'] as const satisfies readonly ResultNoticeVariable[]
+const DOCUMENT_NOTICE_VARIABLES = [
+  '이름',
+  '포지션',
+] as const satisfies readonly ResultNoticeVariable[]
+
+const INTERVIEW_NOTICE_VARIABLES = [
+  ...DOCUMENT_NOTICE_VARIABLES,
+  '면접 기간',
+  '면접 일시',
+  '면접 장소',
+] as const satisfies readonly ResultNoticeVariable[]
+
+// 면접 정보는 타임테이블 대상인 합격자 메시지에만
+function getNoticeVariables(kind: ResultNoticeKind, target: ResultNoticeTarget) {
+  return kind === 'interview' && target === 'pass'
+    ? INTERVIEW_NOTICE_VARIABLES
+    : DOCUMENT_NOTICE_VARIABLES
+}
 
 type ResultNoticePanelProps = {
+  kind: ResultNoticeKind
   target: ResultNoticeTarget
   organizationName: string
+  interviewPeriod?: string
   recipients: readonly ResultNoticeRecipient[]
   control: Control<ResultNoticeFormValues>
   onMessageReset: () => void
+  // 발송한 탭은 작성 대신 발송한 메시지와 전달 결과 표시
+  sendResult?: ResultNoticeTargetSendResult
+  recipientFocusRequest?: RecipientFocusRequest
 }
 
 function ResultNoticePanel({
+  kind,
   target,
   organizationName,
+  interviewPeriod,
   recipients,
   control,
   onMessageReset,
+  sendResult,
+  recipientFocusRequest,
 }: ResultNoticePanelProps) {
   const targetLabel = RESULT_NOTICE_TARGET_LABEL[target]
   const { field: subjectField, fieldState: subjectState } = useController({
@@ -50,6 +81,27 @@ function ResultNoticePanel({
     name: `${target}.body`,
   })
   const message = { subject: subjectField.value, body: bodyField.value }
+  const variableValues = getRecipientVariableValues(recipients[0], interviewPeriod)
+
+  if (sendResult) {
+    return (
+      <>
+        <SentMessageCard
+          title={MESSAGE_TITLE[target]}
+          target={target}
+          organizationName={organizationName}
+          message={sendResult.message}
+          variableValues={variableValues}
+        />
+        <RecipientCard
+          targetLabel={targetLabel}
+          recipients={sendResult.recipients}
+          deliverySummary={getDeliverySummary(sendResult.recipients)}
+          recipientFocusRequest={recipientFocusRequest}
+        />
+      </>
+    )
+  }
 
   return (
     <>
@@ -59,7 +111,7 @@ function ResultNoticePanel({
             title={MESSAGE_TITLE[target]}
             subject={subjectField.value}
             body={bodyField.value}
-            variables={NOTICE_VARIABLES}
+            variables={getNoticeVariables(kind, target)}
             onSubjectChange={subjectField.onChange}
             onBodyChange={bodyField.onChange}
             onSubjectBlur={subjectField.onBlur}
@@ -76,7 +128,7 @@ function ResultNoticePanel({
             mailPreviewLabel={`${targetLabel} 메일 미리보기`}
             organizationName={organizationName}
             message={message}
-            variableValues={getRecipientVariableValues(recipients[0])}
+            variableValues={variableValues}
             className="absolute inset-0"
           />
         </div>
@@ -86,14 +138,34 @@ function ResultNoticePanel({
   )
 }
 
+// 전달 실패는 빨강, 이메일 확인으로 빠진 인원만 있으면 주황, 모두 전달하면 초록
+function getDeliverySummaryColorClass({
+  totalCount,
+  deliveredCount,
+  failedRecipients,
+}: ResultNoticeDeliverySummary) {
+  if (failedRecipients.length > 0) {
+    return 'text-critical'
+  }
+
+  return deliveredCount < totalCount ? 'text-warning' : 'text-positive'
+}
+
 type RecipientCardProps = {
   targetLabel: string
   recipients: readonly ResultNoticeRecipient[]
+  deliverySummary?: ResultNoticeDeliverySummary
+  recipientFocusRequest?: RecipientFocusRequest
 }
 
-// TODO: 발송 후 헤더 오른쪽 발송 결과 요약과 표 상태 열 제목 연결
-function RecipientCard({ targetLabel, recipients }: RecipientCardProps) {
+function RecipientCard({
+  targetLabel,
+  recipients,
+  deliverySummary,
+  recipientFocusRequest,
+}: RecipientCardProps) {
   const emailCheckCount = countEmailCheckRecipients(recipients)
+  const shouldShowEmailCheckBadge = !deliverySummary && emailCheckCount > 0
 
   return (
     <div className="overflow-hidden rounded-l border border-neutral-subtle bg-layer-default">
@@ -102,13 +174,27 @@ function RecipientCard({ targetLabel, recipients }: RecipientCardProps) {
           받는 사람
           <span className="truncate text-brand">{recipients.length}</span>
         </p>
-        {emailCheckCount > 0 && (
+        {shouldShowEmailCheckBadge && (
           <Badge tone="warning" variant="weak">
             이메일 확인 필요 {emailCheckCount}명
           </Badge>
         )}
+        {deliverySummary && (
+          <p
+            className={cn(
+              'shrink-0 text-label1 font-semibold',
+              getDeliverySummaryColorClass(deliverySummary),
+            )}
+          >
+            {deliverySummary.deliveredCount}/{deliverySummary.totalCount}명 전달
+          </p>
+        )}
       </div>
-      <RecipientTable label={`${targetLabel} 받는 사람`} recipients={recipients} />
+      <RecipientTable
+        label={`${targetLabel} 받는 사람`}
+        recipients={recipients}
+        focusRequest={recipientFocusRequest}
+      />
     </div>
   )
 }
