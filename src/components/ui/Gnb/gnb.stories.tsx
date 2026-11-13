@@ -42,6 +42,11 @@ const LOGGED_OUT_NAV_ITEMS = [
   { label: '단체 둘러보기', href: toStoryRoute('/organizations') },
 ]
 
+const ORGANIZATIONS = [
+  { id: '1', name: 'UXUX' },
+  { id: '2', name: '멋쟁이개발자' },
+]
+
 const PROFILE_MENU_PROPS = {
   name: '김모집',
   myPageHref: toStoryRoute('/mypage'),
@@ -77,7 +82,7 @@ export const Organizer: Story = {
       navItems={ORGANIZER_NAV_ITEMS}
       actions={
         <>
-          <OrganizationSelector name="UXUX" />
+          <OrganizationSelector organizations={ORGANIZATIONS} currentOrganizationId="1" />
           {NOTIFICATION_TRIGGER}
           <ProfileMenu mode="organizer" {...PROFILE_MENU_PROPS} />
         </>
