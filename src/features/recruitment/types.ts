@@ -158,18 +158,50 @@ type RecipientDelivery =
   | { status: 'failed'; message: string }
   | { status: 'emailCheck'; message: string }
 
+// 면접 정보 안내에서만 있음, 확정한 타임테이블 값
+type ResultNoticeInterviewSchedule = {
+  dateTime: string
+  place: string
+}
+
 type ResultNoticeRecipient = {
   id: string
   name: string
   position: DocumentReviewPosition
   email: string
   delivery: RecipientDelivery
+  interviewSchedule?: ResultNoticeInterviewSchedule
 }
+
+// 서류 결과만 안내(취합에서 진입)와 면접 정보까지 안내(타임테이블 확정 후 진입)
+type ResultNoticeKind = 'document' | 'interview'
+
+// 발송 창·하단 바 문구의 발송 대상
+const RESULT_NOTICE_SEND_SUBJECT = {
+  document: '서류 결과를',
+  interview: '서류 결과와 면접 일정을',
+} satisfies Record<ResultNoticeKind, string>
 
 type ResultNoticeOverview = {
   organizationName: string
+  // 면접 정보 안내에서만 있음
+  interviewPeriod?: string
   // 확정된 합격·불합격 지원자, 탭 숫자도 이 인원 기준
   recipients: Record<ResultNoticeTarget, ResultNoticeRecipient[]>
+}
+
+// 대상 하나의 발송 결과, 받는 사람별 전달 상태 포함
+type ResultNoticeTargetSendResult = {
+  message: ResultNoticeMessage
+  recipients: ResultNoticeRecipient[]
+}
+
+// 이메일 확인 필요 인원은 발송 인원에서 제외
+type ResultNoticeDeliverySummary = {
+  totalCount: number
+  sentCount: number
+  deliveredCount: number
+  failedRecipients: ResultNoticeRecipient[]
 }
 
 type ResultNoticeMissingField = 'subject' | 'body' | 'both'
@@ -184,7 +216,8 @@ type ResultNoticeSendState =
   | { type: 'missingInput'; target: ResultNoticeTarget; missingField: ResultNoticeMissingField }
   | { type: 'ready' }
   | { type: 'sending' }
-  | { type: 'partiallySent'; unsentTarget: ResultNoticeTarget }
+  // 한쪽만 발송, 남은 탭 메시지가 비어 있으면 발송 불가
+  | { type: 'partiallySent'; unsentTarget: ResultNoticeTarget; canSendUnsent: boolean }
   | { type: 'allSent' }
 
 // TODO: 모집 단계 API 명세 확정 후 서버 enum으로 교체
@@ -232,6 +265,7 @@ export {
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
   RECRUITMENT_STAGES,
+  RESULT_NOTICE_SEND_SUBJECT,
   RESULT_NOTICE_TARGET_LABEL,
   RESULT_NOTICE_TARGETS,
   RESULT_NOTICE_VARIABLES,
@@ -255,10 +289,14 @@ export type {
   RecruitmentProgress,
   RecruitmentSchedule,
   RecruitmentStage,
+  ResultNoticeDeliverySummary,
+  ResultNoticeInterviewSchedule,
+  ResultNoticeKind,
   ResultNoticeMessage,
   ResultNoticeMissingField,
   ResultNoticeOverview,
   ResultNoticeRecipient,
+  ResultNoticeTargetSendResult,
   ResultNoticeSendState,
   ResultNoticeTarget,
   ResultNoticeVariable,

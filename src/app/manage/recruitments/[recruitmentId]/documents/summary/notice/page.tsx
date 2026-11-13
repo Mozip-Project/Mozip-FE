@@ -10,10 +10,10 @@ export default function ResultNoticePage({
 }: PageProps<'/manage/recruitments/[recruitmentId]/documents/summary/notice'>) {
   return (
     <div className="flex flex-col gap-gap-xl">
-      <Suspense fallback={<ResultNoticeHeaderFallback />}>
-        <ResultNoticeHeader params={params} />
+      <Suspense fallback={<ResultNoticeHeaderFallback kind="document" />}>
+        <ResultNoticeHeader kind="document" params={params} />
       </Suspense>
-      <ResultNoticeContent />
+      <ResultNoticeContent kind="document" />
     </div>
   )
 }

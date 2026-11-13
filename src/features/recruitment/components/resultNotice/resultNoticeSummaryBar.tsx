@@ -5,7 +5,10 @@ import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
 import { SummaryBar, type SummaryBarStatus } from '@/components/ui/SummaryBar/summaryBar'
 import {
   DOCUMENT_RESULT_STATUS_LABEL,
+  RESULT_NOTICE_SEND_SUBJECT,
   RESULT_NOTICE_TARGET_LABEL,
+  RESULT_NOTICE_TARGETS,
+  type ResultNoticeKind,
   type ResultNoticeMissingField,
   type ResultNoticeSendState,
   type ResultNoticeTarget,
@@ -29,19 +32,35 @@ function getMissingInputMessage(missingField: ResultNoticeMissingField) {
 }
 
 type ResultNoticeSummaryBarProps = {
+  kind: ResultNoticeKind
   state: ResultNoticeSendState
   currentTarget: ResultNoticeTarget
   // 이메일 확인 필요 인원을 뺀 탭별 발송 인원
   sendCounts: Record<ResultNoticeTarget, number>
+  // 발송 확인 창을 열 대상
+  onSendRequest: (targets: readonly ResultNoticeTarget[]) => void
+  onTargetChange: (target: ResultNoticeTarget) => void
 }
 
-// TODO: 발송 확인 다이얼로그·탭 이동 연결
-function ResultNoticeSummaryBar({ state, currentTarget, sendCounts }: ResultNoticeSummaryBarProps) {
+function ResultNoticeSummaryBar({
+  kind,
+  state,
+  currentTarget,
+  sendCounts,
+  onSendRequest,
+  onTargetChange,
+}: ResultNoticeSummaryBarProps) {
   if (state.type === 'allSent') {
     return null
   }
 
-  const { status, message, actions } = getSummaryBarContent(state, currentTarget, sendCounts)
+  const { status, message, actions } = getSummaryBarContent(state, {
+    kind,
+    currentTarget,
+    sendCounts,
+    onSendRequest,
+    onTargetChange,
+  })
 
   return (
     <SummaryBar status={status} actions={actions}>
@@ -56,19 +75,24 @@ type SummaryBarContent = {
   actions: ReactNode
 }
 
+type SummaryBarContext = Omit<ResultNoticeSummaryBarProps, 'state'>
+
 function getSummaryBarContent(
   state: VisibleSendState,
-  currentTarget: ResultNoticeTarget,
-  sendCounts: Record<ResultNoticeTarget, number>,
+  { kind, currentTarget, sendCounts, onSendRequest, onTargetChange }: SummaryBarContext,
 ): SummaryBarContent {
-  const sendButtonsProps = { currentTarget, sendCounts }
+  const sendButtonsProps = { currentTarget, sendCounts, onSendRequest }
   const totalCount = sendCounts.pass + sendCounts.fail
 
   switch (state.type) {
     // 불합격자 없는 경우
     case 'allPassed': {
       const passSendButton = (
-        <Button size="m" disabled={state.missingField !== null}>
+        <Button
+          size="m"
+          disabled={state.missingField !== null}
+          onClick={() => onSendRequest(['pass'])}
+        >
           {RESULT_NOTICE_TARGET_LABEL.pass} {sendCounts.pass}명에게 발송하기
         </Button>
       )
@@ -130,7 +154,7 @@ function getSummaryBarContent(
     case 'sending':
       return {
         status: 'ready',
-        message: '서류 결과를 발송하고 있어요.',
+        message: `${RESULT_NOTICE_SEND_SUBJECT[kind]} 발송하고 있어요.`,
         actions: <SendButtons {...sendButtonsProps} canSendCurrent={false} canSendAll={false} />,
       }
 
@@ -139,11 +163,17 @@ function getSummaryBarContent(
       // 발송한 탭에서는 남은 탭으로 이동, 남은 탭에서는 바로 발송
       const unsentTargetAction =
         currentTarget === unsentTarget ? (
-          <Button size="m">
+          <Button
+            size="m"
+            disabled={!state.canSendUnsent}
+            onClick={() => onSendRequest([unsentTarget])}
+          >
             {RESULT_NOTICE_TARGET_LABEL[unsentTarget]} {sendCounts[unsentTarget]}명에게 발송하기
           </Button>
         ) : (
-          <Button size="m">{DOCUMENT_RESULT_STATUS_LABEL[unsentTarget]} 메시지 확인하기</Button>
+          <Button size="m" onClick={() => onTargetChange(unsentTarget)}>
+            {DOCUMENT_RESULT_STATUS_LABEL[unsentTarget]} 메시지 확인하기
+          </Button>
         )
 
       return {
@@ -166,6 +196,7 @@ type SendButtonsProps = {
   canSendCurrent: boolean
   canSendAll: boolean
   sendAllBlockedNotice?: BlockedNotice
+  onSendRequest: (targets: readonly ResultNoticeTarget[]) => void
 }
 
 function SendButtons({
@@ -174,13 +205,19 @@ function SendButtons({
   canSendCurrent,
   canSendAll,
   sendAllBlockedNotice,
+  onSendRequest,
 }: SendButtonsProps) {
   const sendAllLabel = `${sendCounts.pass + sendCounts.fail}명에게 발송하기`
   const shouldExplainBlockedSendAll = !canSendAll && sendAllBlockedNotice !== undefined
 
   return (
     <>
-      <Button variant="secondary" size="m" disabled={!canSendCurrent}>
+      <Button
+        variant="secondary"
+        size="m"
+        disabled={!canSendCurrent}
+        onClick={() => onSendRequest([currentTarget])}
+      >
         {RESULT_NOTICE_TARGET_LABEL[currentTarget]} {sendCounts[currentTarget]}명에게만 발송하기
       </Button>
       {shouldExplainBlockedSendAll ? (
@@ -197,7 +234,11 @@ function SendButtons({
           className="w-80"
         />
       ) : (
-        <Button size="m" disabled={!canSendAll}>
+        <Button
+          size="m"
+          disabled={!canSendAll}
+          onClick={() => onSendRequest(RESULT_NOTICE_TARGETS)}
+        >
           {sendAllLabel}
         </Button>
       )}
