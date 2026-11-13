@@ -108,7 +108,7 @@ function MessageEditor({
       <div className="flex flex-col gap-gap-xs">
         <label
           htmlFor={bodyId}
-          className="flex w-fit items-center gap-gap-xs text-label1 font-medium text-neutral"
+          className="flex w-fit items-center gap-gap-xs text-label1 font-semibold text-neutral"
         >
           본문
           {/* 필수 여부는 textarea required로 전달 */}

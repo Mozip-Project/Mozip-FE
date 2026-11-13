@@ -14,6 +14,8 @@ type MessagePreviewProps = {
   organizationName: string
   message: ResultNoticeMessage
   variableValues: ResultNoticeVariableValues
+  // 생략하면 알림 미리보기에 메일 제목 표시
+  notificationText?: string
   className?: string
 }
 
@@ -22,6 +24,7 @@ function MessagePreview({
   organizationName,
   message,
   variableValues,
+  notificationText,
   className,
 }: MessagePreviewProps) {
   const subject = fillNoticeVariables(message.subject, variableValues)
@@ -30,6 +33,7 @@ function MessagePreview({
   const isBodyEmpty = !isFilled(body)
   const subjectText = isSubjectEmpty ? EMPTY_SUBJECT_TEXT : subject
   const subjectColorClass = isSubjectEmpty ? 'text-placeholder' : 'text-neutral'
+  const notificationColorClass = notificationText === undefined ? subjectColorClass : 'text-neutral'
 
   return (
     <div
@@ -75,7 +79,9 @@ function MessagePreview({
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-gap-xxs font-medium">
           <p className="text-caption1 text-neutral-subtle">{organizationName}</p>
-          <p className={cn('truncate text-label1', subjectColorClass)}>{subjectText}</p>
+          <p className={cn('truncate text-label1', notificationColorClass)}>
+            {notificationText ?? subjectText}
+          </p>
         </div>
       </div>
     </div>

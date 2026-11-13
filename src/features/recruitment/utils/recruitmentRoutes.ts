@@ -17,4 +17,24 @@ function getResultNoticePath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/documents/summary/notice` as Route
 }
 
-export { getApplicantReviewPath, getDocumentResultPath, getDocumentReviewPath, getResultNoticePath }
+function getPostingManagePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/postings` as Route
+}
+
+function getPostingCreatePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/postings/new` as Route
+}
+
+function getPostingManageDetailPath(recruitmentId: string, postingId: string) {
+  return `/manage/recruitments/${recruitmentId}/postings/${postingId}` as Route
+}
+
+export {
+  getApplicantReviewPath,
+  getDocumentResultPath,
+  getDocumentReviewPath,
+  getPostingCreatePath,
+  getPostingManageDetailPath,
+  getPostingManagePath,
+  getResultNoticePath,
+}

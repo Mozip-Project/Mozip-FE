@@ -6,7 +6,7 @@ import type { ComponentProps } from 'react'
 
 type ButtonVariant = NonNullable<ComponentProps<typeof Button>['variant']>
 
-const VARIANTS = ['primary', 'secondary', 'tertiary', 'critical'] as const
+const VARIANTS = ['primary', 'secondary', 'tertiary', 'brand', 'critical'] as const
 const SIZES = ['l', 'm', 's'] as const
 
 function SizeMatrix({ variant }: { variant: ButtonVariant }) {
@@ -45,6 +45,10 @@ export const Secondary: Story = {
 
 export const Tertiary: Story = {
   render: () => <SizeMatrix variant="tertiary" />,
+}
+
+export const Brand: Story = {
+  render: () => <SizeMatrix variant="brand" />,
 }
 
 export const Critical: Story = {

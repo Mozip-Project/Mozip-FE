@@ -3,20 +3,26 @@
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
+import { ARIA_CURRENT } from '@/components/ui/ActiveLink/activeLink'
 import {
   getDocumentResultPath,
   getDocumentReviewPath,
+  getPostingCreatePath,
+  getPostingManagePath,
 } from '@/features/recruitment/utils/recruitmentRoutes'
 import { cn } from '@/lib/utils'
+import { getClosestActivePath } from '@/utils/activePath'
 
 const ITEM_CLASS = cn(
   'flex h-11 items-center rounded-m pr-padding-s pl-10 text-label1 font-medium text-neutral-muted',
   'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
-  'aria-[current=page]:bg-neutral-weak aria-[current=page]:font-semibold aria-[current=page]:text-neutral',
+  'aria-[current]:bg-neutral-weak aria-[current]:font-semibold aria-[current]:text-neutral',
 )
 
 // 서버 렌더링 메뉴에서도 쓰도록 함수 대신 키로 전달
 const LNB_SUB_ITEM_PATH = {
+  postings: getPostingManagePath,
+  'postings/new': getPostingCreatePath,
   documents: getDocumentReviewPath,
   'documents/summary': getDocumentResultPath,
 }
@@ -39,9 +45,18 @@ function LnbSubItemLink({ label, path }: LnbSubItemProps) {
   const { recruitmentId } = useParams<{ recruitmentId: string }>()
   const pathname = usePathname()
   const href = LNB_SUB_ITEM_PATH[path](recruitmentId)
+  // 상세 화면에서도 상위 메뉴 표시, 여러 항목이 겹치면 가장 긴 경로만 선택
+  const current = getClosestActivePath(
+    pathname,
+    Object.values(LNB_SUB_ITEM_PATH).map((getPath) => getPath(recruitmentId)),
+  )
 
   return (
-    <Link href={href} aria-current={pathname === href ? 'page' : undefined} className={ITEM_CLASS}>
+    <Link
+      href={href}
+      aria-current={current?.href === href ? ARIA_CURRENT[current.match] : undefined}
+      className={ITEM_CLASS}
+    >
       {label}
     </Link>
   )

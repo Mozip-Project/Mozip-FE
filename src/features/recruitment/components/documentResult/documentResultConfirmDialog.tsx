@@ -11,11 +11,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogSummary,
+  DialogSummaryRow,
 } from '@/components/ui/Dialog/dialog'
 import { Toast, ToastProvider, ToastViewport } from '@/components/ui/Toast/toast'
 import { useConfirmDocumentResultsMutation } from '@/features/recruitment/hooks/useDocumentResults'
 import type { DocumentResult } from '@/features/recruitment/types'
-import { cn } from '@/lib/utils'
 
 type DocumentResultConfirmDialogProps = {
   recruitmentId: string
@@ -73,8 +73,10 @@ function DocumentResultConfirmDialog({
           }
         />
         <DialogSummary>
-          <ResultCountRow label="합격" count={resultCounts.pass} valueClassName="text-positive" />
-          <ResultCountRow label="불합격" count={resultCounts.fail} valueClassName="text-neutral" />
+          <DialogSummaryRow label="합격" tone="positive">
+            {resultCounts.pass}명
+          </DialogSummaryRow>
+          <DialogSummaryRow label="불합격">{resultCounts.fail}명</DialogSummaryRow>
         </DialogSummary>
         <DialogFooter>
           <DialogClose asChild>
@@ -100,23 +102,6 @@ function DocumentResultConfirmDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-type ResultCountRowProps = {
-  label: string
-  count: number
-  valueClassName: string
-}
-
-function ResultCountRow({ label, count, valueClassName }: ResultCountRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-gap-s">
-      <dt className="min-w-0 text-label2 font-normal text-neutral-subtle">{label}</dt>
-      <dd className={cn('shrink-0 text-right text-label1 font-medium', valueClassName)}>
-        {count}명
-      </dd>
-    </div>
   )
 }
 

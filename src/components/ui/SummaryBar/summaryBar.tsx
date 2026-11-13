@@ -19,10 +19,19 @@ type SummaryBarProps = {
   children: ReactNode
   link?: ReactNode
   actions: ReactNode
+  // 조작 결과로 문구가 바뀌는 곳만 화면 리더에 알림, 고정된 안내는 false
+  shouldAnnounce?: boolean
   className?: string
 }
 
-function SummaryBar({ status, children, link, actions, className }: SummaryBarProps) {
+function SummaryBar({
+  status,
+  children,
+  link,
+  actions,
+  shouldAnnounce = true,
+  className,
+}: SummaryBarProps) {
   const { Icon, color } = STATUS_ICON[status]
 
   return (
@@ -36,7 +45,10 @@ function SummaryBar({ status, children, link, actions, className }: SummaryBarPr
       )}
     >
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-gap-s">
-        <p role="status" className="flex min-w-0 items-center gap-gap-s">
+        <p
+          role={shouldAnnounce ? 'status' : undefined}
+          className="flex min-w-0 items-center gap-gap-s"
+        >
           <Icon aria-hidden className={cn('size-5 shrink-0', color)} />
           <span className="text-body1 font-semibold break-keep text-neutral">{children}</span>
         </p>
