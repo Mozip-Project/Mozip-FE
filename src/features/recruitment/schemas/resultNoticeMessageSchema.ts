@@ -12,7 +12,18 @@ const resultNoticeMessageSchema = z.object({
   body: z.string().refine(isFilled, '본문을 입력해 주세요'),
 })
 
-type ResultNoticeMessageValues = z.infer<typeof resultNoticeMessageSchema>
+const resultNoticeFormSchema = z.object({
+  pass: resultNoticeMessageSchema,
+  fail: resultNoticeMessageSchema,
+})
 
-export { RESULT_NOTICE_BODY_MAX_LENGTH, resultNoticeMessageSchema }
-export type { ResultNoticeMessageValues }
+type ResultNoticeMessageValues = z.infer<typeof resultNoticeMessageSchema>
+type ResultNoticeFormValues = z.infer<typeof resultNoticeFormSchema>
+
+export {
+  isFilled,
+  RESULT_NOTICE_BODY_MAX_LENGTH,
+  resultNoticeFormSchema,
+  resultNoticeMessageSchema,
+}
+export type { ResultNoticeFormValues, ResultNoticeMessageValues }

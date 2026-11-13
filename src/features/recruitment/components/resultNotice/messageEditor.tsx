@@ -24,6 +24,9 @@ type MessageEditorProps = {
   onSubjectChange: (subject: string) => void
   onBodyChange: (body: string) => void
   onReset: () => void
+  // 입력을 벗어날 때 검사
+  onSubjectBlur?: () => void
+  onBodyBlur?: () => void
   subjectError?: string
   bodyError?: string
 }
@@ -36,6 +39,8 @@ function MessageEditor({
   onSubjectChange,
   onBodyChange,
   onReset,
+  onSubjectBlur,
+  onBodyBlur,
   subjectError,
   bodyError,
 }: MessageEditorProps) {
@@ -95,6 +100,7 @@ function MessageEditor({
         placeholder="메일 제목을 입력해 주세요"
         value={subject}
         onChange={(event) => onSubjectChange(event.target.value)}
+        onBlur={onSubjectBlur}
         aria-invalid={subjectError ? true : undefined}
         helper={subjectError}
       />
@@ -119,6 +125,7 @@ function MessageEditor({
           maxLength={RESULT_NOTICE_BODY_MAX_LENGTH}
           onChange={(event) => onBodyChange(event.target.value)}
           onSelect={handleBodySelect}
+          onBlur={onBodyBlur}
           aria-invalid={bodyError ? true : undefined}
           aria-describedby={bodyError ? bodyErrorId : undefined}
           // 높이 고정, 넘치면 안쪽 스크롤
