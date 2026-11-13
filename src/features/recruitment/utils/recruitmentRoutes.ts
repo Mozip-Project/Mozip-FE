@@ -13,4 +13,8 @@ function getDocumentResultPath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/documents/summary` as Route
 }
 
-export { getApplicantReviewPath, getDocumentResultPath, getDocumentReviewPath }
+function getResultNoticePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/documents/summary/notice` as Route
+}
+
+export { getApplicantReviewPath, getDocumentResultPath, getDocumentReviewPath, getResultNoticePath }

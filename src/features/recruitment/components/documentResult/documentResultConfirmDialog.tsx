@@ -23,7 +23,6 @@ type DocumentResultConfirmDialogProps = {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
   resultCounts: Record<DocumentResult, number>
-  toastViewportClassName?: string
   onCloseAutoFocus: ComponentProps<typeof DialogContent>['onCloseAutoFocus']
 }
 
@@ -33,7 +32,6 @@ function DocumentResultConfirmDialog({
   onOpenChange,
   hasInterviewStep,
   resultCounts,
-  toastViewportClassName,
   onCloseAutoFocus,
 }: DocumentResultConfirmDialogProps) {
   const { mutate: confirmResults, isPending } = useConfirmDocumentResultsMutation(recruitmentId)
@@ -97,7 +95,7 @@ function DocumentResultConfirmDialog({
               open={isFailureToastOpen}
               onOpenChange={setIsFailureToastOpen}
             />
-            <ToastViewport className={toastViewportClassName} />
+            <ToastViewport />
           </ToastProvider>
         </div>
       </DialogContent>
