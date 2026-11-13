@@ -6,23 +6,14 @@ import CheckIcon from '@/assets/icons/check.svg'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import { Button } from '@/components/ui/Button/button'
 import { TableCell, TableHeadCell } from '@/components/ui/Table/table'
+import {
+  DOCUMENT_REVIEW_POSITION_LABEL,
+  type RecipientDelivery,
+  type ResultNoticeRecipient,
+} from '@/features/recruitment/types'
 import { cn } from '@/lib/utils'
 
 const COLLAPSED_ROW_COUNT = 5
-
-type RecipientDelivery =
-  | { status: 'pending' }
-  | { status: 'delivered' }
-  | { status: 'failed'; message: string }
-  | { status: 'emailCheck'; message: string }
-
-type ResultNoticeRecipient = {
-  id: string
-  name: string
-  position: string
-  email: string
-  delivery: RecipientDelivery
-}
 
 const COLUMN_CLASS = {
   name: 'w-47.5 shrink-0',
@@ -50,14 +41,22 @@ type RecipientTableProps = {
 function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const firstRevealedRowRef = useRef<HTMLDivElement>(null)
+  const toggleButtonRef = useRef<HTMLButtonElement>(null)
   const hiddenCount = recipients.length - COLLAPSED_ROW_COUNT
-  const canExpand = !isExpanded && hiddenCount > 0
-  const visibleRecipients = canExpand ? recipients.slice(0, COLLAPSED_ROW_COUNT) : recipients
+  const isCollapsible = hiddenCount > 0
+  const visibleRecipients =
+    isCollapsible && !isExpanded ? recipients.slice(0, COLLAPSED_ROW_COUNT) : recipients
 
-  // 사라지는 더 보기 버튼 대신 새로 보인 첫 행으로 focus 이동
+  // 펼친 행 끝으로 밀려난 버튼 대신 새로 보인 첫 행으로 focus 이동
   function handleExpand() {
     flushSync(() => setIsExpanded(true))
     firstRevealedRowRef.current?.focus()
+  }
+
+  // 접으면 버튼이 위로 올라가 화면 밖에 남지 않도록 다시 보이게 처리
+  function handleCollapse() {
+    flushSync(() => setIsExpanded(false))
+    toggleButtonRef.current?.scrollIntoView({ block: 'nearest' })
   }
 
   return (
@@ -89,7 +88,7 @@ function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps)
               {recipient.name}
             </TableCell>
             <TableCell type="text" className={COLUMN_CLASS.position}>
-              {recipient.position}
+              {DOCUMENT_REVIEW_POSITION_LABEL[recipient.position]}
             </TableCell>
             <TableCell type="text" className={COLUMN_CLASS.email}>
               {recipient.email}
@@ -101,11 +100,17 @@ function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps)
         ))}
       </div>
 
-      {canExpand && (
+      {isCollapsible && (
         <div className="flex justify-center border-t border-neutral-subtle py-padding-s">
-          <Button variant="tertiary" size="s" onClick={handleExpand}>
-            {hiddenCount}명 더 보기
-            <ChevronDownIcon aria-hidden />
+          <Button
+            ref={toggleButtonRef}
+            variant="tertiary"
+            size="s"
+            aria-expanded={isExpanded}
+            onClick={isExpanded ? handleCollapse : handleExpand}
+          >
+            {isExpanded ? '접기' : `${hiddenCount}명 더 보기`}
+            <ChevronDownIcon aria-hidden className={cn(isExpanded && 'rotate-180')} />
           </Button>
         </div>
       )}
@@ -136,4 +141,3 @@ function DeliveryStatus({ delivery }: { delivery: RecipientDelivery }) {
 }
 
 export { RecipientTable }
-export type { RecipientDelivery, ResultNoticeRecipient }
