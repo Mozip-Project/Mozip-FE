@@ -1,8 +1,12 @@
 import BellIcon from '@/assets/icons/bell.svg'
 import MailIcon from '@/assets/icons/mail.svg'
+import { isFilled } from '@/features/recruitment/schemas/resultNoticeMessageSchema'
 import type { ResultNoticeMessage, ResultNoticeVariableValues } from '@/features/recruitment/types'
 import { fillNoticeVariables } from '@/features/recruitment/utils/resultNoticeMessage'
 import { cn } from '@/lib/utils'
+
+const EMPTY_SUBJECT_TEXT = '제목 없음'
+const EMPTY_BODY_TEXT = '내용 없음'
 
 type MessagePreviewProps = {
   // 미리보기가 여러 개일 때 화면 리더가 구분하도록 영역 이름을 사용처에서 지정
@@ -22,6 +26,10 @@ function MessagePreview({
 }: MessagePreviewProps) {
   const subject = fillNoticeVariables(message.subject, variableValues)
   const body = fillNoticeVariables(message.body, variableValues)
+  const isSubjectEmpty = !isFilled(subject)
+  const isBodyEmpty = !isFilled(body)
+  const subjectText = isSubjectEmpty ? EMPTY_SUBJECT_TEXT : subject
+  const subjectColorClass = isSubjectEmpty ? 'text-placeholder' : 'text-neutral'
 
   return (
     <div
@@ -47,10 +55,17 @@ function MessagePreview({
           <MailIcon aria-hidden className="size-4 shrink-0" />
           {organizationName}
         </p>
-        <p className="text-body1 font-semibold break-words text-neutral">{subject}</p>
+        <p className={cn('text-body1 font-semibold break-words', subjectColorClass)}>
+          {subjectText}
+        </p>
         <hr className="border-neutral-subtle" />
-        <p className="text-body2 font-normal break-words whitespace-pre-wrap text-neutral-muted">
-          {body}
+        <p
+          className={cn(
+            'text-body2 font-normal break-words whitespace-pre-wrap',
+            isBodyEmpty ? 'text-placeholder' : 'text-neutral-muted',
+          )}
+        >
+          {isBodyEmpty ? EMPTY_BODY_TEXT : body}
         </p>
       </div>
 
@@ -60,7 +75,7 @@ function MessagePreview({
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-gap-xxs font-medium">
           <p className="text-caption1 text-neutral-subtle">{organizationName}</p>
-          <p className="truncate text-label1 text-neutral">{subject}</p>
+          <p className={cn('truncate text-label1', subjectColorClass)}>{subjectText}</p>
         </div>
       </div>
     </div>
