@@ -146,16 +146,24 @@ type ResultNoticeMessage = {
 }
 
 // TODO: 모집 단계 API 명세 확정 후 서버 enum으로 교체
-const RECRUITMENT_STAGES = [
+// MVP의 면접 모집은 서류 결과 안내까지, 면접 평가·최종 결과 단계는 이후 확장
+const INTERVIEW_RECRUITMENT_STAGES = [
   'posting',
   'application',
   'documentReview',
   'documentResult',
-  'interviewReview',
+] as const
+
+const NO_INTERVIEW_RECRUITMENT_STAGES = [
+  'posting',
+  'application',
+  'documentReview',
   'finalResult',
 ] as const
 
-type RecruitmentStage = (typeof RECRUITMENT_STAGES)[number]
+type InterviewRecruitmentStage = (typeof INTERVIEW_RECRUITMENT_STAGES)[number]
+type NoInterviewRecruitmentStage = (typeof NO_INTERVIEW_RECRUITMENT_STAGES)[number]
+type RecruitmentStage = InterviewRecruitmentStage | NoInterviewRecruitmentStage
 
 // 완료일은 해당 단계를 마친 뒤에만 존재
 type RecruitmentSchedule = {
@@ -163,14 +171,18 @@ type RecruitmentSchedule = {
   applicationDeadline: string
   documentReviewCompletedAt: string | null
   documentResultDate: string
-  interviewReviewCompletedAt: string | null
+  // 면접 모집은 MVP 단계에 없지만 최종 결과 단계 확장용으로 유지
   finalResultDate: string
 }
 
-type RecruitmentProgress = {
-  stage: RecruitmentStage
-  hasInterview: boolean
-  schedule: RecruitmentSchedule
+type RecruitmentProgress =
+  | { hasInterview: true; stage: InterviewRecruitmentStage; schedule: RecruitmentSchedule }
+  | { hasInterview: false; stage: NoInterviewRecruitmentStage; schedule: RecruitmentSchedule }
+
+type OngoingRecruitment = {
+  id: string
+  title: string
+  progress: RecruitmentProgress
 }
 
 export {
@@ -189,7 +201,8 @@ export {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
-  RECRUITMENT_STAGES,
+  INTERVIEW_RECRUITMENT_STAGES,
+  NO_INTERVIEW_RECRUITMENT_STAGES,
   RESULT_NOTICE_VARIABLES,
 }
 export type {
@@ -206,6 +219,9 @@ export type {
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,
+  InterviewRecruitmentStage,
+  NoInterviewRecruitmentStage,
+  OngoingRecruitment,
   RecruitmentBoardQuery,
   RecruitmentProgress,
   RecruitmentSchedule,

@@ -11,11 +11,10 @@ const STAGE_ACTION_LABEL = {
   application: '지원자 확인하기',
   documentReview: '서류 평가 이어하기',
   documentResult: '서류 결과 안내하기',
-  interviewReview: '면접 평가 이어하기',
   finalResult: '최종 결과 안내하기',
 } satisfies Record<RecruitmentStage, string>
 
-// TODO: 공고 작성·지원자 관리·결과 안내 경로가 생기면 연결, 면접 평가·최종 결과는 MVP 이동 없음
+// TODO: 공고 작성·지원자 관리·서류 결과 안내 경로가 생기면 연결, 최종 결과는 MVP 이동 없음
 function getStageActionHref(stage: RecruitmentStage, recruitmentId: string): Route | undefined {
   return stage === 'documentReview' ? getDocumentReviewPath(recruitmentId) : undefined
 }
