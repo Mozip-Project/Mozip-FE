@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { getRevealOffset, getSlideOffset } from '@/utils/slideOffset'
+import { getPageSlideDistance, getRevealOffset, getSlideOffset } from '@/utils/slideOffset'
 
 type SlideState = {
   canSlidePrev: boolean
@@ -97,7 +97,7 @@ function useHorizontalSlide<TList extends HTMLElement = HTMLUListElement>(active
 
     const targetPx = getSlideOffset(
       slideTargetPxRef.current ?? viewport.scrollLeft,
-      direction * getSlideStep(listRef.current),
+      direction * getSlideStep(viewport.clientWidth, listRef.current),
       viewport.scrollWidth - viewport.clientWidth,
     )
     slideTargetPxRef.current = targetPx
@@ -113,12 +113,16 @@ function useHorizontalSlide<TList extends HTMLElement = HTMLUListElement>(active
   }
 }
 
-function getSlideStep(list: HTMLElement | null) {
+function getSlideStep(viewportWidthPx: number, list: HTMLElement | null) {
   const [firstItem, secondItem] = list?.children ?? []
   if (!(firstItem instanceof HTMLElement) || !(secondItem instanceof HTMLElement)) {
     return 0
   }
-  return secondItem.offsetLeft - firstItem.offsetLeft
+  return getPageSlideDistance({
+    viewportWidthPx,
+    itemWidthPx: firstItem.offsetWidth,
+    itemPitchPx: secondItem.offsetLeft - firstItem.offsetLeft,
+  })
 }
 
 export { useHorizontalSlide }
