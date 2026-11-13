@@ -55,7 +55,7 @@ function DialogHeader({ title, description, icon }: DialogHeaderProps) {
           {icon}
         </span>
       )}
-      <div className="flex w-full flex-col gap-gap-xxs text-center break-words break-keep">
+      <div className="flex w-full flex-col gap-gap-s text-center break-words break-keep">
         <DialogPrimitive.Title className="text-heading2 font-bold text-neutral">
           {title}
         </DialogPrimitive.Title>
