@@ -125,6 +125,13 @@ type DocumentResultOverview = {
 // 결과 안내 메시지는 합격·불합격 두 종류만 발송
 type ResultNoticeTarget = Extract<DocumentResult, 'pass' | 'fail'>
 
+const RESULT_NOTICE_TARGETS = ['pass', 'fail'] as const satisfies readonly ResultNoticeTarget[]
+
+const RESULT_NOTICE_TARGET_LABEL = {
+  pass: '합격자',
+  fail: '불합격자',
+} satisfies Record<ResultNoticeTarget, string>
+
 // TODO: 결과 안내 API 명세 확정 후 서버 변수명과 맞추기
 const RESULT_NOTICE_VARIABLES = ['이름', '포지션', '면접 기간', '면접 일시', '면접 장소'] as const
 
@@ -137,6 +144,41 @@ type ResultNoticeMessage = {
   subject: string
   body: string
 }
+
+type RecipientDelivery =
+  | { status: 'pending' }
+  | { status: 'delivered' }
+  | { status: 'failed'; message: string }
+  | { status: 'emailCheck'; message: string }
+
+type ResultNoticeRecipient = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  email: string
+  delivery: RecipientDelivery
+}
+
+type ResultNoticeOverview = {
+  organizationName: string
+  // 확정된 합격·불합격 지원자, 탭 숫자도 이 인원 기준
+  recipients: Record<ResultNoticeTarget, ResultNoticeRecipient[]>
+}
+
+type ResultNoticeMissingField = 'subject' | 'body' | 'both'
+
+// 결과 안내 하단 바 상태
+type ResultNoticeSendState =
+  // 불합격자 0명, 합격 메시지만 확인. 빈 칸이 없으면 missingField는 null
+  | { type: 'allPassed'; missingField: ResultNoticeMissingField | null }
+  // 불합격자 탭에 들어가기 전(지금 탭은 합격자), 불합격자 탭 진입 시 확인 처리
+  | { type: 'reviewPending'; canSendCurrent: boolean }
+  // target은 빈 칸이 있는 탭, 지금 탭이 아니면 지금 탭만 발송 가능
+  | { type: 'missingInput'; target: ResultNoticeTarget; missingField: ResultNoticeMissingField }
+  | { type: 'ready' }
+  | { type: 'sending' }
+  | { type: 'partiallySent'; unsentTarget: ResultNoticeTarget }
+  | { type: 'allSent' }
 
 export {
   DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
@@ -154,6 +196,8 @@ export {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
+  RESULT_NOTICE_TARGET_LABEL,
+  RESULT_NOTICE_TARGETS,
   RESULT_NOTICE_VARIABLES,
 }
 export type {
@@ -170,8 +214,13 @@ export type {
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,
+  RecipientDelivery,
   RecruitmentBoardQuery,
   ResultNoticeMessage,
+  ResultNoticeMissingField,
+  ResultNoticeOverview,
+  ResultNoticeRecipient,
+  ResultNoticeSendState,
   ResultNoticeTarget,
   ResultNoticeVariable,
   ResultNoticeVariableValues,
