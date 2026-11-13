@@ -113,6 +113,7 @@ function DialogSummary({ className, ...props }: ComponentProps<'dl'>) {
 const SUMMARY_ROW_TONE_CLASS = {
   default: 'text-neutral',
   positive: 'text-positive',
+  critical: 'text-critical',
   subtle: 'text-neutral-subtle',
 } satisfies Record<string, string>
 
