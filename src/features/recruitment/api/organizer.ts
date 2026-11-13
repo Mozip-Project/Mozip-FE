@@ -1,3 +1,4 @@
+import { ONGOING_RECRUITMENT_SAMPLE } from '@/features/recruitment/mocks/ongoingRecruitmentSample'
 import {
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_STATUSES,
@@ -17,6 +18,7 @@ import {
   type DocumentReviewQuery,
   type DocumentReviewSort,
   type DocumentReviewStatus,
+  type OngoingRecruitment,
 } from '@/features/recruitment/types'
 import { DOCUMENT_RESULT_SAMPLE } from './documentResultSample'
 import { DOCUMENT_REVIEW_SAMPLE } from './documentReviewSample'
@@ -232,10 +234,17 @@ async function confirmDocumentResults(recruitmentId: string) {
   documentResultConfirmedAt.set(recruitmentId, new Date().toISOString())
 }
 
+// TODO: 진행 중인 모집 API 연결 시 서버 정렬이 없으면 sortByUpcomingSchedule 적용, 현재는 Figma 순서
+// eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
+async function getOngoingRecruitments(): Promise<OngoingRecruitment[]> {
+  return ONGOING_RECRUITMENT_SAMPLE
+}
+
 export {
   confirmDocumentResults,
   getDocumentResultApplicants,
   getDocumentResultOverview,
   getDocumentReviewApplicants,
+  getOngoingRecruitments,
   updateDocumentResult,
 }

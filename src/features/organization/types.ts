@@ -14,4 +14,10 @@ type OrganizationMember = {
   isMe: boolean
 }
 
-export type { MemberRole, OrganizationMember, OrganizationProfile }
+// TODO: 이용권 API 명세 확정 후 서버 응답 기준으로 교체
+type OrganizationPlan =
+  | { status: 'trial'; remainingDays: number }
+  | { status: 'trialEnded' }
+  | { status: 'package'; name: string }
+
+export type { MemberRole, OrganizationMember, OrganizationPlan, OrganizationProfile }
