@@ -13,6 +13,10 @@ function getDocumentResultPath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/documents/summary` as Route
 }
 
+function getResultNoticePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/documents/summary/notice` as Route
+}
+
 function getPostingManagePath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/postings` as Route
 }
@@ -32,4 +36,5 @@ export {
   getPostingCreatePath,
   getPostingManageDetailPath,
   getPostingManagePath,
+  getResultNoticePath,
 }

@@ -35,11 +35,12 @@ function SummaryBar({
   const { Icon, color } = STATUS_ICON[status]
 
   return (
+    // 스크롤 중 화면 하단에 고정, 내용 끝에서는 제자리
     <div
       data-slot="summary-bar"
       data-status={status}
       className={cn(
-        'flex flex-wrap items-center gap-gap-l rounded-l border border-neutral-subtle bg-layer-default px-padding-xl py-padding-m shadow-floating',
+        'sticky bottom-5 z-10 flex flex-wrap items-center gap-gap-l rounded-l border border-neutral-subtle bg-layer-default px-padding-xl py-padding-m shadow-floating',
         className,
       )}
     >
