@@ -13,7 +13,10 @@ import {
   getDocumentResultSummary,
   hasInterviewStepAfterConfirm,
 } from '@/features/recruitment/utils/documentResult'
-import { getResultNoticePath } from '@/features/recruitment/utils/recruitmentRoutes'
+import {
+  getInterviewTimetablePath,
+  getResultNoticePath,
+} from '@/features/recruitment/utils/recruitmentRoutes'
 import { DocumentResultConfirmDialog } from './documentResultConfirmDialog'
 
 type DocumentResultSummaryBarProps = Pick<
@@ -49,7 +52,6 @@ function DocumentResultSummaryBar({
             <NextStepActions
               recruitmentId={recruitmentId}
               hasInterviewStep={hasInterviewStep}
-              primaryActionRef={primaryActionRef}
               primaryLinkRef={primaryLinkRef}
             />
           }
@@ -82,7 +84,7 @@ function DocumentResultSummaryBar({
         // 트리거 없이 열고, 확정 후에는 버튼이 바뀌므로 현재 주요 버튼으로 focus 복귀
         onCloseAutoFocus={(event) => {
           event.preventDefault()
-          // 면접 없는 공고는 주요 동작이 안내 페이지 링크
+          // 확정 후 주요 동작은 안내 페이지·타임테이블 링크
           const primaryAction = primaryLinkRef.current ?? primaryActionRef.current
           primaryAction?.focus()
         }}
@@ -94,15 +96,13 @@ function DocumentResultSummaryBar({
 type NextStepActionsProps = {
   recruitmentId: string
   hasInterviewStep: boolean
-  primaryActionRef: Ref<HTMLButtonElement>
   primaryLinkRef: Ref<HTMLAnchorElement>
 }
 
-// TODO: 면접 타임테이블(결제 전이면 패키지 결제) 경로 확정 후 이동 연결
+// TODO: 결제 전이면 면접 타임테이블 대신 패키지 결제로 이동, 결제 상태 API 확정 후 분기
 function NextStepActions({
   recruitmentId,
   hasInterviewStep,
-  primaryActionRef,
   primaryLinkRef,
 }: NextStepActionsProps) {
   const noticePath = getResultNoticePath(recruitmentId)
@@ -122,8 +122,10 @@ function NextStepActions({
       <Button asChild variant="secondary" size="m">
         <Link href={noticePath}>서류 결과만 안내하기</Link>
       </Button>
-      <Button ref={primaryActionRef} size="m">
-        면접 타임테이블 만들기
+      <Button asChild size="m">
+        <Link ref={primaryLinkRef} href={getInterviewTimetablePath(recruitmentId)}>
+          면접 타임테이블 만들기
+        </Link>
       </Button>
     </>
   )

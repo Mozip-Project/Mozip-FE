@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import CheckIcon from '@/assets/icons/check.svg'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
@@ -31,18 +31,52 @@ const DELIVERY_ROW_CLASS = {
   emailCheck: 'bg-warning-weak',
 } satisfies Record<RecipientDelivery['status'], string>
 
+// 같은 행으로 다시 이동해도 스크롤하도록 요청마다 새 객체로 전달
+type RecipientFocusRequest = {
+  recipientId: string
+}
+
 type RecipientTableProps = {
   label: string
   recipients: readonly ResultNoticeRecipient[]
   // 발송 후 상태 열 제목, 없으면 화면 리더용 제목만 둠
   statusLabel?: string
+  // 실패한 지원자 보기로 이동할 행
+  focusRequest?: RecipientFocusRequest
 }
 
-function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+function RecipientTable({ label, recipients, statusLabel, focusRequest }: RecipientTableProps) {
+  const focusIndex = recipients.findIndex(({ id }) => id === focusRequest?.recipientId)
+  const isFocusRowHidden = focusIndex >= COLLAPSED_ROW_COUNT
+  const [isExpanded, setIsExpanded] = useState(isFocusRowHidden)
+  const [previousFocusRequest, setPreviousFocusRequest] = useState(focusRequest)
+  const tableRef = useRef<HTMLDivElement>(null)
   const firstRevealedRowRef = useRef<HTMLDivElement>(null)
   const toggleButtonRef = useRef<HTMLButtonElement>(null)
   const hiddenCount = recipients.length - COLLAPSED_ROW_COUNT
+
+  // 이동할 행이 접힌 영역에 있으면 펼쳐서 보이게 처리
+  if (focusRequest !== previousFocusRequest) {
+    setPreviousFocusRequest(focusRequest)
+
+    if (isFocusRowHidden) {
+      setIsExpanded(true)
+    }
+  }
+
+  // 이동한 행으로 스크롤하고 키보드 사용자도 위치를 알 수 있게 focus 이동
+  useEffect(() => {
+    if (!focusRequest) {
+      return
+    }
+
+    const row = tableRef.current?.querySelector<HTMLElement>(
+      `[data-recipient-id="${CSS.escape(focusRequest.recipientId)}"]`,
+    )
+    row?.scrollIntoView({ block: 'center' })
+    row?.focus({ preventScroll: true })
+  }, [focusRequest])
+
   const isCollapsible = hiddenCount > 0
   const visibleRecipients =
     isCollapsible && !isExpanded ? recipients.slice(0, COLLAPSED_ROW_COUNT) : recipients
@@ -61,7 +95,7 @@ function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps)
 
   return (
     <div data-slot="recipient-table">
-      <div role="table" aria-label={label}>
+      <div ref={tableRef} role="table" aria-label={label}>
         <div role="row" className={cn(ROW_CLASS, 'bg-neutral-weak py-padding-xs')}>
           <TableHeadCell className={COLUMN_CLASS.name}>지원자</TableHeadCell>
           <TableHeadCell className={COLUMN_CLASS.position}>포지션</TableHeadCell>
@@ -71,33 +105,39 @@ function RecipientTable({ label, recipients, statusLabel }: RecipientTableProps)
           </TableHeadCell>
         </div>
 
-        {visibleRecipients.map((recipient, index) => (
-          <div
-            key={recipient.id}
-            ref={index === COLLAPSED_ROW_COUNT ? firstRevealedRowRef : undefined}
-            role="row"
-            tabIndex={index === COLLAPSED_ROW_COUNT ? -1 : undefined}
-            className={cn(
-              ROW_CLASS,
-              'min-h-14 border-t border-neutral-subtle py-padding-s',
-              'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
-              DELIVERY_ROW_CLASS[recipient.delivery.status],
-            )}
-          >
-            <TableCell type="name" className={COLUMN_CLASS.name}>
-              {recipient.name}
-            </TableCell>
-            <TableCell type="text" className={COLUMN_CLASS.position}>
-              {DOCUMENT_REVIEW_POSITION_LABEL[recipient.position]}
-            </TableCell>
-            <TableCell type="text" className={COLUMN_CLASS.email}>
-              {recipient.email}
-            </TableCell>
-            <div role="cell" className={COLUMN_CLASS.status}>
-              <DeliveryStatus delivery={recipient.delivery} />
+        {visibleRecipients.map((recipient, index) => {
+          const canReceiveFocus =
+            index === COLLAPSED_ROW_COUNT || recipient.id === focusRequest?.recipientId
+
+          return (
+            <div
+              key={recipient.id}
+              ref={index === COLLAPSED_ROW_COUNT ? firstRevealedRowRef : undefined}
+              role="row"
+              data-recipient-id={recipient.id}
+              tabIndex={canReceiveFocus ? -1 : undefined}
+              className={cn(
+                ROW_CLASS,
+                'min-h-14 border-t border-neutral-subtle py-padding-s',
+                'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
+                DELIVERY_ROW_CLASS[recipient.delivery.status],
+              )}
+            >
+              <TableCell type="name" className={COLUMN_CLASS.name}>
+                {recipient.name}
+              </TableCell>
+              <TableCell type="text" className={COLUMN_CLASS.position}>
+                {DOCUMENT_REVIEW_POSITION_LABEL[recipient.position]}
+              </TableCell>
+              <TableCell type="text" className={COLUMN_CLASS.email}>
+                {recipient.email}
+              </TableCell>
+              <div role="cell" className={COLUMN_CLASS.status}>
+                <DeliveryStatus delivery={recipient.delivery} />
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {isCollapsible && (
@@ -141,3 +181,4 @@ function DeliveryStatus({ delivery }: { delivery: RecipientDelivery }) {
 }
 
 export { RecipientTable }
+export type { RecipientFocusRequest }
