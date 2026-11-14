@@ -13,27 +13,26 @@ function DeliveryFailureNotice({
   failedRecipientsByTarget,
   onShowFailed,
 }: DeliveryFailureNoticeProps) {
-  const failedTarget = RESULT_NOTICE_TARGETS.find(
-    (target) => failedRecipientsByTarget[target].length > 0,
-  )
+  // 지금 탭에도 실패자가 있으면 지금 탭의 첫 실패 행으로 이동(접힌 행이면 표를 펼침)
+  const hasCurrentTargetFailed = failedRecipientsByTarget[currentTarget].length > 0
+  const failedTarget = hasCurrentTargetFailed
+    ? currentTarget
+    : RESULT_NOTICE_TARGETS.find((target) => failedRecipientsByTarget[target].length > 0)
 
   if (!failedTarget) {
     return null
   }
 
   const failedCount = failedRecipientsByTarget.pass.length + failedRecipientsByTarget.fail.length
-  const canShowFailed = currentTarget !== failedTarget
 
   return (
     <InlineNotice
       tone="critical"
       title={`메일 ${failedCount}건이 전달되지 않았어요`}
       action={
-        canShowFailed && (
-          <InlineNoticeAction onClick={() => onShowFailed(failedTarget)}>
-            실패한 지원자 보기
-          </InlineNoticeAction>
-        )
+        <InlineNoticeAction onClick={() => onShowFailed(failedTarget)}>
+          실패한 지원자 보기
+        </InlineNoticeAction>
       }
       className="px-padding-xl"
     >
