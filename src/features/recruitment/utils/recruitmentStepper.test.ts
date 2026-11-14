@@ -7,7 +7,6 @@ const SCHEDULE: RecruitmentSchedule = {
   applicationDeadline: '2026-10-15',
   documentReviewCompletedAt: '2026-10-18',
   documentResultDate: '2026-10-18',
-  interviewReviewCompletedAt: '2026-10-23',
   finalResultDate: '2026-10-27',
 }
 
@@ -44,7 +43,7 @@ describe('getRecruitmentSteps', () => {
     ])
   })
 
-  it('면접 모집은 6단계, 서류 결과·최종 결과는 발표일 표시', () => {
+  it('면접 모집도 4단계, 마지막 단계는 서류 결과 발표일 표시', () => {
     const steps = getRecruitmentSteps({
       stage: 'documentResult',
       hasInterview: true,
@@ -56,9 +55,21 @@ describe('getRecruitmentSteps', () => {
       ['지원 접수', 'done', '10/15 (목) 완료'],
       ['서류 평가', 'done', '10/18 (일) 완료'],
       ['서류 결과', 'current', '10/18 (일) 발표'],
-      ['면접 평가', 'upcoming', null],
-      ['최종 결과', 'upcoming', '10/27 (화) 발표'],
     ])
+  })
+
+  it('진행 중인 서류 평가도 결과를 확정했으면 확정일 표시', () => {
+    const steps = getRecruitmentSteps({
+      stage: 'documentReview',
+      hasInterview: false,
+      schedule: SCHEDULE,
+    })
+
+    expect(steps[2]).toMatchObject({
+      label: '서류 평가',
+      status: 'current',
+      dateLabel: '10/18 (일) 완료',
+    })
   })
 
   it('완료일이 아직 없는 평가 단계는 날짜 생략', () => {
