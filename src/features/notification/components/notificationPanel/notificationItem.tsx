@@ -7,7 +7,7 @@ type NotificationItemProps = {
 
 function NotificationItem({ isRead, source, title, meta }: NotificationItemProps) {
   return (
-    <div className="flex min-w-60 justify-between gap-gap-m bg-layer-floating px-padding-l py-padding-m">
+    <div className="flex min-w-60 justify-between gap-gap-m bg-layer-floating px-padding-l py-padding-m hover:bg-neutral-weak">
       <div className="flex min-w-0 flex-col gap-gap-xxs text-caption1 break-words text-neutral-subtle">
         {!isRead && <span className="sr-only">읽지 않음</span>}
         <span className={`font-medium ${isRead ? '' : 'text-brand'}`}>{source}</span>
