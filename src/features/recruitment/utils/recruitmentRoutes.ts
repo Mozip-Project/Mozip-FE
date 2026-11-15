@@ -13,6 +13,18 @@ function getDocumentResultPath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/documents/summary` as Route
 }
 
+function getResultNoticePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/documents/summary/notice` as Route
+}
+
+function getInterviewTimetablePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/interviews/timetable` as Route
+}
+
+function getInterviewResultNoticePath(recruitmentId: string) {
+  return `/manage/recruitments/${recruitmentId}/interviews/timetable/notice` as Route
+}
+
 function getPostingManagePath(recruitmentId: string) {
   return `/manage/recruitments/${recruitmentId}/postings` as Route
 }
@@ -29,7 +41,10 @@ export {
   getApplicantReviewPath,
   getDocumentResultPath,
   getDocumentReviewPath,
+  getInterviewResultNoticePath,
+  getInterviewTimetablePath,
   getPostingCreatePath,
   getPostingManageDetailPath,
   getPostingManagePath,
+  getResultNoticePath,
 }

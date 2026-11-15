@@ -125,6 +125,13 @@ type DocumentResultOverview = {
 // 결과 안내 메시지는 합격·불합격 두 종류만 발송
 type ResultNoticeTarget = Extract<DocumentResult, 'pass' | 'fail'>
 
+const RESULT_NOTICE_TARGETS = ['pass', 'fail'] as const satisfies readonly ResultNoticeTarget[]
+
+const RESULT_NOTICE_TARGET_LABEL = {
+  pass: '합격자',
+  fail: '불합격자',
+} satisfies Record<ResultNoticeTarget, string>
+
 // TODO: 결과 안내 API 명세 확정 후 서버 변수명과 맞추기
 const RESULT_NOTICE_VARIABLES = [
   '이름',
@@ -145,17 +152,93 @@ type ResultNoticeMessage = {
   body: string
 }
 
+type RecipientDelivery =
+  | { status: 'pending' }
+  | { status: 'delivered' }
+  | { status: 'failed'; message: string }
+  | { status: 'emailCheck'; message: string }
+
+// 면접 정보 안내에서만 있음, 확정한 타임테이블 값
+type ResultNoticeInterviewSchedule = {
+  dateTime: string
+  place: string
+}
+
+type ResultNoticeRecipient = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  email: string
+  delivery: RecipientDelivery
+  interviewSchedule?: ResultNoticeInterviewSchedule
+}
+
+// 서류 결과만 안내(취합에서 진입)와 면접 정보까지 안내(타임테이블 확정 후 진입)
+type ResultNoticeKind = 'document' | 'interview'
+
+// 발송 창·하단 바 문구의 발송 대상
+const RESULT_NOTICE_SEND_SUBJECT = {
+  document: '서류 결과를',
+  interview: '서류 결과와 면접 일정을',
+} satisfies Record<ResultNoticeKind, string>
+
+type ResultNoticeOverview = {
+  organizationName: string
+  // 면접 정보 안내에서만 있음
+  interviewPeriod?: string
+  // 확정된 합격·불합격 지원자, 탭 숫자도 이 인원 기준
+  recipients: Record<ResultNoticeTarget, ResultNoticeRecipient[]>
+}
+
+// 대상 하나의 발송 결과, 받는 사람별 전달 상태 포함
+type ResultNoticeTargetSendResult = {
+  message: ResultNoticeMessage
+  recipients: ResultNoticeRecipient[]
+}
+
+// 이메일 확인 필요 인원은 발송 인원에서 제외
+type ResultNoticeDeliverySummary = {
+  totalCount: number
+  sentCount: number
+  deliveredCount: number
+  failedRecipients: ResultNoticeRecipient[]
+}
+
+type ResultNoticeMissingField = 'subject' | 'body' | 'both'
+
+// 결과 안내 하단 바 상태
+type ResultNoticeSendState =
+  // 불합격자 0명, 합격 메시지만 확인. 빈 칸이 없으면 missingField는 null
+  | { type: 'allPassed'; missingField: ResultNoticeMissingField | null }
+  // 불합격자 탭에 들어가기 전(지금 탭은 합격자), 불합격자 탭 진입 시 확인 처리
+  | { type: 'reviewPending'; canSendCurrent: boolean }
+  // target은 빈 칸이 있는 탭, 지금 탭이 아니면 지금 탭만 발송 가능
+  | { type: 'missingInput'; target: ResultNoticeTarget; missingField: ResultNoticeMissingField }
+  | { type: 'ready' }
+  | { type: 'sending' }
+  // 한쪽만 발송, 남은 탭 메시지가 비어 있으면 발송 불가
+  | { type: 'partiallySent'; unsentTarget: ResultNoticeTarget; canSendUnsent: boolean }
+  | { type: 'allSent' }
+
 // TODO: 모집 단계 API 명세 확정 후 서버 enum으로 교체
-const RECRUITMENT_STAGES = [
+// MVP의 면접 모집은 서류 결과 안내까지, 면접 평가·최종 결과 단계는 이후 확장
+const INTERVIEW_RECRUITMENT_STAGES = [
   'posting',
   'application',
   'documentReview',
   'documentResult',
-  'interviewReview',
+] as const
+
+const NO_INTERVIEW_RECRUITMENT_STAGES = [
+  'posting',
+  'application',
+  'documentReview',
   'finalResult',
 ] as const
 
-type RecruitmentStage = (typeof RECRUITMENT_STAGES)[number]
+type InterviewRecruitmentStage = (typeof INTERVIEW_RECRUITMENT_STAGES)[number]
+type NoInterviewRecruitmentStage = (typeof NO_INTERVIEW_RECRUITMENT_STAGES)[number]
+type RecruitmentStage = InterviewRecruitmentStage | NoInterviewRecruitmentStage
 
 // 완료일은 해당 단계를 마친 뒤에만 존재
 type RecruitmentSchedule = {
@@ -163,14 +246,18 @@ type RecruitmentSchedule = {
   applicationDeadline: string
   documentReviewCompletedAt: string | null
   documentResultDate: string
-  interviewReviewCompletedAt: string | null
+  // 면접 모집은 MVP 단계에 없지만 최종 결과 단계 확장용으로 유지
   finalResultDate: string
 }
 
-type RecruitmentProgress = {
-  stage: RecruitmentStage
-  hasInterview: boolean
-  schedule: RecruitmentSchedule
+type RecruitmentProgress =
+  | { hasInterview: true; stage: InterviewRecruitmentStage; schedule: RecruitmentSchedule }
+  | { hasInterview: false; stage: NoInterviewRecruitmentStage; schedule: RecruitmentSchedule }
+
+type OngoingRecruitment = {
+  id: string
+  title: string
+  progress: RecruitmentProgress
 }
 
 export {
@@ -189,7 +276,11 @@ export {
   DOCUMENT_REVIEW_SORTS,
   DOCUMENT_REVIEW_STATUS_LABEL,
   DOCUMENT_REVIEW_STATUSES,
-  RECRUITMENT_STAGES,
+  INTERVIEW_RECRUITMENT_STAGES,
+  NO_INTERVIEW_RECRUITMENT_STAGES,
+  RESULT_NOTICE_SEND_SUBJECT,
+  RESULT_NOTICE_TARGET_LABEL,
+  RESULT_NOTICE_TARGETS,
   RESULT_NOTICE_VARIABLES,
 }
 export type {
@@ -206,11 +297,23 @@ export type {
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,
+  InterviewRecruitmentStage,
+  NoInterviewRecruitmentStage,
+  OngoingRecruitment,
+  RecipientDelivery,
   RecruitmentBoardQuery,
   RecruitmentProgress,
   RecruitmentSchedule,
   RecruitmentStage,
+  ResultNoticeDeliverySummary,
+  ResultNoticeInterviewSchedule,
+  ResultNoticeKind,
   ResultNoticeMessage,
+  ResultNoticeMissingField,
+  ResultNoticeOverview,
+  ResultNoticeRecipient,
+  ResultNoticeTargetSendResult,
+  ResultNoticeSendState,
   ResultNoticeTarget,
   ResultNoticeVariable,
   ResultNoticeVariableValues,

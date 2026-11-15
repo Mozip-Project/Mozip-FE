@@ -37,6 +37,8 @@ type NotificationPanelProps = {
   defaultOpen?: boolean
 }
 
+const NOTIFICATION_PANEL_SIDE_OFFSET_PX = 8
+
 const ICON_BUTTON_CLASS =
   'flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-s text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid'
 
@@ -82,6 +84,7 @@ function NotificationPanel({ notifications, settingsHref, defaultOpen }: Notific
         data-slot="notification-panel"
         aria-labelledby={titleId}
         align="end"
+        sideOffset={NOTIFICATION_PANEL_SIDE_OFFSET_PX}
         onOpenAutoFocus={handleOpenAutoFocus}
         className="flex h-155 max-h-(--radix-popover-content-available-height) w-100 min-w-70 flex-col overflow-hidden rounded-xl"
       >

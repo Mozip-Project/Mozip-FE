@@ -20,6 +20,7 @@ type SelectMenuContentProps<TValue extends string> = {
   onValueChange: (value: TValue) => void
   groupLabel?: string
   actions?: ReactNode
+  sideOffset?: number
 }
 
 // SelectMenu, FilterSelect가 트리거만 다르고 같은 패널을 공유
@@ -29,6 +30,7 @@ function SelectMenuContent<TValue extends string>({
   onValueChange,
   groupLabel,
   actions,
+  sideOffset,
 }: SelectMenuContentProps<TValue>) {
   const groupLabelId = useId()
 
@@ -43,6 +45,7 @@ function SelectMenuContent<TValue extends string>({
   return (
     <DropdownMenuContent
       align="end"
+      sideOffset={sideOffset}
       className="flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted p-padding-xs"
     >
       {groupLabel && <DropdownMenuLabel id={groupLabelId}>{groupLabel}</DropdownMenuLabel>}

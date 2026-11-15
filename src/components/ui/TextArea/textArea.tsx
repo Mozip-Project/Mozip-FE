@@ -93,7 +93,9 @@ function TextArea({
         aria-describedby={descriptionIds || undefined}
         className={cn(
           'field-sizing-content min-h-0 w-full flex-1 resize-none rounded-m border border-neutral-muted bg-layer-default px-padding-m py-padding-s text-body2 font-normal text-neutral placeholder:text-placeholder',
-          'transition-colors outline-none focus:border-brand-solid motion-reduce:transition-none',
+          'transition-colors outline-none not-aria-invalid:focus:border-brand-solid motion-reduce:transition-none',
+          // 오류 중에는 포커스해도 빨간 테두리 유지
+          'aria-invalid:border-critical-solid',
           'read-only:border-neutral-subtle read-only:bg-neutral-weak',
           // 카운터 높이만큼 하단 여백 확보
           hasCounter && 'pb-7',

@@ -36,15 +36,16 @@ function Banner({
   className,
 }: BannerProps) {
   return (
+    // Figma 미정의 모바일은 세로 배치
     <div
       data-slot="banner"
       className={cn(
-        'flex items-center gap-gap-l rounded-l px-padding-xl py-padding-l',
+        'flex flex-col items-start gap-gap-l rounded-l px-padding-xl py-padding-l tablet:min-h-22 tablet:flex-row tablet:items-center tablet:py-padding-m',
         BANNER_TONE_CLASS[tone],
         className,
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-gap-xs">
+      <div className="flex w-full min-w-0 flex-col gap-gap-xs tablet:flex-1">
         <div className="flex items-center gap-gap-s">
           <p className="min-w-0 text-headline2 font-semibold break-keep text-neutral">{title}</p>
           {badgeLabel && <Badge tone="informative">{badgeLabel}</Badge>}
