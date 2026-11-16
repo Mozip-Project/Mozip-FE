@@ -39,7 +39,7 @@ describe('useIsStuckToTop', () => {
     })
     vi.stubGlobal('cancelAnimationFrame', vi.fn())
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-      () => ({ top: elementTopPx }) as DOMRect,
+      () => new DOMRect(0, elementTopPx, 0, 0),
     )
   })
 
