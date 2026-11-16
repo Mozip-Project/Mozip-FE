@@ -57,14 +57,17 @@ function StickyTopBar({ children, className }: StickyTopBarProps) {
 // 한 화면에 목록 하나라 모듈 변수로 관리
 let releaseKeptContentHeight: (() => void) | null = null
 
+// 숨겨진 비활성 탭 패널은 크기가 0이라 제외하고 보이는 마지막 자식 기준
 function getContentHeight(content: HTMLElement) {
-  const lastChild = content.lastElementChild
+  const lastVisibleChild = Array.from(content.children).findLast(
+    (child) => child.getClientRects().length > 0,
+  )
 
-  if (!lastChild) {
+  if (!lastVisibleChild) {
     return 0
   }
 
-  return lastChild.getBoundingClientRect().bottom - content.getBoundingClientRect().top
+  return lastVisibleChild.getBoundingClientRect().bottom - content.getBoundingClientRect().top
 }
 
 // 새 내용이 짧아져 스크롤이 위로 당겨지는 문제 방지, 직전 높이 유지 후 안전한 위치에서 해제
@@ -114,9 +117,10 @@ function scrollToStickyBarTop(container: Element) {
     return
   }
 
-  const offsetPx = container.getBoundingClientRect().top - bar.getBoundingClientRect().top
+  const containerTopPx = container.getBoundingClientRect().top
+  const isStuck = containerTopPx < bar.getBoundingClientRect().top
 
-  if (offsetPx >= 0) {
+  if (!isStuck) {
     return
   }
 
@@ -125,7 +129,14 @@ function scrollToStickyBarTop(container: Element) {
   if (content) {
     keepContentHeight(content)
   }
-  scrollWithoutRevealing(window.scrollY + offsetPx)
+  scrollWithoutRevealing(window.scrollY + containerTopPx - getFinalStickyTopPx())
+}
+
+// GNB 표시 전환 중에는 바의 현재 위치가 중간값이라 전환이 끝난 고정 위치 사용
+function getFinalStickyTopPx() {
+  const isGnbRevealed = document.querySelector("[data-slot='gnb'][data-revealed]") !== null
+
+  return isGnbRevealed ? REVEALED_STICKY_TOP_PX : STICKY_TOP_PX
 }
 
 export { scrollToStickyBarTop, StickyTopBar }
