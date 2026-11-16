@@ -1,8 +1,8 @@
 'use client'
 
+import { useRef, type ReactNode } from 'react'
+import { scrollToStickyBarTop, StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs/tabs'
-import { cn } from '@/lib/utils'
-import type { ReactNode } from 'react'
 
 type ListToolBarTab<TValue extends string> = {
   value: TValue
@@ -27,33 +27,41 @@ function ListToolBar<TValue extends string>({
   controls,
   children,
 }: ListToolBarProps<TValue>) {
+  const listTopRef = useRef<HTMLDivElement>(null)
+
   function handleValueChange(nextValue: string) {
     const nextTab = tabs.find((tab) => tab.value === nextValue)
 
-    if (nextTab) {
-      onValueChange(nextTab.value)
+    if (!nextTab) {
+      return
     }
+
+    if (listTopRef.current) {
+      scrollToStickyBarTop(listTopRef.current)
+    }
+    onValueChange(nextTab.value)
   }
 
   return (
-    <Tabs value={value} onValueChange={handleValueChange}>
-      <div
-        data-slot="list-tool-bar"
-        className={cn(
-          'relative flex min-h-12 flex-wrap items-center gap-x-gap-s',
-          'before:absolute before:inset-x-0 before:bottom-0 before:border-b before:border-neutral-subtle',
-        )}
-      >
-        <TabsList aria-label={tabsLabel} className="self-end">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} count={tab.count}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {controls && <div className="ml-auto flex items-center gap-gap-xs">{controls}</div>}
-      </div>
-      <TabsContent value={value}>{children}</TabsContent>
+    <Tabs ref={listTopRef} value={value} onValueChange={handleValueChange}>
+      <StickyTopBar>
+        <div
+          data-slot="list-tool-bar"
+          className="relative flex min-h-12 flex-wrap items-center gap-x-gap-s before:absolute before:inset-x-0 before:bottom-0 before:border-b before:border-neutral-subtle"
+        >
+          <TabsList aria-label={tabsLabel} className="self-end">
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} count={tab.count}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {controls && <div className="ml-auto flex items-center gap-gap-xs">{controls}</div>}
+        </div>
+      </StickyTopBar>
+      <TabsContent value={value} data-sticky-bar-content="">
+        {children}
+      </TabsContent>
     </Tabs>
   )
 }
