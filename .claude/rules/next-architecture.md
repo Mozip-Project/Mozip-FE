@@ -11,6 +11,7 @@
 | `src/app/(applicant)/` | 지원자 영역과 지원자용 layout                                            |
 | `src/app/manage/`      | 운영진 영역과 운영진용 layout                                            |
 | `src/components/ui/`   | 기본 UI. 컴포넌트 폴더에는 컴포넌트와 스토리만, 테스트는 `__tests__/`    |
+| `src/gql/`             | codegen 생성 결과. 직접 수정하지 않음                                    |
 | `src/features/`        | 도메인 코드. 지원자·운영진 구분은 `api/`·`components/` 안에서만          |
 | `src/hooks/`           | 도메인을 모르는 공용 hook과 테스트                                       |
 | `src/lib/`             | 라이브러리 설정·래퍼                                                     |

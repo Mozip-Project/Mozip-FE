@@ -51,6 +51,18 @@ src/app/
 
 base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지 않고, 공용 API 클라이언트 하나를 통해 호출합니다.
 
+| 파일                       | 역할                                                                                    |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| `src/lib/graphqlClient.ts` | `requestGraphQL`. 엔드포인트·쿠키 전송·토큰 재발급 후 재요청을 한곳에서 처리            |
+| `src/lib/apiError.ts`      | `ApiError`와 GraphQL·REST 에러 응답을 `ApiError`로 바꾸는 변환                          |
+| `schema.graphql`           | codegen이 읽는 스키마. 지금은 명세에서 옮긴 임시본이고, 미구현 필드는 MSW로 응답        |
+| `src/gql/`                 | `pnpm codegen`이 만드는 타입과 `graphql()` 함수. 직접 고치지 않고 생성 결과를 함께 커밋 |
+
+- 엔드포인트는 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`(절대 주소)에서 읽습니다. 값이 없으면 import 시점이 아니라 첫 요청에서 에러를 던집니다.
+- GraphQL 에러는 HTTP 200으로 오므로 상태 코드가 아니라 `errors[].extensions.code`로 구분합니다. `requestGraphQL`은 이를 `ApiError`로 바꿔 던집니다.
+- `AUTH_002`(access token 만료)를 받으면 쿠키가 있는 브라우저에서만 `POST /auth/reissue`를 한 번 보내고 같은 요청을 다시 보냅니다. 동시에 여러 요청이 만료돼도 재발급은 한 번만 보냅니다.
+- query·mutation은 도메인 API 함수(`features/<도메인>/api/`)에서 `@/gql`의 `graphql()`로 작성하고, `pnpm codegen`으로 타입을 다시 만듭니다.
+
 ## 공용 코드는 도메인을 모릅니다
 
 Button, Modal 같은 기본 UI와 날짜 포맷 같은 유틸은 "공고"나 "지원서"를 몰라야 합니다. 도메인 코드가 공용 코드를 가져다 쓰고, 그 반대는 하지 않습니다.
@@ -58,9 +70,10 @@ Button, Modal 같은 기본 UI와 날짜 포맷 같은 유틸은 "공고"나 "�
 ```text
 src/
 ├── components/ui/   # 기본 UI. 컴포넌트 폴더마다 컴포넌트와 스토리만 둠, 테스트는 ui/__tests__/
+├── gql/             # codegen 생성 결과. 직접 수정하지 않음
 ├── hooks/           # 도메인을 모르는 공용 hook과 테스트
 ├── lib/             # 라이브러리 설정·래퍼
-├── mocks/           # MSW 설정. 도메인 handler를 모으는 handler.ts와 browser.ts·server.ts
+├── mocks/           # MSW 설정. 도메인 handler를 모으는 handler.ts, browser.ts·server.ts, GraphQL link(graphqlApi.ts)
 ├── providers/       # 전역 Provider (Query, 토스트, MSW 대기)
 └── utils/           # 의존성 없는 순수 함수와 테스트
 ```
@@ -149,10 +162,11 @@ handler 목록 하나를 브라우저, Next 서버, 테스트가 함께 씁니�
 | ---------------- | ---------------------- | -------------------------------------------------------------- |
 | 브라우저         | `src/mocks/browser.ts` | `src/providers/mockProvider.tsx` (worker 준비까지 렌더링 대기) |
 | Next 서버        | `src/mocks/server.ts`  | `src/instrumentation.ts`의 `register()`                        |
-| Vitest           | `src/mocks/server.ts`  | API 연동 테스트가 생기면 `src/test/setup.ts`에 연결            |
+| Vitest           | `src/mocks/server.ts`  | `src/test/setup.ts`                                            |
 
 - `.env.local`에 `NEXT_PUBLIC_API_MOCKING=enabled`를 두면 `pnpm dev`에서 켜집니다. production build에서는 값과 관계없이 꺼집니다.
 - handler는 도메인의 `features/<도메인>/mocks/`에 작성하고 `src/mocks/handler.ts`에 추가합니다.
+- GraphQL handler는 `src/mocks/graphqlApi.ts`의 `graphqlApi.query`·`graphqlApi.mutation`으로 작성합니다. msw v3는 `graphql.link(url)`로 만든 link에서만 handler를 만들 수 있습니다.
 - `public/mockServiceWorker.js`는 msw가 만드는 파일이라 직접 고치지 않습니다. msw 버전을 올리면 `pnpm exec msw init`으로 다시 만듭니다.
 
 ## 인증 토큰은 httpOnly 쿠키로 받습니다

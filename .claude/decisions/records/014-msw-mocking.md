@@ -14,7 +14,7 @@ handler 목록 하나를 실행 환경별 설정 세 곳이 함께 씁니다.
 - handler와 샘플 데이터는 `src/features/<도메인>/mocks/`에 두고, `src/mocks/handler.ts`는 도메인 handler를 모아 배열로 합치기만 합니다.
 - 브라우저: `src/mocks/browser.ts`(`setupWorker`)를 `src/providers/mockProvider.tsx`가 시작합니다. worker가 준비될 때까지 `Suspense` + `use()`로 자식 렌더링을 기다리고, 그동안 서버 HTML을 유지합니다.
 - Next 서버: `src/mocks/server.ts`(`setupServer`)를 `src/instrumentation.ts`의 `register()`에서 Node 런타임일 때만 시작합니다.
-- 테스트: API 연동 테스트가 생기면 같은 `server.ts`를 `src/test/setup.ts`에 연결합니다.
+- 테스트: 같은 `server.ts`를 `src/test/setup.ts`에서 시작하고, handler 없는 요청은 `onUnhandledFrame: 'error'`로 실패시킵니다. 테스트별 응답은 테스트 파일에서 `server.use`로 바꿉니다.
 - 켜기 조건은 `NODE_ENV === 'development'`이면서 `NEXT_PUBLIC_API_MOCKING === 'enabled'`일 때입니다. 서버와 브라우저가 같은 변수 하나를 읽습니다.
 - `public/mockServiceWorker.js`는 커밋하고 Prettier·ESLint 대상에서 제외합니다. msw 버전을 올리면 `pnpm exec msw init`으로 다시 생성합니다.
 
