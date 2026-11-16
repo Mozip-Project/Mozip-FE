@@ -113,6 +113,51 @@ describe('requestGraphQL', () => {
     expect(getReissueCount()).toBe(1)
   })
 
+  it('재발급이 끝난 뒤 늦게 도착한 만료 응답은 재발급 없이 다시 보낸다', async () => {
+    let requestCount = 0
+    let reissueCount = 0
+    let releaseStaleResponse: () => void = () => {}
+    const staleResponseReleased = new Promise<void>((resolve) => {
+      releaseStaleResponse = resolve
+    })
+
+    server.use(
+      graphqlApi.query('Health', async () => {
+        requestCount += 1
+        // 첫 응답은 바로 만료, 두 번째 응답은 재발급 뒤 다시 요청이 올 때까지 붙잡아 둠
+        if (requestCount === 1) {
+          return graphqlError('AUTH_002')
+        }
+        if (requestCount === 2) {
+          await staleResponseReleased
+          return graphqlError('AUTH_002')
+        }
+        // 세 번째는 재발급을 마친 요청의 재요청
+        if (requestCount === 3) {
+          releaseStaleResponse()
+        }
+        return HttpResponse.json({ data: HEALTH_DATA })
+      }),
+      http.post(REISSUE_URL, () => {
+        reissueCount += 1
+        return HttpResponse.json({
+          success: true,
+          code: 'OK',
+          message: '요청이 성공했습니다.',
+          data: null,
+        })
+      }),
+    )
+
+    const results = await Promise.all([
+      requestGraphQL(HealthDocument),
+      requestGraphQL(HealthDocument),
+    ])
+
+    expect(results).toEqual([HEALTH_DATA, HEALTH_DATA])
+    expect(reissueCount).toBe(1)
+  })
+
   it('재발급이 AUTH_007이면 원래 요청만 다시 보낸다', async () => {
     let requestCount = 0
     server.use(

@@ -9,6 +9,8 @@ type VariablesArgs<TVariables> = TVariables extends Record<string, never> ? [] :
 
 let graphqlClient: GraphQLClient | undefined
 let pendingReissue: Promise<void> | undefined
+// 재발급 성공마다 증가, 요청 뒤 이미 재발급됐는지 판단에 사용
+let reissueGeneration = 0
 
 function getGraphQLEndpoint() {
   const endpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT
@@ -26,12 +28,14 @@ function reissueToken() {
       credentials: 'include',
     })
     if (response.ok) {
+      reissueGeneration += 1
       return
     }
 
     const body: unknown = await response.json().catch(() => undefined)
     const error = parseRestError(body)
     if (error?.code === REISSUE_ALREADY_DONE_CODE) {
+      reissueGeneration += 1
       return
     }
 
@@ -57,6 +61,8 @@ async function requestGraphQL<TResult, TVariables extends Variables>(
     credentials: 'include',
   }))
 
+  const generationAtRequest = reissueGeneration
+
   try {
     return await client.request<TResult>(document, variables)
   } catch (error) {
@@ -66,7 +72,10 @@ async function requestGraphQL<TResult, TVariables extends Variables>(
     }
   }
 
-  await reissueToken()
+  // 재발급이 끝난 뒤 늦게 도착한 만료 응답은 재발급 없이 다시 요청
+  if (reissueGeneration === generationAtRequest) {
+    await reissueToken()
+  }
 
   try {
     return await client.request<TResult>(document, variables)
