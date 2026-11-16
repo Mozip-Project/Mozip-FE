@@ -5,6 +5,7 @@ import {
   ApplicantChipStrip,
   type StripApplicant,
 } from '@/components/ui/ApplicantChipStrip/applicantChipStrip'
+import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import type { Route } from 'next'
 
 type DocumentEvaluationChipStripProps = {
@@ -25,12 +26,15 @@ function DocumentEvaluationChipStrip({
   }
 
   return (
-    <ApplicantChipStrip
-      label="지원자 목록"
-      applicants={applicants}
-      currentId={currentId}
-      onSelect={handleSelect}
-    />
+    // 지원서를 읽다가 바로 다른 지원자로 이동하도록 고정
+    <StickyTopBar>
+      <ApplicantChipStrip
+        label="지원자 목록"
+        applicants={applicants}
+        currentId={currentId}
+        onSelect={handleSelect}
+      />
+    </StickyTopBar>
   )
 }
 

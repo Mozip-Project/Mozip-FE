@@ -7,6 +7,7 @@ import { Pagination } from '@/components/ui/Pagination/pagination'
 import { SearchField } from '@/components/ui/SearchField/searchField'
 import { MultiSelectMenu } from '@/components/ui/SelectMenu/multiSelectMenu'
 import { SelectMenu } from '@/components/ui/SelectMenu/selectMenu'
+import { scrollToStickyBarTop } from '@/components/ui/StickyTopBar/stickyTopBar'
 import {
   DOCUMENT_REVIEW_POSITION_LABEL,
   DOCUMENT_REVIEW_POSITIONS,
@@ -88,16 +89,8 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
     : undefined
 
   function scrollToTableTop() {
-    const section = sectionRef.current
-
-    if (!section) {
-      return
-    }
-
-    const stickyOffset = parseFloat(getComputedStyle(section).scrollMarginTop)
-
-    if (section.getBoundingClientRect().top < stickyOffset) {
-      section.scrollIntoView({ block: 'start' })
+    if (sectionRef.current) {
+      scrollToStickyBarTop(sectionRef.current)
     }
   }
 
@@ -116,27 +109,28 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
   // 사라지는 빈 상태 버튼 대신 검색창으로 focus 이동
   function clearKeyword() {
     search.changeKeyword('')
-    sectionRef.current?.querySelector<HTMLInputElement>('[data-slot=search-field-input]')?.focus()
+    sectionRef.current
+      ?.querySelector<HTMLInputElement>('[data-slot=search-field-input]')
+      ?.focus({ preventScroll: true })
   }
 
   // 포지션 필터가 있으면 포지션만 전체로, 없으면 탭을 전체로 되돌리고 바뀐 조건으로 focus 이동
   function resetFilters() {
     if (isPositionFiltered) {
       applyQueryChange({ positions: DOCUMENT_REVIEW_POSITIONS })
-      positionMenuRef.current?.querySelector('button')?.focus()
+      positionMenuRef.current?.querySelector('button')?.focus({ preventScroll: true })
       return
     }
 
     if (defaultStatus !== undefined) {
       applyQueryChange({ status: defaultStatus })
-      sectionRef.current?.querySelector<HTMLElement>('[role=tab]')?.focus()
+      sectionRef.current?.querySelector<HTMLElement>('[role=tab]')?.focus({ preventScroll: true })
     }
   }
 
   return (
     <>
-      {/* GNB(64px) 아래로 표 상단 정렬 */}
-      <section ref={sectionRef} aria-label="지원자 목록" className="scroll-mt-16">
+      <section ref={sectionRef} aria-label="지원자 목록">
         <ListToolBar
           tabs={statusTabs}
           tabsLabel={tabsLabel}

@@ -36,7 +36,8 @@ function DraftPostingMenu({ postingId, title }: DraftPostingMenuProps) {
         onCloseAutoFocus={(event) => {
           if (deletedTabRef.current) {
             event.preventDefault()
-            deletedTabRef.current.focus()
+            // 탭은 고정 툴바 안이라 스크롤 없이 처리
+            deletedTabRef.current.focus({ preventScroll: true })
           }
         }}
       >

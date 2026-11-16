@@ -24,8 +24,8 @@ function SearchField({ className, size = 'l', value, onValueChange, ...props }: 
   function handleClear() {
     onValueChange('')
 
-    // 사라지는 지우기 버튼 대신 입력으로 focus 복귀
-    inputRef.current?.focus()
+    // 사라지는 지우기 버튼 대신 입력으로 focus 복귀, 고정 바 안에 있을 수 있어 스크롤 없이 처리
+    inputRef.current?.focus({ preventScroll: true })
   }
 
   return (

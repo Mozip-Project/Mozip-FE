@@ -19,6 +19,9 @@ import {
 } from '@/features/recruitment/utils/recruitmentRoutes'
 import { DocumentResultConfirmDialog } from './documentResultConfirmDialog'
 
+// 목록 길이와 관계없이 화면 하단에 고정, 페이지 래퍼의 page-min-height와 함께 사용
+const STICKY_BOTTOM_CLASS = 'page-bottom-bar'
+
 type DocumentResultSummaryBarProps = Pick<
   DocumentResultApplicantPage,
   'statusCounts' | 'totalResultCounts'
@@ -48,6 +51,7 @@ function DocumentResultSummaryBar({
       {isConfirmed ? (
         <SummaryBar
           status="next"
+          className={STICKY_BOTTOM_CLASS}
           actions={
             <NextStepActions
               recruitmentId={recruitmentId}
@@ -61,6 +65,7 @@ function DocumentResultSummaryBar({
       ) : (
         <SummaryBar
           status={status}
+          className={STICKY_BOTTOM_CLASS}
           actions={
             <Button
               ref={primaryActionRef}

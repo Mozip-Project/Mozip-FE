@@ -1,3 +1,66 @@
+/* GNB가 숨었다가 다시 나온 상태 */
+@custom-variant gnb-revealed (body:has([data-slot='gnb'][data-revealed]) &);
+
+/* 고정 요소 기준값, 바꾸면 gnbHeader·stickyTopBar의 px 상수도 같이 수정 */
+:root {
+  --gnb-height: 64px;
+  --page-padding-top: 48px;
+  --page-padding-bottom: 80px;
+  --sticky-top-bar-height: 48px;
+  --sticky-top: var(--page-padding-top);
+  --sticky-top-revealed: calc(var(--gnb-height) + var(--page-padding-top));
+  --bottom-bar-offset: 20px;
+}
+
+/* focus 요소가 고정 바에 가려지지 않게 하는 html 위 여백, 바 안 focus면 0(입력 시 튐 방지) */
+@utility page-scroll-padding {
+  scroll-padding-top: var(--gnb-height);
+
+  &:has([data-sticky-top-bar]) {
+    scroll-padding-top: calc(var(--sticky-top-revealed) + var(--sticky-top-bar-height));
+  }
+
+  &:has([data-sticky-top-bar]:focus-within) {
+    scroll-padding-top: 0;
+  }
+}
+
+/* 위 여백에서 고정, GNB가 나오면 GNB 아래로 이동, --sticky-offset으로 추가 간격 */
+@utility sticky-below-gnb {
+  position: sticky;
+  top: calc(var(--sticky-top) + var(--sticky-offset, 0px));
+  transition: top 200ms ease-out;
+
+  @variant gnb-revealed {
+    top: calc(var(--sticky-top-revealed) + var(--sticky-offset, 0px));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+/* page-bottom-bar를 화면 아래에 두기 위한 페이지 최소 높이 */
+@utility page-min-height {
+  min-height: calc(
+    100dvh - var(--gnb-height) - var(--page-padding-top) - var(--page-padding-bottom)
+  );
+}
+
+/* 화면 아래 고정 바, page-min-height 세로 flex의 마지막에 배치 */
+@utility page-bottom-bar {
+  position: sticky;
+  bottom: var(--bottom-bar-offset);
+  z-index: 10;
+  margin-top: auto;
+  margin-bottom: calc(var(--bottom-bar-offset) - var(--page-padding-bottom));
+}
+
+/* scrollToStickyBarTop이 지정하는 직전 높이 유지 */
+[data-kept-height] {
+  min-height: var(--kept-height);
+}
+
 @utility layout-grid {
   display: grid;
   grid-template-columns: repeat(var(--layout-grid-columns), minmax(0, 1fr));

@@ -17,18 +17,47 @@ function DropdownMenuTrigger(props: ComponentProps<typeof DropdownMenuPrimitive.
 // 드롭다운 공통 열림 간격
 const MENU_SIDE_OFFSET_PX = 16
 
+function returnFocusToTriggerWithoutScroll(event: Event) {
+  const content = event.currentTarget instanceof Element ? event.currentTarget : null
+  const triggerId = content?.getAttribute('aria-labelledby')
+  const trigger = triggerId ? document.getElementById(triggerId) : null
+
+  if (!trigger) {
+    return
+  }
+
+  event.preventDefault()
+
+  const hasFocusMovedElsewhere =
+    document.activeElement !== null && document.activeElement !== document.body
+
+  if (!hasFocusMovedElsewhere) {
+    trigger.focus({ preventScroll: true })
+  }
+}
+
 function DropdownMenuContent({
   className,
   align = 'start',
   sideOffset = MENU_SIDE_OFFSET_PX,
+  onCloseAutoFocus,
   ...props
 }: ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  function handleCloseAutoFocus(event: Event) {
+    onCloseAutoFocus?.(event)
+
+    if (!event.defaultPrevented) {
+      returnFocusToTriggerWithoutScroll(event)
+    }
+  }
+
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         align={align}
+        onCloseAutoFocus={handleCloseAutoFocus}
         className={cn(
           'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-48 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-l border border-neutral-subtle bg-layer-floating shadow-floating',
           'data-[state=closed]:overflow-hidden',

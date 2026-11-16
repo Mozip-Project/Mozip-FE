@@ -4,6 +4,7 @@ import { ACCOUNT_SETTINGS_SAMPLE } from '@/features/mypage/mocks/accountSettings
 import { OrganizationSection } from './organizationSection'
 import { ProfileSection } from './profileSection'
 import { SchoolVerificationSection } from './schoolVerificationSection'
+import { WithdrawalDialog } from './withdrawalDialog'
 
 // TODO: 로그인 사용자 계정 정보 API 연결 후 샘플 데이터 제거
 function AccountSettingsContent() {
@@ -21,14 +22,12 @@ function AccountSettingsContent() {
       <hr className="border-neutral-subtle" />
 
       <OrganizationSection organizations={organizations} />
-      {/* TODO: 탈퇴, 로그아웃 동작 연결 */}
+      {/* TODO: 로그아웃 동작 연결 */}
       <div className="flex justify-end gap-gap-s">
         <Button variant="secondary" size="m" asChild>
           <Link href="/">로그아웃</Link>
         </Button>
-        <Button variant="critical" size="m">
-          회원 탈퇴
-        </Button>
+        <WithdrawalDialog />
       </div>
     </div>
   )

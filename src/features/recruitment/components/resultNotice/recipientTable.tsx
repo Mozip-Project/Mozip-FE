@@ -11,6 +11,7 @@ import {
   type RecipientDelivery,
   type ResultNoticeRecipient,
 } from '@/features/recruitment/types'
+import { scrollWithoutRevealing } from '@/hooks/useHideOnScrollDown'
 import { cn } from '@/lib/utils'
 
 const COLLAPSED_ROW_COUNT = 5
@@ -87,10 +88,19 @@ function RecipientTable({ label, recipients, statusLabel, focusRequest }: Recipi
     firstRevealedRowRef.current?.focus()
   }
 
-  // 접으면 버튼이 위로 올라가 화면 밖에 남지 않도록 다시 보이게 처리
+  // 접은 뒤에도 버튼을 같은 화면 위치에 유지, GNB는 숨긴 채 스크롤
   function handleCollapse() {
+    const button = toggleButtonRef.current
+    const buttonTopBeforePx = button?.getBoundingClientRect().top
+
     flushSync(() => setIsExpanded(false))
-    toggleButtonRef.current?.scrollIntoView({ block: 'nearest' })
+
+    if (!button || buttonTopBeforePx === undefined) {
+      return
+    }
+
+    const buttonDocumentTopPx = button.getBoundingClientRect().top + window.scrollY
+    scrollWithoutRevealing(buttonDocumentTopPx - buttonTopBeforePx)
   }
 
   return (

@@ -1,0 +1,73 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button/button'
+import { Checkbox } from '@/components/ui/Checkbox/checkbox'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from '@/components/ui/Dialog/dialog'
+
+const WITHDRAWAL_NOTICES = [
+  '진행 중인 지원은 모두 취소되고, 지원 내역과 스크랩이 삭제돼요.',
+  '운영진으로 소속된 단체에서 나가게 돼요.',
+  '탈퇴한 뒤에는 되돌릴 수 없어요.',
+] as const
+
+function WithdrawalDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="critical" size="m">
+          회원 탈퇴
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="px-padding-xxl pt-padding-xxl">
+        <WithdrawalConfirmForm />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function WithdrawalConfirmForm() {
+  const [hasConfirmedNotice, setHasConfirmedNotice] = useState(false)
+
+  return (
+    <>
+      <div className="flex w-full flex-col items-start gap-gap-m">
+        <DialogHeader
+          title="정말 탈퇴하시겠어요?"
+          description="탈퇴 전 아래 내용을 확인해 주세요"
+        />
+        <ul className="w-full rounded-m bg-neutral-weak px-padding-m py-padding-s text-label1 font-normal break-keep text-neutral-muted">
+          {WITHDRAWAL_NOTICES.map((notice) => (
+            <li key={notice} className="before:content-['·_']">
+              {notice}
+            </li>
+          ))}
+        </ul>
+        <Checkbox
+          checked={hasConfirmedNotice}
+          onCheckedChange={(checked) => setHasConfirmedNotice(checked === true)}
+        >
+          안내를 확인했어요
+        </Checkbox>
+      </div>
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button variant="secondary">취소</Button>
+        </DialogClose>
+        {/* TODO: 회원 탈퇴 API 연결 후 요청·완료 후 이동 처리 */}
+        <Button variant="critical" disabled={!hasConfirmedNotice}>
+          탈퇴하기
+        </Button>
+      </DialogFooter>
+    </>
+  )
+}
+
+export { WithdrawalDialog }
