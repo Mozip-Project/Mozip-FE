@@ -32,26 +32,30 @@ function StuckStatus() {
   return <div ref={ref}>{isStuck ? '고정' : '고정 안 됨'}</div>
 }
 
-function reportElement({ top, intersectionRatio }: { top: number; intersectionRatio: number }) {
+type Observation = { top: number; intersectionRatio: number }
+
+function toEntry({ top, intersectionRatio }: Observation): Partial<IntersectionObserverEntry> {
+  return {
+    intersectionRatio,
+    boundingClientRect: { top } as DOMRectReadOnly,
+    rootBounds: { top: ROOT_TOP_PX } as DOMRectReadOnly,
+  }
+}
+
+function reportElement(...observations: Observation[]) {
   act(() => {
-    observerCallback?.([
-      {
-        intersectionRatio,
-        boundingClientRect: { top } as DOMRectReadOnly,
-        rootBounds: { top: ROOT_TOP_PX } as DOMRectReadOnly,
-      },
-    ])
+    observerCallback?.(observations.map(toEntry))
   })
 }
 
 describe('useIsStuckToTop', () => {
   beforeEach(() => {
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
+    disconnect.mockClear()
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    disconnect.mockClear()
     observerCallback = undefined
     observerOptions = undefined
   })
@@ -86,6 +90,17 @@ describe('useIsStuckToTop', () => {
     reportElement({ top: 900, intersectionRatio: 0.5 })
 
     expect(screen.getByText('고정 안 됨')).toBeInTheDocument()
+  })
+
+  it('여러 관측값이 한 번에 오면 마지막 값 기준', () => {
+    render(<StuckStatus />)
+
+    reportElement(
+      { top: 200, intersectionRatio: 1 },
+      { top: STICKY_TOP_PX, intersectionRatio: 0.98 },
+    )
+
+    expect(screen.getByText('고정')).toBeInTheDocument()
   })
 
   it('언마운트하면 관찰 해제', () => {

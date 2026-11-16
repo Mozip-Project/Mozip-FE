@@ -12,7 +12,10 @@ function useIsStuckToTop(ref: RefObject<Element | null>, stickyTopPx: number) {
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      // 쌓인 변화가 한 번에 올 수 있어 마지막 관측값 사용
+      (entries) => {
+        const entry = entries.at(-1)
+
         if (!entry?.rootBounds) {
           return
         }
