@@ -97,8 +97,7 @@ function MultiSelectMenu<TValue extends string>({
   function handleFilterReset() {
     onValuesChange(options.map((option) => option.value))
 
-    // 사라지는 버튼 대신 트리거로 focus 이동
-    triggerRef.current?.focus()
+    triggerRef.current?.focus({ preventScroll: true })
   }
 
   function handleOpenChange(isOpen: boolean) {
