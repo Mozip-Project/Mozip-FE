@@ -27,7 +27,8 @@ function DocumentEvaluationChipStrip({
 
   return (
     // 지원서를 읽다가 바로 다른 지원자로 이동하도록 고정
-    <StickyTopBar>
+    // 아래 간격도 배경으로 가려 패널과 맞춤, 음수 margin으로 처음 배치 유지
+    <StickyTopBar className="-mb-gap-xl pb-gap-xl">
       <ApplicantChipStrip
         label="지원자 목록"
         applicants={applicants}
