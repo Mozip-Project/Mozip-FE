@@ -1,29 +1,12 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useIsStuckToTop } from './useIsStuckToTop'
 
 const STICKY_TOP_PX = 48
-const ROOT_TOP_PX = STICKY_TOP_PX + 1
 
-type ObserverCallback = (entries: Partial<IntersectionObserverEntry>[]) => void
-
-let observerCallback: ObserverCallback | undefined
-let observerOptions: IntersectionObserverInit | undefined
-const disconnect = vi.fn()
-
-class MockIntersectionObserver {
-  constructor(callback: ObserverCallback, options?: IntersectionObserverInit) {
-    observerCallback = callback
-    observerOptions = options
-  }
-
-  observe() {}
-
-  disconnect() {
-    disconnect()
-  }
-}
+let elementTopPx = 200
+let frameCallbacks: FrameRequestCallback[] = []
 
 function StuckStatus() {
   const ref = useRef<HTMLDivElement>(null)
@@ -32,82 +15,104 @@ function StuckStatus() {
   return <div ref={ref}>{isStuck ? '고정' : '고정 안 됨'}</div>
 }
 
-type Observation = { top: number; intersectionRatio: number }
-
-function toEntry({ top, intersectionRatio }: Observation): Partial<IntersectionObserverEntry> {
-  return {
-    intersectionRatio,
-    boundingClientRect: { top } as DOMRectReadOnly,
-    rootBounds: { top: ROOT_TOP_PX } as DOMRectReadOnly,
-  }
+function flushFrames() {
+  act(() => {
+    const callbacks = frameCallbacks
+    frameCallbacks = []
+    callbacks.forEach((callback) => callback(0))
+  })
 }
 
-function reportElement(...observations: Observation[]) {
-  act(() => {
-    observerCallback?.(observations.map(toEntry))
-  })
+function scrollTo(topPx: number) {
+  elementTopPx = topPx
+  fireEvent.scroll(window)
+  flushFrames()
 }
 
 describe('useIsStuckToTop', () => {
   beforeEach(() => {
-    vi.stubGlobal('IntersectionObserver', MockIntersectionObserver)
-    disconnect.mockClear()
+    elementTopPx = 200
+    frameCallbacks = []
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      frameCallbacks.push(callback)
+      return frameCallbacks.length
+    })
+    vi.stubGlobal('cancelAnimationFrame', vi.fn())
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      () => ({ top: elementTopPx }) as DOMRect,
+    )
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    observerCallback = undefined
-    observerOptions = undefined
+    vi.restoreAllMocks()
   })
 
-  it('고정 위치보다 1px 더 관찰 영역 위쪽을 줄임', () => {
+  it('처음 위치가 고정 위치보다 아래면 고정 안 됨', () => {
     render(<StuckStatus />)
-
-    expect(observerOptions?.rootMargin).toBe(`-${ROOT_TOP_PX}px 0px 0px 0px`)
-    expect(observerOptions?.threshold).toBe(1)
-  })
-
-  it('고정 위치에 붙어 위쪽이 관찰 영역 밖이면 고정', () => {
-    render(<StuckStatus />)
-
-    reportElement({ top: STICKY_TOP_PX, intersectionRatio: 0.98 })
-
-    expect(screen.getByText('고정')).toBeInTheDocument()
-  })
-
-  it('전부 관찰 영역 안이면 고정 안 됨', () => {
-    render(<StuckStatus />)
-
-    reportElement({ top: STICKY_TOP_PX, intersectionRatio: 0.98 })
-    reportElement({ top: 200, intersectionRatio: 1 })
+    flushFrames()
 
     expect(screen.getByText('고정 안 됨')).toBeInTheDocument()
   })
 
-  it('화면 아래쪽에 걸쳐 잘린 경우는 고정 안 됨', () => {
+  it('새로고침처럼 처음부터 고정 위치에 있으면 고정', () => {
+    elementTopPx = STICKY_TOP_PX
     render(<StuckStatus />)
-
-    reportElement({ top: 900, intersectionRatio: 0.5 })
-
-    expect(screen.getByText('고정 안 됨')).toBeInTheDocument()
-  })
-
-  it('여러 관측값이 한 번에 오면 마지막 값 기준', () => {
-    render(<StuckStatus />)
-
-    reportElement(
-      { top: 200, intersectionRatio: 1 },
-      { top: STICKY_TOP_PX, intersectionRatio: 0.98 },
-    )
+    flushFrames()
 
     expect(screen.getByText('고정')).toBeInTheDocument()
   })
 
-  it('언마운트하면 관찰 해제', () => {
+  it('스크롤해 고정 위치에 닿으면 고정, 다시 내려가면 해제', () => {
+    render(<StuckStatus />)
+    flushFrames()
+
+    scrollTo(STICKY_TOP_PX)
+    expect(screen.getByText('고정')).toBeInTheDocument()
+
+    scrollTo(200)
+    expect(screen.getByText('고정 안 됨')).toBeInTheDocument()
+  })
+
+  it('확대·축소로 생긴 1px 미만 오차는 고정으로 처리', () => {
+    render(<StuckStatus />)
+    flushFrames()
+
+    scrollTo(STICKY_TOP_PX + 0.4)
+    expect(screen.getByText('고정')).toBeInTheDocument()
+
+    scrollTo(STICKY_TOP_PX + 1)
+    expect(screen.getByText('고정 안 됨')).toBeInTheDocument()
+  })
+
+  it('스크롤 없이 top 전환이 끝나도 위치 다시 확인', () => {
+    render(<StuckStatus />)
+    flushFrames()
+
+    elementTopPx = STICKY_TOP_PX
+    fireEvent.transitionEnd(screen.getByText('고정 안 됨'))
+    flushFrames()
+
+    expect(screen.getByText('고정')).toBeInTheDocument()
+  })
+
+  it('한 프레임 안의 여러 스크롤은 한 번만 측정', () => {
+    render(<StuckStatus />)
+    flushFrames()
+
+    fireEvent.scroll(window)
+    fireEvent.scroll(window)
+
+    expect(frameCallbacks).toHaveLength(1)
+  })
+
+  it('언마운트하면 스크롤 감지 해제', () => {
     const { unmount } = render(<StuckStatus />)
+    flushFrames()
 
     unmount()
+    fireEvent.scroll(window)
 
-    expect(disconnect).toHaveBeenCalledOnce()
+    expect(frameCallbacks).toHaveLength(0)
   })
 })
