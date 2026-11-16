@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import RefreshIcon from '@/assets/icons/refresh.svg'
 import UploadIcon from '@/assets/icons/upload.svg'
-import imagePlaceholder from '@/assets/images/logoPlaceholder.png'
 import { Button } from '@/components/ui/Button/button'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 
@@ -66,14 +65,19 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
   return (
     <div role="group" aria-label={label} className="flex flex-col gap-gap-xs">
       <div className="flex items-center gap-gap-l">
-        <Image
-          src={previewUrl ?? imagePlaceholder}
-          alt={previewUrl ? `선택한 ${label}` : ''}
-          width={PREVIEW_SIZE_PX}
-          height={PREVIEW_SIZE_PX}
-          unoptimized={previewUrl !== null}
-          className="size-18 shrink-0 rounded-full bg-neutral-weak-pressed object-cover"
-        />
+        {previewUrl ? (
+          <Image
+            src={previewUrl}
+            alt={`선택한 ${label}`}
+            width={PREVIEW_SIZE_PX}
+            height={PREVIEW_SIZE_PX}
+            unoptimized
+            className="size-18 shrink-0 rounded-full bg-neutral-weak-pressed object-cover"
+          />
+        ) : (
+          // 이미지 선택 전 빈 미리보기
+          <div aria-hidden className="size-18 shrink-0 rounded-full checkerboard" />
+        )}
         <div className="flex flex-col gap-gap-s">
           {title}
           <div className="flex gap-gap-s">

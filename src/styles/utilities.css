@@ -67,6 +67,15 @@
   column-gap: var(--layout-grid-gutter);
 }
 
+/* 빈 이미지 자리 체크무늬 */
+@utility checkerboard {
+  background-image: repeating-conic-gradient(
+    var(--color-gray-100) 0 25%,
+    var(--color-gray-50) 0 50%
+  );
+  background-size: 9px 9px;
+}
+
 /* 회색 막대 위로 밝은 띠가 지나가는 로딩 스켈레톤, 크기·반경은 사용처에서 지정 */
 @utility skeleton-bar {
   position: relative;
