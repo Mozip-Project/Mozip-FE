@@ -1,6 +1,11 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterAll, afterEach, beforeAll } from 'vitest'
+import { server } from '@/mocks/server'
+
+beforeAll(() => {
+  server.listen({ onUnhandledFrame: 'error' })
+})
 
 // jsdom에 없는 IntersectionObserver 대체
 class NoopIntersectionObserver {
@@ -22,4 +27,9 @@ if (!('IntersectionObserver' in globalThis)) {
 
 afterEach(() => {
   cleanup()
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
 })

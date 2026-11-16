@@ -2,7 +2,7 @@
 
 ## 도구와 위치
 
-- 단위·동기 컴포넌트 테스트는 Vitest와 React Testing Library를 사용합니다. `src/test/setup.ts`에서 jest-dom matcher를 전역 등록하며, 사용자 상호작용은 `@testing-library/user-event`를 사용합니다.
+- 단위·동기 컴포넌트 테스트는 Vitest와 React Testing Library를 사용합니다. `src/test/setup.ts`에서 jest-dom matcher를 전역 등록하고 MSW server를 시작·초기화하며(handler 없는 요청은 실패), 테스트별 응답은 `server.use`로 바꿉니다. 사용자 상호작용은 `@testing-library/user-event`를 사용합니다.
 - `pnpm test`는 감시 모드, `pnpm test:run`은 CI용 단발 실행입니다.
 - 사람이 읽는 예시와 설명은 `docs/TESTING.md`에 있습니다.
 - 테스트는 대상 파일 가까이에 둡니다. 유틸리티는 `.test.ts`, React 컴포넌트는 `.test.tsx`를 사용합니다.
