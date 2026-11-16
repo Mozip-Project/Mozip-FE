@@ -81,7 +81,7 @@ function ResultNoticeSendDialog({
     opener?.focus()
 
     if (document.activeElement !== opener) {
-      getFallbackFocusTarget()?.focus()
+      getFallbackFocusTarget()?.focus({ preventScroll: true })
     }
   }
 

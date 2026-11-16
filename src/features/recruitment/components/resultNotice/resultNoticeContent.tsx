@@ -5,6 +5,7 @@ import { useRef, useState, type Ref } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import UsersIcon from '@/assets/icons/users.svg'
 import { EmptyState } from '@/components/ui/EmptyState/emptyState'
+import { scrollToStickyBarTop, StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs/tabs'
 import { useResultNoticeSend } from '@/features/recruitment/hooks/useResultNoticeSend'
 import {
@@ -34,7 +35,8 @@ import { ResultNoticeSendDialog } from './resultNoticeSendDialog'
 import { ResultNoticeSummaryBar } from './resultNoticeSummaryBar'
 import type { RecipientFocusRequest } from './recipientTable'
 
-const TABS_CLASS = 'flex flex-col gap-gap-xl'
+// flex-1: 페이지 최소 높이(page-min-height)까지 늘려 하단 바(page-bottom-bar)를 화면 아래에 배치
+const TABS_CLASS = 'flex flex-1 flex-col gap-gap-xl'
 
 // 처음과 초기화 후에는 빈 칸으로 두고 placeholder 표시
 const EMPTY_MESSAGES = {
@@ -59,6 +61,7 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
   })
   const [passMessage, failMessage] = useWatch({ control, name: ['pass', 'fail'] })
   const sendFlow = useResultNoticeSend(notice.recipients)
+  const tabsRef = useRef<HTMLDivElement>(null)
   const tabsListRef = useRef<HTMLDivElement>(null)
   const [failedRowFocusRequest, setFailedRowFocusRequest] = useState<RecipientFocusRequest>()
 
@@ -100,10 +103,16 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
     }
   }
 
+  // 탭바가 고정된 채 바꾸면 다른 목록 화면과 같이 새 탭 내용 맨 위가 탭바 바로 아래 오도록 스크롤
   function handleTabChange(value: string) {
-    if (isOneOf(RESULT_NOTICE_TARGETS, value)) {
-      selectTarget(value)
+    if (!isOneOf(RESULT_NOTICE_TARGETS, value)) {
+      return
     }
+
+    if (tabsRef.current) {
+      scrollToStickyBarTop(tabsRef.current)
+    }
+    selectTarget(value)
   }
 
   function handleSendDialogTargetChange(target: ResultNoticeTarget) {
@@ -137,36 +146,46 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
   }
 
   return (
-    <Tabs value={currentTarget} onValueChange={handleTabChange} className={TABS_CLASS}>
-      <ResultNoticeTabsList
-        ref={tabsListRef}
-        recipientCounts={recipientCounts}
-        pendingTargets={pendingTargets}
-      />
+    <Tabs
+      ref={tabsRef}
+      value={currentTarget}
+      onValueChange={handleTabChange}
+      className={TABS_CLASS}
+    >
+      {/* 다른 목록 화면 탭바와 같이 내용 따라 올라가다 화면 위에 고정 */}
+      <StickyTopBar>
+        <ResultNoticeTabsList
+          ref={tabsListRef}
+          recipientCounts={recipientCounts}
+          pendingTargets={pendingTargets}
+        />
+      </StickyTopBar>
       <DeliveryFailureNotice
         currentTarget={currentTarget}
         failedRecipientsByTarget={sendFlow.failedRecipientsByTarget}
         onShowFailed={showFailedRecipient}
       />
-      {RESULT_NOTICE_TARGETS.map((target) => (
-        <TabsContent key={target} value={target} className="flex flex-col gap-gap-m">
-          {target === 'fail' && !hasFailRecipients ? (
-            <AllPassedEmptyState />
-          ) : (
-            <ResultNoticePanel
-              kind={kind}
-              target={target}
-              organizationName={notice.organizationName}
-              interviewPeriod={notice.interviewPeriod}
-              recipients={notice.recipients[target]}
-              control={control}
-              onMessageReset={() => handleMessageReset(target)}
-              sendResult={sendFlow.results[target]}
-              recipientFocusRequest={failedRowFocusRequest}
-            />
-          )}
-        </TabsContent>
-      ))}
+      <div data-sticky-bar-content="">
+        {RESULT_NOTICE_TARGETS.map((target) => (
+          <TabsContent key={target} value={target} className="flex flex-col gap-gap-m">
+            {target === 'fail' && !hasFailRecipients ? (
+              <AllPassedEmptyState />
+            ) : (
+              <ResultNoticePanel
+                kind={kind}
+                target={target}
+                organizationName={notice.organizationName}
+                interviewPeriod={notice.interviewPeriod}
+                recipients={notice.recipients[target]}
+                control={control}
+                onMessageReset={() => handleMessageReset(target)}
+                sendResult={sendFlow.results[target]}
+                recipientFocusRequest={failedRowFocusRequest}
+              />
+            )}
+          </TabsContent>
+        ))}
+      </div>
       <ResultNoticeSummaryBar
         kind={kind}
         state={sendState}
