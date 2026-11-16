@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { GnbHeader } from './gnbHeader'
 import { GnbNav, type GnbNavItem } from './gnbNav'
 import type { Route } from 'next'
 import type { ReactNode } from 'react'
@@ -11,11 +12,8 @@ type GnbProps = {
 
 function Gnb({ navItems, homeHref, actions }: GnbProps) {
   return (
-    <header
-      data-slot="gnb"
-      className="sticky top-0 z-20 border-b border-neutral-subtle bg-layer-default px-page-padding"
-    >
-      <div className="mx-auto flex h-16 w-full max-w-page items-center gap-gap-xl">
+    <GnbHeader>
+      <div className="mx-auto flex h-(--gnb-height) w-full max-w-page items-center gap-gap-xl">
         <div className="flex min-w-0 items-center gap-8">
           {/* TODO: 실제 로고로 교체 */}
           <Link
@@ -30,7 +28,7 @@ function Gnb({ navItems, homeHref, actions }: GnbProps) {
         </div>
         <div className="ml-auto flex min-w-0 items-center gap-gap-m">{actions}</div>
       </div>
-    </header>
+    </GnbHeader>
   )
 }
 

@@ -29,7 +29,7 @@ export default function ApplicantLayout({ children }: LayoutProps<'/'>) {
           </>
         }
       />
-      <div className="px-page-padding pt-12 pb-20">
+      <div className="px-page-padding pt-(--page-padding-top) pb-(--page-padding-bottom)">
         <div className="mx-auto w-full max-w-page">{children}</div>
       </div>
     </>

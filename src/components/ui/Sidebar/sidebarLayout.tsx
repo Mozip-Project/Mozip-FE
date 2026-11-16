@@ -8,7 +8,7 @@ type SidebarLayoutProps = {
 function SidebarLayout({ sidebar, children }: SidebarLayoutProps) {
   return (
     <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-12">
-      {sidebar}
+      <div className="sticky-below-gnb self-start">{sidebar}</div>
       <main className="min-w-0">{children}</main>
     </div>
   )
