@@ -63,7 +63,7 @@ function ResultNoticeSummaryBar({
   })
 
   return (
-    <SummaryBar status={status} actions={actions}>
+    <SummaryBar status={status} actions={actions} className="page-bottom-bar">
       {message}
     </SummaryBar>
   )
