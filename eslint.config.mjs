@@ -129,6 +129,7 @@ const eslintConfig = defineConfig([
     'coverage/**',
     'next-env.d.ts',
     'public/mockServiceWorker.js',
+    'src/gql/**',
   ]),
 ])
 

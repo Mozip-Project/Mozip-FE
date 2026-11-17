@@ -8,8 +8,7 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 
 ## 기술 스택
 
-- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library, TanStack Query(`src/providers/queryProvider.tsx`), shadcn/ui(`components.json`, 컴포넌트는 `src/components/ui/`), Storybook(`.storybook/`, `@storybook/nextjs-vite`), react-hook-form + zod(`@hookform/resolvers`로 연결), MSW(`src/mocks/`, 개발 서버 전용)
-- 도입 결정(미설치): graphql-request(ky 대체, `.claude/decisions/records/015-graphql-request.md`). 설치는 처음 실제로 쓰는 작업에서 합니다.
+- 사용 중: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS v4, pnpm, Vitest + React Testing Library, TanStack Query(`src/providers/queryProvider.tsx`), shadcn/ui(`components.json`, 컴포넌트는 `src/components/ui/`), Storybook(`.storybook/`, `@storybook/nextjs-vite`), react-hook-form + zod(`@hookform/resolvers`로 연결), MSW(`src/mocks/`, 개발 서버 전용), graphql-request(`src/lib/graphqlClient.ts`, `.claude/decisions/records/015-graphql-request.md`), GraphQL Code Generator(`codegen.ts`, 생성 결과는 `src/gql/`)
 - 결정 사항: 전역 상태 라이브러리 미도입, 실시간 갱신은 폴링, 인증 토큰은 httpOnly 쿠키, API 목킹은 MSW. 상세는 `docs/ARCHITECTURE.md`와 `.claude/decisions/records/`를 따릅니다.
 
 ## 주요 명령어
@@ -18,6 +17,7 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 - `pnpm lint` / `pnpm lint:fix`: ESLint 검사 / 자동 수정
 - `pnpm format` / `pnpm format:check`: Prettier 정리 / 검사
 - `pnpm type-check`: Next typegen 후 TypeScript 검사
+- `pnpm codegen` / `pnpm codegen:watch`: `schema.graphql`과 `features/*/api/`의 GraphQL 문서로 `src/gql/` 타입 생성 / 파일 저장 시 자동 재생성
 - `pnpm test` / `pnpm test:run`: Vitest 감시 모드 / 단발 실행
 - `pnpm storybook` / `pnpm build-storybook`: Storybook 개발 서버(6006 포트) / 정적 빌드
 - `pnpm build`: 프로덕션 빌드

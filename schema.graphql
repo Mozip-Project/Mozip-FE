@@ -1,0 +1,12 @@
+# 백엔드 명세에서 옮긴 임시 스키마. 미구현 필드는 MSW handler로 응답
+# TODO: 서버 스키마가 완성되면 개발 서버 introspection으로 받아 교체
+directive @public on FIELD_DEFINITION
+
+type Query {
+  "서버가 요청을 처리할 수 있는 상태인지 확인"
+  health: Health! @public
+}
+
+type Health {
+  status: String!
+}

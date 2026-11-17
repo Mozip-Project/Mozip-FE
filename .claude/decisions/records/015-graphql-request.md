@@ -13,6 +13,9 @@
 - 공용 클라이언트는 `src/lib/`의 `GraphQLClient` 인스턴스 하나입니다. 엔드포인트 주소, 쿠키 전송(`credentials: 'include'`), GraphQL `errors` 응답의 공통 처리는 이 클라이언트에만 둡니다.
 - query·mutation 문서는 도메인 API 함수(`src/features/<도메인>/api/`)에 둡니다. 공개 조회는 Server Component에서 도메인 API 함수를 직접 호출하고, Client Component는 API 함수를 감싼 TanStack Query hook을 사용합니다.
 - 서버 데이터 캐시는 TanStack Query 하나로 관리합니다.
+- 결과·변수 타입은 GraphQL Code Generator(`client` preset, `documentMode: 'string'`)로 만듭니다. 운영 서버는 introspection이 꺼져 있어, 서버 스키마가 완성되면 개발 서버에서 introspection으로 받아 저장소의 `schema.graphql`에 저장하고 codegen은 이 파일을 읽습니다. 생성 결과(`src/gql/`)는 커밋합니다.
+- 엔드포인트 환경 변수는 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`(절대 주소)입니다.
+- 토큰 만료(`AUTH_002`) 시 재발급(`POST /auth/reissue`)과 재요청은 공용 클라이언트가 브라우저에서만 처리하고, 동시에 만료된 요청은 재발급 한 번을 함께 기다립니다.
 
 ## 근거
 
@@ -27,9 +30,12 @@
 ## 영향 범위
 
 - `docs/ARCHITECTURE.md`의 "라이브러리", `.claude/rules/data-fetching.md`, `CLAUDE.md`의 기술 스택
-- 아직 정하지 않은 것: 엔드포인트 환경 변수 이름(인증 방식과 함께), 스키마 타입 생성(codegen) 여부, MSW GraphQL handler 작성 시점
+- `schema.graphql`은 2026-11-16 명세에서 옮긴 임시본입니다. 서버에 아직 구현되지 않은 필드도 화면에 필요하면 넣고, 그 응답은 MSW handler로 대신합니다. 명세 초안 SDL은 정의 없이 참조만 하는 타입이 많아 통째로 합치지 않고, 쓰는 쿼리에 필요한 타입만 정의를 확인해 옮깁니다. 서버 스키마가 완성되면 백엔드 요청대로 introspection으로 받아 교체합니다.
+- 재발급이 `AUTH_004`·`AUTH_005`로 실패하면 로그인 화면으로 보내야 하지만, 로그인 페이지가 없어 지금은 `/`로 이동합니다. 이미 `/`이면 새로고침이 반복되지 않게 이동하지 않습니다.
 - 지금의 도메인 API 함수는 샘플 데이터를 돌려주는 임시 구현이며, 스키마를 받은 뒤 함수 안쪽만 교체합니다.
 
 ## 변경 기록
 
 - 2026-11-12: ky를 대체하는 결정으로 기록, 설치 전
+- 2026-11-16: graphql-request 설치, codegen 도입, 환경 변수 이름과 토큰 재발급 처리 위치 결정
+- 2026-11-17: 재발급 실패(`AUTH_004`·`AUTH_005`) 시 `/` 이동, 인증 실패 query 재시도 제외
