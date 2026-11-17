@@ -137,7 +137,7 @@ function DocumentEvaluationPanel({
             />
           </div>
         </div>
-        <div className="shrink-0 px-padding-xl pb-padding-xl">
+        <div className="shrink-0 px-padding-xl pt-padding-s pb-padding-xl">
           <EvaluationPanelFooter mode="next" type="submit" />
         </div>
       </form>
