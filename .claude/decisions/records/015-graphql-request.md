@@ -38,3 +38,4 @@
 
 - 2026-11-12: ky를 대체하는 결정으로 기록, 설치 전
 - 2026-11-16: graphql-request 설치, codegen 도입, 환경 변수 이름과 토큰 재발급 처리 위치 결정
+- 2026-11-17: query·mutation 문서를 `graphql()` 대신 `api/query.graphql`에 작성하고, codegen이 만든 `<operation 이름>Document` 상수로 요청. GraphQL 문법 강조·자동완성을 쓰고 API 함수 파일을 함수만으로 유지하기 위해 변경([011](./011-features-domain-folder.md))

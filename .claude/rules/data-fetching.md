@@ -5,7 +5,9 @@
 ## 기준
 
 - API 호출은 공용 API 클라이언트 한 곳을 거칩니다. 엔드포인트 주소, 쿠키 전송, GraphQL `errors` 응답의 공통 에러 처리는 이 클라이언트에만 둡니다.
-- 컴포넌트는 query·mutation 문서를 직접 알지 않습니다. 문서는 도메인별 API 함수(예: 공고 목록 조회)에 둡니다. 공개 조회는 Server Component에서 이 함수를 직접 호출하고, Client Component는 이 함수를 감싼 TanStack Query hook을 사용합니다.
+- 컴포넌트는 query·mutation 문서를 직접 알지 않습니다. 문서는 도메인 `api/`에 둡니다. 공개 조회는 Server Component에서 API 함수를 직접 호출하고, Client Component는 이 함수를 감싼 TanStack Query hook을 사용합니다.
+- 도메인 `api/`는 `query.graphql`(query·mutation 문서), `api.ts`(`requestGraphQL`로 요청하는 API 함수), `queries.ts`(API 함수를 감싼 query·mutation hook), `keys.ts`(query key)로 나눕니다. 역할 전용 API는 `api/applicant/`·`api/organizer/`에 같은 구조로 둡니다.
+- `api/queries.ts`에는 서버 데이터를 읽고 쓰는 hook만 둡니다. 화면 상태·폼·여러 query를 조합하는 hook은 `features/<도메인>/hooks/`에 둡니다.
 - query·mutation 이름과 필드를 추측해 만들지 않습니다. 백엔드 GraphQL 스키마·문서로 확인합니다.
 - 요청하는 필드와 응답 타입은 화면이 실제로 쓰는 만큼만 명시합니다. 스키마에 없는 필드·enum을 UI 편의로 만들지 않습니다.
 - 서버 필드명과 화면에서 쓰는 이름이 다르면 raw 타입으로 받은 뒤 명시적으로 매핑합니다. 다른 모양의 응답을 `as`로 단언하지 않습니다.
@@ -21,11 +23,11 @@
 ## 사용 방식
 
 - 공용 API 클라이언트는 graphql-request의 `GraphQLClient` 인스턴스 하나로 만듭니다(결정 기록 015). 도메인 API 함수는 클라이언트를 새로 만들지 않고 `src/lib/graphqlClient.ts`의 `requestGraphQL`로 요청합니다.
-- query·mutation 문서는 `@/gql`의 `graphql()`로 작성하고 `pnpm codegen`으로 결과·변수 타입을 만듭니다. 응답 타입을 손으로 다시 선언하거나 `as`로 단언하지 않습니다.
+- query·mutation 문서는 `api/query.graphql`에 작성하고 `pnpm codegen`으로 결과·변수 타입과 문서 상수(`<operation 이름>Document`)를 만듭니다. `api.ts`는 `@/gql/graphql`의 문서 상수를 import합니다. 응답 타입을 손으로 다시 선언하거나 `as`로 단언하지 않습니다.
 - `schema.graphql`은 명세에서 옮긴 임시 스키마입니다. 아직 서버에 구현되지 않은 필드도 넣을 수 있고, 그 응답은 MSW handler로 대신합니다. 필요한 필드가 없으면 명세·백엔드로 확인한 뒤 추가하고, 명세에 정의가 없는 타입은 추측으로 채우지 않고 백엔드 확인 항목으로 남깁니다. `src/gql/`은 직접 고치지 않습니다.
 - 에러는 `ApiError`의 `code`(백엔드 `extensions.code`)로 분기합니다. HTTP 상태로 분기하지 않습니다.
 - 토큰 만료(`AUTH_002`) 재발급과 재요청은 `requestGraphQL`이 처리합니다. 도메인 함수나 컴포넌트에서 재발급을 다시 구현하지 않습니다.
-- 브라우저에서 서버 데이터를 읽고 쓰는 화면은 TanStack Query를 사용합니다. 컴포넌트는 도메인 API 함수를 감싼 query·mutation을 사용합니다.
+- 브라우저에서 서버 데이터를 읽고 쓰는 화면은 TanStack Query를 사용합니다. 컴포넌트는 `api/queries.ts`의 hook을 사용합니다.
 - 인증 토큰은 백엔드가 httpOnly 쿠키로 발급합니다. 토큰을 JS에서 읽거나 `localStorage`·state에 저장하지 않습니다.
 - 다른 사용자의 변경을 반영해야 하는 화면은 폴링(`refetchInterval`)으로 갱신하고, 화면이 보이지 않을 때는 멈춥니다. WebSocket·SSE 전환은 백엔드와 결정합니다.
 - 서버 데이터를 전역 상태 라이브러리에 복제하지 않습니다. 전역 상태 라이브러리는 도입하지 않았습니다.

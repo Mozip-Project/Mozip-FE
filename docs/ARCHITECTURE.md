@@ -51,17 +51,18 @@ src/app/
 
 base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지 않고, 공용 API 클라이언트 하나를 통해 호출합니다.
 
-| 파일                       | 역할                                                                                    |
-| -------------------------- | --------------------------------------------------------------------------------------- |
-| `src/lib/graphqlClient.ts` | `requestGraphQL`. 엔드포인트·쿠키 전송·토큰 재발급 후 재요청을 한곳에서 처리            |
-| `src/lib/apiError.ts`      | `ApiError`와 GraphQL·REST 에러 응답을 `ApiError`로 바꾸는 변환                          |
-| `schema.graphql`           | codegen이 읽는 스키마. 지금은 명세에서 옮긴 임시본이고, 미구현 필드는 MSW로 응답        |
-| `src/gql/`                 | `pnpm codegen`이 만드는 타입과 `graphql()` 함수. 직접 고치지 않고 생성 결과를 함께 커밋 |
+| 파일                       | 역할                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `src/lib/graphqlClient.ts` | `requestGraphQL`. 엔드포인트·쿠키 전송·토큰 재발급 후 재요청을 한곳에서 처리     |
+| `src/lib/apiError.ts`      | `ApiError`와 GraphQL·REST 에러 응답을 `ApiError`로 바꾸는 변환                   |
+| `schema.graphql`           | codegen이 읽는 스키마. 지금은 명세에서 옮긴 임시본이고, 미구현 필드는 MSW로 응답 |
+| `src/gql/`                 | `pnpm codegen`이 만드는 타입과 문서 상수. 직접 고치지 않고 생성 결과를 함께 커밋 |
+| `graphql.config.yml`       | 에디터 GraphQL 확장의 스키마·문서 위치. `.graphql` 문서 자동완성·필드 검사용     |
 
 - 엔드포인트는 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`(절대 주소)에서 읽습니다. 값이 없으면 import 시점이 아니라 첫 요청에서 에러를 던집니다.
 - GraphQL 에러는 HTTP 200으로 오므로 상태 코드가 아니라 `errors[].extensions.code`로 구분합니다. `requestGraphQL`은 이를 `ApiError`로 바꿔 던집니다.
 - `AUTH_002`(access token 만료)를 받으면 쿠키가 있는 브라우저에서만 `POST /auth/reissue`를 한 번 보내고 같은 요청을 다시 보냅니다. 동시에 여러 요청이 만료돼도 재발급은 한 번만 보냅니다.
-- query·mutation은 도메인 API 함수(`features/<도메인>/api/`)에서 `@/gql`의 `graphql()`로 작성하고, `pnpm codegen`으로 타입을 다시 만듭니다.
+- query·mutation은 `features/<도메인>/api/query.graphql`에 작성하고, `pnpm codegen`으로 타입과 문서 상수(`<operation 이름>Document`)를 다시 만듭니다. API 함수는 `@/gql/graphql`에서 문서 상수를 가져와 `requestGraphQL`로 요청합니다.
 
 ## 공용 코드는 도메인을 모릅니다
 
@@ -87,14 +88,17 @@ src/
 ```text
 src/features/recruitment/
 ├── api/
-│   ├── recruitment.ts   # 공통 API (지원 현황 조회 등)
-│   ├── applicant.ts     # 지원자 전용 API (지원하기 등)
-│   └── organizer.ts     # 운영진 전용 API (평가하기 등)
+│   ├── query.graphql    # 공통 query·mutation 문서 (지원 현황 조회 등)
+│   ├── api.ts           # requestGraphQL로 요청하는 API 함수
+│   ├── queries.ts       # API 함수를 감싼 TanStack Query hook
+│   ├── keys.ts          # query key
+│   ├── applicant/       # 지원자 전용 API (지원하기 등), 같은 파일 구조
+│   └── organizer/       # 운영진 전용 API (평가하기 등), 같은 파일 구조
 ├── components/
 │   ├── applicationStatusBadge.tsx # 양쪽이 쓰는 컴포넌트
 │   ├── applicant/       # 지원자 전용 컴포넌트
 │   └── organizer/       # 운영진 전용 컴포넌트
-├── hooks/
+├── hooks/               # 화면 상태·폼·여러 query를 조합하는 hook (query hook은 api/queries.ts)
 ├── mocks/               # MSW handler와 샘플 데이터
 ├── schemas/             # 폼 검증 zod 스키마와 폼 값 타입
 ├── utils/               # 도메인을 아는 순수 함수 (URL 쿼리 변환 등)
@@ -103,7 +107,7 @@ src/features/recruitment/
 
 공고와 모집은 다른 도메인입니다. 공고 탐색·스크랩·UP·공고 등록처럼 공고 데이터와 노출은 `features/posting/`, 지원 이후의 지원자 관리·평가·면접·선발은 `features/recruitment/`에 둡니다.
 
-지원자·운영진 구분은 `api/`와 `components/` 안에서만 합니다. 위 구조는 양쪽 코드가 모두 있을 때의 모습입니다. 폴더와 파일은 실제 코드가 생길 때 만들고, 한쪽 역할의 코드만 있는 동안은 `applicant/`·`organizer/` 없이 `components/` 바로 아래에 둡니다.
+지원자·운영진 구분은 `api/`와 `components/` 안에서만 합니다. 위 구조는 양쪽 코드가 모두 있을 때의 모습입니다. 폴더와 파일은 실제 코드가 생길 때 만들고, 한쪽 역할의 코드만 있는 동안은 `applicant/`·`organizer/` 없이 `api/`·`components/` 바로 아래에 둡니다.
 
 `components/` 안에서는 함께 바뀌는 화면·영역 단위로 camelCase 폴더를 만들어 묶습니다. 폴더 이름은 그 영역의 진입 컴포넌트 이름을 따르고, 하위 컴포넌트·테스트·스토리를 같은 폴더에 둡니다. 컴포넌트가 아닌 계산 함수는 `utils/`에 둡니다. 역할 폴더가 생기면 그 안에서 같은 방식으로 묶습니다.
 
