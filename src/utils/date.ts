@@ -57,6 +57,7 @@ function formatYearMonth(isoDate: string) {
 }
 
 export {
+  WEEKDAY_LABELS,
   formatDateTimeWithWeekday,
   formatMonthDayWithWeekday,
   formatRemainingTime,
