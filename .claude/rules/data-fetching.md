@@ -26,7 +26,7 @@
 - query·mutation 문서는 `api/query.graphql`에 작성하고 `pnpm codegen`으로 결과·변수 타입과 문서 상수(`<operation 이름>Document`)를 만듭니다. `api.ts`는 `@/gql/graphql`의 문서 상수를 import합니다. 응답 타입을 손으로 다시 선언하거나 `as`로 단언하지 않습니다.
 - `schema.graphql`은 명세에서 옮긴 임시 스키마입니다. 아직 서버에 구현되지 않은 필드도 넣을 수 있고, 그 응답은 MSW handler로 대신합니다. 필요한 필드가 없으면 명세·백엔드로 확인한 뒤 추가하고, 명세에 정의가 없는 타입은 추측으로 채우지 않고 백엔드 확인 항목으로 남깁니다. `src/gql/`은 직접 고치지 않습니다.
 - 에러는 `ApiError`의 `code`(백엔드 `extensions.code`)로 분기합니다. HTTP 상태로 분기하지 않습니다.
-- 토큰 만료(`AUTH_002`) 재발급과 재요청은 `requestGraphQL`이 처리합니다. 도메인 함수나 컴포넌트에서 재발급을 다시 구현하지 않습니다.
+- 토큰 만료(`AUTH_002`) 재발급과 재요청, 재발급 실패 시 화면 이동은 `requestGraphQL`이 처리합니다. 도메인 함수나 컴포넌트에서 재발급·이동을 다시 구현하지 않습니다.
 - 브라우저에서 서버 데이터를 읽고 쓰는 화면은 TanStack Query를 사용합니다. 컴포넌트는 `api/queries.ts`의 hook을 사용합니다.
 - 인증 토큰은 백엔드가 httpOnly 쿠키로 발급합니다. 토큰을 JS에서 읽거나 `localStorage`·state에 저장하지 않습니다.
 - 다른 사용자의 변경을 반영해야 하는 화면은 폴링(`refetchInterval`)으로 갱신하고, 화면이 보이지 않을 때는 멈춥니다. WebSocket·SSE 전환은 백엔드와 결정합니다.

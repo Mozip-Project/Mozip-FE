@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MOZIP.',
+  title: 'mozip.',
   description: '동아리 모집 플랫폼',
 }
 

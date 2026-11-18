@@ -1,5 +1,8 @@
 import { useEffect, useState, type RefObject } from 'react'
 
+// 확대, 축소 시 소수점 위치 오차 허용
+const STUCK_TOLERANCE_PX = 1
+
 // stickyTopPx: 요소의 sticky top 값
 function useIsStuckToTop(ref: RefObject<Element | null>, stickyTopPx: number) {
   const [isStuck, setIsStuck] = useState(false)
@@ -11,25 +14,34 @@ function useIsStuckToTop(ref: RefObject<Element | null>, stickyTopPx: number) {
       return
     }
 
-    const observer = new IntersectionObserver(
-      // 쌓인 변화가 한 번에 올 수 있어 마지막 관측값 사용
-      (entries) => {
-        const entry = entries.at(-1)
+    let frameId: number | null = null
 
-        if (!entry?.rootBounds) {
-          return
-        }
+    const update = () => {
+      frameId = null
+      setIsStuck(element.getBoundingClientRect().top < stickyTopPx + STUCK_TOLERANCE_PX)
+    }
 
-        setIsStuck(
-          entry.intersectionRatio < 1 && entry.boundingClientRect.top < entry.rootBounds.top,
-        )
-      },
-      // 1px 더 줄여 고정 시 교차 비율 1 미만 처리
-      { rootMargin: `-${stickyTopPx + 1}px 0px 0px 0px`, threshold: 1 },
-    )
+    const scheduleUpdate = () => {
+      if (frameId === null) {
+        frameId = requestAnimationFrame(update)
+      }
+    }
 
-    observer.observe(element)
-    return () => observer.disconnect()
+    scheduleUpdate()
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    // GNB 표시 전환으로 top이 바뀌는 동안은 스크롤 없이 위치 이동
+    element.addEventListener('transitionend', scheduleUpdate)
+
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+      element.removeEventListener('transitionend', scheduleUpdate)
+
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId)
+      }
+    }
   }, [ref, stickyTopPx])
 
   return isStuck

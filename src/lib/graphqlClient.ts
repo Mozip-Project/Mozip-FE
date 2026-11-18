@@ -3,7 +3,11 @@ import { ApiError, parseRestError, toApiError } from './apiError'
 
 const TOKEN_EXPIRED_CODE = 'AUTH_002'
 const REISSUE_ALREADY_DONE_CODE = 'AUTH_007'
+const SESSION_EXPIRED_CODES = ['AUTH_004', 'AUTH_005']
 const REISSUE_PATH = '/auth/reissue'
+// TODO: 로그인 페이지가 생기면 로그인 경로로 변경
+const SESSION_EXPIRED_REDIRECT_PATH = '/'
+const NON_RETRYABLE_CODES = new Set([TOKEN_EXPIRED_CODE, ...SESSION_EXPIRED_CODES])
 
 type VariablesArgs<TVariables> = TVariables extends Record<string, never> ? [] : [TVariables]
 
@@ -18,6 +22,15 @@ function getGraphQLEndpoint() {
     throw new Error('NEXT_PUBLIC_GRAPHQL_ENDPOINT 환경 변수가 없습니다.')
   }
   return endpoint
+}
+
+function redirectOnSessionExpired() {
+  // 이동할 화면에서 다시 만료되면 새로고침 반복 방지
+  if (window.location.pathname === SESSION_EXPIRED_REDIRECT_PATH) {
+    return
+  }
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- React 밖 호출, 이전 계정 캐시 초기화
+  window.location.assign(SESSION_EXPIRED_REDIRECT_PATH)
 }
 
 // 동시에 여러 요청이 만료돼도 재발급은 한 번만 요청
@@ -39,7 +52,9 @@ function reissueToken() {
       return
     }
 
-    // TODO: AUTH_004, AUTH_005면 로그인 화면으로 이동
+    if (error && SESSION_EXPIRED_CODES.includes(error.code)) {
+      redirectOnSessionExpired()
+    }
     throw error ?? new Error(`토큰 재발급 실패 (HTTP ${response.status})`)
   })().finally(() => {
     pendingReissue = undefined
@@ -51,6 +66,10 @@ function shouldReissue(error: unknown) {
   // 서버 prefetch는 쿠키 없이 공개 조회만 하므로 브라우저에서만 재발급
   const isBrowser = typeof window !== 'undefined'
   return isBrowser && error instanceof ApiError && error.code === TOKEN_EXPIRED_CODE
+}
+
+function isNonRetryableError(error: unknown) {
+  return error instanceof ApiError && NON_RETRYABLE_CODES.has(error.code)
 }
 
 async function requestGraphQL<TResult, TVariables extends Variables>(
@@ -84,4 +103,4 @@ async function requestGraphQL<TResult, TVariables extends Variables>(
   }
 }
 
-export { requestGraphQL }
+export { isNonRetryableError, requestGraphQL }

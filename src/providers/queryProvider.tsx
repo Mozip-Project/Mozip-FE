@@ -2,7 +2,10 @@
 
 import { environmentManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { isNonRetryableError } from '@/lib/graphqlClient'
 import type { ReactNode } from 'react'
+
+const MAX_QUERY_RETRY_COUNT = 3
 
 function makeQueryClient() {
   return new QueryClient({
@@ -10,6 +13,8 @@ function makeQueryClient() {
       queries: {
         // SSR 직후 클라이언트에서 즉시 재요청하지 않도록 staleTime 지정
         staleTime: 60 * 1000,
+        retry: (failureCount, error) =>
+          !isNonRetryableError(error) && failureCount < MAX_QUERY_RETRY_COUNT,
       },
     },
   })

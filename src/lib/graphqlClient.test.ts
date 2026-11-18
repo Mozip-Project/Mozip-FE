@@ -1,10 +1,10 @@
 import { http, HttpResponse } from 'msw'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { TypedDocumentString } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { ApiError } from './apiError'
-import { requestGraphQL } from './graphqlClient'
+import { isNonRetryableError, requestGraphQL } from './graphqlClient'
 import type { GraphQLResponseBody } from 'msw/graphql'
 
 // MSW가 가로채는 테스트 전용 주소, 재발급 주소는 GraphQL 주소와 같은 origin 필요
@@ -58,8 +58,27 @@ function expireOnceThenSucceed() {
   return { getReissueCount: () => reissueCount }
 }
 
+// jsdom은 페이지 이동 미지원이라 현재 경로와 assign만 대체
+function stubLocation(pathname: string) {
+  const assign = vi.fn()
+  vi.stubGlobal('location', { ...window.location, pathname, assign })
+  return assign
+}
+
+// 재발급까지 실패하는 상황
+function failReissueWith(code: string) {
+  server.use(
+    graphqlApi.query('Health', () => graphqlError('AUTH_002')),
+    http.post(REISSUE_URL, () => restError(401, code)),
+  )
+}
+
 beforeAll(() => {
   vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', GRAPHQL_ENDPOINT)
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
 })
 
 afterAll(() => {
@@ -190,6 +209,22 @@ describe('requestGraphQL', () => {
     expect(requestCount).toBe(1)
   })
 
+  it.each(['AUTH_004', 'AUTH_005'])('재발급이 %s면 / 로 이동한다', async (code) => {
+    const assign = stubLocation('/manage')
+    failReissueWith(code)
+
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({ code })
+    expect(assign).toHaveBeenCalledWith('/')
+  })
+
+  it('이미 / 에 있으면 재발급이 실패해도 다시 이동하지 않는다', async () => {
+    const assign = stubLocation('/')
+    failReissueWith('AUTH_004')
+
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({ code: 'AUTH_004' })
+    expect(assign).not.toHaveBeenCalled()
+  })
+
   it('재발급 뒤에도 만료되면 반복하지 않고 에러를 던진다', async () => {
     let reissueCount = 0
     server.use(
@@ -207,5 +242,18 @@ describe('requestGraphQL', () => {
 
     await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({ code: 'AUTH_002' })
     expect(reissueCount).toBe(1)
+  })
+})
+
+describe('isNonRetryableError', () => {
+  it('재발급까지 거친 인증 실패는 다시 시도하지 않는다', () => {
+    for (const code of ['AUTH_002', 'AUTH_004', 'AUTH_005']) {
+      expect(isNonRetryableError(new ApiError({ code, message: code }))).toBe(true)
+    }
+  })
+
+  it('그 밖의 에러는 다시 시도한다', () => {
+    expect(isNonRetryableError(new ApiError({ code: 'COMMON_500', message: '' }))).toBe(false)
+    expect(isNonRetryableError(new TypeError('Failed to fetch'))).toBe(false)
   })
 })

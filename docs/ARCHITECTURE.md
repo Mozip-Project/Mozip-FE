@@ -62,6 +62,7 @@ base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지
 - 엔드포인트는 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`(절대 주소)에서 읽습니다. 값이 없으면 import 시점이 아니라 첫 요청에서 에러를 던집니다.
 - GraphQL 에러는 HTTP 200으로 오므로 상태 코드가 아니라 `errors[].extensions.code`로 구분합니다. `requestGraphQL`은 이를 `ApiError`로 바꿔 던집니다.
 - `AUTH_002`(access token 만료)를 받으면 쿠키가 있는 브라우저에서만 `POST /auth/reissue`를 한 번 보내고 같은 요청을 다시 보냅니다. 동시에 여러 요청이 만료돼도 재발급은 한 번만 보냅니다.
+- 재발급이 `AUTH_004`·`AUTH_005`로 실패하면 `/`로 이동합니다(로그인 페이지가 생기면 로그인 경로로 교체). 이 두 코드와 재발급 뒤에도 남은 `AUTH_002`는 query에서 다시 시도하지 않습니다.
 - query·mutation은 `features/<도메인>/api/query.graphql`에 작성하고, `pnpm codegen`으로 타입과 문서 상수(`<operation 이름>Document`)를 다시 만듭니다. API 함수는 `@/gql/graphql`에서 문서 상수를 가져와 `requestGraphQL`로 요청합니다.
 
 ## 공용 코드는 도메인을 모릅니다
