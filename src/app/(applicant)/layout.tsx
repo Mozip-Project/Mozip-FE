@@ -2,6 +2,7 @@ import { Gnb } from '@/components/ui/Gnb/gnb'
 import type { GnbNavItem } from '@/components/ui/Gnb/gnbNav'
 import { ProfileMenu } from '@/components/ui/Gnb/profileMenu'
 import { NotificationPanel } from '@/features/notification/components/notificationPanel/notificationPanel'
+import { ToastProvider } from '@/providers/toastProvider'
 
 const NAV_ITEMS = [
   { label: '전체 공고', href: '/postings' },
@@ -10,7 +11,7 @@ const NAV_ITEMS = [
 
 export default function ApplicantLayout({ children }: LayoutProps<'/'>) {
   return (
-    <>
+    <ToastProvider>
       {/* TODO: 로그인 사용자 정보, 알림 목록 연결 */}
       {/* TODO: 마이페이지가 임시로 운영진 영역(/manage/mypage)에만 있어 지원자도 그쪽으로 이동. 모드 저장 방식 결정 후 재검토 */}
       <Gnb
@@ -32,6 +33,6 @@ export default function ApplicantLayout({ children }: LayoutProps<'/'>) {
       <div className="px-page-padding pt-(--page-padding-top) pb-(--page-padding-bottom)">
         <div className="mx-auto w-full max-w-page">{children}</div>
       </div>
-    </>
+    </ToastProvider>
   )
 }
