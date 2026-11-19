@@ -45,7 +45,17 @@ describe('toNotificationEntries', () => {
   })
 
   it('앱 안 경로가 아닌 link는 이동하지 않는다', () => {
-    const links = [null, '', 'manage', 'https://example.com', '//example.com', '/\\example.com']
+    const links = [
+      null,
+      '',
+      'manage',
+      'https://example.com',
+      '//example.com',
+      '/\\example.com',
+      '/\t/example.com',
+      '/\n/example.com',
+      '/\t/[',
+    ]
     const entries = toNotificationEntries(
       links.map((link) => createItem({ link })),
       NOW,
