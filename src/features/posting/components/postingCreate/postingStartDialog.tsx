@@ -84,6 +84,8 @@ function PostingStartDialog({ children }: PostingStartDialogProps) {
     if (!selectedValue) {
       return
     }
+    // LNB처럼 이동 후에도 남는 위치에서 열면 정리 effect가 돌지 않아 직접 닫기
+    handleOpenChange(false)
     router.push(getNewPostingPath(INTERVIEW_OPTIONS[selectedValue].hasInterview))
   }
 

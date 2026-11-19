@@ -47,15 +47,20 @@ describe('PostingStartDialog', () => {
   it.each([
     ['면접을 봐요', '/manage/postings/new?interview=true'],
     ['면접을 보지 않아요', '/manage/postings/new?interview=false'],
-  ])('%s 선택 후 다음을 누르면 면접 여부를 담아 공고 작성으로 이동', async (option, path) => {
-    const user = await openDialog()
+  ])(
+    '%s 선택 후 다음을 누르면 다이얼로그를 닫고 면접 여부를 담아 공고 작성으로 이동',
+    async (option, path) => {
+      const user = await openDialog()
 
-    await user.click(screen.getByRole('radio', { name: new RegExp(option) }))
-    expect(screen.getByRole('radio', { name: new RegExp(option) })).toBeChecked()
+      await user.click(screen.getByRole('radio', { name: new RegExp(option) }))
+      expect(screen.getByRole('radio', { name: new RegExp(option) })).toBeChecked()
 
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    expect(push).toHaveBeenCalledExactlyOnceWith(path)
-  })
+      await user.click(screen.getByRole('button', { name: '다음' }))
+      expect(push).toHaveBeenCalledExactlyOnceWith(path)
+      // 이동 후에도 남는 LNB에서 연 경우와 같은 상황
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    },
+  )
 
   it('취소로 닫았다 다시 열면 선택 초기화', async () => {
     const user = await openDialog()
