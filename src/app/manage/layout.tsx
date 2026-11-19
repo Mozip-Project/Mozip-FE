@@ -9,7 +9,7 @@ import { ToastProvider } from '@/providers/toastProvider'
 
 const NAV_ITEMS = [
   { label: '단체 관리', href: '/manage/organization' },
-  { label: '모집 관리', href: '/manage/recruitments' },
+  { label: '모집 관리', href: '/manage/postings' },
 ] satisfies GnbNavItem[]
 
 export default function ManageLayout({ children }: LayoutProps<'/manage'>) {

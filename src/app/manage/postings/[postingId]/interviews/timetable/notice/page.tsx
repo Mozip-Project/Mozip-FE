@@ -7,7 +7,7 @@ import {
 
 export default function InterviewResultNoticePage({
   params,
-}: PageProps<'/manage/recruitments/[recruitmentId]/interviews/timetable/notice'>) {
+}: PageProps<'/manage/postings/[postingId]/interviews/timetable/notice'>) {
   return (
     <div className="flex page-min-height flex-col gap-gap-xl">
       <Suspense fallback={<ResultNoticeHeaderFallback kind="interview" />}>

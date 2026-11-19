@@ -8,7 +8,7 @@ import {
 export default function RecruitmentDocumentsPage({
   params,
   searchParams,
-}: PageProps<'/manage/recruitments/[recruitmentId]/documents'>) {
+}: PageProps<'/manage/postings/[postingId]/documents'>) {
   return (
     <div className="flex flex-col gap-gap-xl">
       <PageHeader title="서류 평가" className="min-h-10" />

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { PostingManageBoard } from '@/features/posting/components/postingManage/postingManageBoard'
 
-export default function RecruitmentPostingsPage() {
+export default function PostingManagePage() {
   return (
     <div className="flex flex-col gap-gap-xl">
       <PageHeader

@@ -15,7 +15,7 @@ function OngoingRecruitmentCard({
         {title}
       </h3>
       <RecruitmentStepper progress={progress} />
-      <RecruitmentStageGuide recruitmentId={id} title={title} progress={progress} />
+      <RecruitmentStageGuide postingId={id} title={title} progress={progress} />
     </article>
   )
 }

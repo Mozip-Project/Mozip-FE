@@ -12,7 +12,7 @@ type ManagedPostingCardProps = {
 }
 
 function ManagedPostingCard({ posting }: ManagedPostingCardProps) {
-  const { recruitmentId, title, progress } = posting
+  const { id, title, progress } = posting
   // 종료된 공고는 다음 할 일이 없어 안내 바 제외
   const hasNextAction = posting.status !== 'closed'
 
@@ -25,15 +25,13 @@ function ManagedPostingCard({ posting }: ManagedPostingCardProps) {
         <ManagedPostingActions posting={posting} />
       </header>
       <RecruitmentStepper progress={progress} />
-      {hasNextAction && (
-        <RecruitmentStageGuide recruitmentId={recruitmentId} title={title} progress={progress} />
-      )}
+      {hasNextAction && <RecruitmentStageGuide postingId={id} title={title} progress={progress} />}
     </article>
   )
 }
 
 function ManagedPostingActions({ posting }: ManagedPostingCardProps) {
-  const { id, recruitmentId, title } = posting
+  const { id, title } = posting
 
   switch (posting.status) {
     case 'published':
@@ -45,10 +43,7 @@ function ManagedPostingActions({ posting }: ManagedPostingCardProps) {
           <div className="flex shrink-0 items-center gap-gap-xs">
             <PostingUpDialog postingId={id} title={title} latestRank={posting.latestRank} />
             <Button asChild variant="secondary" size="s">
-              <Link
-                href={getPostingManageDetailPath(recruitmentId, id)}
-                aria-label={`${title} 관리하기`}
-              >
+              <Link href={getPostingManageDetailPath(id)} aria-label={`${title} 관리하기`}>
                 관리하기
               </Link>
             </Button>
