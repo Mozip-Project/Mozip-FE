@@ -8,15 +8,15 @@ import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 
 type DocumentReviewContentProps = Pick<
-  PageProps<'/manage/recruitments/[recruitmentId]/documents'>,
+  PageProps<'/manage/postings/[postingId]/documents'>,
   'params' | 'searchParams'
 >
 
 async function DocumentReviewContent({ params, searchParams }: DocumentReviewContentProps) {
-  const { recruitmentId } = await params
+  const { postingId } = await params
   const query = parseDocumentReviewQuery(await searchParams)
   const { applicants, statusCounts, positionCounts, currentPage, totalPages } =
-    await getDocumentReviewApplicants(recruitmentId, query)
+    await getDocumentReviewApplicants(postingId, query)
   const startReviewHref = await getStartReviewHref()
 
   // 평가 완료 탭이 비었을 때만 같은 조건·정렬의 평가 전 목록에서 첫 지원자 조회
@@ -25,7 +25,7 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
       return undefined
     }
 
-    const { applicants: pendingApplicants } = await getDocumentReviewApplicants(recruitmentId, {
+    const { applicants: pendingApplicants } = await getDocumentReviewApplicants(postingId, {
       ...query,
       status: 'pending',
       page: 1,
@@ -36,12 +36,12 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
       return undefined
     }
 
-    return getApplicantReviewPath(recruitmentId, firstApplicant.id)
+    return getApplicantReviewPath(postingId, firstApplicant.id)
   }
 
   return (
     <DocumentReviewBoard
-      recruitmentId={recruitmentId}
+      postingId={postingId}
       query={query}
       statusCounts={statusCounts}
       positionCounts={positionCounts}
@@ -49,11 +49,11 @@ async function DocumentReviewContent({ params, searchParams }: DocumentReviewCon
       totalPages={totalPages}
     >
       <DocumentReviewApplicantTable
-        recruitmentId={recruitmentId}
+        postingId={postingId}
         applicants={applicants}
         emptyState={
           <DocumentReviewEmptyState
-            recruitmentId={recruitmentId}
+            postingId={postingId}
             status={query.status}
             totalCount={statusCounts.all}
             keyword={query.keyword.trim()}

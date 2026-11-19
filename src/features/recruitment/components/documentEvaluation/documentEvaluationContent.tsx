@@ -18,22 +18,22 @@ import { DocumentEvaluationPanel } from './documentEvaluationPanel'
 import type { Route } from 'next'
 
 type DocumentEvaluationContentProps = Pick<
-  PageProps<'/manage/recruitments/[recruitmentId]/documents/[applicantId]'>,
+  PageProps<'/manage/postings/[postingId]/documents/[applicantId]'>,
   'params'
 >
 
 async function DocumentEvaluationContent({ params }: DocumentEvaluationContentProps) {
-  const { recruitmentId, applicantId } = await params
+  const { postingId, applicantId } = await params
   const applicant = getDocumentEvaluationSample(applicantId)
 
   if (!applicant) {
     notFound()
   }
 
-  const listHref = getDocumentReviewHref(recruitmentId, parseDocumentReviewQuery({}))
+  const listHref = getDocumentReviewHref(postingId, parseDocumentReviewQuery({}))
   const next = findNextApplicantToEvaluate(EVALUATION_STRIP_SAMPLE, applicant.id)
   const nextApplicant = next && {
-    href: `/manage/recruitments/${recruitmentId}/documents/${next.id}` as Route,
+    href: `/manage/postings/${postingId}/documents/${next.id}` as Route,
     isWrapped: next.isWrapped,
   }
 
@@ -43,7 +43,7 @@ async function DocumentEvaluationContent({ params }: DocumentEvaluationContentPr
       <BackLink href={listHref} label="서류 평가" className="self-start" />
 
       <DocumentEvaluationChipStrip
-        recruitmentId={recruitmentId}
+        postingId={postingId}
         applicants={EVALUATION_STRIP_SAMPLE}
         currentId={applicant.id}
       />

@@ -15,7 +15,7 @@ import { getDocumentResultPath } from '@/features/recruitment/utils/recruitmentR
 import type { Route } from 'next'
 
 type DocumentReviewEmptyStateProps = {
-  recruitmentId: string
+  postingId: string
   status: DocumentReviewStatus
   // 필터·검색 적용 후 전체 탭 인원
   totalCount: number
@@ -27,7 +27,7 @@ type DocumentReviewEmptyStateProps = {
 
 // 조건에 맞는 인원이 있으면 탭 상태, 없으면 검색어 → 포지션 필터 → 지원자 없음 순으로 원인 안내
 function DocumentReviewEmptyState({
-  recruitmentId,
+  postingId,
   status,
   totalCount,
   keyword,
@@ -43,7 +43,7 @@ function DocumentReviewEmptyState({
           description="다른 평가자의 진행 상황과 최종 결과는 '평가 결과 취합'에서 확인할 수 있어요."
           actions={
             <Button asChild size="m">
-              <Link href={getDocumentResultPath(recruitmentId)}>
+              <Link href={getDocumentResultPath(postingId)}>
                 <ArrowRightIcon aria-hidden />
                 평가 결과 취합으로 이동
               </Link>

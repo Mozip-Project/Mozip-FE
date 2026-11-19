@@ -14,8 +14,8 @@ const meta = {
     nextjs: {
       appDirectory: true,
       navigation: {
-        pathname: '/manage/recruitments/1/documents',
-        segments: [['recruitmentId', '1']],
+        pathname: '/manage/postings/1/documents',
+        segments: [['postingId', '1']],
       },
     },
   },

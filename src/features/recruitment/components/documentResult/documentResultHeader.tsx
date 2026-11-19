@@ -10,8 +10,8 @@ const TITLE = '서류 평가 취합'
 const HEADER_CLASS = 'min-h-10'
 
 function DocumentResultHeader() {
-  const { recruitmentId } = useParams<{ recruitmentId: string }>()
-  const overview = useDocumentResultOverview(recruitmentId)
+  const { postingId } = useParams<{ postingId: string }>()
+  const overview = useDocumentResultOverview(postingId)
 
   if (!overview?.confirmedAt) {
     return <DocumentResultHeaderFallback />

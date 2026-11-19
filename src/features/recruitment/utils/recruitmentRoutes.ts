@@ -1,40 +1,35 @@
 import type { Route } from 'next'
 
+const POSTING_MANAGE_PATH = '/manage/postings' satisfies Route
+const POSTING_CREATE_PATH = '/manage/postings/new' satisfies Route
+
 // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
-function getDocumentReviewPath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/documents` as Route
+function getDocumentReviewPath(postingId: string) {
+  return `/manage/postings/${postingId}/documents` as Route
 }
 
-function getApplicantReviewPath(recruitmentId: string, applicantId: string) {
-  return `/manage/recruitments/${recruitmentId}/documents/${applicantId}` as Route
+function getApplicantReviewPath(postingId: string, applicantId: string) {
+  return `/manage/postings/${postingId}/documents/${applicantId}` as Route
 }
 
-function getDocumentResultPath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/documents/summary` as Route
+function getDocumentResultPath(postingId: string) {
+  return `/manage/postings/${postingId}/documents/summary` as Route
 }
 
-function getResultNoticePath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/documents/summary/notice` as Route
+function getResultNoticePath(postingId: string) {
+  return `/manage/postings/${postingId}/documents/summary/notice` as Route
 }
 
-function getInterviewTimetablePath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/interviews/timetable` as Route
+function getInterviewTimetablePath(postingId: string) {
+  return `/manage/postings/${postingId}/interviews/timetable` as Route
 }
 
-function getInterviewResultNoticePath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/interviews/timetable/notice` as Route
+function getInterviewResultNoticePath(postingId: string) {
+  return `/manage/postings/${postingId}/interviews/timetable/notice` as Route
 }
 
-function getPostingManagePath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/postings` as Route
-}
-
-function getPostingCreatePath(recruitmentId: string) {
-  return `/manage/recruitments/${recruitmentId}/postings/new` as Route
-}
-
-function getPostingManageDetailPath(recruitmentId: string, postingId: string) {
-  return `/manage/recruitments/${recruitmentId}/postings/${postingId}` as Route
+function getPostingManageDetailPath(postingId: string) {
+  return `/manage/postings/${postingId}` as Route
 }
 
 export {
@@ -43,8 +38,8 @@ export {
   getDocumentReviewPath,
   getInterviewResultNoticePath,
   getInterviewTimetablePath,
-  getPostingCreatePath,
   getPostingManageDetailPath,
-  getPostingManagePath,
   getResultNoticePath,
+  POSTING_CREATE_PATH,
+  POSTING_MANAGE_PATH,
 }

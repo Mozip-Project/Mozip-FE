@@ -86,7 +86,6 @@ const POSTING_UP_RANK = 1
 
 type ManagedPostingBase = {
   id: string
-  recruitmentId: string
   title: string
   progress: RecruitmentProgress
 }
@@ -106,7 +105,6 @@ type ManagedPostingPreview = {
 
 type ManagedPostingDetail = {
   id: string
-  recruitmentId: string
   title: string
   // TODO: D-day 계산 기준 확정 후 날짜 필드로 교체
   postingDeadlineLabel: string

@@ -18,7 +18,7 @@ import { useConfirmDocumentResultsMutation } from '@/features/recruitment/hooks/
 import type { DocumentResult } from '@/features/recruitment/types'
 
 type DocumentResultConfirmDialogProps = {
-  recruitmentId: string
+  postingId: string
   hasInterviewStep: boolean
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
@@ -27,14 +27,14 @@ type DocumentResultConfirmDialogProps = {
 }
 
 function DocumentResultConfirmDialog({
-  recruitmentId,
+  postingId,
   isOpen,
   onOpenChange,
   hasInterviewStep,
   resultCounts,
   onCloseAutoFocus,
 }: DocumentResultConfirmDialogProps) {
-  const { mutate: confirmResults, isPending } = useConfirmDocumentResultsMutation(recruitmentId)
+  const { mutate: confirmResults, isPending } = useConfirmDocumentResultsMutation(postingId)
   const [isFailureToastOpen, setIsFailureToastOpen] = useState(false)
   const followUpMessage = hasInterviewStep
     ? '이후 면접 일정을 등록하고 지원자에게 안내할 수 있어요.'

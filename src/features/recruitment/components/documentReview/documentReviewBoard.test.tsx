@@ -30,7 +30,7 @@ vi.mock('next/link', () => ({
 function getBoard(searchParams: Record<string, string> = {}) {
   return (
     <DocumentReviewBoard
-      recruitmentId="1"
+      postingId="1"
       query={parseDocumentReviewQuery(searchParams)}
       statusCounts={{ all: 48, pending: 14, done: 34 }}
       positionCounts={{ design: 20, development: 22, planning: 6 }}
@@ -77,7 +77,7 @@ describe('DocumentReviewBoard 이름 검색', () => {
     })
 
     expect(replace).toHaveBeenCalledTimes(1)
-    expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents?q=%EA%B9%80%EB%AA%A8', {
+    expect(replace).toHaveBeenCalledWith('/manage/postings/1/documents?q=%EA%B9%80%EB%AA%A8', {
       scroll: false,
     })
   })
@@ -87,7 +87,7 @@ describe('DocumentReviewBoard 이름 검색', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '검색어 지우기' }))
 
-    expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents', { scroll: false })
+    expect(replace).toHaveBeenCalledWith('/manage/postings/1/documents', { scroll: false })
   })
 
   it('URL의 검색어가 바뀌면 검색창과 다음 조건 변경에 반영', () => {
@@ -99,7 +99,7 @@ describe('DocumentReviewBoard 이름 검색', () => {
 
     fireEvent.mouseDown(screen.getByRole('tab', { name: '평가 전 14' }))
 
-    expect(replace).toHaveBeenLastCalledWith('/manage/recruitments/1/documents?status=pending', {
+    expect(replace).toHaveBeenLastCalledWith('/manage/postings/1/documents?status=pending', {
       scroll: false,
     })
   })
@@ -141,11 +141,11 @@ describe('DocumentReviewBoard 이름 검색', () => {
     })
 
     // 가짜 replace는 즉시 끝나 탭 전환이 중복 호출될 수 있어 호출 내용으로 검증
-    expect(replace).not.toHaveBeenCalledWith('/manage/recruitments/1/documents?q=%EA%B9%80', {
+    expect(replace).not.toHaveBeenCalledWith('/manage/postings/1/documents?q=%EA%B9%80', {
       scroll: false,
     })
     expect(replace).toHaveBeenLastCalledWith(
-      '/manage/recruitments/1/documents?status=pending&q=%EA%B9%80',
+      '/manage/postings/1/documents?status=pending&q=%EA%B9%80',
       { scroll: false },
     )
   })
@@ -161,7 +161,7 @@ describe('DocumentReviewBoard 이름 검색', () => {
     })
 
     expect(replace).not.toHaveBeenCalled()
-    expect(push).toHaveBeenCalledExactlyOnceWith('/manage/recruitments/1/documents?page=2', {
+    expect(push).toHaveBeenCalledExactlyOnceWith('/manage/postings/1/documents?page=2', {
       scroll: false,
     })
     expect(searchbox).toHaveValue('')

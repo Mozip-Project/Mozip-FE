@@ -23,13 +23,12 @@ const SAMPLE_DETAIL = {
 }
 
 // 목록 샘플과 별개로 Figma 면접(신입 부원)·비면접(운영진) 상세 시안 기준
-const NO_INTERVIEW_POSTING_ID = 'posting-2'
+const NO_INTERVIEW_POSTING_ID = '2'
 
 const MANAGED_POSTING_DETAIL_SAMPLE: ManagedPostingDetail[] = MANAGED_POSTING_SAMPLE.map(
-  ({ id, recruitmentId, title }) => ({
+  ({ id, title }) => ({
     ...SAMPLE_DETAIL,
     id,
-    recruitmentId,
     title,
     interview: id === NO_INTERVIEW_POSTING_ID ? null : SAMPLE_DETAIL.interview,
   }),

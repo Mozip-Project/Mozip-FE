@@ -12,26 +12,34 @@ import { RecruitSwitcher } from './recruitSwitcher'
 type RecruitmentNavViewProps = {
   // null은 조회 전, 면접 평가 메뉴가 나타났다 사라지지 않도록 숨김
   overview: DocumentResultOverview | null
+  // 목록·작성 화면처럼 공고 ID가 없으면 공고별 상태 생략
+  isPostingSelected?: boolean
 }
 
-function RecruitmentNavView({ overview }: RecruitmentNavViewProps) {
+function RecruitmentNavView({ overview, isPostingSelected = true }: RecruitmentNavViewProps) {
   const isConfirmed = Boolean(overview?.confirmedAt)
+  const documentStatusLabel = isConfirmed ? '완료' : '진행 중'
 
   return (
     <Lnb
       switcher={
-        <RecruitSwitcher
-          name="UXUX 14기 신입 부원 모집"
-          statusLabel={isConfirmed ? '서류 평가 완료' : '서류 평가 진행 중'}
-          scheduleLabel="지원 마감 10/16 (금)"
-        />
+        isPostingSelected ? (
+          <RecruitSwitcher
+            name="UXUX 14기 신입 부원 모집"
+            statusLabel={isConfirmed ? '서류 평가 완료' : '서류 평가 진행 중'}
+            scheduleLabel="지원 마감 10/16 (금)"
+          />
+        ) : (
+          // TODO: 공고 선택 전 문구 디자인 확정 후 교체
+          <RecruitSwitcher name="공고를 선택해 주세요" />
+        )
       }
     >
       <li>
         <LnbStageItem
           icon={<MegaphoneIcon aria-hidden />}
           label="공고 관리"
-          statusLabel="마감"
+          statusLabel={isPostingSelected ? '마감' : undefined}
           isExpanded
         />
       </li>
@@ -48,8 +56,8 @@ function RecruitmentNavView({ overview }: RecruitmentNavViewProps) {
         <LnbStageItem
           icon={<FileTextIcon aria-hidden />}
           label="서류 평가"
-          statusLabel={isConfirmed ? '완료' : '진행 중'}
-          isActive
+          statusLabel={isPostingSelected ? documentStatusLabel : undefined}
+          isActive={isPostingSelected}
           isStatusHighlighted
           isExpanded
         />

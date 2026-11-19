@@ -3,8 +3,7 @@ import type { ManagedPostingDetail } from '@/features/posting/types'
 import { getPostingDetailRows } from './postingDetailRows'
 
 const DETAIL: ManagedPostingDetail = {
-  id: 'posting-1',
-  recruitmentId: '1',
+  id: '1',
   title: 'UXUX 14기 신입 부원 모집',
   postingDeadlineLabel: '게시 마감 D-5',
   recruitmentStartsAt: '2025-10-01T00:00',

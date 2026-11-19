@@ -13,32 +13,31 @@ import {
 import { useIsHydrated } from '@/hooks/useIsHydrated'
 
 const documentResultKeys = {
-  all: (recruitmentId: string) => ['documentResults', recruitmentId] as const,
-  list: (recruitmentId: string, query: DocumentResultQuery) =>
-    [...documentResultKeys.all(recruitmentId), query] as const,
-  overview: (recruitmentId: string) =>
-    [...documentResultKeys.all(recruitmentId), 'overview'] as const,
+  all: (postingId: string) => ['documentResults', postingId] as const,
+  list: (postingId: string, query: DocumentResultQuery) =>
+    [...documentResultKeys.all(postingId), query] as const,
+  overview: (postingId: string) => [...documentResultKeys.all(postingId), 'overview'] as const,
 }
 
 // 조건 변경 중에는 이전 목록 유지
-function useDocumentResultsQuery(recruitmentId: string, query: DocumentResultQuery) {
+function useDocumentResultsQuery(postingId: string, query: DocumentResultQuery) {
   return useQuery({
-    queryKey: documentResultKeys.list(recruitmentId, query),
-    queryFn: () => getDocumentResultApplicants(recruitmentId, query),
+    queryKey: documentResultKeys.list(postingId, query),
+    queryFn: () => getDocumentResultApplicants(postingId, query),
     placeholderData: keepPreviousData,
   })
 }
 
-function useUpdateDocumentResultMutation(recruitmentId: string, query: DocumentResultQuery) {
+function useUpdateDocumentResultMutation(postingId: string, query: DocumentResultQuery) {
   const queryClient = useQueryClient()
-  const queryKey = documentResultKeys.list(recruitmentId, query)
+  const queryKey = documentResultKeys.list(postingId, query)
 
   return useMutation({
     mutationFn: ({ applicantId, result }: DocumentResultChange) =>
-      updateDocumentResult(recruitmentId, applicantId, result),
+      updateDocumentResult(postingId, applicantId, result),
     // 탭 숫자·하단 바를 응답 전에 재계산
     onMutate: async (change) => {
-      await queryClient.cancelQueries({ queryKey: documentResultKeys.all(recruitmentId) })
+      await queryClient.cancelQueries({ queryKey: documentResultKeys.all(postingId) })
       const previousPage = queryClient.getQueryData<DocumentResultApplicantPage>(queryKey)
 
       if (previousPage) {
@@ -52,30 +51,28 @@ function useUpdateDocumentResultMutation(recruitmentId: string, query: DocumentR
         queryClient.setQueryData(queryKey, context.previousPage)
       }
     },
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: documentResultKeys.all(recruitmentId) }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: documentResultKeys.all(postingId) }),
   })
 }
 
 // 경계마다 hydration 시점이 달라 먼저 찬 캐시로 서버 HTML과 어긋나지 않도록 hydration 중 데이터 숨김
-function useDocumentResultOverview(recruitmentId: string) {
+function useDocumentResultOverview(postingId: string) {
   const isHydrated = useIsHydrated()
   const { data } = useQuery({
-    queryKey: documentResultKeys.overview(recruitmentId),
-    queryFn: () => getDocumentResultOverview(recruitmentId),
+    queryKey: documentResultKeys.overview(postingId),
+    queryFn: () => getDocumentResultOverview(postingId),
   })
 
   return isHydrated ? data : undefined
 }
 
-function useConfirmDocumentResultsMutation(recruitmentId: string) {
+function useConfirmDocumentResultsMutation(postingId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => confirmDocumentResults(recruitmentId),
+    mutationFn: () => confirmDocumentResults(postingId),
     // 재조회까지 기다려 팝업이 닫힐 때 확정 후 화면 표시
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: documentResultKeys.all(recruitmentId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: documentResultKeys.all(postingId) }),
   })
 }
 
