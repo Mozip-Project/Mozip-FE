@@ -7,10 +7,10 @@ type LnbProps = {
 
 function Lnb({ switcher, children }: LnbProps) {
   return (
-    <div data-slot="lnb" className="flex flex-col gap-gap-l">
+    <nav data-slot="lnb" aria-label="모집 메뉴" className="flex flex-col gap-gap-l">
       {switcher}
-      <ul className="flex flex-col gap-gap-xs">{children}</ul>
-    </div>
+      <ul className="flex flex-col gap-gap-xxs">{children}</ul>
+    </nav>
   )
 }
 
