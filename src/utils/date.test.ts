@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addDaysToIsoDate,
   formatDateTimeWithWeekday,
+  formatDday,
+  formatMonthDayTimeWithWeekday,
   formatMonthDayWithWeekday,
   formatRemainingTime,
   formatSavedTime,
   formatYearMonth,
+  getDaysBetween,
+  getSeoulIsoDate,
 } from './date'
 
 describe('formatSavedTime', () => {
@@ -38,6 +43,19 @@ describe('formatMonthDayWithWeekday', () => {
   })
 })
 
+describe('formatMonthDayTimeWithWeekday', () => {
+  it('월/일 (요일) 시:분으로 표시', () => {
+    expect(formatMonthDayTimeWithWeekday('2026-10-15T23:59:59+09:00')).toBe('10/15 (목) 23:59')
+  })
+})
+
+describe('formatDday', () => {
+  it('당일은 D-day, 그 외는 D-n', () => {
+    expect(formatDday(0)).toBe('D-day')
+    expect(formatDday(1)).toBe('D-1')
+  })
+})
+
 describe('formatRemainingTime', () => {
   it('분:초로 표시하고 초는 두 자리로 맞춤', () => {
     expect(formatRemainingTime(180)).toBe('3:00')
@@ -55,5 +73,36 @@ describe('formatYearMonth', () => {
 
   it('형식이 맞지 않으면 빈 문자열', () => {
     expect(formatYearMonth('')).toBe('')
+  })
+})
+
+describe('getSeoulIsoDate', () => {
+  it('실행 환경 시간대와 무관하게 한국 날짜를 YYYY-MM-DD로 반환', () => {
+    expect(getSeoulIsoDate(new Date('2026-11-18T14:59:59Z'))).toBe('2026-11-18')
+    expect(getSeoulIsoDate(new Date('2026-11-18T15:00:00Z'))).toBe('2026-11-19')
+  })
+})
+
+describe('getDaysBetween', () => {
+  it('시각을 빼고 달력 날짜 차이만 계산', () => {
+    expect(getDaysBetween('2026-11-18', '2026-11-18T23:59:59+09:00')).toBe(0)
+    expect(getDaysBetween('2026-11-18', '2026-11-19T00:00:00+09:00')).toBe(1)
+    expect(getDaysBetween('2026-11-18', '2026-11-17')).toBe(-1)
+  })
+
+  it('월·연도가 바뀌어도 일수로 계산', () => {
+    expect(getDaysBetween('2026-12-30', '2027-01-02')).toBe(3)
+  })
+
+  it('형식이 맞지 않으면 NaN', () => {
+    expect(getDaysBetween('', '2026-11-18')).toBeNaN()
+  })
+})
+
+describe('addDaysToIsoDate', () => {
+  it('일수를 더한 날짜를 YYYY-MM-DD로 반환', () => {
+    expect(addDaysToIsoDate('2026-11-18', 1)).toBe('2026-11-19')
+    expect(addDaysToIsoDate('2026-12-31', 1)).toBe('2027-01-01')
+    expect(addDaysToIsoDate('2026-03-01', -1)).toBe('2026-02-28')
   })
 })
