@@ -18,7 +18,7 @@ function NumberStepperStory({ initialValue }: { initialValue: number }) {
 }
 
 const meta = {
-  title: 'UI/NumberStepper',
+  title: 'Features/Posting/NumberStepper',
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta
 

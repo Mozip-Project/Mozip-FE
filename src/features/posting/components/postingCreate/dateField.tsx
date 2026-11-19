@@ -2,12 +2,12 @@
 
 import { useId, useState } from 'react'
 import CalendarIcon from '@/assets/icons/calendar.svg'
-import { DatePicker } from '@/components/ui/DatePicker/datePicker'
-import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover/popover'
 import { usePointerFocus } from '@/hooks/usePointerFocus'
 import { cn } from '@/lib/utils'
 import { formatFullDateWithWeekday } from '@/utils/calendar'
+import { DatePicker } from './datePicker'
+import { FieldLabel } from './fieldLabel'
 
 type DateFieldProps = {
   label: string

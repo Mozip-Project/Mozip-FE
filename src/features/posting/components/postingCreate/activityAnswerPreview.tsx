@@ -1,8 +1,8 @@
 'use client'
 
 import PlusIcon from '@/assets/icons/plus.svg'
-import { ActivityItem } from '@/components/ui/ActivityItem/activityItem'
 import { TextField } from '@/components/ui/TextField/textField'
+import { ActivityItem } from './activityItem'
 
 function ignoreRemove() {}
 

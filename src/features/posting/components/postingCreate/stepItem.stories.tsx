@@ -2,7 +2,7 @@ import { StepItem } from './stepItem'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/StepItem',
+  title: 'Features/Posting/StepItem',
   component: StepItem,
   parameters: { layout: 'padded' },
   decorators: [

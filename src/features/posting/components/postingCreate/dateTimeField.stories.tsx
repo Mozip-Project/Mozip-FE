@@ -33,7 +33,7 @@ function DateTimeFieldStory({
 }
 
 const meta = {
-  title: 'UI/DateTimeField',
+  title: 'Features/Posting/DateTimeField',
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta
 

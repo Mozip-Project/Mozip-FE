@@ -3,7 +3,7 @@ import { ActivityItem } from './activityItem'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/ActivityItem',
+  title: 'Features/Posting/ActivityItem',
   component: ActivityItem,
   parameters: { layout: 'padded' },
   decorators: [

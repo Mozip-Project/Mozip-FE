@@ -2,7 +2,7 @@ import { FieldLabel } from './fieldLabel'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/FieldLabel',
+  title: 'Features/Posting/FieldLabel',
   component: FieldLabel,
   parameters: { layout: 'padded' },
   args: { id: 'field-label', label: '모집 시작', required: false },

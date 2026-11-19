@@ -13,7 +13,7 @@ function DatePickerStory({ initialValue }: { initialValue: string | null }) {
 }
 
 const meta = {
-  title: 'UI/DatePicker',
+  title: 'Features/Posting/DatePicker',
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta
 

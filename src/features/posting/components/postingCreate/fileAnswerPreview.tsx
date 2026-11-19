@@ -1,8 +1,8 @@
 'use client'
 
 import LinkIcon from '@/assets/icons/link.svg'
-import { FileUpload } from '@/components/ui/FileUpload/fileUpload'
 import type { FileRule } from '@/utils/file'
+import { FileUpload } from './fileUpload'
 
 type FileAnswerPreviewProps = FileRule & {
   fileDescription: string

@@ -4,7 +4,7 @@ import { ToolButton } from './toolButton'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/ToolButton',
+  title: 'Features/Posting/ToolButton',
   component: ToolButton,
   parameters: { layout: 'padded' },
   args: { label: '굵게', isActive: false, children: <BoldIcon aria-hidden /> },

@@ -24,7 +24,7 @@ function DateFieldStory({
 }
 
 const meta = {
-  title: 'UI/DateField',
+  title: 'Features/Posting/DateField',
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta
 

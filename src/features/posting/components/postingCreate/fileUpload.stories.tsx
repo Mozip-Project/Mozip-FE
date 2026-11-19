@@ -2,7 +2,7 @@ import { FileUpload } from './fileUpload'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/FileUpload',
+  title: 'Features/Posting/FileUpload',
   component: FileUpload,
   parameters: { layout: 'padded' },
   args: {

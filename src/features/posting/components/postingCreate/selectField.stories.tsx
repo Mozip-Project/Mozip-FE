@@ -26,7 +26,7 @@ function SelectFieldStory({ initialValue = null }: { initialValue?: Duration | n
 }
 
 const meta = {
-  title: 'UI/SelectField',
+  title: 'Features/Posting/SelectField',
   parameters: { layout: 'padded', controls: { disable: true } },
 } satisfies Meta
 

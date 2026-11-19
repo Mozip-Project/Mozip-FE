@@ -7,7 +7,7 @@ import { TextAnswerPreview } from './textAnswerPreview'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
 const meta = {
-  title: 'UI/QuestionCard',
+  title: 'Features/Posting/QuestionCard',
   component: QuestionCard,
   parameters: { layout: 'padded' },
   decorators: [

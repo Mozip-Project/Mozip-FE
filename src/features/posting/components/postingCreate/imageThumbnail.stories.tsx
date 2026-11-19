@@ -6,7 +6,7 @@ const SAMPLE_IMAGE_SRC = `data:image/svg+xml,${encodeURIComponent(
 )}`
 
 const meta = {
-  title: 'UI/ImageThumbnail',
+  title: 'Features/Posting/ImageThumbnail',
   component: ImageThumbnail,
   parameters: { layout: 'padded' },
   args: { src: SAMPLE_IMAGE_SRC, alt: '공고 이미지 1', onRemove: () => undefined },
