@@ -1,0 +1,19 @@
+query Notifications {
+  notifications {
+    items {
+      id
+      type
+      title
+      link
+      read
+      createdAt
+      organization {
+        name
+      }
+    }
+  }
+}
+
+mutation MarkNotificationsRead($ids: [ID!]) {
+  markNotificationsRead(ids: $ids)
+}

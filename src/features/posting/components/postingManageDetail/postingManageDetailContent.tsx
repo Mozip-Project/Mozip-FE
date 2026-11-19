@@ -3,18 +3,15 @@ import { Button } from '@/components/ui/Button/button'
 import { Callout } from '@/components/ui/Callout/callout'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getManagedPostingDetail } from '@/features/posting/api/organizer'
-import { getPostingManagePath } from '@/features/recruitment/utils/recruitmentRoutes'
+import { POSTING_MANAGE_PATH } from '@/features/recruitment/utils/recruitmentRoutes'
 import { PostingDetailCard } from './postingDetailCard'
 import { PostingNoticeDialog } from './postingNoticeDialog'
 import { PostingPreviewCard } from './postingPreviewCard'
 
-type PostingManageDetailContentProps = Pick<
-  PageProps<'/manage/recruitments/[recruitmentId]/postings/[postingId]'>,
-  'params'
->
+type PostingManageDetailContentProps = Pick<PageProps<'/manage/postings/[postingId]'>, 'params'>
 
 async function PostingManageDetailContent({ params }: PostingManageDetailContentProps) {
-  const { recruitmentId, postingId } = await params
+  const { postingId } = await params
   const detail = await getManagedPostingDetail(postingId)
 
   if (!detail) {
@@ -24,7 +21,7 @@ async function PostingManageDetailContent({ params }: PostingManageDetailContent
   return (
     <div className="flex flex-col gap-gap-xl">
       <PageHeader
-        backLink={{ href: getPostingManagePath(recruitmentId), label: '공고 관리' }}
+        backLink={{ href: POSTING_MANAGE_PATH, label: '공고 관리' }}
         title={detail.title}
         actions={
           <div className="flex items-center gap-gap-m">

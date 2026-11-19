@@ -36,3 +36,4 @@
 - 2026-10-31: 모집 관리 LNB를 옮기며 최초 기록
 - 2026-11-10: 도메인별 MSW handler와 샘플 데이터 위치로 `mocks/` 추가([014](./014-msw-mocking.md))
 - 2026-11-11: 모집 도메인이 커져 공고를 `features/posting/`으로 분리. 공고 탐색·스크랩·UP·공고 등록은 posting, 지원 이후 과정은 recruitment
+- 2026-11-17: `api/`를 `query.graphql`·`api.ts`·`queries.ts`·`keys.ts`로 나누고, 역할 전용 API는 `api/applicant/`·`api/organizer/`에 같은 구조로 둠. 서버 데이터 query hook은 `api/queries.ts`, 화면 상태를 조합하는 hook은 `hooks/`. 문서·요청·캐시 코드를 API 단위로 모으기 위해 변경

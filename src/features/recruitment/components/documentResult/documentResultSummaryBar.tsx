@@ -26,12 +26,12 @@ type DocumentResultSummaryBarProps = Pick<
   DocumentResultApplicantPage,
   'statusCounts' | 'totalResultCounts'
 > & {
-  recruitmentId: string
+  postingId: string
   overview: DocumentResultOverview
 }
 
 function DocumentResultSummaryBar({
-  recruitmentId,
+  postingId,
   statusCounts,
   totalResultCounts,
   overview: { hasInterview, confirmedAt },
@@ -54,7 +54,7 @@ function DocumentResultSummaryBar({
           className={STICKY_BOTTOM_CLASS}
           actions={
             <NextStepActions
-              recruitmentId={recruitmentId}
+              postingId={postingId}
               hasInterviewStep={hasInterviewStep}
               primaryLinkRef={primaryLinkRef}
             />
@@ -81,7 +81,7 @@ function DocumentResultSummaryBar({
         </SummaryBar>
       )}
       <DocumentResultConfirmDialog
-        recruitmentId={recruitmentId}
+        postingId={postingId}
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         hasInterviewStep={hasInterviewStep}
@@ -99,18 +99,14 @@ function DocumentResultSummaryBar({
 }
 
 type NextStepActionsProps = {
-  recruitmentId: string
+  postingId: string
   hasInterviewStep: boolean
   primaryLinkRef: Ref<HTMLAnchorElement>
 }
 
 // TODO: 결제 전이면 면접 타임테이블 대신 패키지 결제로 이동, 결제 상태 API 확정 후 분기
-function NextStepActions({
-  recruitmentId,
-  hasInterviewStep,
-  primaryLinkRef,
-}: NextStepActionsProps) {
-  const noticePath = getResultNoticePath(recruitmentId)
+function NextStepActions({ postingId, hasInterviewStep, primaryLinkRef }: NextStepActionsProps) {
+  const noticePath = getResultNoticePath(postingId)
 
   if (!hasInterviewStep) {
     return (
@@ -128,7 +124,7 @@ function NextStepActions({
         <Link href={noticePath}>서류 결과만 안내하기</Link>
       </Button>
       <Button asChild size="m">
-        <Link ref={primaryLinkRef} href={getInterviewTimetablePath(recruitmentId)}>
+        <Link ref={primaryLinkRef} href={getInterviewTimetablePath(postingId)}>
           면접 타임테이블 만들기
         </Link>
       </Button>

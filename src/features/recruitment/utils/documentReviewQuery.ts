@@ -20,8 +20,8 @@ function parseDocumentReviewQuery(searchParams: SearchParamsSource): DocumentRev
   return parseBoardQuery(searchParams, DOCUMENT_REVIEW_QUERY_CONFIG)
 }
 
-function getDocumentReviewHref(recruitmentId: string, query: DocumentReviewQuery) {
-  return getBoardHref(getDocumentReviewPath(recruitmentId), query, DOCUMENT_REVIEW_QUERY_CONFIG)
+function getDocumentReviewHref(postingId: string, query: DocumentReviewQuery) {
+  return getBoardHref(getDocumentReviewPath(postingId), query, DOCUMENT_REVIEW_QUERY_CONFIG)
 }
 
 export { getDocumentReviewHref, parseDocumentReviewQuery }

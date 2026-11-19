@@ -22,21 +22,21 @@ const HEADER_BY_KIND = {
   },
 } satisfies Record<
   ResultNoticeKind,
-  { description: string; backLabel: string; getBackPath: (recruitmentId: string) => Route }
+  { description: string; backLabel: string; getBackPath: (postingId: string) => Route }
 >
 
 type ResultNoticeHeaderProps = {
   kind: ResultNoticeKind
-  params: Promise<{ recruitmentId: string }>
+  params: Promise<{ postingId: string }>
 }
 
 async function ResultNoticeHeader({ kind, params }: ResultNoticeHeaderProps) {
-  const { recruitmentId } = await params
+  const { postingId } = await params
   const { description, backLabel, getBackPath } = HEADER_BY_KIND[kind]
 
   return (
     <PageHeader
-      backLink={{ href: getBackPath(recruitmentId), label: backLabel }}
+      backLink={{ href: getBackPath(postingId), label: backLabel }}
       title={TITLE}
       description={description}
     />

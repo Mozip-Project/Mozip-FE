@@ -27,7 +27,7 @@ import type { Route } from 'next'
 const SORT_OPTIONS = getBoardSortOptions(DOCUMENT_REVIEW_SORTS, DOCUMENT_REVIEW_SORT_LABEL)
 
 type DocumentReviewBoardProps = {
-  recruitmentId: string
+  postingId: string
   query: DocumentReviewQuery
   // null은 첫 진입 로딩 중
   statusCounts: Record<DocumentReviewStatus, number> | null
@@ -38,7 +38,7 @@ type DocumentReviewBoardProps = {
 }
 
 function DocumentReviewBoard({
-  recruitmentId,
+  postingId,
   query,
   statusCounts,
   positionCounts,
@@ -66,7 +66,7 @@ function DocumentReviewBoard({
 
     startTransition(() => {
       setOptimisticQuery(nextQuery)
-      router.replace(getDocumentReviewHref(recruitmentId, nextQuery), { scroll: false })
+      router.replace(getDocumentReviewHref(postingId, nextQuery), { scroll: false })
     })
   }
 
@@ -85,7 +85,7 @@ function DocumentReviewBoard({
       skeleton={<DocumentReviewSkeletonTable />}
       currentPage={currentPage}
       totalPages={totalPages}
-      getPageHref={(page) => getDocumentReviewHref(recruitmentId, { ...query, page })}
+      getPageHref={(page) => getDocumentReviewHref(postingId, { ...query, page })}
       onQueryChange={handleQueryChange}
       onPageNavigate={handlePageNavigate}
     >
@@ -99,7 +99,7 @@ function DocumentReviewBoardPlaceholder({ children }: { children: ReactNode }) {
   return (
     <div inert>
       <DocumentReviewBoard
-        recruitmentId=""
+        postingId=""
         query={parseDocumentReviewQuery({})}
         statusCounts={null}
         positionCounts={null}

@@ -17,7 +17,7 @@ MOZIP.은 동아리·학회·학생회의 공고 탐색부터 지원, 서류·�
 - `pnpm lint` / `pnpm lint:fix`: ESLint 검사 / 자동 수정
 - `pnpm format` / `pnpm format:check`: Prettier 정리 / 검사
 - `pnpm type-check`: Next typegen 후 TypeScript 검사
-- `pnpm codegen` / `pnpm codegen:watch`: `schema.graphql`과 `features/*/api/`의 GraphQL 문서로 `src/gql/` 타입 생성 / 파일 저장 시 자동 재생성
+- `pnpm codegen` / `pnpm codegen:watch`: `schema.graphql`과 `src/features/**/api/**/*.graphql` 문서로 `src/gql/` 타입 생성 / 파일 저장 시 자동 재생성
 - `pnpm test` / `pnpm test:run`: Vitest 감시 모드 / 단발 실행
 - `pnpm storybook` / `pnpm build-storybook`: Storybook 개발 서버(6006 포트) / 정적 빌드
 - `pnpm build`: 프로덕션 빌드

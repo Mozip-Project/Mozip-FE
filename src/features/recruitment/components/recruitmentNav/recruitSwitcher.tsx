@@ -3,8 +3,9 @@ import { Badge } from '@/components/ui/Badge/badge'
 
 type RecruitSwitcherProps = {
   name: string
-  statusLabel: string
-  scheduleLabel: string
+  // 공고 선택 전에는 상태·일정 생략
+  statusLabel?: string
+  scheduleLabel?: string
 }
 
 function RecruitSwitcher({ name, statusLabel, scheduleLabel }: RecruitSwitcherProps) {
@@ -18,14 +19,16 @@ function RecruitSwitcher({ name, statusLabel, scheduleLabel }: RecruitSwitcherPr
         <p className="min-w-0 flex-1 text-body2 font-bold">{name}</p>
         <ChevronDownIcon aria-hidden className="size-4 shrink-0" />
       </div>
-      <div className="flex items-center gap-gap-s">
-        <Badge tone="brand" variant="weak">
-          {statusLabel}
-        </Badge>
-        <p className="text-caption1 font-semibold whitespace-nowrap text-neutral-muted">
-          {scheduleLabel}
-        </p>
-      </div>
+      {statusLabel && scheduleLabel && (
+        <div className="flex flex-wrap items-center gap-x-gap-s gap-y-gap-xs">
+          <Badge tone="brand" variant="weak">
+            {statusLabel}
+          </Badge>
+          <p className="text-caption1 font-semibold whitespace-nowrap text-neutral-muted">
+            {scheduleLabel}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

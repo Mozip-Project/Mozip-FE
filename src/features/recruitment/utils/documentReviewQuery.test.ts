@@ -46,7 +46,7 @@ describe('parseDocumentReviewQuery', () => {
 describe('getDocumentReviewHref', () => {
   it('기본값은 쿼리에서 생략', () => {
     expect(getDocumentReviewHref('1', parseDocumentReviewQuery({}))).toBe(
-      '/manage/recruitments/1/documents',
+      '/manage/postings/1/documents',
     )
   })
 
@@ -54,7 +54,7 @@ describe('getDocumentReviewHref', () => {
     const query = parseDocumentReviewQuery({ status: 'pending', position: 'design', q: '김' })
 
     expect(getDocumentReviewHref('1', { ...query, page: 2 })).toBe(
-      '/manage/recruitments/1/documents?status=pending&position=design&q=%EA%B9%80&page=2',
+      '/manage/postings/1/documents?status=pending&position=design&q=%EA%B9%80&page=2',
     )
   })
 })

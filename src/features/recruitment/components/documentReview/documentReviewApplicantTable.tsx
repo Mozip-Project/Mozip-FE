@@ -8,7 +8,7 @@ import { ApplicantRow, ApplicantTable, ApplicantTableHead } from './applicantTab
 import type { ReactNode } from 'react'
 
 type DocumentReviewApplicantTableProps = {
-  recruitmentId: string
+  postingId: string
   applicants: readonly DocumentReviewApplicant[]
   // 지원자가 0명일 때만 표시
   emptyState: ReactNode
@@ -16,7 +16,7 @@ type DocumentReviewApplicantTableProps = {
 
 // TODO: 마감 후 '평가 수정' 버튼 상태는 디자인 확정 후 canEditDocumentReview로 분기
 function DocumentReviewApplicantTable({
-  recruitmentId,
+  postingId,
   applicants,
   emptyState,
 }: DocumentReviewApplicantTableProps) {
@@ -29,7 +29,7 @@ function DocumentReviewApplicantTable({
       {applicants.map((applicant) => (
         <ApplicantRow
           key={applicant.id}
-          href={getApplicantReviewPath(recruitmentId, applicant.id)}
+          href={getApplicantReviewPath(postingId, applicant.id)}
           name={applicant.name}
           position={DOCUMENT_REVIEW_POSITION_LABEL[applicant.position]}
           submittedAt={formatMonthDayWithWeekday(applicant.submittedAt)}
