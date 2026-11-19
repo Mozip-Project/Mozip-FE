@@ -8,6 +8,11 @@ type TimeOption = {
 const MINUTES_PER_DAY = 24 * 60
 const END_OF_DAY_TIME = '23:59'
 
+const DEFAULT_TIME = {
+  start: '00:00',
+  end: END_OF_DAY_TIME,
+} satisfies Record<TimeOptionType, string>
+
 function toTimeValue(totalMinutes: number) {
   const hours = String(Math.floor(totalMinutes / 60)).padStart(2, '0')
   const minutes = String(totalMinutes % 60).padStart(2, '0')
@@ -39,5 +44,9 @@ function createTimeOptions(intervalMinutes: number, type: TimeOptionType): TimeO
   return values.map((value) => ({ value, label: formatTimeLabel(value) }))
 }
 
-export { createTimeOptions, formatTimeLabel }
+function getDefaultTime(type: TimeOptionType) {
+  return DEFAULT_TIME[type]
+}
+
+export { createTimeOptions, formatTimeLabel, getDefaultTime, toTimeValue }
 export type { TimeOption, TimeOptionType }
