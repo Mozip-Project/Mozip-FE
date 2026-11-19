@@ -12,6 +12,14 @@ type Query {
 
 type Mutation {
   markNotificationsRead(ids: [ID!]): Boolean!
+  reportPosting(postingId: ID!, reason: ReportReason!, detail: String): Boolean!
+}
+
+enum ReportReason {
+  FALSE_INFO
+  INAPPROPRIATE
+  EXCESSIVE_PERSONAL_INFO
+  ETC
 }
 
 type Health {

@@ -13,25 +13,53 @@ import {
 import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
 import { Radio, RadioGroup } from '@/components/ui/Radio/radio'
 import { TextArea } from '@/components/ui/TextArea/textArea'
+import { usePostingReportForm } from '@/features/posting/hooks/usePostingReportForm'
+import type { ReportReason } from '@/gql/graphql'
 
-// TODO: 신고 API 확정 후 사유 값을 서버 enum으로 교체
 const REPORT_REASONS = [
-  { value: 'false-information', label: '허위 · 과장된 내용이에요' },
-  { value: 'inappropriate-content', label: '부적절한 내용이 있어요' },
-  { value: 'excessive-personal-information', label: '개인정보를 과하게 요구해요' },
-  { value: 'other', label: '기타' },
-] as const
+  { value: 'FALSE_INFO', label: '허위 · 과장된 내용이에요' },
+  { value: 'INAPPROPRIATE', label: '부적절한 내용이 있어요' },
+  { value: 'EXCESSIVE_PERSONAL_INFO', label: '개인정보를 과하게 요구해요' },
+  { value: 'ETC', label: '기타' },
+] as const satisfies readonly { value: ReportReason; label: string }[]
 
 const REPORT_DETAIL_MAX_LENGTH = 300
 
 type PostingReportDialogProps = {
+  postingId: string
   postingTitle: string
 }
 
-// 닫으면 입력이 해제되어 다시 열 때 빈 상태로 시작
-function PostingReportDialog({ postingTitle }: PostingReportDialogProps) {
+function PostingReportDialog({ postingId, postingTitle }: PostingReportDialogProps) {
+  const detailId = useId()
+  const [isOpen, setIsOpen] = useState(false)
+  const { reason, detail, changeReason, changeDetail, canSubmit, submit, reset } =
+    usePostingReportForm({ postingId, onClose: () => handleOpenChange(false) })
+
+  // 다시 열 때 빈 상태로 시작하도록 닫을 때 입력 초기화
+  function handleOpenChange(nextIsOpen: boolean) {
+    setIsOpen(nextIsOpen)
+
+    if (!nextIsOpen) {
+      reset()
+    }
+  }
+
+  function handleReasonChange(value: string) {
+    const selectedReason = REPORT_REASONS.find((reportReason) => reportReason.value === value)
+
+    if (selectedReason) {
+      changeReason(selectedReason.value)
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    submit()
+  }
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <button
           type="button"
@@ -41,60 +69,46 @@ function PostingReportDialog({ postingTitle }: PostingReportDialogProps) {
         </button>
       </DialogTrigger>
       <DialogContent>
-        <PostingReportForm postingTitle={postingTitle} />
+        <form noValidate onSubmit={handleSubmit} className="flex w-full flex-col gap-gap-xl">
+          <DialogHeader title="이 공고 신고하기" description={postingTitle} />
+          <RadioGroup
+            aria-label="신고 사유"
+            required
+            value={reason ?? ''}
+            onValueChange={handleReasonChange}
+            className="flex-col gap-gap-m"
+          >
+            {REPORT_REASONS.map(({ value, label }) => (
+              <Radio key={value} value={value}>
+                {label}
+              </Radio>
+            ))}
+          </RadioGroup>
+          <div className="flex flex-col gap-gap-s">
+            <label htmlFor={detailId} className="text-label1 font-semibold text-neutral">
+              자세한 내용 (선택)
+            </label>
+            <TextArea
+              id={detailId}
+              value={detail}
+              onChange={(event) => changeDetail(event.target.value)}
+              maxLength={REPORT_DETAIL_MAX_LENGTH}
+              placeholder="내용을 입력해 주세요"
+            />
+          </div>
+          <InlineNotice tone="neutral">신고한 사실은 단체에 알려지지 않아요.</InlineNotice>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">취소</Button>
+            </DialogClose>
+            {/* TODO: 요청 중 진행 상태 문구 디자인 확인 후 표시 */}
+            <Button variant="critical" type="submit" disabled={!canSubmit}>
+              신고하기
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function PostingReportForm({ postingTitle }: PostingReportDialogProps) {
-  const detailId = useId()
-  const [reason, setReason] = useState('')
-  const [detail, setDetail] = useState('')
-  const hasSelectedReason = reason !== ''
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    // TODO: 신고 API 연결 후 요청·완료 처리
-  }
-
-  return (
-    <form noValidate onSubmit={handleSubmit} className="flex w-full flex-col gap-gap-xl">
-      <DialogHeader title="이 공고 신고하기" description={postingTitle} />
-      <RadioGroup
-        aria-label="신고 사유"
-        value={reason}
-        onValueChange={setReason}
-        className="flex-col gap-gap-m"
-      >
-        {REPORT_REASONS.map(({ value, label }) => (
-          <Radio key={value} value={value}>
-            {label}
-          </Radio>
-        ))}
-      </RadioGroup>
-      <div className="flex flex-col gap-gap-s">
-        <label htmlFor={detailId} className="text-label1 font-semibold text-neutral">
-          자세한 내용 (선택)
-        </label>
-        <TextArea
-          id={detailId}
-          value={detail}
-          onChange={(event) => setDetail(event.target.value)}
-          maxLength={REPORT_DETAIL_MAX_LENGTH}
-          placeholder="내용을 입력해 주세요"
-        />
-      </div>
-      <InlineNotice tone="neutral">신고한 사실은 단체에 알려지지 않아요.</InlineNotice>
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="secondary">취소</Button>
-        </DialogClose>
-        <Button variant="critical" type="submit" disabled={!hasSelectedReason}>
-          신고하기
-        </Button>
-      </DialogFooter>
-    </form>
   )
 }
 

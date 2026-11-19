@@ -1,0 +1,3 @@
+mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
+  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
+}

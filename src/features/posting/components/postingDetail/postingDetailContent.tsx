@@ -69,7 +69,7 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
             <p className="text-label2 font-medium text-neutral-subtle">
               공고 내용에 문제가 있나요?
             </p>
-            <PostingReportDialog postingTitle={detail.title} />
+            <PostingReportDialog postingId={postingId} postingTitle={detail.title} />
           </div>
         )}
       </div>

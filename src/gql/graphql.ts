@@ -17,6 +17,12 @@ export type NotificationType =
   | 'TRANSFER_REJECTED'
   | 'TRANSFER_REQUEST';
 
+export type ReportReason =
+  | 'ETC'
+  | 'EXCESSIVE_PERSONAL_INFO'
+  | 'FALSE_INFO'
+  | 'INAPPROPRIATE';
+
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -28,6 +34,15 @@ export type MarkNotificationsReadMutationVariables = Exact<{
 
 
 export type MarkNotificationsReadMutation = { markNotificationsRead: boolean };
+
+export type ReportPostingMutationVariables = Exact<{
+  postingId: string | number;
+  reason: ReportReason;
+  detail?: string | null | undefined;
+}>;
+
+
+export type ReportPostingMutation = { reportPosting: boolean };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -70,3 +85,8 @@ export const MarkNotificationsReadDocument = new TypedDocumentString(`
   markNotificationsRead(ids: $ids)
 }
     `) as unknown as TypedDocumentString<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>;
+export const ReportPostingDocument = new TypedDocumentString(`
+    mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
+  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
+}
+    `) as unknown as TypedDocumentString<ReportPostingMutation, ReportPostingMutationVariables>;
