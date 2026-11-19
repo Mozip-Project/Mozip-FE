@@ -64,7 +64,7 @@ function countBy<TKey extends string, TItem>(
 // TODO: 서류 평가 지원자 목록 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function getDocumentReviewApplicants(
-  _recruitmentId: string,
+  _postingId: string,
   query: DocumentReviewQuery,
 ): Promise<DocumentReviewApplicantPage> {
   const keyword = query.keyword.trim()
@@ -115,9 +115,9 @@ let documentResultState: Omit<DocumentResultApplicant, 'rank'>[] = DOCUMENT_RESU
 )
 
 // TODO: 점수 없는 공고 확인용, 공고의 점수 사용 여부 API 확정 후 삭제
-const NO_SCORE_RECRUITMENT_ID = '2'
+const NO_SCORE_POSTING_ID = '2'
 // TODO: 면접 없는 공고 확인용, 공고의 면접 사용 여부 API 확정 후 삭제
-const NO_INTERVIEW_RECRUITMENT_ID = '3'
+const NO_INTERVIEW_POSTING_ID = '3'
 
 const documentResultConfirmedAt = new Map<string, string>()
 
@@ -163,13 +163,13 @@ function compareDocumentResults(
 
 // TODO: 서류 평가 취합 API 확정 후 실제 요청으로 교체
 async function getDocumentResultApplicants(
-  recruitmentId: string,
+  postingId: string,
   query: DocumentResultQuery,
 ): Promise<DocumentResultApplicantPage> {
   await new Promise((resolve) => setTimeout(resolve, DOCUMENT_RESULT_MOCK_LATENCY_MS))
 
   const keyword = query.keyword.trim()
-  const hasScore = recruitmentId !== NO_SCORE_RECRUITMENT_ID
+  const hasScore = postingId !== NO_SCORE_POSTING_ID
   const applicants = withRank(
     documentResultState.map((applicant) => ({
       ...applicant,
@@ -210,7 +210,7 @@ async function getDocumentResultApplicants(
 // TODO: 최종 결과 변경 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function updateDocumentResult(
-  _recruitmentId: string,
+  _postingId: string,
   applicantId: string,
   result: DocumentResult,
 ) {
@@ -221,17 +221,17 @@ async function updateDocumentResult(
 
 // TODO: 공고 정보 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
-async function getDocumentResultOverview(recruitmentId: string): Promise<DocumentResultOverview> {
+async function getDocumentResultOverview(postingId: string): Promise<DocumentResultOverview> {
   return {
-    hasInterview: recruitmentId !== NO_INTERVIEW_RECRUITMENT_ID,
-    confirmedAt: documentResultConfirmedAt.get(recruitmentId) ?? null,
+    hasInterview: postingId !== NO_INTERVIEW_POSTING_ID,
+    confirmedAt: documentResultConfirmedAt.get(postingId) ?? null,
   }
 }
 
 // TODO: 결과 확정 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
-async function confirmDocumentResults(recruitmentId: string) {
-  documentResultConfirmedAt.set(recruitmentId, new Date().toISOString())
+async function confirmDocumentResults(postingId: string) {
+  documentResultConfirmedAt.set(postingId, new Date().toISOString())
 }
 
 // TODO: 진행 중인 모집 API 연결 시 서버 정렬이 없으면 sortByUpcomingSchedule 적용, 현재는 Figma 순서

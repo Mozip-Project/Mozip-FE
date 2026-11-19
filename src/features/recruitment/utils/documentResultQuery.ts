@@ -20,8 +20,8 @@ function parseDocumentResultQuery(searchParams: SearchParamsSource): DocumentRes
   return parseBoardQuery(searchParams, DOCUMENT_RESULT_QUERY_CONFIG)
 }
 
-function getDocumentResultHref(recruitmentId: string, query: DocumentResultQuery) {
-  return getBoardHref(getDocumentResultPath(recruitmentId), query, DOCUMENT_RESULT_QUERY_CONFIG)
+function getDocumentResultHref(postingId: string, query: DocumentResultQuery) {
+  return getBoardHref(getDocumentResultPath(postingId), query, DOCUMENT_RESULT_QUERY_CONFIG)
 }
 
 export { getDocumentResultHref, parseDocumentResultQuery }

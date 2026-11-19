@@ -11,7 +11,7 @@ type OngoingRecruitmentSectionProps = {
 function OngoingRecruitmentSection({ recruitments }: OngoingRecruitmentSectionProps) {
   return (
     <section className="flex flex-col gap-gap-l">
-      <SectionHeader title="진행 중인 모집" moreHref="/manage/recruitments" moreLabel="공고 목록" />
+      <SectionHeader title="진행 중인 모집" moreHref="/manage/postings" moreLabel="공고 목록" />
       {recruitments.length === 0 ? (
         <EmptyState
           icon={<FileTextIcon className="size-7" />}

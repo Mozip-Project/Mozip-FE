@@ -3,7 +3,7 @@ import { InterviewTimetableContent } from '@/features/recruitment/components/int
 
 export default function InterviewTimetablePage({
   params,
-}: PageProps<'/manage/recruitments/[recruitmentId]/interviews/timetable'>) {
+}: PageProps<'/manage/postings/[postingId]/interviews/timetable'>) {
   return (
     <Suspense>
       <InterviewTimetableContent params={params} />

@@ -3,7 +3,7 @@ import { DocumentEvaluationContent } from '@/features/recruitment/components/doc
 
 export default function DocumentEvaluationPage({
   params,
-}: PageProps<'/manage/recruitments/[recruitmentId]/documents/[applicantId]'>) {
+}: PageProps<'/manage/postings/[postingId]/documents/[applicantId]'>) {
   return (
     <Suspense>
       <DocumentEvaluationContent params={params} />

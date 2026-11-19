@@ -9,20 +9,20 @@ import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import type { Route } from 'next'
 
 type DocumentEvaluationChipStripProps = {
-  recruitmentId: string
+  postingId: string
   applicants: readonly StripApplicant[]
   currentId: string
 }
 
 function DocumentEvaluationChipStrip({
-  recruitmentId,
+  postingId,
   applicants,
   currentId,
 }: DocumentEvaluationChipStripProps) {
   const router = useRouter()
 
   function handleSelect(applicantId: string) {
-    router.push(`/manage/recruitments/${recruitmentId}/documents/${applicantId}` as Route)
+    router.push(`/manage/postings/${postingId}/documents/${applicantId}` as Route)
   }
 
   return (

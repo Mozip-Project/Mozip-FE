@@ -17,7 +17,7 @@ function renderDialog(hasInterviewStep = true) {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <DocumentResultConfirmDialog
-        recruitmentId="1"
+        postingId="1"
         isOpen
         onOpenChange={onOpenChange}
         hasInterviewStep={hasInterviewStep}

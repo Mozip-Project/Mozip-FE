@@ -47,11 +47,11 @@ function getStatusTabs(statusCounts: DocumentResultApplicantPage['statusCounts']
 
 // TODO: 조회 실패 상태는 디자인 확정 후 추가
 function DocumentResultContent() {
-  const { recruitmentId } = useParams<{ recruitmentId: string }>()
+  const { postingId } = useParams<{ postingId: string }>()
   const query = parseDocumentResultQuery(useSearchParams())
-  const { data, isPlaceholderData } = useDocumentResultsQuery(recruitmentId, query)
-  const overview = useDocumentResultOverview(recruitmentId)
-  const { mutate: updateResult } = useUpdateDocumentResultMutation(recruitmentId, query)
+  const { data, isPlaceholderData } = useDocumentResultsQuery(postingId, query)
+  const overview = useDocumentResultOverview(postingId)
+  const { mutate: updateResult } = useUpdateDocumentResultMutation(postingId, query)
 
   if (!data || !overview) {
     return <DocumentResultContentFallback />
@@ -62,7 +62,7 @@ function DocumentResultContent() {
     change: RecruitmentBoardQueryChange<DocumentResultStatus, DocumentResultSort>,
   ) {
     const nextQuery: DocumentResultQuery = { ...query, ...change, page: 1 }
-    window.history.replaceState(null, '', getDocumentResultHref(recruitmentId, nextQuery))
+    window.history.replaceState(null, '', getDocumentResultHref(postingId, nextQuery))
   }
 
   function handlePageNavigate(href: Route) {
@@ -81,7 +81,7 @@ function DocumentResultContent() {
         skeleton={<DocumentResultSkeletonTable hasScore={data.hasScore} />}
         currentPage={data.currentPage}
         totalPages={data.totalPages}
-        getPageHref={(page) => getDocumentResultHref(recruitmentId, { ...query, page })}
+        getPageHref={(page) => getDocumentResultHref(postingId, { ...query, page })}
         onQueryChange={handleQueryChange}
         onPageNavigate={handlePageNavigate}
       >
@@ -100,7 +100,7 @@ function DocumentResultContent() {
         />
       </RecruitmentBoard>
       <DocumentResultSummaryBar
-        recruitmentId={recruitmentId}
+        postingId={postingId}
         statusCounts={data.statusCounts}
         totalResultCounts={data.totalResultCounts}
         overview={overview}
@@ -123,7 +123,7 @@ function DocumentResultContentFallback() {
         skeleton={null}
         currentPage={1}
         totalPages={0}
-        getPageHref={() => '/manage/recruitments'}
+        getPageHref={() => '/manage/postings'}
         onQueryChange={NOOP}
         onPageNavigate={NOOP}
       >

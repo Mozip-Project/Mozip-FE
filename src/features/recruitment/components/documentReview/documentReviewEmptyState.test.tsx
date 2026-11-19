@@ -7,7 +7,7 @@ import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import type { Route } from 'next'
 
 const replace = vi.fn()
-const START_REVIEW_HREF = '/manage/recruitments/1/documents/3' as Route
+const START_REVIEW_HREF = '/manage/postings/1/documents/3' as Route
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
@@ -22,7 +22,7 @@ describe('DocumentReviewEmptyState', () => {
     const user = userEvent.setup()
     render(
       <DocumentReviewBoard
-        recruitmentId="1"
+        postingId="1"
         query={parseDocumentReviewQuery({ status: 'pending', position: 'design', page: '2' })}
         statusCounts={{ all: 0, pending: 0, done: 0 }}
         positionCounts={{ design: 0, development: 0, planning: 0 }}
@@ -30,7 +30,7 @@ describe('DocumentReviewEmptyState', () => {
         totalPages={0}
       >
         <DocumentReviewEmptyState
-          recruitmentId="1"
+          postingId="1"
           status="pending"
           totalCount={0}
           keyword=""
@@ -43,7 +43,7 @@ describe('DocumentReviewEmptyState', () => {
 
     await user.click(screen.getByRole('button', { name: '필터 초기화' }))
 
-    expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents?status=pending', {
+    expect(replace).toHaveBeenCalledWith('/manage/postings/1/documents?status=pending', {
       scroll: false,
     })
     expect(document.activeElement).toHaveAccessibleName(/^포지션\s?(전체|디자인)$/)
@@ -52,7 +52,7 @@ describe('DocumentReviewEmptyState', () => {
   it('지원자가 있는데 평가 완료 탭이 0명이면 평가 전 첫 지원자의 평가 화면으로 이동 안내 표시', () => {
     render(
       <DocumentReviewEmptyState
-        recruitmentId="1"
+        postingId="1"
         status="done"
         totalCount={12}
         keyword=""
@@ -64,7 +64,7 @@ describe('DocumentReviewEmptyState', () => {
     expect(screen.getByRole('status')).toHaveTextContent('아직 평가한 지원자가 없어요')
     expect(screen.getByRole('link', { name: '평가 시작하기' })).toHaveAttribute(
       'href',
-      '/manage/recruitments/1/documents/3',
+      '/manage/postings/1/documents/3',
     )
   })
 
@@ -72,7 +72,7 @@ describe('DocumentReviewEmptyState', () => {
     const user = userEvent.setup()
     const getBoard = (searchParams: Record<string, string>) => (
       <DocumentReviewBoard
-        recruitmentId="1"
+        postingId="1"
         query={parseDocumentReviewQuery(searchParams)}
         statusCounts={{ all: 0, pending: 0, done: 0 }}
         positionCounts={{ design: 0, development: 0, planning: 0 }}
@@ -80,7 +80,7 @@ describe('DocumentReviewEmptyState', () => {
         totalPages={0}
       >
         <DocumentReviewEmptyState
-          recruitmentId="1"
+          postingId="1"
           status="all"
           totalCount={0}
           keyword="홍길동"
@@ -97,7 +97,7 @@ describe('DocumentReviewEmptyState', () => {
     await user.click(screen.getByRole('button', { name: '검색어 삭제' }))
 
     expect(searchbox).toHaveFocus()
-    expect(replace).toHaveBeenCalledWith('/manage/recruitments/1/documents?position=design', {
+    expect(replace).toHaveBeenCalledWith('/manage/postings/1/documents?position=design', {
       scroll: false,
     })
 
@@ -110,7 +110,7 @@ describe('DocumentReviewEmptyState', () => {
   it('필터·검색 없이 전체 지원자가 0명이면 지원자 없음 안내 표시', () => {
     render(
       <DocumentReviewEmptyState
-        recruitmentId="1"
+        postingId="1"
         status="pending"
         totalCount={0}
         keyword=""
@@ -125,7 +125,7 @@ describe('DocumentReviewEmptyState', () => {
   it('지원자가 있는데 평가 전 탭이 0명이면 평가 결과 취합으로 이동 안내 표시', () => {
     render(
       <DocumentReviewEmptyState
-        recruitmentId="1"
+        postingId="1"
         status="pending"
         totalCount={48}
         keyword=""
@@ -136,14 +136,14 @@ describe('DocumentReviewEmptyState', () => {
     expect(screen.getByRole('status')).toHaveTextContent('모든 지원서 평가를 마쳤어요')
     expect(screen.getByRole('link', { name: '평가 결과 취합으로 이동' })).toHaveAttribute(
       'href',
-      '/manage/recruitments/1/documents/summary',
+      '/manage/postings/1/documents/summary',
     )
   })
 
   it('포지션 필터를 건 지원자가 모두 평가 완료면 필터 안내 대신 평가 모두 완료 안내 표시', () => {
     render(
       <DocumentReviewEmptyState
-        recruitmentId="1"
+        postingId="1"
         status="pending"
         totalCount={6}
         keyword=""
