@@ -21,13 +21,16 @@ function useMarkNotificationsReadMutation() {
 
   return useMutation({
     mutationFn: markNotificationsRead,
-    onSuccess: (isMarked, ids) => {
+    onSuccess: async (isMarked, ids) => {
       if (!isMarked) {
         return
       }
+      // 읽음 전 상태를 담은 진행 중 조회가 갱신한 캐시를 덮어쓰지 않도록 취소
+      await queryClient.cancelQueries({ queryKey: notificationKeys.list })
       queryClient.setQueryData<NotificationItems>(notificationKeys.list, (items) =>
         items?.map((item) => (ids.includes(item.id) ? { ...item, read: true } : item)),
       )
+      await queryClient.invalidateQueries({ queryKey: notificationKeys.list })
     },
   })
 }

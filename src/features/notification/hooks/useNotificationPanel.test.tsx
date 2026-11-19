@@ -4,10 +4,17 @@ import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { notificationKeys } from '@/features/notification/api/keys'
 import { resetNotificationItems } from '@/features/notification/mocks/notificationHandlers'
+import type {
+  MarkNotificationsReadMutation,
+  MarkNotificationsReadMutationVariables,
+  NotificationsQuery,
+} from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { useNotificationPanel } from './useNotificationPanel'
 import type { ReactNode } from 'react'
+
+type NotificationItems = NotificationsQuery['notifications']['items']
 
 function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -46,16 +53,47 @@ function failNotificationsQuery() {
   )
 }
 
-// 읽음 처리 요청 횟수 확인용
-function countMarkReadRequests() {
-  let count = 0
+// 다음 조회 한 번만 release 전까지 응답을 미루고, 그 뒤 조회는 기본 handler로 처리
+function delayNextNotificationsResponse(staleItems: NotificationItems) {
+  let releaseResponse = () => {}
+  const released = new Promise<void>((resolve) => {
+    releaseResponse = resolve
+  })
+  let hasReceivedRequest = false
+  let hasSentResponse = false
+
   server.use(
-    graphqlApi.mutation('MarkNotificationsRead', () => {
-      count += 1
-      return HttpResponse.json({ data: { markNotificationsRead: true } })
-    }),
+    graphqlApi.query(
+      'Notifications',
+      async () => {
+        hasReceivedRequest = true
+        await released
+        hasSentResponse = true
+        return HttpResponse.json({ data: { notifications: { items: staleItems } } })
+      },
+      { once: true },
+    ),
   )
-  return () => count
+
+  return {
+    releaseResponse,
+    hasReceivedRequest: () => hasReceivedRequest,
+    hasSentResponse: () => hasSentResponse,
+  }
+}
+
+// 읽음 처리 요청의 ids 기록용, 응답 없이 기본 handler로 넘겨 서버 상태 갱신
+function recordMarkReadRequests() {
+  const requestedIds: MarkNotificationsReadMutationVariables['ids'][] = []
+  server.use(
+    graphqlApi.mutation<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>(
+      'MarkNotificationsRead',
+      ({ variables }) => {
+        requestedIds.push(variables.ids)
+      },
+    ),
+  )
+  return requestedIds
 }
 
 beforeAll(() => {
@@ -117,7 +155,7 @@ describe('useNotificationPanel', () => {
   })
 
   it('읽지 않은 알림만 읽음 처리 요청을 보낸다', async () => {
-    const getMarkReadCount = countMarkReadRequests()
+    const markReadRequests = recordMarkReadRequests()
     const { result } = renderNotificationPanelHook()
     await waitFor(() => expect(result.current.notifications).toBeDefined())
     const notifications = result.current.notifications ?? []
@@ -133,6 +171,36 @@ describe('useNotificationPanel', () => {
     await waitFor(() =>
       expect(result.current.notifications?.find(({ id }) => id === unread.id)?.isRead).toBe(true),
     )
-    expect(getMarkReadCount()).toBe(1)
+    expect(markReadRequests).toEqual([[unread.id]])
+  })
+
+  it('읽음 처리 전에 시작한 조회가 늦게 끝나도 읽음 상태를 되돌리지 않는다', async () => {
+    const firstOpen = renderNotificationPanelHook()
+    await waitFor(() => expect(firstOpen.result.current.notifications).toBeDefined())
+    const unread = firstOpen.result.current.notifications?.find(({ isRead }) => !isRead)
+    const staleItems = firstOpen.queryClient.getQueryData<NotificationItems>(notificationKeys.list)
+    if (!unread || !staleItems) {
+      throw new Error('샘플에 읽지 않은 알림이 필요합니다.')
+    }
+    firstOpen.unmount()
+
+    const staleRequest = delayNextNotificationsResponse(staleItems)
+    const { result, unmount, queryClient } = renderNotificationPanelHook(firstOpen.queryClient)
+    await waitFor(() => expect(staleRequest.hasReceivedRequest()).toBe(true))
+
+    // 알림 링크 클릭과 함께 패널이 닫히는 흐름
+    act(() => result.current.markAsRead(unread))
+    unmount()
+    const isUnreadMarkedInCache = () =>
+      queryClient
+        .getQueryData<NotificationItems>(notificationKeys.list)
+        ?.find(({ id }) => id === unread.id)?.read
+    await waitFor(() => expect(isUnreadMarkedInCache()).toBe(true))
+
+    staleRequest.releaseResponse()
+    await waitFor(() => expect(staleRequest.hasSentResponse()).toBe(true))
+    await waitFor(() => expect(queryClient.isFetching()).toBe(0))
+
+    expect(isUnreadMarkedInCache()).toBe(true)
   })
 })
