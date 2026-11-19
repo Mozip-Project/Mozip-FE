@@ -2,11 +2,60 @@
 # TODO: 서버 스키마가 완성되면 개발 서버 introspection으로 받아 교체
 directive @public on FIELD_DEFINITION
 
+scalar DateTime
+
 type Query {
   "서버가 요청을 처리할 수 있는 상태인지 확인"
   health: Health! @public
+  notifications(tab: NotificationTab, page: Int = 0, size: Int = 20): NotificationPage!
+}
+
+type Mutation {
+  markNotificationsRead(ids: [ID!]): Boolean!
 }
 
 type Health {
   status: String!
+}
+
+enum NotificationTab {
+  APPLICANT
+  OPERATOR
+}
+
+enum NotificationType {
+  POSTING_NOTICE
+  DOC_RESULT
+  FINAL_RESULT
+  INTERVIEW_RESELECT
+  SCRAP_OPEN
+  INVITATION
+  TRANSFER_REQUEST
+  TRANSFER_APPROVED
+  TRANSFER_REJECTED
+  EVALUATION_REQUEST
+  EVALUATION_DEADLINE
+}
+
+type NotificationPage {
+  items: [Notification!]!
+  totalCount: Int!
+  hasNext: Boolean!
+}
+
+type Notification {
+  id: ID!
+  type: NotificationType!
+  organization: OrganizationSummary
+  title: String!
+  body: String
+  "이동할 화면 경로"
+  link: String
+  read: Boolean!
+  createdAt: DateTime!
+}
+
+type OrganizationSummary {
+  id: ID!
+  name: String!
 }

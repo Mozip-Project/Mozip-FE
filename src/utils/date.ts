@@ -1,5 +1,9 @@
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
+const MINUTE_MS = 60 * 1000
+const HOUR_MS = 60 * MINUTE_MS
+const DAY_MS = 24 * HOUR_MS
+
 function formatMonthDay(isoDate: string) {
   const [, month, day] = isoDate.slice(0, 10).split('-').map(Number)
 
@@ -44,6 +48,31 @@ function formatSavedTime(savedAt: Date, now: Date) {
   return isSameLocalDate(savedAt, now) ? formatTime(savedAt) : formatDateTimeWithWeekday(savedAt)
 }
 
+function getCalendarDayDiff(from: Date, to: Date) {
+  const fromDate = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  const toDate = new Date(to.getFullYear(), to.getMonth(), to.getDate())
+  // 서머타임으로 하루가 23·25시간인 경우 보정
+  return Math.round((toDate.getTime() - fromDate.getTime()) / DAY_MS)
+}
+
+// 24시간 안은 경과 시간, 그 뒤는 날짜 차이로 표시
+function formatRelativeTime(date: Date, now: Date) {
+  const elapsedMs = now.getTime() - date.getTime()
+
+  if (elapsedMs < MINUTE_MS) {
+    return '방금'
+  }
+  if (elapsedMs < HOUR_MS) {
+    return `${Math.floor(elapsedMs / MINUTE_MS)}분 전`
+  }
+  if (elapsedMs < DAY_MS) {
+    return `${Math.floor(elapsedMs / HOUR_MS)}시간 전`
+  }
+
+  const dayDiff = getCalendarDayDiff(date, now)
+  return dayDiff === 1 ? '어제' : `${dayDiff}일 전`
+}
+
 function formatRemainingTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = String(totalSeconds % 60).padStart(2, '0')
@@ -67,6 +96,7 @@ export {
   formatDateTimeWithWeekday,
   formatMonthDay,
   formatMonthDayWithWeekday,
+  formatRelativeTime,
   formatRemainingTime,
   formatSavedTime,
   formatYearMonth,

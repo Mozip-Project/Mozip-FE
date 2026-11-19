@@ -3,10 +3,37 @@ import {
   formatDateTimeWithWeekday,
   formatMonthDay,
   formatMonthDayWithWeekday,
+  formatRelativeTime,
   formatRemainingTime,
   formatSavedTime,
   formatYearMonth,
 } from './date'
+
+describe('formatRelativeTime', () => {
+  const now = new Date(2026, 10, 17, 10, 0)
+
+  it('1분 미만이면 방금', () => {
+    expect(formatRelativeTime(new Date(2026, 10, 17, 9, 59, 1), now)).toBe('방금')
+    expect(formatRelativeTime(new Date(2026, 10, 17, 10, 0, 30), now)).toBe('방금')
+  })
+
+  it('1시간 미만이면 분 단위', () => {
+    expect(formatRelativeTime(new Date(2026, 10, 17, 9, 59), now)).toBe('1분 전')
+    expect(formatRelativeTime(new Date(2026, 10, 17, 9, 0, 1), now)).toBe('59분 전')
+  })
+
+  it('24시간 미만이면 날짜가 바뀌어도 시간 단위', () => {
+    expect(formatRelativeTime(new Date(2026, 10, 17, 9, 0), now)).toBe('1시간 전')
+    expect(formatRelativeTime(new Date(2026, 10, 16, 10, 0, 1), now)).toBe('23시간 전')
+  })
+
+  it('24시간 이상이면 날짜 차이로 어제 또는 일 단위', () => {
+    expect(formatRelativeTime(new Date(2026, 10, 16, 10, 0), now)).toBe('어제')
+    expect(formatRelativeTime(new Date(2026, 10, 16, 0, 0), now)).toBe('어제')
+    expect(formatRelativeTime(new Date(2026, 10, 15, 23, 59), now)).toBe('2일 전')
+    expect(formatRelativeTime(new Date(2026, 9, 18, 10, 0), now)).toBe('30일 전')
+  })
+})
 
 describe('formatSavedTime', () => {
   const now = new Date(2026, 10, 4, 15, 0)
