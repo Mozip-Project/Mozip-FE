@@ -15,9 +15,9 @@ import { getClosestActivePath } from '@/utils/activePath'
 import type { Route } from 'next'
 
 const ITEM_CLASS = cn(
-  'flex h-11 items-center rounded-m pr-padding-s pl-10 text-label1 font-medium text-neutral-muted',
+  'flex h-13 items-center rounded-m py-padding-xs pr-padding-s pl-10 text-headline2 font-medium text-neutral-muted',
   'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
-  'aria-[current]:bg-neutral-weak aria-[current]:font-semibold aria-[current]:text-neutral',
+  'aria-[current]:bg-neutral-weak aria-[current]:font-semibold aria-[current]:text-brand',
 )
 
 // 공고 ID 없이 이동 가능한 메뉴와 공고별 메뉴 구분

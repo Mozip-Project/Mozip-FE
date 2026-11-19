@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatDateTimeWithWeekday,
+  formatMonthDay,
   formatMonthDayWithWeekday,
   formatRelativeTime,
   formatRemainingTime,
@@ -82,5 +83,12 @@ describe('formatYearMonth', () => {
 
   it('형식이 맞지 않으면 빈 문자열', () => {
     expect(formatYearMonth('')).toBe('')
+  })
+})
+
+describe('formatMonthDay', () => {
+  it('앞자리 0 없이 월/일 표시', () => {
+    expect(formatMonthDay('2026-10-01')).toBe('10/1')
+    expect(formatMonthDay('2026-01-15T09:00')).toBe('1/15')
   })
 })

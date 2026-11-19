@@ -23,7 +23,7 @@ function LnbStageItem({
   return (
     <div
       className={cn(
-        'flex h-10 items-center gap-gap-s rounded-m px-padding-s text-body2 font-medium text-neutral-muted',
+        'flex h-13 items-center gap-gap-s rounded-m px-padding-s py-padding-xs text-body1 font-medium text-neutral-muted',
         isActive && 'font-semibold text-neutral',
       )}
     >
@@ -32,8 +32,10 @@ function LnbStageItem({
       {statusLabel && (
         <span
           className={cn(
-            'shrink-0 text-caption1 font-medium',
-            isStatusHighlighted ? 'text-brand' : 'text-placeholder',
+            'shrink-0',
+            isStatusHighlighted
+              ? 'text-caption1 font-medium text-brand'
+              : 'text-label1 font-normal text-placeholder',
           )}
         >
           {statusLabel}

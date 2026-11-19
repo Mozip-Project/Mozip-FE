@@ -22,6 +22,8 @@ type SelectMenuContentProps<TValue extends string> = {
   groupLabel?: string
   actions?: ReactNode
   sideOffset?: number
+  // 지정하면 공간이 부족해도 그 방향으로 고정
+  side?: 'top' | 'bottom'
   className?: string
 }
 
@@ -49,6 +51,7 @@ function SelectMenuContent<TValue extends string>({
   groupLabel,
   actions,
   sideOffset,
+  side,
   className,
 }: SelectMenuContentProps<TValue>) {
   const groupLabelId = useId()
@@ -66,6 +69,8 @@ function SelectMenuContent<TValue extends string>({
       ref={scrollToCheckedItem}
       align="end"
       sideOffset={sideOffset}
+      side={side}
+      avoidCollisions={side === undefined}
       className={cn(
         'flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted p-padding-xs',
         className,

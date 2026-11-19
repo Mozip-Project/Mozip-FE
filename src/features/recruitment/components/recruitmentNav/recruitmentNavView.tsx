@@ -8,7 +8,7 @@ import { LnbStageItem } from './lnbStageItem'
 import { LnbSubItem } from './lnbSubItem'
 import { RecruitSwitcher } from './recruitSwitcher'
 
-// TODO: LNB 디자인 확정 후 변경, 현재는 레이아웃용 임시 디자인
+// TODO: 모집 조회 API 연결 후 모집명·상태·일정을 실제 값으로 교체
 type RecruitmentNavViewProps = {
   // null은 조회 전, 면접 평가 메뉴가 나타났다 사라지지 않도록 숨김
   overview: DocumentResultOverview | null

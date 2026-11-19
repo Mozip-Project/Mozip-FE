@@ -4,6 +4,12 @@ const MINUTE_MS = 60 * 1000
 const HOUR_MS = 60 * MINUTE_MS
 const DAY_MS = 24 * HOUR_MS
 
+function formatMonthDay(isoDate: string) {
+  const [, month, day] = isoDate.slice(0, 10).split('-').map(Number)
+
+  return `${month}/${day}`
+}
+
 // 날짜 부분만 사용해 실행 환경 시간대와 무관하게 요일 계산
 function formatMonthDayWithWeekday(isoDate: string) {
   const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number)
@@ -88,6 +94,7 @@ function formatYearMonth(isoDate: string) {
 export {
   WEEKDAY_LABELS,
   formatDateTimeWithWeekday,
+  formatMonthDay,
   formatMonthDayWithWeekday,
   formatRelativeTime,
   formatRemainingTime,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createTimeOptions, formatTimeLabel } from './time'
+import { createTimeOptions, formatTimeLabel, getDefaultTime } from './time'
 
 describe('formatTimeLabel', () => {
   it('오전·오후 12시간제, 시는 두 자리로 표시', () => {
@@ -26,5 +26,12 @@ describe('createTimeOptions', () => {
     expect(options[0]).toEqual({ value: '00:30', label: '오전 12:30' })
     expect(options.at(-2)?.value).toBe('23:30')
     expect(options.at(-1)).toEqual({ value: '23:59', label: '오후 11:59' })
+  })
+})
+
+describe('getDefaultTime', () => {
+  it('시작은 자정, 마감은 당일 23:59', () => {
+    expect(getDefaultTime('start')).toBe('00:00')
+    expect(getDefaultTime('end')).toBe('23:59')
   })
 })
