@@ -27,16 +27,13 @@ type StepItemProps = {
   number: number
   label: string
   state: StepItemState
+  onSelect?: () => void
 }
 
-function StepItem({ number, label, state }: StepItemProps) {
+function StepItem({ number, label, state, onSelect }: StepItemProps) {
   const stateClass = STATE_CLASS[state]
-
-  return (
-    <li
-      aria-current={state === 'current' ? 'step' : undefined}
-      className="flex items-center gap-gap-s"
-    >
+  const content = (
+    <>
       <span
         aria-hidden
         className={cn(
@@ -52,6 +49,25 @@ function StepItem({ number, label, state }: StepItemProps) {
         </span>
         {label}
       </span>
+    </>
+  )
+
+  return (
+    <li
+      aria-current={state === 'current' ? 'step' : undefined}
+      className="flex items-center gap-gap-s"
+    >
+      {onSelect ? (
+        <button
+          type="button"
+          onClick={onSelect}
+          className="flex cursor-pointer items-center gap-gap-s rounded-s outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+        >
+          {content}
+        </button>
+      ) : (
+        content
+      )}
     </li>
   )
 }
