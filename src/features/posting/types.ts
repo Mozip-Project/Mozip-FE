@@ -123,6 +123,79 @@ type ManagedPostingDetail = {
   preview: ManagedPostingPreview
 }
 
+// TODO: 공고 상세 API 명세 확정 후 아래 타입을 서버 응답 기준으로 교체
+type PostingRichTextRun = {
+  text: string
+  isBold?: boolean
+  isItalic?: boolean
+}
+
+// TODO: 공고 작성 편집기 저장 형식 확정 후 교체, 지금은 Figma 서식(H2·굵게·기울임·목록) 기준
+type PostingContentBlock =
+  | { type: 'heading'; text: string }
+  | { type: 'paragraph'; runs: PostingRichTextRun[] }
+  | { type: 'list'; items: PostingRichTextRun[][] }
+
+type PostingQuestion = {
+  id: string
+  title: string
+  // TODO: 문항 유형·글자 수 명세 확정 후 필드로 분리
+  guide: string | null
+  isOptional: boolean
+}
+
+type PostingPosition = {
+  id: string
+  name: string
+  // null은 아직 지원하지 않은 포지션
+  appliedAt: string | null
+}
+
+// 포지션 없는 모집(학생회 등)은 포지션 선택 없이 바로 지원
+type PostingApplication =
+  | { type: 'byPosition'; positions: PostingPosition[] }
+  | { type: 'direct'; appliedAt: string | null }
+
+type OrganizationOngoingPosting = {
+  postingId: string
+  title: string
+  summary: string
+}
+
+type PostingOrganization = {
+  name: string
+  logoUrl: string | null
+  activityType: PostingActivityType
+  scope: PostingScope
+  introduction: string
+  keywords: string[]
+  links: string[]
+  ongoingPostings: OrganizationOngoingPosting[]
+}
+
+// 날짜·시각은 한국 시간(+09:00) ISO 문자열
+type PostingDetail = {
+  id: string
+  title: string
+  organization: PostingOrganization
+  activityFields: PostingActivityField[]
+  // null은 면접 없는 모집
+  interview: { method: string; startDate: string; endDate: string } | null
+  eligibility: string
+  // null은 운영진이 입력하지 않은 항목
+  activityArea: string | null
+  membershipFee: string | null
+  recruitmentStartsAt: string
+  recruitmentEndsAt: string
+  documentResultDate: string | null
+  finalResultDate: string | null
+  // TODO: 이미지 호스트 확정 후 next.config remotePatterns 추가
+  coverImage: { src: string; width: number; height: number } | null
+  content: PostingContentBlock[]
+  questions: PostingQuestion[]
+  application: PostingApplication
+}
+
 export {
   MANAGED_POSTING_STATUS_LABEL,
   MANAGED_POSTING_STATUSES,
@@ -141,10 +214,18 @@ export type {
   ManagedPostingDetail,
   ManagedPostingPreview,
   ManagedPostingStatus,
+  OrganizationOngoingPosting,
   PostingActivityField,
   PostingActivityType,
+  PostingApplication,
+  PostingContentBlock,
+  PostingDetail,
   PostingFilterValues,
   PostingListQuery,
+  PostingOrganization,
+  PostingPosition,
+  PostingQuestion,
+  PostingRichTextRun,
   PostingScope,
   PostingSort,
 }
