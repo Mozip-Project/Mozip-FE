@@ -4,7 +4,7 @@ import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
 import InfoIcon from '@/assets/icons/info.svg'
 import LockIcon from '@/assets/icons/lock.svg'
 import { cn } from '@/lib/utils'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, ComponentType, ReactNode, SVGProps } from 'react'
 
 const INLINE_NOTICE_TONES = ['neutral', 'critical', 'warning', 'positive', 'informative'] as const
 
@@ -37,10 +37,20 @@ type InlineNoticeProps = Omit<ComponentProps<'div'>, 'title'> & {
   tone: InlineNoticeTone
   title?: ReactNode
   action?: ReactNode
+  icon?: ComponentType<SVGProps<SVGSVGElement>>
 }
 
-function InlineNotice({ tone, title, action, children, className, ...props }: InlineNoticeProps) {
-  const { Icon, box, text, row } = TONE_STYLES[tone]
+function InlineNotice({
+  tone,
+  title,
+  action,
+  icon,
+  children,
+  className,
+  ...props
+}: InlineNoticeProps) {
+  const { Icon: ToneIcon, box, text, row } = TONE_STYLES[tone]
+  const Icon = icon ?? ToneIcon
 
   return (
     <div

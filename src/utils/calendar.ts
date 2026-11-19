@@ -30,6 +30,10 @@ function addDays(isoDate: string, days: number) {
   return toIsoDate(new Date(toUtcDate(isoDate).getTime() + days * MS_PER_DAY))
 }
 
+function getDaysBetween(fromDate: string, toDate: string) {
+  return Math.round((toUtcDate(toDate).getTime() - toUtcDate(fromDate).getTime()) / MS_PER_DAY)
+}
+
 function getCalendarMonth(isoDate: string): CalendarMonth {
   const date = toUtcDate(isoDate)
 
@@ -99,9 +103,11 @@ export {
   formatFullDateWithWeekday,
   getCalendarMonth,
   getCalendarWeeks,
+  getDaysBetween,
   getFirstDateOfMonth,
   getTodayIsoDate,
   isInCalendarMonth,
   shiftMonth,
+  toUtcDate,
 }
 export type { CalendarDate, CalendarMonth }

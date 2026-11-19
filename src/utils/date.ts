@@ -1,5 +1,11 @@
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
+function formatMonthDay(isoDate: string) {
+  const [, month, day] = isoDate.slice(0, 10).split('-').map(Number)
+
+  return `${month}/${day}`
+}
+
 // 날짜 부분만 사용해 실행 환경 시간대와 무관하게 요일 계산
 function formatMonthDayWithWeekday(isoDate: string) {
   const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number)
@@ -59,6 +65,7 @@ function formatYearMonth(isoDate: string) {
 export {
   WEEKDAY_LABELS,
   formatDateTimeWithWeekday,
+  formatMonthDay,
   formatMonthDayWithWeekday,
   formatRemainingTime,
   formatSavedTime,

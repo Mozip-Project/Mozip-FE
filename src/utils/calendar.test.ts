@@ -5,6 +5,7 @@ import {
   formatFullDateWithWeekday,
   getCalendarMonth,
   getCalendarWeeks,
+  getDaysBetween,
   getTodayIsoDate,
   isInCalendarMonth,
   shiftMonth,
@@ -93,5 +94,13 @@ describe('formatFullDateWithWeekday', () => {
   it('날짜 형식이 아니면 빈 문자열', () => {
     expect(formatFullDateWithWeekday('')).toBe('')
     expect(formatFullDateWithWeekday('invalid')).toBe('')
+  })
+})
+
+describe('getDaysBetween', () => {
+  it('두 날짜 사이 일수, 월이 바뀌어도 계산', () => {
+    expect(getDaysBetween('2026-10-14', '2026-10-15')).toBe(1)
+    expect(getDaysBetween('2026-10-31', '2026-11-02')).toBe(2)
+    expect(getDaysBetween('2026-10-15', '2026-10-14')).toBe(-1)
   })
 })
