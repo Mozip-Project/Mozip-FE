@@ -36,8 +36,9 @@ src/app/
 | `(applicant)/` 아래 (`/postings` 등) | 지원자      | 지원자   |
 | `/manage` 아래                       | 운영진      | 운영진   |
 
-- 공고는 `postings`, 모집은 `recruitments`로 부르고, 목록 경로는 복수형을 씁니다.
-- 조직 ID의 URL 포함 여부는 정하지 않았습니다.
+- 공고는 `postings`로 부르고, 목록 경로는 복수형을 씁니다.
+- 운영진 모집 화면은 공고 ID 하나로 구분합니다(`/manage/postings/[postingId]/...`). 공고 관리 목록과 공고 작성은 공고 ID 없이 헤더에서 고른 단체 기준입니다(결정 기록 017).
+- 단체 ID는 URL에 넣지 않고 쿠키에 저장합니다.
 - 사이드바 + 본문의 2단 화면은 해당 영역의 `layout.tsx`에서 `components/ui/Sidebar/sidebarLayout.tsx`의 `SidebarLayout`으로 구성합니다.
 
 인증이 정해지기 전까지 GNB 상태는 주소로만 구분합니다. 임시 동작이므로 인증과 모드 저장 방식이 정해지면 다시 정합니다.
