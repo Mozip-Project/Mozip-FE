@@ -100,6 +100,7 @@ function formatYearMonth(isoDate: string) {
 
 export {
   addDaysToIsoDate,
+  WEEKDAY_LABELS,
   formatDateTimeWithWeekday,
   formatDday,
   formatMonthDayTimeWithWeekday,
