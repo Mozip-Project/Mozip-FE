@@ -20,7 +20,7 @@ function RecruitSwitcher({ name, statusLabel, scheduleLabel }: RecruitSwitcherPr
         <ChevronDownIcon aria-hidden className="size-4 shrink-0" />
       </div>
       {statusLabel && scheduleLabel && (
-        <div className="flex items-center gap-gap-s">
+        <div className="flex flex-wrap items-center gap-x-gap-s gap-y-gap-xs">
           <Badge tone="brand" variant="weak">
             {statusLabel}
           </Badge>
