@@ -37,7 +37,7 @@ type InlineNoticeProps = Omit<ComponentProps<'div'>, 'title'> & {
   tone: InlineNoticeTone
   title?: ReactNode
   action?: ReactNode
-  icon?: ComponentType<SVGProps<SVGSVGElement>>
+  icon?: ComponentType<SVGProps<SVGSVGElement>> | null
 }
 
 function InlineNotice({
@@ -50,7 +50,7 @@ function InlineNotice({
   ...props
 }: InlineNoticeProps) {
   const { Icon: ToneIcon, box, text, row } = TONE_STYLES[tone]
-  const Icon = icon ?? ToneIcon
+  const Icon = icon === undefined ? ToneIcon : icon
 
   return (
     <div
@@ -60,7 +60,7 @@ function InlineNotice({
       {...props}
     >
       <div className={cn('flex min-w-0 flex-1 items-center', row)}>
-        <Icon aria-hidden className={cn('size-4 shrink-0', text)} />
+        {Icon && <Icon aria-hidden className={cn('size-4 shrink-0', text)} />}
         <div className="flex min-w-0 flex-1 flex-col gap-gap-xxs break-words break-keep">
           {title && <p className="text-label2 font-semibold text-neutral">{title}</p>}
           <p className={cn('text-caption1 font-medium', text)}>{children}</p>
