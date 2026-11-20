@@ -12,8 +12,11 @@ import {
 } from '@/features/posting/schemas/postingCreateValues'
 import { postingFormSchema } from '@/features/posting/schemas/postingFormSchema'
 import { postingInfoSchema } from '@/features/posting/schemas/postingInfoSchema'
+import { postingInterviewSchema } from '@/features/posting/schemas/postingInterviewSchema'
 import { postingMethodSchema } from '@/features/posting/schemas/postingMethodSchema'
 import { getPostingScheduleSchema } from '@/features/posting/schemas/postingScheduleSchema'
+import { filterDatesInInterviewPeriod } from '@/features/posting/utils/interviewPeriod'
+import { getSlotDate } from '@/features/posting/utils/interviewTimetable'
 import {
   getPostingCreateSteps,
   type PostingCreateStep,
@@ -27,12 +30,13 @@ import { useToast } from '@/providers/toastProvider'
 import { PostingCreateStepList } from './postingCreateStepList'
 import { PostingFormStep } from './postingFormStep'
 import { PostingInfoStep } from './postingInfoStep'
+import { PostingInterviewStep } from './postingInterviewStep'
 import { PostingMethodStep } from './postingMethodStep'
 import { PostingScheduleStep } from './postingScheduleStep'
 
 type StepId = PostingCreateStep['id']
 
-// TODO: 면접 시간·검토 단계 구현 후 단계별 검증 연결
+// 검토 단계는 입력이 없어 검증 대상 없음
 function getStepSchema(stepId: StepId | undefined, hasInterview: boolean) {
   switch (stepId) {
     case 'info':
@@ -44,6 +48,7 @@ function getStepSchema(stepId: StepId | undefined, hasInterview: boolean) {
     case 'form':
       return postingFormSchema
     case 'interview':
+      return postingInterviewSchema
     case 'review':
     case undefined:
       return null
@@ -66,8 +71,8 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
   const { showToast } = useToast()
   const steps = getPostingCreateSteps(hasInterview)
   const currentStepId = steps[stepIndex]?.id
-  // TODO: 면접 시간·검토 단계 구현 후 지원서 양식 다음 이동 연결
-  const hasNextScreen = currentStepId !== 'form'
+  // TODO: 검토 단계 구현 후 마지막 입력 단계의 다음 이동 연결
+  const hasNextScreen = steps[stepIndex + 1]?.id !== 'review'
   const canGoNext =
     hasNextScreen &&
     (getStepSchema(currentStepId, hasInterview)?.safeParse(values).success ?? false)
@@ -102,10 +107,25 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
     }
   }
 
+  // 면접 시간 설정으로 들어갈 때 바뀐 발표일 기준으로 기간 밖 날짜와 그 날 시간 정리
+  function syncInterviewSchedule() {
+    const { interviewDates, interviewSlots, documentResultDate, finalResultDate } = getValues()
+    const dates = filterDatesInInterviewPeriod(interviewDates, documentResultDate, finalResultDate)
+    setValue('interviewDates', dates)
+    setValue(
+      'interviewSlots',
+      interviewSlots.filter((slot) => dates.includes(getSlotDate(slot))),
+    )
+  }
+
   function moveToStep(index: number) {
     const formIndex = steps.findIndex((step) => step.id === 'form')
     if (stepIndex < formIndex && index >= formIndex) {
       syncQuestionSets()
+    }
+    const interviewIndex = steps.findIndex((step) => step.id === 'interview')
+    if (interviewIndex !== -1 && stepIndex < interviewIndex && index >= interviewIndex) {
+      syncInterviewSchedule()
     }
     setStepIndex(index)
     setFurthestIndex(Math.max(furthestIndex, index))
@@ -148,6 +168,7 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
         <PostingScheduleStep control={control} hasInterview={hasInterview} />
       )}
       {currentStepId === 'method' && <PostingMethodStep control={control} />}
+      {currentStepId === 'interview' && <PostingInterviewStep control={control} />}
       {currentStepId === 'form' && (
         <PostingFormStep control={control} positionNames={positionNames} />
       )}
