@@ -17,12 +17,19 @@ const postingInfoSchema = z
     customQualification: z.string(),
     content: z.string(),
   })
-  .superRefine(({ mainImage }, context) => {
+  .superRefine(({ mainImage, qualifications, customQualification }, context) => {
     if (!mainImage) {
       context.addIssue({
         code: 'custom',
         path: ['mainImage'],
         message: '대표 이미지를 추가해 주세요',
+      })
+    }
+    if (qualifications.includes('custom') && !customQualification.trim()) {
+      context.addIssue({
+        code: 'custom',
+        path: ['customQualification'],
+        message: '지원 자격을 입력해 주세요',
       })
     }
   })

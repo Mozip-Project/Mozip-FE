@@ -26,4 +26,13 @@ describe('postingInfoSchema', () => {
     expect(isValid({ ...FILLED_VALUES, mainImage: null })).toBe(false)
     expect(isValid({ ...FILLED_VALUES, qualifications: [] })).toBe(false)
   })
+
+  it('직접 입력을 고르면 내용이 있어야 통과, 고르지 않으면 비어 있어도 통과', () => {
+    const custom = { ...FILLED_VALUES, qualifications: ['custom'] } satisfies PostingInfoValues
+
+    expect(isValid(custom)).toBe(false)
+    expect(isValid({ ...custom, customQualification: '   ' })).toBe(false)
+    expect(isValid({ ...custom, customQualification: '1~3학년' })).toBe(true)
+    expect(isValid({ ...FILLED_VALUES, customQualification: '' })).toBe(true)
+  })
 })
