@@ -5,7 +5,7 @@ import { ManagedPostingCard } from './managedPostingCard'
 
 const EMPTY_STATE_COPY = {
   published: {
-    title: '게시 중인 공고가 없어요',
+    title: '진행 중인 공고가 없어요',
     description: '공고를 작성하고 지원자를 모집해 보세요',
   },
   draft: {

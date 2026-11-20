@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/Button/button'
 import { Callout } from '@/components/ui/Callout/callout'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getManagedPostingDetail } from '@/features/posting/api/organizer'
-import { POSTING_MANAGE_PATH } from '@/features/recruitment/utils/recruitmentRoutes'
 import { PostingDetailCard } from './postingDetailCard'
 import { PostingNoticeDialog } from './postingNoticeDialog'
 import { PostingPreviewCard } from './postingPreviewCard'
@@ -21,7 +20,6 @@ async function PostingManageDetailContent({ params }: PostingManageDetailContent
   return (
     <div className="flex flex-col gap-gap-xl">
       <PageHeader
-        backLink={{ href: POSTING_MANAGE_PATH, label: '공고 관리' }}
         title={detail.title}
         actions={
           <div className="flex items-center gap-gap-m">

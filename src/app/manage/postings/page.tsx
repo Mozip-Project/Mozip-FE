@@ -1,25 +1,10 @@
-import PlusIcon from '@/assets/icons/plus.svg'
-import { Button } from '@/components/ui/Button/button'
-import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
-import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
-import { PostingManageBoard } from '@/features/posting/components/postingManage/postingManageBoard'
+import { redirect } from 'next/navigation'
+import { getFirstPublishedPostingId } from '@/features/posting/api/organizer'
+import { getPostingManageDetailPath } from '@/features/recruitment/utils/recruitmentRoutes'
 
-export default function PostingManagePage() {
-  return (
-    <div className="flex flex-col gap-gap-xl">
-      <PageHeader
-        title="공고 관리"
-        className="min-h-10"
-        actions={
-          <PostingStartDialog>
-            <Button size="m">
-              <PlusIcon aria-hidden />새 공고 작성
-            </Button>
-          </PostingStartDialog>
-        }
-      />
-      {/* 삭제·UP 결과를 바로 반영하도록 목록은 클라이언트에서 조회 */}
-      <PostingManageBoard />
-    </div>
-  )
+// 첫 진행 중 공고 상세로 이동, 없으면 공고 목록이 있는 운영진 홈으로 이동
+export default async function PostingManagePage() {
+  const postingId = await getFirstPublishedPostingId()
+
+  redirect(postingId ? getPostingManageDetailPath(postingId) : '/manage')
 }
