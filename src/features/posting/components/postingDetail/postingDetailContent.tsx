@@ -9,6 +9,7 @@ import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDeta
 import { getSeoulIsoDate } from '@/utils/date'
 import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
 import { PostingDetailTabs } from './postingDetailTabs'
+import { PostingReportDialog } from './postingReportDialog'
 import { PostingSummary } from './postingSummary'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 import type { ComponentProps } from 'react'
@@ -68,12 +69,7 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
             <p className="text-label2 font-medium text-neutral-subtle">
               공고 내용에 문제가 있나요?
             </p>
-            <button
-              type="button"
-              className="flex h-8 shrink-0 cursor-pointer items-center rounded-s px-padding-s text-label2 font-bold text-neutral-subtle underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
-            >
-              신고하기
-            </button>
+            <PostingReportDialog postingId={postingId} postingTitle={detail.title} />
           </div>
         )}
       </div>
