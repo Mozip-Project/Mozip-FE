@@ -67,10 +67,14 @@ describe('PostingContentEditor', () => {
     await screen.findByRole('textbox', { name: '공고 내용' })
 
     expect(screen.queryByText('내용을 입력해 주세요')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('textbox', { name: '공고 내용' }))
+    await user.keyboard('{Control>}a{/Control}')
     await user.click(getToolButton('기울임'))
 
     await waitFor(() => expect(getToolButton('기울임')).toHaveAttribute('aria-pressed', 'true'))
     expect(getToolButton('굵게')).toHaveAttribute('aria-pressed', 'true')
-    expect(handleChange).not.toHaveBeenCalledWith('')
+    expect(handleChange).toHaveBeenLastCalledWith(
+      '<p><strong><em>UI/UX 디자인 동아리</em></strong></p>',
+    )
   })
 })
