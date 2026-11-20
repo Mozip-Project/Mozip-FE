@@ -126,8 +126,13 @@ function ApplicantRow({
   )
 }
 
+type ApplicantSkeletonRowProps = {
+  // 버튼 열이 없는 표는 버튼이 있을 때와 같은 61px 행 높이 유지
+  hasAction?: boolean
+}
+
 // 데이터 요청이 300ms를 넘길 때만 표시
-function ApplicantSkeletonRow() {
+function ApplicantSkeletonRow({ hasAction = true }: ApplicantSkeletonRowProps) {
   return (
     <div
       aria-hidden
@@ -135,6 +140,7 @@ function ApplicantSkeletonRow() {
       className={cn(
         ROW_CLASS,
         'animate-skeleton-delayed-show border-t border-neutral-subtle bg-layer-default',
+        !hasAction && 'h-15.25',
       )}
     >
       <span className={cn(COLUMN_CLASS.name, 'flex items-center gap-gap-s')}>
@@ -147,9 +153,11 @@ function ApplicantSkeletonRow() {
       <span className={cn(COLUMN_CLASS.submittedAt, 'flex items-center')}>
         <span className="skeleton-bar h-3.5 w-12.5 rounded-full" />
       </span>
-      <span className={COLUMN_CLASS.action}>
-        <span className="skeleton-bar h-9 w-24 rounded-m" />
-      </span>
+      {hasAction && (
+        <span className={COLUMN_CLASS.action}>
+          <span className="skeleton-bar h-9 w-24 rounded-m" />
+        </span>
+      )}
     </div>
   )
 }
