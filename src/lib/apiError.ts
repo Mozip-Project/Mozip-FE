@@ -1,38 +1,62 @@
 import { ClientError } from 'graphql-request'
 
+// 입력값 검증 실패(COMMON_400)의 입력별 메시지
+type ApiFieldError = {
+  field: string
+  message: string
+}
+
 type ApiErrorInit = {
   code: string
   message: string
   traceId?: string
+  fieldErrors?: ApiFieldError[]
 }
 
 // 백엔드 에러 코드(GraphQL extensions.code, REST code) 보존
 class ApiError extends Error {
   readonly code: string
   readonly traceId?: string
+  readonly fieldErrors: readonly ApiFieldError[]
 
-  constructor({ code, message, traceId }: ApiErrorInit) {
+  constructor({ code, message, traceId, fieldErrors = [] }: ApiErrorInit) {
     super(message)
     this.name = 'ApiError'
     this.code = code
     this.traceId = traceId
+    this.fieldErrors = fieldErrors
   }
 }
 
-function readObject(source: unknown, key: string): object | undefined {
+function readValue(source: unknown, key: string): unknown {
   if (typeof source !== 'object' || source === null) {
     return undefined
   }
-  const value: unknown = Reflect.get(source, key)
+  return Reflect.get(source, key)
+}
+
+function readObject(source: unknown, key: string): object | undefined {
+  const value = readValue(source, key)
   return typeof value === 'object' && value !== null ? value : undefined
 }
 
 function readString(source: unknown, key: string) {
-  if (typeof source !== 'object' || source === null) {
-    return undefined
-  }
-  const value: unknown = Reflect.get(source, key)
+  const value = readValue(source, key)
   return typeof value === 'string' ? value : undefined
+}
+
+// GraphQL extensions.fieldErrors와 REST data가 같은 형태, 모양이 다른 항목은 제외
+function parseFieldErrors(source: unknown): ApiFieldError[] {
+  if (!Array.isArray(source)) {
+    return []
+  }
+  const items: unknown[] = source
+
+  return items.flatMap((item) => {
+    const field = readString(item, 'field')
+    const message = readString(item, 'message')
+    return field && message ? [{ field, message }] : []
+  })
 }
 
 // REST 응답 본문
@@ -46,6 +70,7 @@ function parseRestError(body: unknown) {
     code,
     message: readString(body, 'message') ?? code,
     traceId: readString(body, 'traceId'),
+    fieldErrors: parseFieldErrors(readValue(body, 'data')),
   })
 }
 
@@ -74,6 +99,7 @@ function toApiError(error: unknown) {
       code,
       message: readString(graphqlError, 'message') ?? error.message,
       traceId: readString(extensions, 'traceId'),
+      fieldErrors: parseFieldErrors(readValue(extensions, 'fieldErrors')),
     })
   }
 
@@ -82,3 +108,4 @@ function toApiError(error: unknown) {
 }
 
 export { ApiError, parseRestError, toApiError }
+export type { ApiFieldError }
