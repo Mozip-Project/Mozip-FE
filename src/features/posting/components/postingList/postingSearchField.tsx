@@ -9,7 +9,7 @@ function PostingSearchField() {
   return (
     <SearchField
       aria-label="공고 검색"
-      placeholder="단체명 또는 키워드를 검색해 주세요"
+      placeholder="단체명, 키워드 검색"
       value={keyword}
       onValueChange={changeKeyword}
       className="w-90"
