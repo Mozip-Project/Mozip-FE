@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   DOCUMENT_REVIEW_POSITIONS,
+  type ApplicantManagementQuery,
   type DocumentResultQuery,
   type DocumentReviewQuery,
 } from '@/features/recruitment/types'
 import {
   confirmDocumentResults,
+  getApplicantManagementApplicants,
   getDocumentResultApplicants,
   getDocumentResultOverview,
   getDocumentReviewApplicants,
@@ -138,6 +140,14 @@ describe('getDocumentResultApplicants', () => {
 
     await updateDocumentResult('1', '4', 'hold')
   })
+
+  it('결과 변경은 해당 공고에만 반영', async () => {
+    await updateDocumentResult('6', '4', 'pass')
+    const otherPosting = await getDocumentResultApplicants('7', { ...RESULT_QUERY, status: 'hold' })
+
+    expect(otherPosting.applicants.map(({ name }) => name)).toContain('한결')
+    expect(otherPosting.totalResultCounts.hold).toBe(4)
+  })
 })
 
 describe('getDocumentResultOverview', () => {
@@ -153,5 +163,44 @@ describe('getDocumentResultOverview', () => {
   it('면접 없는 공고 구분', async () => {
     expect((await getDocumentResultOverview('1')).hasInterview).toBe(true)
     expect((await getDocumentResultOverview('3')).hasInterview).toBe(false)
+  })
+})
+
+describe('getApplicantManagementApplicants', () => {
+  const query = {
+    status: 'all',
+    positions: DOCUMENT_REVIEW_POSITIONS,
+    sort: 'submittedDesc',
+    keyword: '',
+    page: 1,
+  } satisfies ApplicantManagementQuery
+
+  it('서류 평가 취합에서 결과를 확정하면 단계와 합격·불합격을 반영', async () => {
+    const before = await getApplicantManagementApplicants('9', query)
+
+    expect(before.progress.stage).toBe('documentReview')
+    expect(before.applicants.every((applicant) => applicant.documentResult === null)).toBe(true)
+
+    await confirmDocumentResults('9')
+    const after = await getApplicantManagementApplicants('9', query)
+
+    expect(after.progress.stage).toBe('documentResult')
+    expect(after.applicants.some((applicant) => applicant.documentResult === 'pass')).toBe(true)
+    expect(after.applicants.some((applicant) => applicant.documentResult === 'fail')).toBe(true)
+  })
+
+  it('지원자가 없으면 탭 숫자 0, 페이지 0', async () => {
+    const page = await getApplicantManagementApplicants('5', query)
+
+    expect(page.progress.stage).toBe('application')
+    expect(page.applicants).toHaveLength(0)
+    expect(page.tabCounts).toEqual({ all: 0, design: 0, development: 0, planning: 0 })
+    expect(page.totalPages).toBe(0)
+  })
+
+  it('면접 없는 공고는 확정 후 최종 결과 단계', async () => {
+    await confirmDocumentResults('3')
+
+    expect((await getApplicantManagementApplicants('3', query)).progress.stage).toBe('finalResult')
   })
 })

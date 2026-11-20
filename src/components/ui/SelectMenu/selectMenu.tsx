@@ -14,6 +14,7 @@ type SelectMenuProps<TValue extends string> = {
   onValueChange: (value: TValue) => void
   groupLabel?: string
   actions?: ReactNode
+  sideOffset?: number
 }
 
 function SelectMenu<TValue extends string>({
@@ -23,6 +24,7 @@ function SelectMenu<TValue extends string>({
   onValueChange,
   groupLabel,
   actions,
+  sideOffset,
 }: SelectMenuProps<TValue>) {
   const selectedLabel = options.find((option) => option.value === value)?.label ?? ''
 
@@ -35,6 +37,7 @@ function SelectMenu<TValue extends string>({
         onValueChange={onValueChange}
         groupLabel={groupLabel}
         actions={actions}
+        sideOffset={sideOffset}
       />
     </DropdownMenu>
   )
