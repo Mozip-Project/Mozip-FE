@@ -43,7 +43,6 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
     <div className="mx-auto flex max-w-195 flex-col gap-gap-xl">
       <div className="flex flex-col gap-gap-xl">
         <PageHeader
-          className="gap-gap-s"
           backLink={backLink}
           title={detail.title}
           actions={
