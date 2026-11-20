@@ -5,8 +5,10 @@ import {
   countInterviewsInBlock,
   getSlotBlocks,
   getSlotEndTime,
+  getSlotKey,
   getSlotRangeKeys,
   hasDateGap,
+  isSamePosition,
   TIMETABLE_HOUR_LABELS,
   TIMETABLE_SLOT_TIMES,
 } from './interviewTimetable'
@@ -21,6 +23,16 @@ describe('interviewTimetable', () => {
     expect(TIMETABLE_HOUR_LABELS).toHaveLength(13)
     expect(TIMETABLE_HOUR_LABELS.at(-1)).toBe('21:00')
     expect(getSlotEndTime('21:30')).toBe('22:00')
+  })
+
+  it('칸 위치를 날짜·시간 키로 변환하고 같은 칸인지 비교', () => {
+    expect(getSlotKey(DATES, { dateIndex: 1, slotIndex: 2 })).toBe('2026-10-26T10:00')
+    expect(isSamePosition({ dateIndex: 0, slotIndex: 1 }, { dateIndex: 0, slotIndex: 1 })).toBe(
+      true,
+    )
+    expect(isSamePosition({ dateIndex: 0, slotIndex: 1 }, { dateIndex: 1, slotIndex: 1 })).toBe(
+      false,
+    )
   })
 
   it('드래그 범위는 방향과 관계없이 두 칸을 꼭짓점으로 한 사각형', () => {

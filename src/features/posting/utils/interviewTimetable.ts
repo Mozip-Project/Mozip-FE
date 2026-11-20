@@ -19,6 +19,14 @@ function toSlotKey(date: string, time: string) {
   return `${date}T${time}`
 }
 
+function getSlotKey(dates: string[], { dateIndex, slotIndex }: SlotPosition) {
+  return toSlotKey(dates[dateIndex] ?? '', TIMETABLE_SLOT_TIMES[slotIndex] ?? '')
+}
+
+function isSamePosition(a: SlotPosition, b: SlotPosition) {
+  return a.dateIndex === b.dateIndex && a.slotIndex === b.slotIndex
+}
+
 function getSlotDate(slotKey: string) {
   return slotKey.slice(0, 10)
 }
@@ -121,8 +129,10 @@ export {
   getSlotBlocks,
   getSlotDate,
   getSlotEndTime,
+  getSlotKey,
   getSlotRangeKeys,
   hasDateGap,
+  isSamePosition,
   TIMETABLE_HOUR_LABELS,
   TIMETABLE_SLOT_TIMES,
   toSlotKey,

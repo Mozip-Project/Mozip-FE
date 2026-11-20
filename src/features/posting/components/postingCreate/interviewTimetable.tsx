@@ -7,8 +7,10 @@ import {
   countInterviewsInBlock,
   getSlotBlocks,
   getSlotEndTime,
+  getSlotKey,
   getSlotRangeKeys,
   hasDateGap,
+  isSamePosition,
   TIMETABLE_HOUR_LABELS,
   TIMETABLE_SLOT_TIMES,
   toSlotKey,
@@ -194,14 +196,6 @@ function getSlotPosition(target: EventTarget | null): SlotPosition | null {
     dateIndex: Number(cell.dataset.dateIndex),
     slotIndex: Number(cell.dataset.slotIndex),
   }
-}
-
-function getSlotKey(dates: string[], { dateIndex, slotIndex }: SlotPosition) {
-  return toSlotKey(dates[dateIndex] ?? '', TIMETABLE_SLOT_TIMES[slotIndex] ?? '')
-}
-
-function isSamePosition(a: SlotPosition, b: SlotPosition) {
-  return a.dateIndex === b.dateIndex && a.slotIndex === b.slotIndex
 }
 
 export { InterviewTimetable }
