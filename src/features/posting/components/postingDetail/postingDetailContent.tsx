@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
+import type { BackLink } from '@/components/ui/BackLink/backLink'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
@@ -10,10 +11,14 @@ import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
 import { PostingDetailTabs } from './postingDetailTabs'
 import { PostingSummary } from './postingSummary'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
+import type { ComponentProps } from 'react'
 
-type PostingDetailContentProps = Pick<PageProps<'/postings/[postingId]'>, 'params'>
+type PostingDetailContentProps = {
+  params: Promise<{ postingId: string }>
+  backLink: ComponentProps<typeof BackLink>
+}
 
-async function PostingDetailContent({ params }: PostingDetailContentProps) {
+async function PostingDetailContent({ params, backLink }: PostingDetailContentProps) {
   const { postingId } = await params
   // TODO: 공고 상세 API 확정 후 connection 대신 조회로 교체
   // D-day를 prerender 시점이 아닌 요청 시점 기준으로 계산
@@ -30,13 +35,15 @@ async function PostingDetailContent({ params }: PostingDetailContentProps) {
     detail.recruitmentEndsAt,
     now,
   )
+  // Figma 모집 마감 화면은 신고하기 줄 없음
+  const canReport = phase.status !== 'closed'
 
   return (
     <div className="mx-auto flex max-w-195 flex-col gap-gap-xl">
       <div className="flex flex-col gap-gap-xl">
         <PageHeader
           className="gap-gap-s"
-          backLink={{ href: '/postings', label: '전체 공고' }}
+          backLink={backLink}
           title={detail.title}
           actions={
             <div className="flex items-center gap-gap-m">
@@ -55,16 +62,20 @@ async function PostingDetailContent({ params }: PostingDetailContentProps) {
 
         <PostingDetailTabs detail={detail} now={now} />
 
-        <div className="flex items-center gap-gap-s border-t border-neutral-subtle pt-padding-xl">
-          <AlertCircleIcon aria-hidden className="size-4 shrink-0 text-neutral-subtle" />
-          <p className="text-label2 font-medium text-neutral-subtle">공고 내용에 문제가 있나요?</p>
-          <button
-            type="button"
-            className="flex h-8 shrink-0 cursor-pointer items-center rounded-s px-padding-s text-label2 font-bold text-neutral-subtle underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
-          >
-            신고하기
-          </button>
-        </div>
+        {canReport && (
+          <div className="flex items-center gap-gap-s border-t border-neutral-subtle pt-padding-xl">
+            <AlertCircleIcon aria-hidden className="size-4 shrink-0 text-neutral-subtle" />
+            <p className="text-label2 font-medium text-neutral-subtle">
+              공고 내용에 문제가 있나요?
+            </p>
+            <button
+              type="button"
+              className="flex h-8 shrink-0 cursor-pointer items-center rounded-s px-padding-s text-label2 font-bold text-neutral-subtle underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+            >
+              신고하기
+            </button>
+          </div>
+        )}
       </div>
 
       {phase.status === 'open' && (
