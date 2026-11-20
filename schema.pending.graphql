@@ -1,5 +1,5 @@
 # 서버에 아직 없는 query·mutation의 명세 기준 임시 정의, 응답은 MSW handler
-# 서버에 생기면 여기서 지우고 pnpm schema:pull로 받은 정의 사용
+# 서버에 생기면 pnpm schema:pull로 받은 schema.graphql에 있는지 확인한 뒤 여기서 삭제
 # 서버에 Mutation 타입이 생기면 아래 type Mutation을 extend type Mutation으로 변경
 
 extend type Query {

@@ -26,7 +26,7 @@
 - 공용 API 클라이언트는 graphql-request의 `GraphQLClient` 인스턴스 하나로 만듭니다(결정 기록 015). 도메인 API 함수는 클라이언트를 새로 만들지 않고 `src/lib/graphqlClient.ts`의 `requestGraphQL`로 요청합니다.
 - query·mutation 문서는 `api/query.graphql`에 작성하고 `pnpm codegen`으로 결과·변수 타입과 문서 상수(`<operation 이름>Document`)를 만듭니다. `api.ts`는 `@/gql/graphql`의 문서 상수를 import합니다. 응답 타입을 손으로 다시 선언하거나 `as`로 단언하지 않습니다.
 - `schema.graphql`은 `pnpm schema:pull`로 받은 개발 서버 스키마(introspection)이며 직접 고치지 않습니다. 백엔드 레포나 공유받은 스키마 파일을 복사하지 않습니다.
-- 서버에 아직 없는 query·mutation은 명세로 확인해 `schema.pending.graphql`에 정의하고, 응답은 MSW handler로 대신합니다. 타입은 `schema.graphql`의 정의를 쓰고, 명세에 정의가 없는 타입은 추측으로 채우지 않고 백엔드 확인 항목으로 남깁니다. 서버에 생기면 임시 정의를 지우고 `pnpm schema:pull` 후 `pnpm codegen`을 다시 실행합니다.
+- 서버에 아직 없는 query·mutation은 명세로 확인해 `schema.pending.graphql`에 정의하고, 응답은 MSW handler로 대신합니다. 타입은 `schema.graphql`의 정의를 쓰고, 명세에 정의가 없는 타입은 추측으로 채우지 않고 백엔드 확인 항목으로 남깁니다. 서버에 생기면 `pnpm schema:pull`로 받은 `schema.graphql`에 해당 작업이 있는지 확인한 뒤 임시 정의를 지우고 `pnpm codegen`을 다시 실행합니다. pull이 실패하면 임시 정의를 그대로 둡니다.
 - `src/gql/`은 직접 고치지 않습니다.
 - 에러는 `ApiError`의 `code`(백엔드 `extensions.code`)로 분기합니다. HTTP 상태로 분기하지 않습니다.
 - 입력값 검증 실패(`COMMON_400`)의 입력별 메시지는 `ApiError.fieldErrors`(`{ field, message }` 목록)로 읽어 해당 입력 가까이에 표시합니다.
