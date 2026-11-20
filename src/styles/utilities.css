@@ -1,7 +1,7 @@
 /* GNB가 숨었다가 다시 나온 상태 */
 @custom-variant gnb-revealed (body:has([data-slot='gnb'][data-revealed]) &);
 
-/* 고정 요소 기준값, 바꾸면 gnbHeader·stickyTopBar의 px 상수도 같이 수정 */
+/* 고정 요소 기준값, 바꾸면 gnbHeader·stickyTopBar·postingApplyBarReveal의 px 상수도 같이 수정 */
 :root {
   --gnb-height: 64px;
   --page-padding-top: 48px;

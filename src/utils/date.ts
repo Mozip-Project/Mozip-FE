@@ -1,5 +1,13 @@
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
+// en-CA 형식(YYYY-MM-DD) 사용, 서버 실행 시간대와 무관하게 한국 날짜 계산
+const SEOUL_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
 const MINUTE_MS = 60 * 1000
 const HOUR_MS = 60 * MINUTE_MS
 const DAY_MS = 24 * HOUR_MS
@@ -21,6 +29,39 @@ function formatMonthDayWithWeekday(isoDate: string) {
   const weekday = WEEKDAY_LABELS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()]
 
   return `${month}/${day} (${weekday})`
+}
+
+// 시각 부분만 잘라 써서 시간대와 무관하게 표시
+function formatMonthDayTimeWithWeekday(isoDateTime: string) {
+  return `${formatMonthDayWithWeekday(isoDateTime)} ${isoDateTime.slice(11, 16)}`
+}
+
+function formatDday(daysLeft: number) {
+  return daysLeft === 0 ? 'D-day' : `D-${daysLeft}`
+}
+
+// 날짜 부분(YYYY-MM-DD)만 UTC 자정 시각으로 변환, 형식이 다르면 NaN
+function getUtcTimeOfIsoDate(isoDate: string) {
+  const [year, month, day] = isoDate.slice(0, 10).split('-').map(Number)
+
+  if (year === undefined || month === undefined || day === undefined) {
+    return Number.NaN
+  }
+
+  return Date.UTC(year, month - 1, day)
+}
+
+function getSeoulIsoDate(date: Date) {
+  return SEOUL_DATE_FORMATTER.format(date)
+}
+
+// 시각과 무관한 달력 일수 차이, 형식이 다르면 NaN
+function getDaysBetween(fromIsoDate: string, toIsoDate: string) {
+  return Math.round((getUtcTimeOfIsoDate(toIsoDate) - getUtcTimeOfIsoDate(fromIsoDate)) / DAY_MS)
+}
+
+function addDaysToIsoDate(isoDate: string, days: number) {
+  return new Date(getUtcTimeOfIsoDate(isoDate) + days * DAY_MS).toISOString().slice(0, 10)
 }
 
 function isSameLocalDate(a: Date, b: Date) {
@@ -92,12 +133,17 @@ function formatYearMonth(isoDate: string) {
 }
 
 export {
+  addDaysToIsoDate,
   WEEKDAY_LABELS,
   formatDateTimeWithWeekday,
+  formatDday,
   formatMonthDay,
+  formatMonthDayTimeWithWeekday,
   formatMonthDayWithWeekday,
   formatRelativeTime,
   formatRemainingTime,
   formatSavedTime,
   formatYearMonth,
+  getDaysBetween,
+  getSeoulIsoDate,
 }
