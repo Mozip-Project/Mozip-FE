@@ -1,7 +1,8 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
 
 const config: CodegenConfig = {
-  schema: 'schema.graphql',
+  // 서버 스키마(introspection)와 서버 미구현 임시 정의를 합쳐 사용
+  schema: ['schema.graphql', 'schema.pending.graphql'],
   documents: ['src/features/**/api/**/*.graphql'],
   ignoreNoDocuments: true,
   generates: {

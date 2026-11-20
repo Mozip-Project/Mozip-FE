@@ -1,36 +1,516 @@
-# 백엔드 명세에서 옮긴 임시 스키마. 미구현 필드는 MSW handler로 응답
-# TODO: 서버 스키마가 완성되면 개발 서버 introspection으로 받아 교체
+# pnpm schema:pull로 개발 서버 introspection 결과를 받은 파일, 직접 수정 금지
+
+" 도메인별 파일로 나누고 extend type Query/Mutation으로 추가\n 로그인 없이 호출할 수 있는 최상위 필드에 붙임 (없으면 인증 필요, GraphqlAuthInstrumentation이 검사)"
 directive @public on FIELD_DEFINITION
 
+"""
+This directive allows results to be deferred during execution
+"""
+directive @defer(
+  """
+  Deferred behaviour is controlled by this argument
+  """
+  if: Boolean! = true
+
+  """
+  A unique label that represents the fragment being deferred
+  """
+  label: String
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"""
+This directive disables error propagation when a non nullable field returns null for the given operation.
+"""
+directive @experimental_disableErrorPropagation on QUERY | MUTATION | SUBSCRIPTION
+
+"""
+지원서 문항별 답변
+"""
+type Answer {
+  id: ID!
+  question: Question!
+
+  """
+  TEXT 답변, CHOICE / TABLE은 JSON 문자열
+  """
+  content: String
+  attachments: [Attachment!]!
+}
+
+"""
+지원서
+"""
+type Application {
+  id: ID!
+  posting: Posting!
+
+  """
+  포지션 없는 모집이면 null
+  """
+  position: Position
+  user: User!
+  status: ApplicationStatus!
+
+  """
+  제출 시점 프로필
+  """
+  profileSnapshot: JSON
+
+  """
+  면접 가능 시간 블록의 시작 시각 목록
+  """
+  availableTimes: [DateTime!]!
+  docResult: DocResult!
+  finalResult: FinalResult!
+  submittedAt: DateTime
+  answers: [Answer!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"""
+지원서, 답변, 첨부
+"""
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+}
+
+"""
+면접관 자동 배정 기준 (포지션 없는 모집은 자동 배정 없이 직접 추가)
+"""
+enum AssignRule {
+  """
+  지원 포지션과 같은 팀 운영진
+  """
+  SAME_TEAM
+
+  """
+  팀 상관없이 운영진 전체
+  """
+  ALL_MEMBERS
+}
+
+"""
+FILE_LINK 문항 첨부
+"""
+type Attachment {
+  id: ID!
+  type: AttachmentType!
+  url: String!
+  fileName: String
+}
+
+enum AttachmentType {
+  FILE
+  LINK
+}
+
+"""
+Spring Security 권한
+"""
+enum Authority {
+  USER
+  ADMIN
+}
+
+"""
+공고 UP하기 내역
+"""
+type Bump {
+  id: ID!
+  posting: Posting!
+  user: User!
+
+  """
+  null = 잔여권 사용
+  """
+  payment: Payment
+  createdAt: DateTime!
+}
+
+"""
+학생회 세부 구분 (총학생회 / 단과대 / 학과)
+"""
+enum CouncilLevel {
+  UNIVERSITY
+  COLLEGE
+  DEPARTMENT
+}
+
+"""
+ISO-8601 날짜 (예: 2026-11-15)
+"""
+scalar Date
+
+"""
+서울 시각에 오프셋을 붙인 ISO-8601 (예: 2026-11-15T14:00:00+09:00)
+"""
 scalar DateTime
 
-type Query {
-  "서버가 요청을 처리할 수 있는 상태인지 확인"
-  health: Health! @public
-  notifications(tab: NotificationTab, page: Int = 0, size: Int = 20): NotificationPage!
+"""
+운영진별 서류 평가
+"""
+type DocEvaluation {
+  id: ID!
+  application: Application!
+
+  """
+  평가한 운영진
+  """
+  member: Member!
+
+  """
+  자동 저장만 된 작성 중 상태에서는 null
+  """
+  opinion: Opinion
+
+  """
+  운영진만 보는 메모, 최대 300자
+  """
+  memo: String
+
+  """
+  문항별 점수, posting.docScorePerQuestion = true일 때만
+  """
+  scores: [DocScore!]!
+
+  """
+  저장하고 다음 지원자 보기로 저장한 시각, null = 작성 중
+  """
+  submittedAt: DateTime
+  updatedAt: DateTime!
 }
 
-type Mutation {
-  markNotificationsRead(ids: [ID!]): Boolean!
-  reportPosting(postingId: ID!, reason: ReportReason!, detail: String): Boolean!
+enum DocResult {
+  """
+  평가가 다 끝나지 않아 선택 불가
+  """
+  PENDING
+
+  """
+  보류 (남아 있으면 결과 확정 불가)
+  """
+  HOLD
+  PASS
+  FAIL
 }
 
-enum ReportReason {
-  FALSE_INFO
-  INAPPROPRIATE
-  EXCESSIVE_PERSONAL_INFO
-  ETC
+type DocScore {
+  question: Question!
+
+  """
+  1~5점
+  """
+  score: Int!
+}
+
+"""
+활동 경험
+"""
+type Experience {
+  id: ID!
+
+  """
+  활동명
+  """
+  title: String!
+  role: String
+  achievement: String
+  startedOn: Date
+  endedOn: Date
+}
+
+enum FinalResult {
+  PENDING
+  PASS
+  FAIL
 }
 
 type Health {
   status: String!
 }
 
-enum NotificationTab {
-  APPLICANT
+"""
+타임테이블의 면접 한 칸
+"""
+type Interview {
+  id: ID!
+  posting: Posting!
+  startAt: DateTime!
+  endAt: DateTime!
+
+  """
+  같은 시간대에 동시에 진행하는 면접 열 (면접 1, 면접 2)
+  """
+  track: Int!
+
+  """
+  장소 태그 (후보 = 같은 단체에서 쓴 장소)
+  """
+  location: String
+
+  """
+  배정된 면접관
+  """
+  interviewers: [Member!]!
+
+  """
+  배정된 지원자
+  """
+  applicants: [Application!]!
+}
+
+"""
+운영진별 면접 평가
+"""
+type InterviewEvaluation {
+  id: ID!
+  application: Application!
+
+  """
+  평가한 운영진
+  """
+  member: Member!
+  opinion: Opinion
+
+  """
+  종합 메모
+  """
+  memo: String
+
+  """
+  질문별 점수와 메모, 점수는 posting.interviewScorePerQuestion = true일 때만
+  """
+  scores: [InterviewScore!]!
+
+  """
+  null = 작성 중
+  """
+  submittedAt: DateTime
+  updatedAt: DateTime!
+}
+
+enum InterviewMethod {
+  ONSITE
+  ONLINE
+}
+
+"""
+면접 질문
+"""
+type InterviewQuestion {
+  id: ID!
+  posting: Posting!
+
+  """
+  null = 공통 질문
+  """
+  position: Position
+  content: String!
+  sortOrder: Int!
+}
+
+"""
+등록된 면접 질문이면 question, 면접 중 즉석 질문이면 customQuestion을 채움
+"""
+type InterviewScore {
+  question: InterviewQuestion
+  customQuestion: String
+  score: Int
+  memo: String
+}
+
+"""
+운영진이 연 면접 가능 시간대
+"""
+type InterviewTimeRange {
+  id: ID!
+  posting: Posting!
+
+  """
+  이 시간을 쓰는 포지션(팀), null = 포지션 없는 모집 또는 전체 공통
+  """
+  position: Position
+  date: Date!
+  startTime: LocalTime!
+  endTime: LocalTime!
+
+  """
+  운영진이 끈 블록의 시작 시각, 지원자에게 안 보임
+  """
+  closedSlots: [LocalTime!]!
+}
+
+type Invitation {
+  id: ID!
+  organization: Organization!
+  inviter: User!
+
+  """
+  가입자면 바로 채움, 미가입이면 가입 시 contact로 찾아 채움
+  """
+  invitee: User
+
+  """
+  휴대폰 번호 또는 이메일
+  """
+  inviteeContact: String!
+  status: InvitationStatus!
+
+  """
+  발송 후 7일
+  """
+  expiresAt: DateTime!
+  createdAt: DateTime!
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELED
+}
+
+"""
+초대 링크 (mozip.kr/invite/{token})
+"""
+type InviteLink {
+  id: ID!
+  organization: Organization!
+  token: String!
+
+  """
+  생성 후 7일
+  """
+  expiresAt: DateTime!
+}
+
+"""
+A JSON scalar
+"""
+scalar JSON
+
+"""
+24-hour clock time value string in the format `hh:mm:ss` or `hh:mm:ss.sss`.
+"""
+scalar LocalTime
+
+"""
+단체 운영진 (회원의 단체 소속)
+"""
+type Member {
+  id: ID!
+  organization: Organization!
+  user: User!
+
+  """
+  한 팀에만 소속, 팀 없는 단체면 null
+  """
+  team: Team
+  role: MemberRole!
+  createdAt: DateTime!
+}
+
+enum MemberRole {
+  REPRESENTATIVE
   OPERATOR
 }
 
+"""
+합격자용과 불합격자용을 따로 작성해 두고 각각 발송 (합격자만 먼저 발송 가능)
+"""
+type Message {
+  id: ID!
+  posting: Posting!
+
+  """
+  보낸 운영진
+  """
+  sender: User!
+  type: MessageType!
+  target: MessageTarget!
+  subject: String!
+
+  """
+  {이름} {포지션} {면접 기간} {활동 기간} 변수는 발송 시 지원자별로 치환
+  """
+  body: String!
+  status: MessageStatus!
+
+  """
+  null = 작성 중
+  """
+  sentAt: DateTime
+  deliveries: [MessageDelivery!]!
+  createdAt: DateTime!
+}
+
+"""
+지원자별 메일 발송 결과
+"""
+type MessageDelivery {
+  id: ID!
+  application: Application!
+
+  """
+  보낸 주소, 주소 수정 후 재발송하면 갱신
+  """
+  email: String!
+  status: MessageDeliveryStatus!
+  failReason: String
+  updatedAt: DateTime!
+}
+
+enum MessageDeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum MessageStatus {
+  DRAFT
+  SENT
+}
+
+enum MessageTarget {
+  ALL
+  PASS
+  FAIL
+}
+
+"""
+지원자 안내 메시지 (공지, 결과 발표), 메일 발송 내역
+"""
+enum MessageType {
+  NOTICE
+  DOC_RESULT
+  INTERVIEW
+  FINAL_RESULT
+}
+
+type Notification {
+  id: ID!
+  type: NotificationType!
+
+  """
+  알림에 표시할 단체 (지원자 알림도 지원한 단체를 표시)
+  """
+  organization: Organization
+
+  """
+  결과 안내, 공지 알림이 가리키는 메시지 (결과 팝업, 공지 전문 보기), 그 외 알림은 null
+  """
+  message: Message
+  title: String!
+  linkUrl: String
+  isRead: Boolean!
+  createdAt: DateTime!
+}
+
+"""
+알림 탭(지원자/운영진), 알림 설정 토글, 출처 라벨, 이동 화면을 type으로 정함
+"""
 enum NotificationType {
   POSTING_NOTICE
   DOC_RESULT
@@ -45,25 +525,578 @@ enum NotificationType {
   EVALUATION_DEADLINE
 }
 
-type NotificationPage {
-  items: [Notification!]!
-  totalCount: Int!
-  hasNext: Boolean!
+"""
+평가 의견 (서류, 면접 공통)
+"""
+enum Opinion {
+  PASS
+  HOLD
+  FAIL
 }
 
-type Notification {
+type Organization {
   id: ID!
-  type: NotificationType!
-  organization: OrganizationSummary
-  title: String!
-  body: String
-  "이동할 화면 경로"
-  link: String
-  read: Boolean!
+  name: String!
+
+  """
+  변경 요청 이름 (관리자 확인 후 반영)
+  """
+  pendingName: String
+  type: OrganizationType!
+
+  """
+  학생회가 아니면 null
+  """
+  councilLevel: CouncilLevel
+  scope: OrganizationScope!
+
+  """
+  연합이면 null
+  """
+  school: School
+  logoUrl: String
+
+  """
+  한 줄 소개
+  """
+  tagline: String
+  description: String
+
+  """
+  단체 메일
+  """
+  email: String
+  noTeam: Boolean!
+  proofLink: String
+  proofFileUrl: String
+  reviewStatus: ReviewStatus!
+  rejectReason: String
+  trialEndsAt: DateTime
+
+  """
+  유료 기능 사용 가능 기한
+  """
+  packageEndsAt: DateTime
+
+  """
+  UP하기 잔여권
+  """
+  upCredits: Int!
+  keywords: [String!]!
+  fields: [OrganizationField!]!
+  links: [OrganizationLink!]!
+  teams: [Team!]!
+  members: [Member!]!
   createdAt: DateTime!
 }
 
-type OrganizationSummary {
+enum OrganizationField {
+  ACADEMIC_STUDY
+  IT_DEV
+  DESIGN_MEDIA
+  PERFORMANCE_MUSIC
+  SPORTS
+  CULTURE_HOBBY
+  VOLUNTEER
+  LANGUAGE_GLOBAL
+  STARTUP_BUSINESS
+  RELIGION
+  ETC
+}
+
+type OrganizationLink {
+  id: ID!
+  type: OrganizationLinkType!
+  url: String!
+}
+
+enum OrganizationLinkType {
+  INSTAGRAM
+  WEBSITE
+  YOUTUBE
+  ETC
+}
+
+"""
+교내 / 연합 (연합이면 학교 없음)
+"""
+enum OrganizationScope {
+  CAMPUS
+  UNION
+}
+
+"""
+단체, 팀, 운영진, 초대, 대표자 인수
+"""
+enum OrganizationType {
+  CLUB
+  ACADEMIC
+  STUDENT_COUNCIL
+}
+
+type Payment {
+  id: ID!
+  organization: Organization!
+
+  """
+  결제한 대표자
+  """
+  user: User!
+  product: PaymentProduct!
+
+  """
+  PACKAGE 적용 학기 (예: 2026-2), UP_ONCE면 null
+  """
+  semester: String
+  amount: Int!
+  status: PaymentStatus!
+  pgTransactionId: String
+  receiptUrl: String
+  paidAt: DateTime
+  createdAt: DateTime!
+}
+
+"""
+등록한 카드 (PG 빌링키는 노출하지 않음)
+"""
+type PaymentMethod {
+  id: ID!
+  organization: Organization!
+  cardName: String
+  cardLast4: String
+  createdAt: DateTime!
+}
+
+"""
+학기 패키지 4,900원 / UP하기 1회 500원
+"""
+enum PaymentProduct {
+  PACKAGE
+  UP_ONCE
+}
+
+enum PaymentStatus {
+  PAID
+  REFUND_REQUESTED
+  REFUNDED
+  FAILED
+}
+
+"""
+공고별 모집 포지션
+"""
+type Position {
+  id: ID!
+  posting: Posting!
+  team: Team
+  name: String!
+
+  """
+  null = 모집 인원 미정
+  """
+  headcount: Int
+  sortOrder: Int!
+}
+
+"""
+모집 공고
+"""
+type Posting {
+  id: ID!
+  organization: Organization!
+
+  """
+  이전 기수 불러오기로 만든 공고의 원본
+  """
+  sourcePosting: Posting
+  title: String!
+
+  """
+  모집 학기 (예: 2026-2)
+  """
+  semester: String
+
+  """
+  모집 안내 (HTML)
+  """
+  content: String
+  status: PostingStatus!
+
+  """
+  작성 중 단계 1~5
+  """
+  draftStep: Int
+  hasInterview: Boolean!
+
+  """
+  비면접이면 null
+  """
+  interviewMethod: InterviewMethod
+  noPosition: Boolean!
+
+  """
+  null = 비공개
+  """
+  region: String
+
+  """
+  null = 비공개
+  """
+  fee: String
+
+  """
+  지원 자격: 대학생
+  """
+  allowEnrolled: Boolean!
+
+  """
+  지원 자격: 휴학생
+  """
+  allowOnLeave: Boolean!
+
+  """
+  지원 자격 직접 입력 (예: 1~3학년, 졸업 예정자 가능)
+  """
+  eligibilityNote: String
+
+  """
+  활동 기간 시작 월 (1일)
+  """
+  activityStartedOn: Date
+
+  """
+  활동 기간 종료 월 (1일)
+  """
+  activityEndedOn: Date
+
+  """
+  게시 예정 시각, 이 시각이 되면 DRAFT에서 RECRUITING으로 전환, null = 게시하기 누를 때 바로 게시
+  """
+  publishAt: DateTime
+
+  """
+  실제 게시된 시각
+  """
+  publishedAt: DateTime
+
+  """
+  지원 접수 시작, 게시 후 이 시각 전까지는 공고만 보이고 지원 불가
+  """
+  recruitStartAt: DateTime
+  recruitEndAt: DateTime
+
+  """
+  서류 결과 / 면접 일정 안내일
+  """
+  docResultAt: DateTime
+  finalResultAt: DateTime
+
+  """
+  서류 평가 결과 확정 시각, null = 확정 전
+  """
+  docResultConfirmedAt: DateTime
+
+  """
+  면접 평가 결과 확정 시각, null = 확정 전
+  """
+  finalResultConfirmedAt: DateTime
+  interviewMinutes: Int
+  breakMinutes: Int
+  assignRule: AssignRule
+  maxApplicantsPerInterview: Int
+  maxParallelInterviews: Int
+
+  """
+  서류 평가에 문항별 점수(1~5점) 사용
+  """
+  docScorePerQuestion: Boolean
+
+  """
+  면접 평가에 질문별 점수 사용
+  """
+  interviewScorePerQuestion: Boolean
+
+  """
+  지원자에게 보여줄 면접 안내 (준비물 등)
+  """
+  interviewGuide: String
+
+  """
+  타임테이블 확정 시각
+  """
+  timetableConfirmedAt: DateTime
+  viewCount: Int!
+
+  """
+  최신순 정렬 기준 (게시, UP 시 갱신)
+  """
+  bumpedAt: DateTime
+  images: [PostingImage!]!
+  positions: [Position!]!
+  questions: [Question!]!
+  interviewQuestions: [InterviewQuestion!]!
+  interviewTimeRanges: [InterviewTimeRange!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type PostingImage {
+  id: ID!
+  url: String!
+
+  """
+  대표 이미지 (전체 공고 카드 썸네일), 안 고르면 첫 번째 사진
+  """
+  isRepresentative: Boolean!
+  sortOrder: Int!
+}
+
+"""
+비면접 공고는 INTERVIEW 단계를 건너뜀
+"""
+enum PostingStatus {
+  DRAFT
+  RECRUITING
+  DOC_REVIEW
+  DOC_RESULT_NOTICE
+  INTERVIEW
+  FINAL_RESULT
+  ENDED
+}
+
+type Query {
+  """
+  서버가 요청을 처리할 수 있는 상태인지 확인
+  """
+  health: Health!
+}
+
+"""
+지원서 문항
+"""
+type Question {
+  id: ID!
+  posting: Posting!
+
+  """
+  적용 포지션, null = 공통 문항
+  """
+  position: Position
+  type: QuestionType!
+  title: String!
+  description: String
+  required: Boolean!
+
+  """
+  TEXT 글자 수 제한
+  """
+  maxLength: Int
+  options: QuestionOptions
+  sortOrder: Int!
+}
+
+"""
+문항 유형별 설정 (해당 유형 값만 채움)
+"""
+type QuestionOptions {
+  """
+  SINGLE_CHOICE / MULTI_CHOICE 보기
+  """
+  choices: [String!]
+
+  """
+  TABLE 열 이름
+  """
+  columns: [String!]
+
+  """
+  TABLE 최대 행
+  """
+  maxRows: Int
+
+  """
+  FILE_LINK 최대 개수
+  """
+  maxFiles: Int
+}
+
+enum QuestionType {
+  TEXT
+  SINGLE_CHOICE
+  MULTI_CHOICE
+  FILE_LINK
+  TABLE
+}
+
+"""
+공고 신고
+"""
+type Report {
+  id: ID!
+  posting: Posting!
+  user: User!
+  reason: ReportReason!
+  detail: String
+  createdAt: DateTime!
+}
+
+enum ReportReason {
+  FALSE_INFO
+  INAPPROPRIATE
+  EXCESSIVE_PERSONAL_INFO
+  ETC
+}
+
+type RepresentativeTransfer {
+  id: ID!
+  organization: Organization!
+  requester: User!
+  message: String
+  status: TransferStatus!
+  createdAt: DateTime!
+}
+
+"""
+관리자 심사 상태 (단체 등록, 학교 인증)
+"""
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+"""
+서류 평가 담당 운영진 (공고 포지션별 배정)
+"""
+type Reviewer {
+  id: ID!
+  posting: Posting!
+
+  """
+  포지션 없는 모집이면 null
+  """
+  position: Position
+  member: Member!
+}
+
+"""
+로그인 후 이동할 홈
+"""
+enum Role {
+  APPLICANT
+  OPERATOR
+}
+
+type School {
   id: ID!
   name: String!
+
+  """
+  학교 메일 인증 도메인 (예: skku.edu)
+  """
+  emailDomain: String
+}
+
+type SchoolVerification {
+  id: ID!
+  user: User!
+  school: School
+
+  """
+  목록에 없는 학교 직접 입력
+  """
+  schoolName: String
+  method: SchoolVerificationMethod!
+  email: String
+  certificateUrl: String
+
+  """
+  메일 인증은 바로 APPROVED
+  """
+  status: ReviewStatus!
+  rejectReason: String
+  reviewedAt: DateTime
+  createdAt: DateTime!
+}
+
+enum SchoolVerificationMethod {
+  SCHOOL_EMAIL
+  CERTIFICATE
+}
+
+type Scrap {
+  id: ID!
+  user: User!
+  posting: Posting!
+  createdAt: DateTime!
+}
+
+type Team {
+  id: ID!
+  organization: Organization!
+  name: String!
+  sortOrder: Int!
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
+type User {
+  id: ID!
+
+  """
+  로그인 ID (숫자만, 예: 01012345678)
+  """
+  phone: String!
+  name: String!
+  authority: Authority!
+  status: UserStatus!
+  lastRole: Role!
+
+  """
+  운영진 홈에서 마지막으로 고른 단체 (GNB 단체 전환)
+  """
+  lastOrganization: Organization
+
+  """
+  학교 인증 승인 시 채움, null = 미인증 (공고 열람만 가능)
+  """
+  school: School
+  profileImageUrl: String
+  department: String
+  grade: Int
+  contactEmail: String
+  marketingAgreed: Boolean!
+  termsAgreedAt: DateTime!
+
+  """
+  지원 결과, 면접 일정 알림
+  """
+  notifyResult: Boolean!
+
+  """
+  스크랩 공고 지원 시작 알림
+  """
+  notifyScrap: Boolean!
+
+  """
+  대표자 인수 요청, 평가 마감 알림
+  """
+  notifyOperator: Boolean!
+  experiences: [Experience!]!
+  createdAt: DateTime!
+}
+
+enum UserStatus {
+  ACTIVE
+
+  """
+  로그인 5회 실패 (휴대폰 인증으로 해제)
+  """
+  LOCKED
+  WITHDRAWN
 }

@@ -56,7 +56,8 @@ base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지
 | -------------------------- | -------------------------------------------------------------------------------- |
 | `src/lib/graphqlClient.ts` | `requestGraphQL`. 엔드포인트·쿠키 전송·토큰 재발급 후 재요청을 한곳에서 처리     |
 | `src/lib/apiError.ts`      | `ApiError`와 GraphQL·REST 에러 응답을 `ApiError`로 바꾸는 변환                   |
-| `schema.graphql`           | codegen이 읽는 스키마. 지금은 명세에서 옮긴 임시본이고, 미구현 필드는 MSW로 응답 |
+| `schema.graphql`           | `pnpm schema:pull`로 받은 개발 서버 스키마(introspection). 직접 고치지 않음      |
+| `schema.pending.graphql`   | 서버에 아직 없는 query·mutation의 명세 기준 임시 정의. 응답은 MSW로 대신         |
 | `src/gql/`                 | `pnpm codegen`이 만드는 타입과 문서 상수. 직접 고치지 않고 생성 결과를 함께 커밋 |
 | `graphql.config.yml`       | 에디터 GraphQL 확장의 스키마·문서 위치. `.graphql` 문서 자동완성·필드 검사용     |
 
