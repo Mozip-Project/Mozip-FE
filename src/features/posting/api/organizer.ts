@@ -16,6 +16,12 @@ async function getManagedPostings(): Promise<ManagedPosting[]> {
   return managedPostingState
 }
 
+// TODO: organizationPostings(status: 진행 중) 연결 시 서버 정렬의 첫 항목 사용
+async function getFirstPublishedPostingId(): Promise<string | null> {
+  const postings = await getManagedPostings()
+  return postings.find((posting) => posting.status === 'published')?.id ?? null
+}
+
 // TODO: 공고 삭제 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function deleteManagedPosting(postingId: string) {
@@ -53,6 +59,7 @@ async function upManagedPosting(postingId: string): Promise<{ latestRank: number
 
 export {
   deleteManagedPosting,
+  getFirstPublishedPostingId,
   getManagedPostingDetail,
   getManagedPostings,
   getUpRemainingCount,
