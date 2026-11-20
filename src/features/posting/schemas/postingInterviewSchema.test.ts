@@ -8,6 +8,8 @@ const FILLED = {
   interviewSlots: ['2026-10-23T09:00'],
   interviewApplicantCount: '1',
   interviewRoomCount: '2',
+  documentResultDate: '2026-10-22',
+  finalResultDate: '2026-10-28',
 } as const
 
 function isValid(values: Partial<Record<keyof typeof FILLED, unknown>>) {
@@ -33,6 +35,12 @@ describe('postingInterviewSchema', () => {
     expect(isValid({ interviewDates: [] })).toBe(false)
     expect(isValid({ interviewDates: sixDays.slice(0, 5) })).toBe(true)
     expect(isValid({ interviewDates: sixDays })).toBe(false)
+  })
+
+  it('면접 가능 기간 밖 날짜가 하나라도 있으면 실패', () => {
+    expect(isValid({ documentResultDate: '2026-10-23' })).toBe(false)
+    expect(isValid({ finalResultDate: '2026-10-23' })).toBe(false)
+    expect(isValid({ documentResultDate: '2026-10-21', finalResultDate: '2026-10-24' })).toBe(true)
   })
 
   it('선택한 시간으로 면접을 1회 이상 잡을 수 있어야 통과', () => {
