@@ -28,14 +28,14 @@ import {
 } from '@/features/posting/utils/postingQuestions'
 import { useToast } from '@/providers/toastProvider'
 import { PostingCreateStepList } from './postingCreateStepList'
-import { PostingFormStep } from './postingFormStep'
-import { PostingInfoStep } from './postingInfoStep'
-import { PostingInterviewStep } from './postingInterviewStep'
-import { PostingMethodStep } from './postingMethodStep'
+import { PostingFormStep } from './postingFormStep/postingFormStep'
+import { PostingInfoStep } from './postingInfoStep/postingInfoStep'
+import { PostingInterviewStep } from './postingInterviewStep/postingInterviewStep'
+import { PostingMethodStep } from './postingMethodStep/postingMethodStep'
 import { PostingPublishDialog } from './postingPublishDialog'
-import { type EditableStepId } from './postingReviewSections'
-import { PostingReviewStep } from './postingReviewStep'
-import { PostingScheduleStep } from './postingScheduleStep'
+import { type EditableStepId } from './postingReviewStep/postingReviewSections'
+import { PostingReviewStep } from './postingReviewStep/postingReviewStep'
+import { PostingScheduleStep } from './postingScheduleStep/postingScheduleStep'
 
 type StepId = PostingCreateStep['id']
 

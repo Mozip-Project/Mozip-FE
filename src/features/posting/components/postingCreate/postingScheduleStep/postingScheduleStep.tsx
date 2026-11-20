@@ -5,9 +5,9 @@ import { useController, useWatch, type Control } from 'react-hook-form'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
 import { getResultDateMinimums } from '@/features/posting/schemas/postingScheduleSchema'
 import type { TimeOptionType } from '@/utils/time'
-import { DateField } from './dateField'
-import { DateTimeField } from './dateTimeField'
-import { FieldLabel } from './fieldLabel'
+import { DateField } from '../fields/dateField'
+import { DateTimeField } from '../fields/dateTimeField'
+import { FieldLabel } from '../fields/fieldLabel'
 
 type ScheduleControl = Control<PostingCreateValues>
 

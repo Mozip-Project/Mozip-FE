@@ -12,7 +12,7 @@ import type { PostingCreateValues } from '@/features/posting/schemas/postingCrea
 import type { PostingQuestion } from '@/features/posting/schemas/postingFormSchema'
 import type { PostingCreateStep } from '@/features/posting/utils/postingCreateSteps'
 import type { ReviewRow, ScheduleItem } from '@/features/posting/utils/postingReview'
-import { QUESTION_TYPE_META } from './postingQuestionTypes'
+import { QUESTION_TYPE_META } from '../postingFormStep/postingQuestionTypes'
 
 type EditableStepId = Extract<PostingCreateStep['id'], 'info' | 'schedule' | 'method' | 'form'>
 

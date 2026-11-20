@@ -3,7 +3,7 @@
 import LinkIcon from '@/assets/icons/link.svg'
 import PlusIcon from '@/assets/icons/plus.svg'
 import type { FileRule } from '@/utils/file'
-import { FileUpload } from './fileUpload'
+import { FileUpload } from '../fields/fileUpload'
 
 type FileAnswerPreviewProps = FileRule & {
   fileDescription: string

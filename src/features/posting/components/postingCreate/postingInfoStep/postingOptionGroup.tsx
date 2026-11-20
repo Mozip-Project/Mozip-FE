@@ -2,7 +2,7 @@
 
 import { useId, type ReactNode } from 'react'
 import { Checkbox } from '@/components/ui/Checkbox/checkbox'
-import { FieldLabel } from './fieldLabel'
+import { FieldLabel } from '../fields/fieldLabel'
 
 type PostingOption<TValue extends string> = {
   value: TValue

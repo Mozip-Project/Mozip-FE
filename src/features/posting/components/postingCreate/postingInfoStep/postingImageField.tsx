@@ -11,9 +11,9 @@ import {
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 import { useToast } from '@/providers/toastProvider'
 import type { FileRejection } from '@/utils/file'
-import { FieldLabel } from './fieldLabel'
-import { FileUpload } from './fileUpload'
 import { ImageThumbnail } from './imageThumbnail'
+import { FieldLabel } from '../fields/fieldLabel'
+import { FileUpload } from '../fields/fileUpload'
 
 const INFO_POPOVER_OFFSET_PX = 9
 const INFO_POPOVER_ALIGN_OFFSET_PX = 1
