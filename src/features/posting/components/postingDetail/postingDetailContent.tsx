@@ -1,16 +1,12 @@
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
+import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
-import {
-  getPostingRecruitmentPhase,
-  hasAppliedPosting,
-} from '@/features/posting/utils/postingDetail'
+import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
 import { getSeoulIsoDate } from '@/utils/date'
-import { AppliedPostingToast } from './appliedPostingToast'
 import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
-import { PostingApplyButton } from './postingApplyButton'
 import { PostingDetailTabs } from './postingDetailTabs'
 import { PostingSummary } from './postingSummary'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
@@ -46,7 +42,10 @@ async function PostingDetailContent({ params }: PostingDetailContentProps) {
             <div className="flex items-center gap-gap-m">
               <RecruitmentStatusBadge phase={phase} />
               <div id={HEADER_APPLY_CTA_ID}>
-                <PostingApplyButton application={detail.application} phase={phase} />
+                {/* TODO: 지원서 작성 경로 확정 후 이동 연결 */}
+                <Button size="m" disabled={phase.status !== 'open'}>
+                  {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}
+                </Button>
               </div>
             </div>
           }
@@ -75,7 +74,6 @@ async function PostingDetailContent({ params }: PostingDetailContentProps) {
           phase={phase}
         />
       )}
-      {hasAppliedPosting(detail.application) && <AppliedPostingToast />}
     </div>
   )
 }

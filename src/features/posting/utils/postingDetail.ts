@@ -1,8 +1,4 @@
-import {
-  type PostingApplication,
-  type PostingDetail,
-  type PostingPosition,
-} from '@/features/posting/types'
+import { type PostingDetail, type PostingPosition } from '@/features/posting/types'
 import {
   formatDday,
   formatMonthDayTimeWithWeekday,
@@ -123,25 +119,6 @@ function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
   ].filter(hasValue)
 }
 
-function hasAppliedPosting(application: PostingApplication) {
-  if (application.type === 'direct') {
-    return application.appliedAt !== null
-  }
-
-  return application.positions.some((position) => position.appliedAt !== null)
-}
-
-// 더 지원할 수 있는 포지션이 없음, 포지션 없는 모집은 지원 여부 그대로
-function hasCompletedApplication(application: PostingApplication) {
-  if (application.type === 'direct') {
-    return application.appliedAt !== null
-  }
-
-  const { positions } = application
-
-  return positions.length > 0 && positions.every((position) => position.appliedAt !== null)
-}
-
 // Figma 헤더 상태 칩 문구, 마감·시작 당일은 D-day
 function getRecruitmentStatusLabel(phase: PostingRecruitmentPhase) {
   switch (phase.status) {
@@ -172,7 +149,5 @@ export {
   getPostingRecruitmentPhase,
   getPostingScheduleRows,
   getRecruitmentStatusLabel,
-  hasAppliedPosting,
-  hasCompletedApplication,
 }
 export type { DeadlineUrgency, PostingRecruitmentPhase, PostingSummaryRow }

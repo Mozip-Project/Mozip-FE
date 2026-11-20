@@ -6,8 +6,6 @@ import {
   getPostingRecruitmentPhase,
   getPostingScheduleRows,
   getRecruitmentStatusLabel,
-  hasAppliedPosting,
-  hasCompletedApplication,
 } from './postingDetail'
 
 const STARTS_AT = '2026-10-01T00:00:00+09:00'
@@ -195,66 +193,6 @@ describe('getPostingScheduleRows', () => {
       { label: '지원 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
       { label: '결과 발표', value: '10/27 (화)' },
     ])
-  })
-})
-
-describe('hasAppliedPosting', () => {
-  it('포지션 하나라도 지원했으면 지원한 공고', () => {
-    expect(
-      hasAppliedPosting({
-        type: 'byPosition',
-        positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
-          { id: 'dev', name: '개발', appliedAt: null, questions: [] },
-        ],
-      }),
-    ).toBe(true)
-  })
-
-  it('지원한 포지션이 없으면 지원 전', () => {
-    expect(
-      hasAppliedPosting({
-        type: 'byPosition',
-        positions: [{ id: 'design', name: '디자인', appliedAt: null, questions: [] }],
-      }),
-    ).toBe(false)
-  })
-
-  it('포지션 없는 모집은 지원 여부 그대로', () => {
-    expect(hasAppliedPosting({ type: 'direct', appliedAt: '2026-10-03' })).toBe(true)
-    expect(hasAppliedPosting({ type: 'direct', appliedAt: null })).toBe(false)
-  })
-})
-
-describe('hasCompletedApplication', () => {
-  it('모든 포지션에 지원하면 완료', () => {
-    expect(
-      hasCompletedApplication({
-        type: 'byPosition',
-        positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
-          { id: 'dev', name: '개발', appliedAt: '2026-10-04', questions: [] },
-        ],
-      }),
-    ).toBe(true)
-  })
-
-  it('지원할 포지션이 남아 있거나 포지션 목록이 비어 있으면 미완료', () => {
-    expect(
-      hasCompletedApplication({
-        type: 'byPosition',
-        positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
-          { id: 'dev', name: '개발', appliedAt: null, questions: [] },
-        ],
-      }),
-    ).toBe(false)
-    expect(hasCompletedApplication({ type: 'byPosition', positions: [] })).toBe(false)
-  })
-
-  it('포지션 없는 모집은 지원하면 완료', () => {
-    expect(hasCompletedApplication({ type: 'direct', appliedAt: '2026-10-03' })).toBe(true)
-    expect(hasCompletedApplication({ type: 'direct', appliedAt: null })).toBe(false)
   })
 })
 
