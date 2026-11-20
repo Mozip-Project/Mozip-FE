@@ -75,7 +75,7 @@ const MANAGED_POSTING_STATUSES = ['published', 'draft', 'closed'] as const
 type ManagedPostingStatus = (typeof MANAGED_POSTING_STATUSES)[number]
 
 const MANAGED_POSTING_STATUS_LABEL = {
-  published: '게시 중',
+  published: '진행 중',
   draft: '작성 중',
   closed: '종료된 공고',
 } satisfies Record<ManagedPostingStatus, string>
@@ -89,7 +89,7 @@ type ManagedPostingBase = {
   progress: RecruitmentProgress
 }
 
-// 최신순 순위는 게시 중 공고만 존재
+// 최신순 순위는 진행 중 공고만 존재
 type ManagedPosting =
   | (ManagedPostingBase & { status: 'published'; latestRank: number })
   | (ManagedPostingBase & { status: Exclude<ManagedPostingStatus, 'published'> })

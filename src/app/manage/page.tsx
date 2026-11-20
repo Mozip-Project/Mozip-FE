@@ -4,15 +4,13 @@ import { getOrganizationPlan, getOrganizationProfile } from '@/features/organiza
 import { OrganizationPlanBanner } from '@/features/organization/components/organizationPlan/organizationPlanBanner'
 import { getUpRemainingCount } from '@/features/posting/api/organizer'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
-import { getOngoingRecruitments } from '@/features/recruitment/api/organizer'
-import { OngoingRecruitmentSection } from '@/features/recruitment/components/ongoingRecruitment/ongoingRecruitmentSection'
+import { PostingManageBoard } from '@/features/posting/components/postingManage/postingManageBoard'
 
 export default async function ManageHomePage() {
-  const [profile, plan, upRemainingCount, recruitments] = await Promise.all([
+  const [profile, plan, upRemainingCount] = await Promise.all([
     getOrganizationProfile(),
     getOrganizationPlan(),
     getUpRemainingCount(),
-    getOngoingRecruitments(),
   ])
 
   return (
@@ -26,9 +24,10 @@ export default async function ManageHomePage() {
             </PostingStartDialog>
           }
         />
-        <OrganizationPlanBanner plan={plan} upRemainingCount={upRemainingCount} />
+        <OrganizationPlanBanner plan={plan} initialUpRemainingCount={upRemainingCount} />
       </div>
-      <OngoingRecruitmentSection recruitments={recruitments} />
+      {/* 삭제·UP 결과를 바로 반영하도록 목록은 클라이언트에서 조회 */}
+      <PostingManageBoard />
     </main>
   )
 }

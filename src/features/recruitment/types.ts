@@ -254,12 +254,6 @@ type RecruitmentProgress =
   | { hasInterview: true; stage: InterviewRecruitmentStage; schedule: RecruitmentSchedule }
   | { hasInterview: false; stage: NoInterviewRecruitmentStage; schedule: RecruitmentSchedule }
 
-type OngoingRecruitment = {
-  id: string
-  title: string
-  progress: RecruitmentProgress
-}
-
 export {
   DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
   DOCUMENT_RESULT_NO_SCORE_SORTS,
@@ -299,7 +293,6 @@ export type {
   DocumentReviewStatus,
   InterviewRecruitmentStage,
   NoInterviewRecruitmentStage,
-  OngoingRecruitment,
   RecipientDelivery,
   RecruitmentBoardQuery,
   RecruitmentProgress,
