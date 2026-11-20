@@ -17,9 +17,16 @@ type PostingPositionFieldsProps = {
 function PostingPositionFields({ control }: PostingPositionFieldsProps) {
   const titleId = useId()
   const { fields, append, remove } = useFieldArray({ control, name: 'positions' })
+  const { remove: removeQuestionSet } = useFieldArray({ control, name: 'questionSets' })
 
   function handleAdd(name: string) {
     append({ name })
+  }
+
+  // 문항 묶음은 포지션 순서로 짝지어져 같은 위치도 함께 삭제
+  function handleRemove(index: number) {
+    remove(index)
+    removeQuestionSet(index)
   }
 
   return (
@@ -54,7 +61,7 @@ function PostingPositionFields({ control }: PostingPositionFieldsProps) {
                 <button
                   type="button"
                   aria-label={`${field.name} 삭제`}
-                  onClick={() => remove(index)}
+                  onClick={() => handleRemove(index)}
                   className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-s text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
                 >
                   <CloseIcon aria-hidden className="size-4.5" />

@@ -428,4 +428,23 @@ describe('PostingCreateForm', () => {
     await user.click(screen.getByRole('tab', { name: '디자인팀' }))
     expect(getQuestionCards()).toHaveLength(4)
   })
+
+  it('포지션을 삭제하면 그 포지션의 문항도 함께 지워지고 남은 포지션 문항은 유지', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+    await addPosition(user, '개발팀')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '파일 또는 URL 문항 추가' }))
+    expect(getQuestionCards()).toHaveLength(4)
+
+    await user.click(screen.getByRole('button', { name: /모집 방식/ }))
+    await user.click(screen.getByRole('button', { name: '디자인팀 삭제' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(screen.getByRole('tab', { name: '개발팀' })).toHaveAttribute('aria-selected', 'true')
+    expect(getQuestionCards()).toHaveLength(3)
+  })
 })
