@@ -54,14 +54,13 @@ type PostingFilterValues = {
 }
 
 // TODO: 공고 목록 API 명세 확정 후 정렬 값을 서버 enum으로 교체
-const POSTING_SORTS = ['latest', 'deadline', 'popular'] as const
+const POSTING_SORTS = ['latest', 'deadline'] as const
 
 type PostingSort = (typeof POSTING_SORTS)[number]
 
 const POSTING_SORT_LABEL = {
   latest: '최신순',
   deadline: '마감 임박순',
-  popular: '인기순 (스크랩 많은 순)',
 } satisfies Record<PostingSort, string>
 
 type PostingListQuery = PostingFilterValues & {

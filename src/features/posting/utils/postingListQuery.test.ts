@@ -26,7 +26,7 @@ describe('parsePostingListQuery', () => {
   })
 
   it('알 수 없는 정렬은 최신순', () => {
-    expect(parsePostingListQuery({ sort: 'popular' }).sort).toBe('popular')
+    expect(parsePostingListQuery({ sort: 'deadline' }).sort).toBe('deadline')
     expect(parsePostingListQuery({ sort: 'unknown' }).sort).toBe('latest')
   })
 })

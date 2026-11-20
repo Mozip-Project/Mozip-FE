@@ -3,10 +3,7 @@ import { Button } from '@/components/ui/Button/button'
 import { Gnb } from '@/components/ui/Gnb/gnb'
 import type { GnbNavItem } from '@/components/ui/Gnb/gnbNav'
 
-const NAV_ITEMS = [
-  { label: '전체 공고', href: '/postings' },
-  { label: '단체 둘러보기', href: '/organizations' },
-] satisfies GnbNavItem[]
+const NAV_ITEMS = [{ label: '전체 공고', href: '/postings' }] satisfies GnbNavItem[]
 
 export default function HomePage() {
   return (

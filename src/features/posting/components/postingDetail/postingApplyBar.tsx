@@ -18,16 +18,18 @@ function PostingApplyBar({ title, recruitmentEndsAt, phase }: PostingApplyBarPro
     <PostingApplyBarReveal targetId={HEADER_APPLY_CTA_ID}>
       <div className="flex items-center gap-gap-l rounded-l border border-neutral-subtle bg-layer-default px-padding-xl py-padding-m shadow-floating">
         <div className="flex min-w-0 flex-1 flex-col gap-gap-xxs">
-          <p className="truncate text-body1 font-semibold text-neutral">{title}</p>
+          <div className="flex items-center gap-gap-s">
+            <p className="truncate text-body1 font-semibold text-neutral">{title}</p>
+            <RecruitmentStatusBadge phase={phase} />
+          </div>
+
           <p className="text-label2 font-medium text-neutral-subtle">
             {formatMonthDayTimeWithWeekday(recruitmentEndsAt)} 마감
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-gap-s">
-          <RecruitmentStatusBadge phase={phase} />
-          {/* TODO: 지원서 작성 경로 확정 후 이동 연결 */}
-          <Button size="m">지원하기</Button>
-        </div>
+
+        {/* TODO: 지원서 작성 경로 확정 후 이동 연결 */}
+        <Button size="m">지원하기</Button>
       </div>
     </PostingApplyBarReveal>
   )

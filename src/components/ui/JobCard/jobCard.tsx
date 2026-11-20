@@ -1,7 +1,5 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import BookmarkIcon from '@/assets/icons/bookmark.svg'
-import BookmarkFillIcon from '@/assets/icons/bookmarkFill.svg'
 import { Badge } from '@/components/ui/Badge/badge'
 import type { Route } from 'next'
 
@@ -13,7 +11,6 @@ type JobCardProps = {
   deadlineLabel: string
   tags: readonly string[]
   thumbnailSrc?: string
-  isScrapped?: boolean
 }
 
 function JobCard({
@@ -24,7 +21,6 @@ function JobCard({
   deadlineLabel,
   tags,
   thumbnailSrc,
-  isScrapped = false,
 }: JobCardProps) {
   return (
     <article
@@ -42,17 +38,8 @@ function JobCard({
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover/job-card:scale-120"
           />
         )}
-        <div className="relative flex items-start justify-between p-padding-s">
+        <div className="relative p-padding-s">
           <Badge>{deadlineLabel}</Badge>
-          {/* TODO: 스크랩 API 확정 후 동작 연결 */}
-          <button
-            type="button"
-            aria-label={`${title} 스크랩`}
-            aria-pressed={isScrapped}
-            className="relative z-10 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-neutral-subtle bg-layer-floating text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid [&_svg]:size-5"
-          >
-            {isScrapped ? <BookmarkFillIcon aria-hidden /> : <BookmarkIcon aria-hidden />}
-          </button>
         </div>
       </div>
 
@@ -73,6 +60,7 @@ function JobCard({
             </Link>
           </h3>
         </div>
+
         <ul className="flex flex-wrap gap-gap-xs">
           {tags.map((tag) => (
             <li key={tag}>

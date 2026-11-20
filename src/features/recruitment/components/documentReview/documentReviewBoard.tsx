@@ -24,6 +24,8 @@ import {
 import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
 import type { Route } from 'next'
 
+const HEADER = { title: '서류 평가' }
+
 const SORT_OPTIONS = getBoardSortOptions(DOCUMENT_REVIEW_SORTS, DOCUMENT_REVIEW_SORT_LABEL)
 
 type DocumentReviewBoardProps = {
@@ -35,6 +37,7 @@ type DocumentReviewBoardProps = {
   currentPage: number
   totalPages: number
   children: ReactNode
+  isPlaceholder?: boolean
 }
 
 function DocumentReviewBoard({
@@ -45,6 +48,7 @@ function DocumentReviewBoard({
   currentPage,
   totalPages,
   children,
+  isPlaceholder,
 }: DocumentReviewBoardProps) {
   const router = useRouter()
   // 서버 응답 전에도 선택한 탭·필터를 바로 표시
@@ -72,6 +76,7 @@ function DocumentReviewBoard({
 
   return (
     <RecruitmentBoard
+      header={HEADER}
       query={optimisticQuery}
       statusTabs={getBoardStatusTabs(
         DOCUMENT_REVIEW_STATUSES,
@@ -88,6 +93,7 @@ function DocumentReviewBoard({
       getPageHref={(page) => getDocumentReviewHref(postingId, { ...query, page })}
       onQueryChange={handleQueryChange}
       onPageNavigate={handlePageNavigate}
+      isPlaceholder={isPlaceholder}
     >
       {children}
     </RecruitmentBoard>
@@ -97,18 +103,17 @@ function DocumentReviewBoard({
 // 첫 진입 로딩용, URL을 읽기 전 정적 셸이라 기본 조건으로 표시하고 조작 차단
 function DocumentReviewBoardPlaceholder({ children }: { children: ReactNode }) {
   return (
-    <div inert>
-      <DocumentReviewBoard
-        postingId=""
-        query={parseDocumentReviewQuery({})}
-        statusCounts={null}
-        positionCounts={null}
-        currentPage={1}
-        totalPages={0}
-      >
-        {children}
-      </DocumentReviewBoard>
-    </div>
+    <DocumentReviewBoard
+      postingId=""
+      query={parseDocumentReviewQuery({})}
+      statusCounts={null}
+      positionCounts={null}
+      currentPage={1}
+      totalPages={0}
+      isPlaceholder
+    >
+      {children}
+    </DocumentReviewBoard>
   )
 }
 

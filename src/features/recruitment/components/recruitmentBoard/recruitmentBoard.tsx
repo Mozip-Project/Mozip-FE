@@ -1,8 +1,9 @@
 'use client'
 
-import { createContext, use, useRef, type ReactNode } from 'react'
+import { createContext, use, useRef, type ComponentProps, type ReactNode } from 'react'
 import { Button } from '@/components/ui/Button/button'
 import { ListToolBar } from '@/components/ui/ListToolBar/listToolBar'
+import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { Pagination } from '@/components/ui/Pagination/pagination'
 import { SearchField } from '@/components/ui/SearchField/searchField'
 import { MultiSelectMenu } from '@/components/ui/SelectMenu/multiSelectMenu'
@@ -35,11 +36,18 @@ type RecruitmentBoardTab<TStatus extends string> = {
   count: number | null
 }
 
+type RecruitmentBoardHeader = Pick<
+  ComponentProps<typeof PageHeader>,
+  'title' | 'description' | 'actions'
+>
+
 type RecruitmentBoardQueryChange<TStatus extends string, TSort extends string> = Partial<
   Omit<RecruitmentBoardQuery<TStatus, TSort>, 'page'>
 >
 
 type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
+  // 헤더의 검색창이 목록 조건과 상태를 공유해 함께 렌더링
+  header: RecruitmentBoardHeader
   query: RecruitmentBoardQuery<TStatus, TSort>
   statusTabs: readonly RecruitmentBoardTab<TStatus>[]
   tabsLabel: string
@@ -54,9 +62,12 @@ type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
   onQueryChange: (change: RecruitmentBoardQueryChange<TStatus, TSort>) => void
   onPageNavigate: (href: Route) => void
   children: ReactNode
+  // 첫 진입 로딩용 정적 셸, 제목은 남기고 조작만 차단
+  isPlaceholder?: boolean
 }
 
 function RecruitmentBoard<TStatus extends string, TSort extends string>({
+  header,
   query,
   statusTabs,
   tabsLabel,
@@ -70,8 +81,10 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
   onQueryChange,
   onPageNavigate,
   children,
+  isPlaceholder = false,
 }: RecruitmentBoardProps<TStatus, TSort>) {
   const sectionRef = useRef<HTMLElement>(null)
+  const searchFieldRef = useRef<HTMLDivElement>(null)
   const positionMenuRef = useRef<HTMLDivElement>(null)
   const search = useDebouncedSearch(query.keyword, (keyword) => applyQueryChange({ keyword }))
 
@@ -109,7 +122,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
   // 사라지는 빈 상태 버튼 대신 검색창으로 focus 이동
   function clearKeyword() {
     search.changeKeyword('')
-    sectionRef.current
+    searchFieldRef.current
       ?.querySelector<HTMLInputElement>('[data-slot=search-field-input]')
       ?.focus({ preventScroll: true })
   }
@@ -130,7 +143,27 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
 
   return (
     <>
-      <section ref={sectionRef} aria-label="지원자 목록">
+      <PageHeader
+        title={header.title}
+        description={header.description}
+        className="min-h-10"
+        actions={
+          <>
+            <div ref={searchFieldRef} inert={isPlaceholder} className="contents">
+              <SearchField
+                size="s"
+                className="w-55"
+                aria-label="지원자 이름 검색"
+                placeholder="이름 검색"
+                value={search.keyword}
+                onValueChange={search.changeKeyword}
+              />
+            </div>
+            {header.actions}
+          </>
+        }
+      />
+      <section ref={sectionRef} inert={isPlaceholder} aria-label="지원자 목록">
         <ListToolBar
           tabs={statusTabs}
           tabsLabel={tabsLabel}
@@ -153,14 +186,6 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
                 options={sortOptions}
                 value={query.sort}
                 onValueChange={(sort) => applyQueryChange({ sort })}
-              />
-              <SearchField
-                size="s"
-                className="w-55"
-                aria-label="지원자 이름 검색"
-                placeholder="이름 검색"
-                value={search.keyword}
-                onValueChange={search.changeKeyword}
               />
             </>
           }

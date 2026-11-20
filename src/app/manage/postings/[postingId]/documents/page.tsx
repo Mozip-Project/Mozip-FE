@@ -1,5 +1,4 @@
 import { Suspense } from 'react'
-import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import {
   DocumentReviewContent,
   DocumentReviewContentFallback,
@@ -11,8 +10,7 @@ export default function RecruitmentDocumentsPage({
 }: PageProps<'/manage/postings/[postingId]/documents'>) {
   return (
     <div className="flex flex-col gap-gap-xl">
-      <PageHeader title="서류 평가" className="min-h-10" />
-      {/* 제목만 정적 셸, URL 조건을 읽는 목록은 요청 시 렌더링 */}
+      {/* 헤더 검색창이 URL 조건을 읽어 목록과 함께 요청 시 렌더링, 정적 셸은 제목과 스켈레톤 */}
       <Suspense fallback={<DocumentReviewContentFallback />}>
         <DocumentReviewContent params={params} searchParams={searchParams} />
       </Suspense>
