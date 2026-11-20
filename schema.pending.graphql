@@ -1,0 +1,32 @@
+# 서버에 아직 없는 query·mutation의 명세 기준 임시 정의, 응답은 MSW handler
+# 서버에 생기면 pnpm schema:pull로 받은 schema.graphql에 있는지 확인한 뒤 여기서 삭제
+# 서버에 Mutation 타입이 생기면 아래 type Mutation을 extend type Mutation으로 변경
+
+extend type Query {
+  "tab 생략 시 전체 탭, 최신순"
+  notifications(tab: NotificationTab, page: Int = 0, size: Int = 20): NotificationPage!
+}
+
+type Mutation {
+  "ids 없으면 전체 읽음"
+  markNotificationsRead(ids: [ID!]): Boolean!
+  reportPosting(postingId: ID!, reason: ReportReason!, detail: String): Boolean!
+}
+
+enum NotificationTab {
+  APPLICANT
+  OPERATOR
+}
+
+type NotificationPage {
+  content: [Notification!]!
+  totalCount: Int!
+  "탭 배지 숫자"
+  unreadCount: UnreadCount!
+}
+
+type UnreadCount {
+  all: Int!
+  operator: Int!
+  applicant: Int!
+}

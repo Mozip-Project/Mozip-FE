@@ -1,33 +1,44 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, type InfiniteData } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { notificationKeys } from '@/features/notification/api/keys'
 import { resetNotificationItems } from '@/features/notification/mocks/notificationHandlers'
+import type { NotificationPage } from '@/features/notification/utils/notificationPage'
 import type {
   MarkNotificationsReadMutation,
   MarkNotificationsReadMutationVariables,
   NotificationsQuery,
+  NotificationsQueryVariables,
+  NotificationTab,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { useNotificationPanel } from './useNotificationPanel'
 import type { ReactNode } from 'react'
 
-type NotificationItems = NotificationsQuery['notifications']['items']
+type NotificationListData = InfiniteData<NotificationPage, number>
+
+const ALL_TAB_KEY = notificationKeys.list(undefined)
 
 function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } })
 }
 
 // 패널을 다시 열면 hook이 같은 queryClient로 다시 마운트됨
-function renderNotificationPanelHook(queryClient = createTestQueryClient()) {
+function renderNotificationPanelHook(
+  queryClient = createTestQueryClient(),
+  tab: NotificationTab | undefined = undefined,
+) {
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }
 
-  const { result, unmount } = renderHook(() => useNotificationPanel(), { wrapper: Wrapper })
-  return { result, unmount, queryClient }
+  const { result, rerender, unmount } = renderHook(
+    (props: { tab: NotificationTab | undefined }) => useNotificationPanel(props.tab),
+    { wrapper: Wrapper, initialProps: { tab } },
+  )
+  return { result, rerender, unmount, queryClient }
 }
 
 // 조회 요청 횟수 확인용
@@ -36,7 +47,11 @@ function countNotificationsRequests() {
   server.use(
     graphqlApi.query('Notifications', () => {
       count += 1
-      return HttpResponse.json({ data: { notifications: { items: [] } } })
+      return HttpResponse.json({
+        data: {
+          notifications: { content: [], totalCount: 0 },
+        },
+      })
     }),
   )
   return () => count
@@ -53,8 +68,26 @@ function failNotificationsQuery() {
   )
 }
 
+// 첫 페이지는 기본 handler로 처리하고 다음 페이지부터 실패
+function failNextPages() {
+  server.use(
+    graphqlApi.query<NotificationsQuery, NotificationsQueryVariables>(
+      'Notifications',
+      ({ variables }) => {
+        if (!variables.page) {
+          return undefined
+        }
+        return HttpResponse.json({
+          errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
+          data: null,
+        })
+      },
+    ),
+  )
+}
+
 // 다음 조회 한 번만 release 전까지 응답을 미루고, 그 뒤 조회는 기본 handler로 처리
-function delayNextNotificationsResponse(staleItems: NotificationItems) {
+function delayNextNotificationsResponse(stalePage: NotificationPage) {
   let releaseResponse = () => {}
   const released = new Promise<void>((resolve) => {
     releaseResponse = resolve
@@ -69,7 +102,7 @@ function delayNextNotificationsResponse(staleItems: NotificationItems) {
         hasReceivedRequest = true
         await released
         hasSentResponse = true
-        return HttpResponse.json({ data: { notifications: { items: staleItems } } })
+        return HttpResponse.json({ data: { notifications: stalePage } })
       },
       { once: true },
     ),
@@ -147,9 +180,7 @@ describe('useNotificationPanel', () => {
     failNotificationsQuery()
     const { result, queryClient } = renderNotificationPanelHook(firstOpen.queryClient)
 
-    await waitFor(() =>
-      expect(queryClient.getQueryState(notificationKeys.list)?.status).toBe('error'),
-    )
+    await waitFor(() => expect(queryClient.getQueryState(ALL_TAB_KEY)?.status).toBe('error'))
     expect(result.current.notifications).toEqual(notificationsBeforeFail)
     expect(result.current.hasLoadError).toBe(false)
   })
@@ -157,7 +188,10 @@ describe('useNotificationPanel', () => {
   it('읽지 않은 알림만 읽음 처리 요청을 보낸다', async () => {
     const markReadRequests = recordMarkReadRequests()
     const { result } = renderNotificationPanelHook()
-    await waitFor(() => expect(result.current.notifications).toBeDefined())
+    await waitFor(() => {
+      expect(result.current.notifications).toBeDefined()
+      expect(result.current.unreadCount).toBeDefined()
+    })
     const notifications = result.current.notifications ?? []
     const unread = notifications.find(({ isRead }) => !isRead)
     const read = notifications.find(({ isRead }) => isRead)
@@ -165,12 +199,15 @@ describe('useNotificationPanel', () => {
       throw new Error('샘플에 읽은 알림과 읽지 않은 알림이 모두 필요합니다.')
     }
 
+    const unreadCountBefore = result.current.unreadCount?.all ?? 0
+
     act(() => result.current.markAsRead(read))
     act(() => result.current.markAsRead(unread))
 
     await waitFor(() =>
       expect(result.current.notifications?.find(({ id }) => id === unread.id)?.isRead).toBe(true),
     )
+    expect(result.current.unreadCount?.all).toBe(unreadCountBefore - 1)
     expect(markReadRequests).toEqual([[unread.id]])
   })
 
@@ -178,13 +215,14 @@ describe('useNotificationPanel', () => {
     const firstOpen = renderNotificationPanelHook()
     await waitFor(() => expect(firstOpen.result.current.notifications).toBeDefined())
     const unread = firstOpen.result.current.notifications?.find(({ isRead }) => !isRead)
-    const staleItems = firstOpen.queryClient.getQueryData<NotificationItems>(notificationKeys.list)
-    if (!unread || !staleItems) {
+    const stalePage =
+      firstOpen.queryClient.getQueryData<NotificationListData>(ALL_TAB_KEY)?.pages[0]
+    if (!unread || !stalePage) {
       throw new Error('샘플에 읽지 않은 알림이 필요합니다.')
     }
     firstOpen.unmount()
 
-    const staleRequest = delayNextNotificationsResponse(staleItems)
+    const staleRequest = delayNextNotificationsResponse(stalePage)
     const { result, unmount, queryClient } = renderNotificationPanelHook(firstOpen.queryClient)
     await waitFor(() => expect(staleRequest.hasReceivedRequest()).toBe(true))
 
@@ -193,8 +231,9 @@ describe('useNotificationPanel', () => {
     unmount()
     const isUnreadMarkedInCache = () =>
       queryClient
-        .getQueryData<NotificationItems>(notificationKeys.list)
-        ?.find(({ id }) => id === unread.id)?.read
+        .getQueryData<NotificationListData>(ALL_TAB_KEY)
+        ?.pages.flatMap(({ content }) => content)
+        .find(({ id }) => id === unread.id)?.isRead
     await waitFor(() => expect(isUnreadMarkedInCache()).toBe(true))
 
     staleRequest.releaseResponse()
@@ -202,5 +241,54 @@ describe('useNotificationPanel', () => {
     await waitFor(() => expect(queryClient.isFetching()).toBe(0))
 
     expect(isUnreadMarkedInCache()).toBe(true)
+  })
+
+  it('목록 끝에서 다음 페이지를 이어 붙이고, 다 불러오면 더 요청하지 않는다', async () => {
+    const { result } = renderNotificationPanelHook()
+    await waitFor(() => expect(result.current.canLoadMore).toBe(true))
+
+    while (result.current.canLoadMore) {
+      const loadedCount = result.current.notifications?.length ?? 0
+      act(() => result.current.loadMore())
+      await waitFor(() => expect(result.current.notifications?.length).toBeGreaterThan(loadedCount))
+    }
+
+    const ids = result.current.notifications?.map(({ id }) => id) ?? []
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(result.current.canLoadMore).toBe(false)
+  })
+
+  it('다음 페이지 요청이 실패하면 목록은 유지하고 다시 자동으로 요청하지 않는다', async () => {
+    failNextPages()
+    const { result } = renderNotificationPanelHook()
+    await waitFor(() => expect(result.current.canLoadMore).toBe(true))
+
+    act(() => result.current.loadMore())
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMore).toBe(false)
+      expect(result.current.canLoadMore).toBe(false)
+    })
+    expect(result.current.notifications).toBeDefined()
+    expect(result.current.hasLoadError).toBe(false)
+  })
+
+  it('탭을 바꾸면 그 탭 알림만 다시 조회하고, 배지 숫자는 탭과 무관하게 유지한다', async () => {
+    const { result, rerender } = renderNotificationPanelHook()
+    await waitFor(() => {
+      expect(result.current.notifications).toBeDefined()
+      expect(result.current.unreadCount).toBeDefined()
+    })
+    const unreadCountBefore = result.current.unreadCount
+
+    rerender({ tab: 'APPLICANT' })
+
+    expect(result.current.notifications).toBeUndefined()
+    expect(result.current.isLoading).toBe(true)
+    expect(result.current.unreadCount).toEqual(unreadCountBefore)
+    await waitFor(() => expect(result.current.notifications).toBeDefined())
+    expect(result.current.notifications?.every(({ audience }) => audience === 'applicant')).toBe(
+      true,
+    )
   })
 })

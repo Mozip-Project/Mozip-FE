@@ -1,12 +1,21 @@
-const SKELETON_ROW_COUNT = 5
-const SKELETON_ROW_KEYS = Array.from({ length: SKELETON_ROW_COUNT }, (_, index) => index)
+const DEFAULT_ROW_COUNT = 5
 
-function NotificationPanelSkeleton() {
+type NotificationPanelSkeletonProps = {
+  rowCount?: number
+  label?: string
+}
+
+function NotificationPanelSkeleton({
+  rowCount = DEFAULT_ROW_COUNT,
+  label = '알림을 불러오는 중',
+}: NotificationPanelSkeletonProps) {
+  const rowKeys = Array.from({ length: rowCount }, (_, index) => index)
+
   return (
     <div role="status" className="min-h-0 flex-1 overflow-hidden">
-      <span className="sr-only">알림을 불러오는 중</span>
+      <span className="sr-only">{label}</span>
       <div aria-hidden className="divide-y divide-neutral-subtle">
-        {SKELETON_ROW_KEYS.map((key) => (
+        {rowKeys.map((key) => (
           <div
             key={key}
             className="flex animate-skeleton-delayed-show flex-col gap-gap-xxs px-padding-l py-padding-m"

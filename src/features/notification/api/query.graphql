@@ -1,15 +1,26 @@
-query Notifications {
-  notifications {
-    items {
+query Notifications($tab: NotificationTab, $page: Int) {
+  notifications(tab: $tab, page: $page) {
+    content {
       id
       type
       title
-      link
-      read
+      linkUrl
+      isRead
       createdAt
       organization {
         name
       }
+    }
+    totalCount
+  }
+}
+
+query NotificationUnreadCount {
+  notifications {
+    unreadCount {
+      all
+      operator
+      applicant
     }
   }
 }

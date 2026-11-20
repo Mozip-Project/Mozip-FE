@@ -1,17 +1,44 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query'
 import { toNotificationEntries } from '@/features/notification/utils/notificationEntry'
-import type { NotificationsQuery } from '@/gql/graphql'
-import { getNotifications, markNotificationsRead } from './api'
+import {
+  countNewlyRead,
+  decreaseUnreadCount,
+  flattenNotificationPages,
+  getNextNotificationPage,
+  markNotificationPagesRead,
+  type NotificationPage,
+  type UnreadCount,
+} from '@/features/notification/utils/notificationPage'
+import type { NotificationTab } from '@/gql/graphql'
+import { getNotifications, getNotificationUnreadCount, markNotificationsRead } from './api'
 import { notificationKeys } from './keys'
 
-type NotificationItems = NotificationsQuery['notifications']['items']
+const FIRST_PAGE = 0
+
+type NotificationListData = InfiniteData<NotificationPage, number>
 
 // 패널을 열 때마다 새로 조회하도록 staleTime 0
-function useNotificationsQuery() {
+function useNotificationsInfiniteQuery(tab: NotificationTab | undefined) {
+  return useInfiniteQuery({
+    queryKey: notificationKeys.list(tab),
+    queryFn: ({ pageParam }) => getNotifications(tab, pageParam),
+    initialPageParam: FIRST_PAGE,
+    getNextPageParam: getNextNotificationPage,
+    select: (data) => toNotificationEntries(flattenNotificationPages(data.pages), new Date()),
+    staleTime: 0,
+  })
+}
+
+function useNotificationUnreadCountQuery() {
   return useQuery({
-    queryKey: notificationKeys.list,
-    queryFn: getNotifications,
-    select: (items) => toNotificationEntries(items, new Date()),
+    queryKey: notificationKeys.unreadCount,
+    queryFn: getNotificationUnreadCount,
     staleTime: 0,
   })
 }
@@ -26,13 +53,28 @@ function useMarkNotificationsReadMutation() {
         return
       }
       // 읽음 전 상태를 담은 진행 중 조회가 갱신한 캐시를 덮어쓰지 않도록 취소
-      await queryClient.cancelQueries({ queryKey: notificationKeys.list })
-      queryClient.setQueryData<NotificationItems>(notificationKeys.list, (items) =>
-        items?.map((item) => (ids.includes(item.id) ? { ...item, read: true } : item)),
+      await queryClient.cancelQueries({ queryKey: notificationKeys.all })
+      const listQueryKey = notificationKeys.lists()
+      const cachedLists = queryClient
+        .getQueriesData<NotificationListData>({ queryKey: listQueryKey })
+        .flatMap(([, data]) => (data ? [data] : []))
+      const decrease = countNewlyRead(cachedLists, ids)
+
+      queryClient.setQueriesData<NotificationListData>(
+        { queryKey: listQueryKey },
+        (data) => data && markNotificationPagesRead(data, ids),
       )
-      await queryClient.invalidateQueries({ queryKey: notificationKeys.list })
+      queryClient.setQueryData<UnreadCount>(
+        notificationKeys.unreadCount,
+        (count) => count && decreaseUnreadCount(count, decrease),
+      )
+      await queryClient.invalidateQueries({ queryKey: notificationKeys.all })
     },
   })
 }
 
-export { useMarkNotificationsReadMutation, useNotificationsQuery }
+export {
+  useMarkNotificationsReadMutation,
+  useNotificationsInfiniteQuery,
+  useNotificationUnreadCountQuery,
+}

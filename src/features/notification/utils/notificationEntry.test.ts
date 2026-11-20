@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { NotificationsQuery } from '@/gql/graphql'
 import { toNotificationEntries } from './notificationEntry'
 
-type NotificationItem = NotificationsQuery['notifications']['items'][number]
+type NotificationItem = NotificationsQuery['notifications']['content'][number]
 
 const NOW = new Date(2026, 10, 17, 10, 0)
 
@@ -11,8 +11,8 @@ function createItem(overrides: Partial<NotificationItem> = {}): NotificationItem
     id: '1',
     type: 'DOC_RESULT',
     title: '서류 결과가 나왔어요',
-    link: '/postings',
-    read: false,
+    linkUrl: '/postings',
+    isRead: false,
     createdAt: new Date(2026, 10, 17, 9, 0).toISOString(),
     organization: { name: '테스트 동아리' },
     ...overrides,
@@ -44,7 +44,7 @@ describe('toNotificationEntries', () => {
     expect(organizer?.audience).toBe('organizer')
   })
 
-  it('앱 안 경로가 아닌 link는 이동하지 않는다', () => {
+  it('앱 안 경로가 아닌 linkUrl은 이동하지 않는다', () => {
     const links = [
       null,
       '',
@@ -57,7 +57,7 @@ describe('toNotificationEntries', () => {
       '/\t/[',
     ]
     const entries = toNotificationEntries(
-      links.map((link) => createItem({ link })),
+      links.map((linkUrl) => createItem({ linkUrl })),
       NOW,
     )
 

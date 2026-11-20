@@ -7,7 +7,16 @@ const SESSION_EXPIRED_CODES = ['AUTH_004', 'AUTH_005']
 const REISSUE_PATH = '/auth/reissue'
 // TODO: 로그인 페이지가 생기면 로그인 경로로 변경
 const SESSION_EXPIRED_REDIRECT_PATH = '/'
-const NON_RETRYABLE_CODES = new Set([TOKEN_EXPIRED_CODE, ...SESSION_EXPIRED_CODES])
+// 로그인 실패·만료·손상·세션 종료, AUTH_006은 명세상 잠시 후 재시도라 제외
+const NON_RETRYABLE_AUTH_CODES = new Set([
+  'AUTH_001',
+  'AUTH_002',
+  'AUTH_003',
+  'AUTH_004',
+  'AUTH_005',
+])
+// 백엔드 코드 형식이 도메인_HTTP상태라 4xx는 다시 보내도 같은 결과
+const CLIENT_ERROR_CODE_PATTERN = /_4\d{2}$/
 
 type VariablesArgs<TVariables> = TVariables extends Record<string, never> ? [] : [TVariables]
 
@@ -69,7 +78,10 @@ function shouldReissue(error: unknown) {
 }
 
 function isNonRetryableError(error: unknown) {
-  return error instanceof ApiError && NON_RETRYABLE_CODES.has(error.code)
+  if (!(error instanceof ApiError)) {
+    return false
+  }
+  return NON_RETRYABLE_AUTH_CODES.has(error.code) || CLIENT_ERROR_CODE_PATTERN.test(error.code)
 }
 
 async function requestGraphQL<TResult, TVariables extends Variables>(
