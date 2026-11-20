@@ -3,6 +3,7 @@
 import { useId } from 'react'
 import { useController, useWatch, type Control } from 'react-hook-form'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
+import { getResultDateMinimums } from '@/features/posting/schemas/postingScheduleSchema'
 import type { TimeOptionType } from '@/utils/time'
 import { DateField } from './dateField'
 import { DateTimeField } from './dateTimeField'
@@ -25,7 +26,11 @@ type PostingScheduleStepProps = {
 
 function PostingScheduleStep({ control, hasInterview }: PostingScheduleStepProps) {
   const titleId = useId()
-  const recruitStartDate = useWatch({ control, name: 'recruitStartDate' })
+  const [recruitStartDate, recruitEndDate, documentResultDate] = useWatch({
+    control,
+    name: ['recruitStartDate', 'recruitEndDate', 'documentResultDate'],
+  })
+  const resultMinDates = getResultDateMinimums({ recruitEndDate, documentResultDate }, hasInterview)
 
   return (
     <section aria-labelledby={titleId} className="flex flex-col gap-gap-xl pt-padding-l">
@@ -54,6 +59,7 @@ function PostingScheduleStep({ control, hasInterview }: PostingScheduleStepProps
             name="documentResultDate"
             label="서류 결과 및 면접 일정 발표일"
             required
+            minDate={resultMinDates.documentResultDate}
           />
         )}
         <ScheduleDateField
@@ -61,6 +67,7 @@ function PostingScheduleStep({ control, hasInterview }: PostingScheduleStepProps
           name="finalResultDate"
           label="최종 결과 발표일"
           required
+          minDate={resultMinDates.finalResultDate}
         />
         <ActivityPeriodField control={control} />
       </div>

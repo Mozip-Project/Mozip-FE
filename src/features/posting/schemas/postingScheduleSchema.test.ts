@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   EMPTY_POSTING_SCHEDULE,
   getPostingScheduleSchema,
+  getResultDateMinimums,
   type PostingScheduleValues,
 } from './postingScheduleSchema'
 
@@ -52,5 +53,42 @@ describe('getPostingScheduleSchema', () => {
         activityEndDate: '2026-10-31',
       }),
     ).toBe(false)
+  })
+
+  it('발표일은 모집 마감 다음 날부터, 마감 당일 발표는 실패', () => {
+    expect(isValid({ ...FILLED_SCHEDULE, documentResultDate: '2026-10-08' })).toBe(false)
+    expect(isValid({ ...FILLED_SCHEDULE, documentResultDate: '2026-10-09' })).toBe(true)
+    expect(
+      isValid(
+        { ...FILLED_SCHEDULE, documentResultDate: null, finalResultDate: '2026-10-08' },
+        false,
+      ),
+    ).toBe(false)
+    expect(
+      isValid(
+        { ...FILLED_SCHEDULE, documentResultDate: null, finalResultDate: '2026-10-09' },
+        false,
+      ),
+    ).toBe(true)
+  })
+
+  it('면접 공고는 최종 발표가 서류 발표 이틀 뒤부터, 비면접은 서류 발표와 무관', () => {
+    expect(isValid({ ...FILLED_SCHEDULE, finalResultDate: '2026-10-19' })).toBe(false)
+    expect(isValid({ ...FILLED_SCHEDULE, finalResultDate: '2026-10-20' })).toBe(true)
+    expect(isValid({ ...FILLED_SCHEDULE, finalResultDate: '2026-10-19' }, false)).toBe(true)
+  })
+
+  it('달력 최소 날짜는 마감 다음 날과 면접 기간 중 늦은 날', () => {
+    expect(getResultDateMinimums(FILLED_SCHEDULE, true)).toEqual({
+      documentResultDate: '2026-10-09',
+      finalResultDate: '2026-10-20',
+    })
+    expect(
+      getResultDateMinimums({ recruitEndDate: '2026-10-08', documentResultDate: null }, true),
+    ).toEqual({ documentResultDate: '2026-10-09', finalResultDate: '2026-10-09' })
+    expect(getResultDateMinimums(FILLED_SCHEDULE, false)).toEqual({
+      documentResultDate: null,
+      finalResultDate: '2026-10-09',
+    })
   })
 })
