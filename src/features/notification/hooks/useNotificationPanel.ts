@@ -11,6 +11,7 @@ function useNotificationPanel(tab: NotificationTab | undefined) {
     data: notifications,
     isError,
     hasNextPage,
+    isFetching,
     isFetchingNextPage,
     isFetchNextPageError,
     fetchNextPage,
@@ -21,9 +22,9 @@ function useNotificationPanel(tab: NotificationTab | undefined) {
   // 다시 조회에 실패해도 이전 목록은 유지되므로 목록이 없을 때만 오류 표시
   const isLoading = notifications === undefined && !isError
   const hasLoadError = notifications === undefined && isError
-  // 다음 페이지가 실패하면 끝이 계속 보여도 자동 요청 중단, 다시 열거나 다시 조회가 성공하면 재개
+  // 다음 페이지가 실패하거나 재조회 중에는 요청 중단, 다시 열거나 다시 조회가 성공하면 재개
   const canLoadMore =
-    notifications !== undefined && hasNextPage && !isFetchingNextPage && !isFetchNextPageError
+    notifications !== undefined && hasNextPage && !isFetching && !isFetchNextPageError
 
   function loadMore() {
     if (canLoadMore) {
