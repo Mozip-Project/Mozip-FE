@@ -11,6 +11,7 @@ import {
   type DocumentResultChange,
 } from '@/features/recruitment/utils/documentResult'
 import { useIsHydrated } from '@/hooks/useIsHydrated'
+import { applicantManagementKeys } from './useApplicantManagement'
 
 const documentResultKeys = {
   all: (postingId: string) => ['documentResults', postingId] as const,
@@ -71,8 +72,12 @@ function useConfirmDocumentResultsMutation(postingId: string) {
 
   return useMutation({
     mutationFn: () => confirmDocumentResults(postingId),
-    // 재조회까지 기다려 팝업이 닫힐 때 확정 후 화면 표시
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: documentResultKeys.all(postingId) }),
+    // 재조회까지 기다려 팝업이 닫힐 때 확정 후 화면 표시, 지원자 관리 결과도 확정 기준으로 갱신
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: documentResultKeys.all(postingId) }),
+        queryClient.invalidateQueries({ queryKey: applicantManagementKeys.all(postingId) }),
+      ]),
   })
 }
 

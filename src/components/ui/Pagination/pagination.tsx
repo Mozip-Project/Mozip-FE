@@ -10,6 +10,8 @@ type PaginationProps = {
   totalPages: number
   getPageHref: (page: number) => Route
   onPageNavigate?: PageNavigateHandler
+  // 결과가 1페이지여도 페이지 번호 1을 표시
+  shouldShowSinglePage?: boolean
   className?: string
 }
 
@@ -18,9 +20,12 @@ function Pagination({
   totalPages,
   getPageHref,
   onPageNavigate,
+  shouldShowSinglePage = false,
   className,
 }: PaginationProps) {
-  if (totalPages <= 1) {
+  const minVisiblePages = shouldShowSinglePage ? 1 : 2
+
+  if (totalPages < minVisiblePages) {
     return null
   }
 

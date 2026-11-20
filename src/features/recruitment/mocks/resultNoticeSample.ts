@@ -1,4 +1,4 @@
-import { DOCUMENT_RESULT_SAMPLE } from '@/features/recruitment/api/documentResultSample'
+import { DOCUMENT_RESULT_SAMPLE } from '@/features/recruitment/mocks/documentResultSample'
 import type {
   ResultNoticeOverview,
   ResultNoticeRecipient,

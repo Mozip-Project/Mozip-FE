@@ -1,7 +1,7 @@
 import type { StripApplicant } from '@/components/ui/ApplicantChipStrip/applicantChipStrip'
 import type { Attachment } from '@/components/ui/AttachmentCard/attachmentCard'
-import { DOCUMENT_REVIEW_SAMPLE } from '@/features/recruitment/api/documentReviewSample'
 import type { ScoreQuestion } from '@/features/recruitment/components/documentEvaluation/scoreField'
+import { DOCUMENT_REVIEW_SAMPLE } from '@/features/recruitment/mocks/documentReviewSample'
 import type { DocumentEvaluationValues } from '@/features/recruitment/schemas/documentEvaluationSchema'
 import { DOCUMENT_REVIEW_POSITION_LABEL } from '@/features/recruitment/types'
 

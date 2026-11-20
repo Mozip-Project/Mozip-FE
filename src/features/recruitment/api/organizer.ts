@@ -1,4 +1,19 @@
 import {
+  APPLICANT_MANAGEMENT_SCHEDULE_SAMPLE,
+  APPLICATION_STAGE_COUNTS,
+  APPLICATION_STAGE_POSTING_ID,
+  getSampleSubmittedAt,
+  NO_APPLICANT_POSTING_ID,
+} from '@/features/recruitment/mocks/applicantManagementSample'
+import { DOCUMENT_RESULT_SAMPLE } from '@/features/recruitment/mocks/documentResultSample'
+import { DOCUMENT_REVIEW_SAMPLE } from '@/features/recruitment/mocks/documentReviewSample'
+import {
+  APPLICANT_MANAGEMENT_PAGE_SIZE,
+  APPLICANT_POSITION_TABS,
+  type ApplicantManagementPage,
+  type ApplicantManagementQuery,
+  type ApplicantPositionTab,
+  type ManagedApplicant,
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_STATUSES,
   DOCUMENT_RESULTS,
@@ -14,12 +29,12 @@ import {
   type DocumentResultStatus,
   type DocumentReviewApplicant,
   type DocumentReviewApplicantPage,
+  type DocumentReviewPosition,
   type DocumentReviewQuery,
   type DocumentReviewSort,
   type DocumentReviewStatus,
+  type RecruitmentProgress,
 } from '@/features/recruitment/types'
-import { DOCUMENT_RESULT_SAMPLE } from './documentResultSample'
-import { DOCUMENT_REVIEW_SAMPLE } from './documentReviewSample'
 
 function matchesStatus(applicant: DocumentReviewApplicant, status: DocumentReviewStatus) {
   switch (status) {
@@ -32,11 +47,9 @@ function matchesStatus(applicant: DocumentReviewApplicant, status: DocumentRevie
   }
 }
 
-function compareApplicants(
-  a: DocumentReviewApplicant,
-  b: DocumentReviewApplicant,
-  sort: DocumentReviewSort,
-) {
+type SortableApplicant = Pick<DocumentReviewApplicant, 'name' | 'submittedAt'>
+
+function compareApplicants(a: SortableApplicant, b: SortableApplicant, sort: DocumentReviewSort) {
   switch (sort) {
     case 'submittedDesc':
       return b.submittedAt.localeCompare(a.submittedAt)
@@ -232,8 +245,99 @@ async function confirmDocumentResults(postingId: string) {
   documentResultConfirmedAt.set(postingId, new Date().toISOString())
 }
 
+function matchesPositionTab(applicant: ManagedApplicant, tab: ApplicantPositionTab) {
+  return tab === 'all' || applicant.position === tab
+}
+
+// 순서를 유지한 채 포지션별 인원만큼 앞에서부터 선택
+function pickByPosition(
+  applicants: readonly ManagedApplicant[],
+  counts: Record<DocumentReviewPosition, number>,
+) {
+  const remaining = { ...counts }
+
+  return applicants.filter((applicant) => {
+    if (remaining[applicant.position] === 0) {
+      return false
+    }
+    remaining[applicant.position] -= 1
+    return true
+  })
+}
+
+// 서류 평가 취합과 같은 지원자를 써서 결과 확정이 그대로 반영
+function getApplicantManagementCase(postingId: string): {
+  applicants: ManagedApplicant[]
+  progress: RecruitmentProgress
+} {
+  const schedule = APPLICANT_MANAGEMENT_SCHEDULE_SAMPLE
+  const isConfirmed = documentResultConfirmedAt.has(postingId)
+  const applicants: ManagedApplicant[] = documentResultState.map(
+    ({ id, name, position, result }, index) => ({
+      id,
+      name,
+      position,
+      submittedAt: getSampleSubmittedAt(index),
+      // 보류가 남아 있으면 확정할 수 없어 확정 후에는 합격·불합격만 존재
+      documentResult: isConfirmed && result !== 'hold' ? result : null,
+    }),
+  )
+
+  if (postingId === NO_APPLICANT_POSTING_ID) {
+    return { applicants: [], progress: { stage: 'application', hasInterview: true, schedule } }
+  }
+
+  if (postingId === APPLICATION_STAGE_POSTING_ID) {
+    return {
+      applicants: pickByPosition(applicants, APPLICATION_STAGE_COUNTS),
+      progress: { stage: 'application', hasInterview: true, schedule },
+    }
+  }
+
+  if (postingId === NO_INTERVIEW_POSTING_ID) {
+    return {
+      applicants,
+      progress: {
+        stage: isConfirmed ? 'finalResult' : 'documentReview',
+        hasInterview: false,
+        schedule,
+      },
+    }
+  }
+
+  return {
+    applicants,
+    progress: {
+      stage: isConfirmed ? 'documentResult' : 'documentReview',
+      hasInterview: true,
+      schedule,
+    },
+  }
+}
+
+// TODO: postingApplications 연결 후 실제 요청으로 교체, 탭 숫자도 검색 적용 후 기준
+// eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
+async function getApplicantManagementApplicants(
+  postingId: string,
+  query: ApplicantManagementQuery,
+): Promise<ApplicantManagementPage> {
+  const { applicants, progress } = getApplicantManagementCase(postingId)
+  const keyword = query.keyword.trim()
+  const searched = applicants.filter((applicant) => applicant.name.includes(keyword))
+  const list = searched
+    .filter((applicant) => matchesPositionTab(applicant, query.status))
+    .sort((a, b) => compareApplicants(a, b, query.sort))
+
+  return {
+    ...paginate(list, query.page, APPLICANT_MANAGEMENT_PAGE_SIZE),
+    tabCounts: countBy(APPLICANT_POSITION_TABS, searched, matchesPositionTab),
+    progress,
+  }
+}
+
 export {
   confirmDocumentResults,
+  getApplicantManagementApplicants,
   getDocumentResultApplicants,
   getDocumentResultOverview,
   getDocumentReviewApplicants,

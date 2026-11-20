@@ -17,7 +17,11 @@ type BoardQueryConfig<TStatus extends string, TSort extends string> = {
   sorts: readonly TSort[]
   defaultStatus: TStatus
   defaultSort: TSort
+  // 탭이 상태가 아닌 화면용 URL 이름, 포지션 필터의 position과 겹치지 않게 지정
+  statusParam?: string
 }
+
+const DEFAULT_STATUS_PARAM = 'status'
 
 function getBoardSortOptions<TSort extends string>(
   sorts: readonly TSort[],
@@ -48,7 +52,7 @@ function parseBoardQuery<TStatus extends string, TSort extends string>(
   searchParams: SearchParamsSource,
   config: BoardQueryConfig<TStatus, TSort>,
 ): RecruitmentBoardQuery<TStatus, TSort> {
-  const [status] = getParamValues(searchParams, 'status')
+  const [status] = getParamValues(searchParams, config.statusParam ?? DEFAULT_STATUS_PARAM)
   const [sort] = getParamValues(searchParams, 'sort')
   const [keyword = ''] = getParamValues(searchParams, 'q')
   const positions = DOCUMENT_REVIEW_POSITIONS.filter((position) =>
@@ -73,7 +77,7 @@ function getBoardHref<TStatus extends string, TSort extends string>(
   const searchParams = new URLSearchParams()
 
   if (query.status !== config.defaultStatus) {
-    searchParams.set('status', query.status)
+    searchParams.set(config.statusParam ?? DEFAULT_STATUS_PARAM, query.status)
   }
   if (hasPositionFilter(query.positions)) {
     query.positions.forEach((position) => searchParams.append('position', position))
