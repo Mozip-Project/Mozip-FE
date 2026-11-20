@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   EMPTY_POSTING_METHOD,
+  positionNameSchema,
   postingMethodSchema,
   type PostingMethodValues,
 } from './postingMethodSchema'
@@ -21,5 +22,12 @@ describe('postingMethodSchema', () => {
   it('포지션별 모집은 포지션이 1개 이상이어야 통과', () => {
     expect(isValid({ recruitType: 'position' })).toBe(false)
     expect(isValid({ recruitType: 'position', positions: [{ name: '디자인팀' }] })).toBe(true)
+  })
+})
+
+describe('positionNameSchema', () => {
+  it('앞뒤 공백을 지운 이름만 통과', () => {
+    expect(positionNameSchema.safeParse({ name: '  디자인팀 ' }).data).toEqual({ name: '디자인팀' })
+    expect(positionNameSchema.safeParse({ name: '   ' }).success).toBe(false)
   })
 })

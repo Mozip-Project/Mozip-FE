@@ -15,6 +15,11 @@ const EMPTY_POSTING_METHOD = {
   positions: [],
 } satisfies PostingMethodValues
 
+// 앞뒤 공백을 지운 뒤 비어 있으면 추가 불가
+const positionNameSchema = z.object({ name: z.string().trim().min(1) })
+
+type PositionNameValues = z.infer<typeof positionNameSchema>
+
 const requiredPostingMethodSchema = postingMethodSchema.superRefine(
   ({ recruitType, positions }, context) => {
     if (!recruitType) {
@@ -30,5 +35,10 @@ const requiredPostingMethodSchema = postingMethodSchema.superRefine(
   },
 )
 
-export { EMPTY_POSTING_METHOD, RECRUIT_TYPES, requiredPostingMethodSchema as postingMethodSchema }
-export type { PostingMethodValues, RecruitType }
+export {
+  EMPTY_POSTING_METHOD,
+  positionNameSchema,
+  RECRUIT_TYPES,
+  requiredPostingMethodSchema as postingMethodSchema,
+}
+export type { PositionNameValues, PostingMethodValues, RecruitType }
