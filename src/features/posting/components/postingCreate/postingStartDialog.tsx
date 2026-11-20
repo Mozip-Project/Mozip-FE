@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { RadioGroup as RadioGroupPrimitive } from 'radix-ui'
 import { useLayoutEffect, useState, type ReactNode } from 'react'
 import meetingImage from '@/assets/images/meeting.png'
-import noMeetingImage from '@/assets/images/no-meeting.png'
+import noMeetingImage from '@/assets/images/noMeeting.png'
 import { Button } from '@/components/ui/Button/button'
 import {
   Dialog,
