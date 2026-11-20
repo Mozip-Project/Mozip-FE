@@ -7,8 +7,8 @@ import { ARIA_CURRENT } from '@/components/ui/ActiveLink/activeLink'
 import {
   getDocumentResultPath,
   getDocumentReviewPath,
+  getPostingManageDetailPath,
   POSTING_CREATE_PATH,
-  POSTING_MANAGE_PATH,
 } from '@/features/recruitment/utils/recruitmentRoutes'
 import { cn } from '@/lib/utils'
 import { getClosestActivePath } from '@/utils/activePath'
@@ -20,25 +20,21 @@ const ITEM_CLASS = cn(
   'aria-[current]:bg-neutral-weak aria-[current]:font-semibold aria-[current]:text-brand',
 )
 
-// 공고 ID 없이 이동 가능한 메뉴와 공고별 메뉴 구분
-const POSTING_FREE_PATH: Record<'postings', Route> = {
-  postings: POSTING_MANAGE_PATH,
-}
-
 const POSTING_PATH = {
+  postings: getPostingManageDetailPath,
   documents: getDocumentReviewPath,
   'documents/summary': getDocumentResultPath,
-}
+} satisfies Record<string, (postingId: string) => Route>
 
 // 서버 렌더링 메뉴에서도 쓰도록 함수 대신 키로 전달
-type LnbSubItemPath = keyof typeof POSTING_FREE_PATH | keyof typeof POSTING_PATH
+type LnbSubItemPath = keyof typeof POSTING_PATH
 
 function getLnbSubItemHrefs(postingId: string | undefined): Partial<Record<LnbSubItemPath, Route>> {
   if (!postingId) {
-    return POSTING_FREE_PATH
+    return {}
   }
   return {
-    ...POSTING_FREE_PATH,
+    postings: POSTING_PATH.postings(postingId),
     documents: POSTING_PATH.documents(postingId),
     'documents/summary': POSTING_PATH['documents/summary'](postingId),
   }
