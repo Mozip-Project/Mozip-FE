@@ -3,13 +3,14 @@
 import UploadIcon from '@/assets/icons/upload.svg'
 import { cn } from '@/lib/utils'
 import { getFileRejection, type FileRejection, type FileRule } from '@/utils/file'
-import type { ChangeEvent, DragEvent } from 'react'
+import type { ChangeEvent, DragEvent, Ref } from 'react'
 
 type FileUploadProps = FileRule & {
   description: string
   onFileSelect: (file: File) => void
   onReject: (rejection: FileRejection) => void
   label?: string
+  inputRef?: Ref<HTMLInputElement>
   className?: string
 }
 
@@ -20,6 +21,7 @@ function FileUpload({
   onFileSelect,
   onReject,
   label = '파일을 끌어다 놓거나 파일 선택',
+  inputRef,
   className,
 }: FileUploadProps) {
   function handleFile(file: File | undefined) {
@@ -63,6 +65,7 @@ function FileUpload({
         <span className="text-caption1 font-normal text-neutral-subtle">{description}</span>
       </span>
       <input
+        ref={inputRef}
         type="file"
         accept={acceptedTypes.join(',')}
         onChange={handleInputChange}

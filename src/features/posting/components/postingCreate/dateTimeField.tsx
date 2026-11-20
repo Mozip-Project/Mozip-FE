@@ -1,6 +1,11 @@
 import { useId } from 'react'
 import { cn } from '@/lib/utils'
-import { createTimeOptions, type TimeOptionType } from '@/utils/time'
+import {
+  createTimeOptions,
+  formatTimeLabel,
+  getDefaultTime,
+  type TimeOptionType,
+} from '@/utils/time'
 import { DateField } from './dateField'
 import { FieldLabel } from './fieldLabel'
 import { SelectField } from './selectField'
@@ -19,7 +24,7 @@ type DateTimeFieldProps = {
   time: string | null
   timeType: TimeOptionType
   onTimeChange: (time: string) => void
-  timePlaceholder?: string
+  minDate?: string | null
   required?: boolean
   className?: string
 }
@@ -31,11 +36,20 @@ function DateTimeField({
   time,
   timeType,
   onTimeChange,
-  timePlaceholder,
+  minDate,
   required = false,
   className,
 }: DateTimeFieldProps) {
   const labelId = useId()
+  const defaultTime = getDefaultTime(timeType)
+
+  // 날짜를 처음 고르면 시간 안내값(시작 00:00, 마감 23:59)을 실제 값으로 채움
+  function handleDateChange(nextDate: string) {
+    onDateChange(nextDate)
+    if (!time) {
+      onTimeChange(defaultTime)
+    }
+  }
 
   return (
     <div
@@ -50,13 +64,14 @@ function DateTimeField({
           label="날짜"
           isLabelHidden
           value={date}
-          onValueChange={onDateChange}
+          onValueChange={handleDateChange}
+          minDate={minDate}
         />
         <SelectField
           className="w-41 shrink-0"
           label="시간"
           isLabelHidden
-          placeholder={timePlaceholder}
+          placeholder={formatTimeLabel(defaultTime)}
           options={TIME_OPTIONS[timeType]}
           value={time}
           onValueChange={onTimeChange}

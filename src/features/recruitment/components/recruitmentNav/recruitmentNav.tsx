@@ -1,8 +1,9 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
 import { useDocumentResultOverview } from '@/features/recruitment/hooks/useDocumentResults'
+import { POSTING_CREATE_PATH } from '@/features/recruitment/utils/recruitmentRoutes'
 import { useIsHydrated } from '@/hooks/useIsHydrated'
 import { RecruitmentNavView } from './recruitmentNavView'
 
@@ -20,6 +21,7 @@ function RecruitmentNav() {
 // 목록·작성 화면은 공고 ID가 없어 공고 선택 전 메뉴 표시
 function RecruitmentNavByPosting() {
   const { postingId } = useParams<{ postingId?: string }>()
+  const pathname = usePathname()
   const isHydrated = useIsHydrated()
 
   // 공유 layout은 서버에서 공고 ID가 있는 화면 기준으로 그려져 hydration 후 실제 경로 반영
@@ -27,7 +29,13 @@ function RecruitmentNavByPosting() {
     return UNRESOLVED_NAV
   }
   if (!postingId) {
-    return <RecruitmentNavView overview={null} isPostingSelected={false} />
+    return (
+      <RecruitmentNavView
+        overview={null}
+        isPostingSelected={false}
+        isCreatingPosting={pathname === POSTING_CREATE_PATH}
+      />
+    )
   }
   return <RecruitmentNavWithOverview postingId={postingId} />
 }

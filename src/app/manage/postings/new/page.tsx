@@ -1,6 +1,11 @@
+import { Suspense } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
+import { PostingCreateContent } from '@/features/posting/components/postingCreate/postingCreateContent'
 
-// TODO: 공고 작성 디자인 확정 후 화면 구현
-export default function PostingCreatePage() {
-  return <PageHeader title="공고 작성" className="min-h-10" />
+export default function PostingCreatePage({ searchParams }: PageProps<'/manage/postings/new'>) {
+  return (
+    <Suspense fallback={<PageHeader title="공고 작성" />}>
+      <PostingCreateContent searchParams={searchParams} />
+    </Suspense>
+  )
 }

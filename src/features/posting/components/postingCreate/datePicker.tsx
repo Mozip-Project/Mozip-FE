@@ -26,12 +26,22 @@ const KEY_DAY_OFFSET: Partial<Record<string, number>> = {
 type DatePickerProps = {
   value: string | null
   onValueChange: (date: string) => void
+  minDate?: string | null
   autoFocus?: boolean
   className?: string
 }
 
-function DatePicker({ value, onValueChange, autoFocus = false, className }: DatePickerProps) {
-  const [focusedDate, setFocusedDate] = useState(() => value ?? getTodayIsoDate())
+function DatePicker({
+  value,
+  onValueChange,
+  minDate = null,
+  autoFocus = false,
+  className,
+}: DatePickerProps) {
+  const [today] = useState(getTodayIsoDate)
+  const [focusedDate, setFocusedDate] = useState(() => value ?? today)
+  // 값이 없으면 오늘을 선택 상태로 표시(Figma 캘린더 기본)
+  const selectedDate = value ?? today
   const [viewMonth, setViewMonth] = useState(() => getCalendarMonth(focusedDate))
   const gridRef = useRef<HTMLTableElement>(null)
   const shouldMoveFocusRef = useRef(autoFocus)
@@ -110,7 +120,8 @@ function DatePicker({ value, onValueChange, autoFocus = false, className }: Date
                 <td key={calendarDate.date} className="p-0">
                   <CalendarDay
                     calendarDate={calendarDate}
-                    isSelected={calendarDate.date === value}
+                    isSelected={calendarDate.date === selectedDate}
+                    isDisabled={minDate !== null && calendarDate.date < minDate}
                     isFocusTarget={calendarDate.date === activeDate}
                     onSelect={onValueChange}
                   />

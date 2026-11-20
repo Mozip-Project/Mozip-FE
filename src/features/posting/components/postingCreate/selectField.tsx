@@ -10,6 +10,9 @@ import {
 import { usePointerFocus } from '@/hooks/usePointerFocus'
 import { cn } from '@/lib/utils'
 import { FieldLabel } from './fieldLabel'
+import { FIELD_TRIGGER_CLASS } from './fieldTriggerClass'
+
+const SELECT_MENU_OFFSET_PX = 8
 
 type SelectFieldProps<TValue extends string> = {
   label: string
@@ -19,6 +22,8 @@ type SelectFieldProps<TValue extends string> = {
   placeholder?: string
   required?: boolean
   isLabelHidden?: boolean
+  menuSide?: 'bottom'
+  onOpenChange?: (isOpen: boolean) => void
   className?: string
 }
 
@@ -30,6 +35,8 @@ function SelectField<TValue extends string>({
   placeholder = '',
   required = false,
   isLabelHidden = false,
+  menuSide,
+  onOpenChange,
   className,
 }: SelectFieldProps<TValue>) {
   const id = useId()
@@ -41,14 +48,14 @@ function SelectField<TValue extends string>({
   return (
     <div className={cn('flex flex-col gap-gap-s', className)}>
       <FieldLabel id={labelId} label={label} required={required} isHidden={isLabelHidden} />
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={onOpenChange}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             aria-labelledby={`${labelId} ${valueId}`}
             data-pointer-focus={isPointerFocus ? '' : undefined}
             onPointerDown={markPointerFocus}
-            className="group flex h-13 w-full cursor-pointer items-center gap-gap-s rounded-m border border-neutral-muted bg-layer-default px-padding-m text-left transition-colors outline-none not-data-pointer-focus:focus-visible:border-neutral-solid aria-expanded:border-neutral-solid motion-reduce:transition-none"
+            className={cn('group', FIELD_TRIGGER_CLASS)}
           >
             <span
               id={valueId}
@@ -69,7 +76,15 @@ function SelectField<TValue extends string>({
           options={options}
           value={value}
           onValueChange={onValueChange}
-          className="max-h-[min(--spacing(109),var(--radix-dropdown-menu-content-available-height))] min-w-(--radix-dropdown-menu-trigger-width)"
+          sideOffset={SELECT_MENU_OFFSET_PX}
+          side={menuSide}
+          className={cn(
+            'min-w-(--radix-dropdown-menu-trigger-width)',
+            // 방향을 고정하면 남은 공간과 무관하게 목록 전체 표시
+            menuSide
+              ? 'max-h-109'
+              : 'max-h-[min(--spacing(109),var(--radix-dropdown-menu-content-available-height))]',
+          )}
         />
       </DropdownMenu>
     </div>
