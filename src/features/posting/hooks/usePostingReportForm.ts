@@ -65,6 +65,7 @@ function usePostingReportForm({ postingId, onClose }: UsePostingReportFormOption
     changeReason: setReason,
     changeDetail: setDetail,
     canSubmit,
+    isPending,
     submit,
     reset,
   }

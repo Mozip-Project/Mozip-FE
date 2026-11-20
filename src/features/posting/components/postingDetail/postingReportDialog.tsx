@@ -33,16 +33,27 @@ type PostingReportDialogProps = {
 function PostingReportDialog({ postingId, postingTitle }: PostingReportDialogProps) {
   const detailId = useId()
   const [isOpen, setIsOpen] = useState(false)
-  const { reason, detail, changeReason, changeDetail, canSubmit, submit, reset } =
-    usePostingReportForm({ postingId, onClose: () => handleOpenChange(false) })
+  const { reason, detail, changeReason, changeDetail, canSubmit, isPending, submit, reset } =
+    usePostingReportForm({ postingId, onClose: closeDialog })
 
   // 다시 열 때 빈 상태로 시작하도록 닫을 때 입력 초기화
-  function handleOpenChange(nextIsOpen: boolean) {
-    setIsOpen(nextIsOpen)
+  function closeDialog() {
+    setIsOpen(false)
+    reset()
+  }
 
-    if (!nextIsOpen) {
-      reset()
+  function handleOpenChange(nextIsOpen: boolean) {
+    if (nextIsOpen) {
+      setIsOpen(true)
+      return
     }
+
+    // 닫아도 요청은 취소되지 않아 응답 전까지 닫기 차단
+    if (isPending) {
+      return
+    }
+
+    closeDialog()
   }
 
   function handleReasonChange(value: string) {
@@ -99,7 +110,9 @@ function PostingReportDialog({ postingId, postingTitle }: PostingReportDialogPro
           <InlineNotice tone="neutral">신고한 사실은 단체에 알려지지 않아요.</InlineNotice>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="secondary">취소</Button>
+              <Button variant="secondary" disabled={isPending}>
+                취소
+              </Button>
             </DialogClose>
             {/* TODO: 요청 중 진행 상태 문구 디자인 확인 후 표시 */}
             <Button variant="critical" type="submit" disabled={!canSubmit}>
