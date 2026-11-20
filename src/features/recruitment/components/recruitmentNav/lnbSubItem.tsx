@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, type ComponentProps } from 'react'
 import { ARIA_CURRENT } from '@/components/ui/ActiveLink/activeLink'
 import {
   getDocumentResultPath,
@@ -21,9 +21,8 @@ const ITEM_CLASS = cn(
 )
 
 // 공고 ID 없이 이동 가능한 메뉴와 공고별 메뉴 구분
-const POSTING_FREE_PATH: Record<'postings' | 'postings/new', Route> = {
+const POSTING_FREE_PATH: Record<'postings', Route> = {
   postings: POSTING_MANAGE_PATH,
-  'postings/new': POSTING_CREATE_PATH,
 }
 
 const POSTING_PATH = {
@@ -75,8 +74,8 @@ function LnbSubItemLink({ label, path }: LnbSubItemProps) {
     )
   }
 
-  // 상세 화면에서도 상위 메뉴 표시, 여러 항목이 겹치면 가장 긴 경로만 선택
-  const current = getClosestActivePath(pathname, Object.values(hrefs))
+  // 상세 화면에서도 상위 메뉴 표시, 공고 작성 화면은 공고 관리 대신 공고 작성 메뉴가 현재 위치
+  const current = getClosestActivePath(pathname, [...Object.values(hrefs), POSTING_CREATE_PATH])
 
   return (
     <Link
@@ -89,4 +88,19 @@ function LnbSubItemLink({ label, path }: LnbSubItemProps) {
   )
 }
 
-export { LnbSubItem }
+function LnbSubButton({
+  isCurrent = false,
+  className,
+  ...props
+}: ComponentProps<'button'> & { isCurrent?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-current={isCurrent ? 'page' : undefined}
+      className={cn(ITEM_CLASS, 'w-full cursor-pointer text-left', className)}
+      {...props}
+    />
+  )
+}
+
+export { LnbSubButton, LnbSubItem }

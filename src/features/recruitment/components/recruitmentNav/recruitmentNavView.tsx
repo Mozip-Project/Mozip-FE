@@ -2,10 +2,11 @@ import FileTextIcon from '@/assets/icons/fileText.svg'
 import MegaphoneIcon from '@/assets/icons/megaphone.svg'
 import MessageIcon from '@/assets/icons/message.svg'
 import UsersIcon from '@/assets/icons/users.svg'
+import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
 import type { DocumentResultOverview } from '@/features/recruitment/types'
 import { Lnb } from './lnb'
 import { LnbStageItem } from './lnbStageItem'
-import { LnbSubItem } from './lnbSubItem'
+import { LnbSubButton, LnbSubItem } from './lnbSubItem'
 import { RecruitSwitcher } from './recruitSwitcher'
 
 // TODO: 모집 조회 API 연결 후 모집명·상태·일정을 실제 값으로 교체
@@ -14,9 +15,14 @@ type RecruitmentNavViewProps = {
   overview: DocumentResultOverview | null
   // 목록·작성 화면처럼 공고 ID가 없으면 공고별 상태 생략
   isPostingSelected?: boolean
+  isCreatingPosting?: boolean
 }
 
-function RecruitmentNavView({ overview, isPostingSelected = true }: RecruitmentNavViewProps) {
+function RecruitmentNavView({
+  overview,
+  isPostingSelected = true,
+  isCreatingPosting = false,
+}: RecruitmentNavViewProps) {
   const isConfirmed = Boolean(overview?.confirmedAt)
   const documentStatusLabel = isConfirmed ? '완료' : '진행 중'
 
@@ -47,7 +53,9 @@ function RecruitmentNavView({ overview, isPostingSelected = true }: RecruitmentN
         <LnbSubItem label="공고 관리" path="postings" />
       </li>
       <li>
-        <LnbSubItem label="공고 작성" path="postings/new" />
+        <PostingStartDialog>
+          <LnbSubButton isCurrent={isCreatingPosting}>공고 작성</LnbSubButton>
+        </PostingStartDialog>
       </li>
       <li>
         <LnbStageItem icon={<UsersIcon aria-hidden />} label="지원자 관리" />

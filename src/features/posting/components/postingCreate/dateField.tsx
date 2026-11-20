@@ -8,12 +8,16 @@ import { cn } from '@/lib/utils'
 import { formatFullDateWithWeekday } from '@/utils/calendar'
 import { DatePicker } from './datePicker'
 import { FieldLabel } from './fieldLabel'
+import { FIELD_TRIGGER_CLASS } from './fieldTriggerClass'
+
+const DATE_PICKER_OFFSET_PX = 8
 
 type DateFieldProps = {
   label: string
   value: string | null
   onValueChange: (date: string) => void
   placeholder?: string
+  minDate?: string | null
   required?: boolean
   isLabelHidden?: boolean
   className?: string
@@ -24,6 +28,7 @@ function DateField({
   value,
   onValueChange,
   placeholder = '날짜를 선택해 주세요',
+  minDate = null,
   required = false,
   isLabelHidden = false,
   className,
@@ -50,7 +55,7 @@ function DateField({
             aria-labelledby={`${labelId} ${valueId}`}
             data-pointer-focus={isPointerFocus ? '' : undefined}
             onPointerDown={markPointerFocus}
-            className="flex h-13 w-full cursor-pointer items-center gap-gap-s rounded-m border border-neutral-muted bg-layer-default px-padding-m text-left transition-colors outline-none not-data-pointer-focus:focus-visible:border-neutral-solid aria-expanded:border-neutral-solid motion-reduce:transition-none"
+            className={FIELD_TRIGGER_CLASS}
           >
             <span
               id={valueId}
@@ -66,10 +71,11 @@ function DateField({
         </PopoverTrigger>
         <PopoverContent
           aria-label={`${label} 선택`}
+          sideOffset={DATE_PICKER_OFFSET_PX}
           onOpenAutoFocus={(event) => event.preventDefault()}
           className="border-neutral-muted p-padding-m"
         >
-          <DatePicker value={value} onValueChange={handleDateSelect} autoFocus />
+          <DatePicker value={value} onValueChange={handleDateSelect} minDate={minDate} autoFocus />
         </PopoverContent>
       </Popover>
     </div>

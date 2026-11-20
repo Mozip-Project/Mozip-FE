@@ -26,7 +26,6 @@ function DateTimeFieldStory({
       onDateChange={setDate}
       time={time}
       timeType={timeType}
-      timePlaceholder="오전 12:00"
       onTimeChange={setTime}
     />
   )
