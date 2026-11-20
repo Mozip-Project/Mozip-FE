@@ -22,9 +22,8 @@ const SAMPLE_JOB = {
 
 export const Default: Story = {
   render: () => (
-    <div className="grid grid-cols-[repeat(2,282px)] gap-gap-xl">
+    <div className="w-[282px]">
       <JobCard {...SAMPLE_JOB} />
-      <JobCard {...SAMPLE_JOB} isScrapped />
     </div>
   ),
 }
