@@ -120,10 +120,22 @@ function paginate<TItem>(list: readonly TItem[], page: number, pageSize: number)
   }
 }
 
-// 결과 변경이 탭·페이지 이동 후에도 유지되도록 메모리에 보관, 새로고침 시 초기화
-let documentResultState: Omit<DocumentResultApplicant, 'rank'>[] = DOCUMENT_RESULT_SAMPLE.map(
-  (applicant) => ({ ...applicant }),
-)
+type DocumentResultEntry = Omit<DocumentResultApplicant, 'rank'>
+
+// 결과 변경이 탭·페이지 이동 후에도 유지되도록 공고별로 메모리에 보관, 새로고침 시 초기화
+const documentResultStates = new Map<string, DocumentResultEntry[]>()
+
+function getDocumentResultState(postingId: string) {
+  const state = documentResultStates.get(postingId)
+
+  if (state) {
+    return state
+  }
+
+  const initialState = DOCUMENT_RESULT_SAMPLE.map((applicant) => ({ ...applicant }))
+  documentResultStates.set(postingId, initialState)
+  return initialState
+}
 
 // TODO: 점수 없는 공고 확인용, 공고의 점수 사용 여부 API 확정 후 삭제
 const NO_SCORE_POSTING_ID = '2'
@@ -137,11 +149,11 @@ const DOCUMENT_RESULT_MOCK_LATENCY_MS = process.env.NODE_ENV === 'test' ? 0 : 80
 
 // 순위는 필터와 무관한 공고 전체 기준, 동점은 같은 순위
 // TODO: 점수 없는 공고의 순위 기준(합격 의견 많은순) 기획 확인 필요
-function getRankValue(applicant: Omit<DocumentResultApplicant, 'rank'>) {
+function getRankValue(applicant: DocumentResultEntry) {
   return applicant.averageScore ?? applicant.opinionCounts.pass
 }
 
-function withRank(applicants: readonly Omit<DocumentResultApplicant, 'rank'>[]) {
+function withRank(applicants: readonly DocumentResultEntry[]) {
   return applicants.map((applicant) => ({
     ...applicant,
     rank: applicants.filter((other) => getRankValue(other) > getRankValue(applicant)).length + 1,
@@ -182,7 +194,7 @@ async function getDocumentResultApplicants(
   const keyword = query.keyword.trim()
   const hasScore = postingId !== NO_SCORE_POSTING_ID
   const applicants = withRank(
-    documentResultState.map((applicant) => ({
+    getDocumentResultState(postingId).map((applicant) => ({
       ...applicant,
       averageScore: hasScore ? applicant.averageScore : null,
     })),
@@ -221,12 +233,15 @@ async function getDocumentResultApplicants(
 // TODO: 최종 결과 변경 API 확정 후 실제 요청으로 교체
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function updateDocumentResult(
-  _postingId: string,
+  postingId: string,
   applicantId: string,
   result: DocumentResult,
 ) {
-  documentResultState = documentResultState.map((applicant) =>
-    applicant.id === applicantId ? { ...applicant, result } : applicant,
+  documentResultStates.set(
+    postingId,
+    getDocumentResultState(postingId).map((applicant) =>
+      applicant.id === applicantId ? { ...applicant, result } : applicant,
+    ),
   )
 }
 
@@ -272,7 +287,7 @@ function getApplicantManagementCase(postingId: string): {
 } {
   const schedule = APPLICANT_MANAGEMENT_SCHEDULE_SAMPLE
   const isConfirmed = documentResultConfirmedAt.has(postingId)
-  const applicants: ManagedApplicant[] = documentResultState.map(
+  const applicants: ManagedApplicant[] = getDocumentResultState(postingId).map(
     ({ id, name, position, result }, index) => ({
       id,
       name,

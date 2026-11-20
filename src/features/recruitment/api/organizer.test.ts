@@ -140,6 +140,14 @@ describe('getDocumentResultApplicants', () => {
 
     await updateDocumentResult('1', '4', 'hold')
   })
+
+  it('결과 변경은 해당 공고에만 반영', async () => {
+    await updateDocumentResult('6', '4', 'pass')
+    const otherPosting = await getDocumentResultApplicants('7', { ...RESULT_QUERY, status: 'hold' })
+
+    expect(otherPosting.applicants.map(({ name }) => name)).toContain('한결')
+    expect(otherPosting.totalResultCounts.hold).toBe(4)
+  })
 })
 
 describe('getDocumentResultOverview', () => {
