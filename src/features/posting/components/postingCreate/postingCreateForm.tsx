@@ -32,6 +32,9 @@ import { PostingFormStep } from './postingFormStep'
 import { PostingInfoStep } from './postingInfoStep'
 import { PostingInterviewStep } from './postingInterviewStep'
 import { PostingMethodStep } from './postingMethodStep'
+import { PostingPublishDialog } from './postingPublishDialog'
+import { type EditableStepId } from './postingReviewSections'
+import { PostingReviewStep } from './postingReviewStep'
 import { PostingScheduleStep } from './postingScheduleStep'
 
 type StepId = PostingCreateStep['id']
@@ -71,12 +74,9 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
   const { showToast } = useToast()
   const steps = getPostingCreateSteps(hasInterview)
   const currentStepId = steps[stepIndex]?.id
-  // TODO: 검토 단계 구현 후 마지막 입력 단계의 다음 이동 연결
-  const hasNextScreen = steps[stepIndex + 1]?.id !== 'review'
-  const canGoNext =
-    hasNextScreen &&
-    (getStepSchema(currentStepId, hasInterview)?.safeParse(values).success ?? false)
+  const canGoNext = getStepSchema(currentStepId, hasInterview)?.safeParse(values).success ?? false
   const positionNames = getPositionNames({ recruitType, positions })
+  const isReviewStep = currentStepId === 'review'
 
   // TODO: 임시 저장 API 연결 후 저장 성공 응답 시점·서버 저장 시각으로 교체
   function handleTemporarySave() {
@@ -133,9 +133,13 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
   }
 
   function handleNext() {
-    if (canGoNext) {
+    if (canGoNext && !isReviewStep) {
       moveToStep(stepIndex + 1)
     }
+  }
+
+  function handleEditStep(stepId: EditableStepId) {
+    moveToStep(steps.findIndex((step) => step.id === stepId))
   }
 
   return (
@@ -147,10 +151,14 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
             <Button variant="secondary" size="m" onClick={handleTemporarySave}>
               임시 저장
             </Button>
-            <Button size="m" disabled={!canGoNext} onClick={handleNext}>
-              다음
-              <ArrowRightIcon aria-hidden />
-            </Button>
+            {isReviewStep ? (
+              <PostingPublishDialog />
+            ) : (
+              <Button size="m" disabled={!canGoNext} onClick={handleNext}>
+                다음
+                <ArrowRightIcon aria-hidden />
+              </Button>
+            )}
           </div>
         }
       />
@@ -171,6 +179,13 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
       {currentStepId === 'interview' && <PostingInterviewStep control={control} />}
       {currentStepId === 'form' && (
         <PostingFormStep control={control} positionNames={positionNames} />
+      )}
+      {isReviewStep && (
+        <PostingReviewStep
+          values={getValues()}
+          hasInterview={hasInterview}
+          onEditStep={handleEditStep}
+        />
       )}
     </div>
   )
