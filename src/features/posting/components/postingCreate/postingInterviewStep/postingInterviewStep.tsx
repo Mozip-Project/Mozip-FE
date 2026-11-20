@@ -21,7 +21,7 @@ import { useToast } from '@/providers/toastProvider'
 import { formatMonthDayWithWeekday } from '@/utils/date'
 import { InterviewDateStrip } from './interviewDateStrip'
 import { InterviewTimetable } from './interviewTimetable'
-import { SelectField } from './selectField'
+import { SelectField } from '../fields/selectField'
 
 function toUnitOptions<TValue extends string>(values: readonly TValue[], unit: string) {
   return values.map((value) => ({ value, label: `${value}${unit}` }))

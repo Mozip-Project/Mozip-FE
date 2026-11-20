@@ -492,7 +492,7 @@ describe('PostingCreateForm', () => {
     await user.click(await screen.findByRole('menuitemradio', { name: '1명' }))
     await user.click(screen.getByRole('button', { name: /^같은 시간 면접실 수/ }))
     await user.click(await screen.findByRole('menuitemradio', { name: '2개' }))
-    // TODO: 검토 단계 구현 후 면접 조건까지 고르면 다음 활성 확인
+    await waitFor(() => expect(screen.getByRole('button', { name: '다음' })).toBeEnabled())
 
     await user.click(screen.getByRole('button', { name: '날짜 수정' }))
     expect(screen.getByRole('group', { name: '면접 날짜' })).toHaveFocus()
@@ -507,6 +507,7 @@ describe('PostingCreateForm', () => {
     await user.click(screen.getByRole('button', { name: '취소' }))
     expect(screen.getByRole('heading', { name: '면접 가능 시간' })).toHaveFocus()
     expect(screen.getByRole('group', { name: '2026년 10월 23일 금요일' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '다음' })).toBeEnabled()
 
     await user.click(screen.getByRole('button', { name: '날짜 수정' }))
     await user.click(screen.getByRole('button', { name: '2026년 10월 23일 금요일' }))
@@ -515,6 +516,50 @@ describe('PostingCreateForm', () => {
     expect(screen.queryByRole('group', { name: '2026년 10월 23일 금요일' })).not.toBeInTheDocument()
     expect(screen.getByRole('group', { name: '2026년 10월 27일 화요일' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+  })
+
+  it('비면접 통합 모집은 지원서 양식 다음 검토 및 게시, 고른 정보만 요약하고 수정으로 해당 단계 이동', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(screen.getByText('게시할 준비가 끝났어요')).toBeInTheDocument()
+    expect(screen.getByText(/공고 게시 시 10\/1\(목\) 00:00 부터/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '다음' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '공고 게시' })).toBeInTheDocument()
+
+    const info = screen.getByRole('region', { name: '공고 정보' })
+    expect(
+      within(info)
+        .getAllByRole('term')
+        .map((term) => term.textContent),
+    ).toEqual(['공고명', '지원 자격'])
+    expect(within(info).getByText('대학생')).toBeInTheDocument()
+    const schedule = screen.getByRole('region', { name: '모집 일정' })
+    expect(within(schedule).getByText('모집')).toBeInTheDocument()
+    expect(within(schedule).getByText('최종 발표')).toBeInTheDocument()
+    expect(within(schedule).queryByText('면접')).not.toBeInTheDocument()
+
+    expect(screen.getByRole('region', { name: '모집 방식' })).toHaveTextContent('통합 모집')
+    const form = screen.getByRole('region', { name: '지원서 양식' })
+    expect(within(form).queryByRole('tablist')).not.toBeInTheDocument()
+    expect(within(form).queryByText('면접 가능 시간')).not.toBeInTheDocument()
+    expect(within(form).getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 신입 부원 모집' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '공고 게시' }))
+    const publishDialog = await screen.findByRole('dialog', { name: '공고를 게시하시겠어요?' })
+    expect(publishDialog).toHaveTextContent('게시 후에도 공고 관리에서 수정이 가능해요')
+    expect(within(publishDialog).getByRole('button', { name: '게시하기' })).toBeInTheDocument()
+    await user.click(within(publishDialog).getByRole('button', { name: '취소' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '공고 게시' })).toHaveFocus()
+
+    await user.click(screen.getByRole('button', { name: '모집 방식 수정' }))
+    expect(screen.getByRole('heading', { name: '모집 유형' })).toBeInTheDocument()
   })
 
   it('발표일을 바꾸고 돌아오면 면접 가능 기간 밖 날짜와 시간은 지워지고, 남은 날짜가 없으면 날짜 선택부터 표시', async () => {
@@ -562,6 +607,41 @@ describe('PostingCreateForm', () => {
       'aria-pressed',
       'false',
     )
+  })
+
+  it('검토 단계에서 발표일을 바꿔 면접 날짜가 기간을 벗어나면 검토 단계로 바로 이동 불가', async () => {
+    const user = setupWithDate()
+    renderForm(true)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    const pickMenuItem = async (trigger: RegExp, item: string) => {
+      await user.click(screen.getByRole('button', { name: trigger }))
+      await user.click(await screen.findByRole('menuitemradio', { name: item }))
+    }
+    await pickMenuItem(/^면접 1회 시간/, '30분')
+    await pickMenuItem(/^쉬는 시간/, '0분')
+    await user.click(screen.getByRole('button', { name: '2026년 10월 23일 금요일' }))
+    await user.click(screen.getByRole('button', { name: '선택 완료' }))
+    within(screen.getByRole('group', { name: '2026년 10월 23일 금요일' }))
+      .getByRole('button', { name: '09:00~09:30' })
+      .focus()
+    await user.keyboard('{Enter}')
+    await pickMenuItem(/^면접당 최대 지원자 수/, '1명')
+    await pickMenuItem(/^같은 시간 면접실 수/, '2개')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    expect(screen.getByRole('button', { name: '공고 게시' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /모집 일정$/ }))
+    expect(screen.getByRole('button', { name: /검토 및 게시$/ })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+    await user.click(await screen.findByRole('button', { name: '2026년 10월 23일 금요일' }))
+
+    expect(screen.queryByRole('button', { name: /검토 및 게시$/ })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /면접 시간 설정$/ }))
+    expect(screen.getByRole('group', { name: '면접 날짜' })).toHaveTextContent('면접 날짜0 / 5일')
   })
 
   it('포지션별 모집은 포지션마다 탭과 문항을 따로 관리', async () => {
