@@ -1,9 +1,21 @@
-import { MarkNotificationsReadDocument, NotificationsDocument } from '@/gql/graphql'
+import {
+  MarkNotificationsReadDocument,
+  NotificationsDocument,
+  NotificationUnreadCountDocument,
+  type NotificationTab,
+} from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
-async function getNotifications() {
-  const data = await requestGraphQL(NotificationsDocument)
-  return data.notifications.items
+// tab 생략 시 전체 탭
+async function getNotifications(tab: NotificationTab | undefined, page: number) {
+  const data = await requestGraphQL(NotificationsDocument, { tab, page })
+  return data.notifications
+}
+
+// 목록과 같은 필드에서 탭 배지 숫자만 조회
+async function getNotificationUnreadCount() {
+  const data = await requestGraphQL(NotificationUnreadCountDocument)
+  return data.notifications.unreadCount
 }
 
 async function markNotificationsRead(ids: string[]) {
@@ -11,4 +23,4 @@ async function markNotificationsRead(ids: string[]) {
   return data.markNotificationsRead
 }
 
-export { getNotifications, markNotificationsRead }
+export { getNotifications, getNotificationUnreadCount, markNotificationsRead }

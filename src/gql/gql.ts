@@ -15,18 +15,18 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "query Notifications {\n  notifications {\n    items {\n      id\n      type\n      title\n      link\n      read\n      createdAt\n      organization {\n        name\n      }\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": typeof types.NotificationsDocument,
+    "query Notifications($tab: NotificationTab, $page: Int) {\n  notifications(tab: $tab, page: $page) {\n    content {\n      id\n      type\n      title\n      linkUrl\n      isRead\n      createdAt\n      organization {\n        name\n      }\n    }\n    totalCount\n  }\n}\n\nquery NotificationUnreadCount {\n  notifications {\n    unreadCount {\n      all\n      operator\n      applicant\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": typeof types.NotificationsDocument,
     "mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {\n  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)\n}": typeof types.ReportPostingDocument,
 };
 const documents: Documents = {
-    "query Notifications {\n  notifications {\n    items {\n      id\n      type\n      title\n      link\n      read\n      createdAt\n      organization {\n        name\n      }\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": types.NotificationsDocument,
+    "query Notifications($tab: NotificationTab, $page: Int) {\n  notifications(tab: $tab, page: $page) {\n    content {\n      id\n      type\n      title\n      linkUrl\n      isRead\n      createdAt\n      organization {\n        name\n      }\n    }\n    totalCount\n  }\n}\n\nquery NotificationUnreadCount {\n  notifications {\n    unreadCount {\n      all\n      operator\n      applicant\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": types.NotificationsDocument,
     "mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {\n  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)\n}": types.ReportPostingDocument,
 };
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query Notifications {\n  notifications {\n    items {\n      id\n      type\n      title\n      link\n      read\n      createdAt\n      organization {\n        name\n      }\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}"): typeof import('./graphql').NotificationsDocument;
+export function graphql(source: "query Notifications($tab: NotificationTab, $page: Int) {\n  notifications(tab: $tab, page: $page) {\n    content {\n      id\n      type\n      title\n      linkUrl\n      isRead\n      createdAt\n      organization {\n        name\n      }\n    }\n    totalCount\n  }\n}\n\nquery NotificationUnreadCount {\n  notifications {\n    unreadCount {\n      all\n      operator\n      applicant\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}"): typeof import('./graphql').NotificationsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

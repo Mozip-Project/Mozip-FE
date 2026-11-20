@@ -4,6 +4,11 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type NotificationTab =
+  | 'APPLICANT'
+  | 'OPERATOR';
+
+/** 알림 탭(지원자/운영진), 알림 설정 토글, 출처 라벨, 이동 화면을 type으로 정함 */
 export type NotificationType =
   | 'DOC_RESULT'
   | 'EVALUATION_DEADLINE'
@@ -23,10 +28,18 @@ export type ReportReason =
   | 'FALSE_INFO'
   | 'INAPPROPRIATE';
 
-export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+export type NotificationsQueryVariables = Exact<{
+  tab?: NotificationTab | null | undefined;
+  page?: number | null | undefined;
+}>;
 
 
-export type NotificationsQuery = { notifications: { items: Array<{ id: string, type: NotificationType, title: string, link: string | null, read: boolean, createdAt: string, organization: { name: string } | null }> } };
+export type NotificationsQuery = { notifications: { totalCount: number, content: Array<{ id: string, type: NotificationType, title: string, linkUrl: string | null, isRead: boolean, createdAt: string, organization: { name: string } | null }> } };
+
+export type NotificationUnreadCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationUnreadCountQuery = { notifications: { unreadCount: { all: number, operator: number, applicant: number } } };
 
 export type MarkNotificationsReadMutationVariables = Exact<{
   ids?: Array<string | number> | string | number | null | undefined;
@@ -64,22 +77,34 @@ export class TypedDocumentString<TResult, TVariables>
 }
 
 export const NotificationsDocument = new TypedDocumentString(`
-    query Notifications {
-  notifications {
-    items {
+    query Notifications($tab: NotificationTab, $page: Int) {
+  notifications(tab: $tab, page: $page) {
+    content {
       id
       type
       title
-      link
-      read
+      linkUrl
+      isRead
       createdAt
       organization {
         name
       }
     }
+    totalCount
   }
 }
     `) as unknown as TypedDocumentString<NotificationsQuery, NotificationsQueryVariables>;
+export const NotificationUnreadCountDocument = new TypedDocumentString(`
+    query NotificationUnreadCount {
+  notifications {
+    unreadCount {
+      all
+      operator
+      applicant
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<NotificationUnreadCountQuery, NotificationUnreadCountQueryVariables>;
 export const MarkNotificationsReadDocument = new TypedDocumentString(`
     mutation MarkNotificationsRead($ids: [ID!]) {
   markNotificationsRead(ids: $ids)
