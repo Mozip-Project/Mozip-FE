@@ -15,6 +15,8 @@ import { postingInfoSchema } from '@/features/posting/schemas/postingInfoSchema'
 import { postingInterviewSchema } from '@/features/posting/schemas/postingInterviewSchema'
 import { postingMethodSchema } from '@/features/posting/schemas/postingMethodSchema'
 import { getPostingScheduleSchema } from '@/features/posting/schemas/postingScheduleSchema'
+import { filterDatesInInterviewPeriod } from '@/features/posting/utils/interviewPeriod'
+import { getSlotDate } from '@/features/posting/utils/interviewTimetable'
 import {
   getPostingCreateSteps,
   type PostingCreateStep,
@@ -105,10 +107,25 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
     }
   }
 
+  // 면접 시간 설정으로 들어갈 때 바뀐 발표일 기준으로 기간 밖 날짜와 그 날 시간 정리
+  function syncInterviewSchedule() {
+    const { interviewDates, interviewSlots, documentResultDate, finalResultDate } = getValues()
+    const dates = filterDatesInInterviewPeriod(interviewDates, documentResultDate, finalResultDate)
+    setValue('interviewDates', dates)
+    setValue(
+      'interviewSlots',
+      interviewSlots.filter((slot) => dates.includes(getSlotDate(slot))),
+    )
+  }
+
   function moveToStep(index: number) {
     const formIndex = steps.findIndex((step) => step.id === 'form')
     if (stepIndex < formIndex && index >= formIndex) {
       syncQuestionSets()
+    }
+    const interviewIndex = steps.findIndex((step) => step.id === 'interview')
+    if (interviewIndex !== -1 && stepIndex < interviewIndex && index >= interviewIndex) {
+      syncInterviewSchedule()
     }
     setStepIndex(index)
     setFurthestIndex(Math.max(furthestIndex, index))

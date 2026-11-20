@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { getInterviewPeriod } from './interviewPeriod'
+import { filterDatesInInterviewPeriod, getInterviewPeriod } from './interviewPeriod'
+
+describe('filterDatesInInterviewPeriod', () => {
+  const DATES = ['2026-10-22', '2026-10-23', '2026-10-27', '2026-10-28']
+
+  it('서류 발표 다음 날부터 최종 발표 전날까지의 날짜만 유지', () => {
+    expect(filterDatesInInterviewPeriod(DATES, '2026-10-22', '2026-10-28')).toEqual([
+      '2026-10-23',
+      '2026-10-27',
+    ])
+  })
+
+  it('발표일이 비어 있으면 면접 기간이 없어 모두 제외', () => {
+    expect(filterDatesInInterviewPeriod(DATES, null, '2026-10-28')).toEqual([])
+  })
+})
 
 describe('getInterviewPeriod', () => {
   it('서류 발표 다음 날부터 최종 발표 전날까지, 1일은 월과 함께 표시', () => {

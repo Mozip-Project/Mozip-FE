@@ -47,5 +47,20 @@ function getInterviewPeriod(documentResultDate: string, finalResultDate: string)
   return { startDate, endDate, days } satisfies InterviewPeriod
 }
 
-export { getInterviewPeriod, toInterviewDay }
+// 발표일이 바뀌어 면접 가능 기간을 벗어난 날짜 제외
+function filterDatesInInterviewPeriod(
+  dates: string[],
+  documentResultDate: string | null,
+  finalResultDate: string | null,
+) {
+  if (!documentResultDate || !finalResultDate) {
+    return []
+  }
+  const startDate = addDays(documentResultDate, 1)
+  const endDate = addDays(finalResultDate, -1)
+
+  return dates.filter((date) => date >= startDate && date <= endDate)
+}
+
+export { filterDatesInInterviewPeriod, getInterviewPeriod, toInterviewDay }
 export type { InterviewDay, InterviewPeriod }

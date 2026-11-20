@@ -517,6 +517,53 @@ describe('PostingCreateForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
 
+  it('발표일을 바꾸고 돌아오면 면접 가능 기간 밖 날짜와 시간은 지워지고, 남은 날짜가 없으면 날짜 선택부터 표시', async () => {
+    const user = setupWithDate()
+    renderForm(true)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    await user.click(screen.getByRole('button', { name: '2026년 10월 23일 금요일' }))
+    await user.click(screen.getByRole('button', { name: '2026년 10월 26일 월요일' }))
+    await user.click(screen.getByRole('button', { name: '선택 완료' }))
+    within(screen.getByRole('group', { name: '2026년 10월 23일 금요일' }))
+      .getByRole('button', { name: '09:00~09:30' })
+      .focus()
+    await user.keyboard('{Enter}')
+
+    const pickDocumentResultDate = async (dayLabel: string) => {
+      await user.click(screen.getByRole('button', { name: /모집 일정$/ }))
+      await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+      await user.click(await screen.findByRole('button', { name: dayLabel }))
+      for (let count = 0; count < 3; count += 1) {
+        await user.click(screen.getByRole('button', { name: '다음' }))
+      }
+    }
+
+    await pickDocumentResultDate('2026년 10월 23일 금요일')
+    expect(screen.queryByRole('group', { name: '면접 날짜' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '2026년 10월 23일 금요일' })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '2026년 10월 26일 월요일' })).toBeInTheDocument()
+
+    await pickDocumentResultDate('2026년 10월 26일 월요일')
+    const dateGroup = screen.getByRole('group', { name: '면접 날짜' })
+    expect(dateGroup).toHaveTextContent('면접 날짜0 / 5일')
+    expect(screen.getByRole('button', { name: '선택 완료' })).toBeDisabled()
+    expect(screen.queryByRole('heading', { name: '면접 가능 시간' })).not.toBeInTheDocument()
+
+    // 발표일을 되돌려 같은 날짜를 다시 골라도 지워진 시간은 되살아나지 않음
+    await pickDocumentResultDate('2026년 10월 22일 목요일')
+    await user.click(screen.getByRole('button', { name: '2026년 10월 23일 금요일' }))
+    await user.click(screen.getByRole('button', { name: '선택 완료' }))
+    const friday = screen.getByRole('group', { name: '2026년 10월 23일 금요일' })
+    expect(within(friday).getByRole('button', { name: '09:00~09:30' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
   it('포지션별 모집은 포지션마다 탭과 문항을 따로 관리', async () => {
     const user = setupWithDate()
     renderForm(false)
