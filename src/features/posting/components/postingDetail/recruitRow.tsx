@@ -1,22 +1,26 @@
 import Link from 'next/link'
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
+import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 import type { Route } from 'next'
 
 type RecruitRowProps = {
   title: string
-  summary: string
+  phase: PostingRecruitmentPhase
   href: Route
 }
 
-function RecruitRow({ title, summary, href }: RecruitRowProps) {
+function RecruitRow({ title, phase, href }: RecruitRowProps) {
   return (
     <Link
       href={href}
       className="flex w-full items-center gap-gap-m rounded-m border border-neutral-muted bg-layer-default p-padding-m outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
     >
-      <span className="flex min-w-0 flex-1 flex-col gap-gap-xxs font-medium break-words break-keep text-neutral">
-        <span className="text-body2">{title}</span>
-        <span className="text-caption1 text-neutral-subtle">{summary}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-gap-s">
+        <RecruitmentStatusBadge phase={phase} className="shrink-0" />
+        <span className="min-w-0 text-body2 font-medium break-words break-keep text-neutral">
+          {title}
+        </span>
       </span>
       <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-neutral-subtle" />
     </Link>

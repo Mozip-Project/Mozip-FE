@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
+import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
 import {
   getPostingRecruitmentPhase,
@@ -8,10 +9,11 @@ import {
 } from '@/features/posting/utils/postingDetail'
 import { getSeoulIsoDate } from '@/utils/date'
 import { AppliedPostingToast } from './appliedPostingToast'
-import { PostingApplyBar } from './postingApplyBar'
-import { PostingDetailHeader } from './postingDetailHeader'
+import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
+import { PostingApplyButton } from './postingApplyButton'
 import { PostingDetailTabs } from './postingDetailTabs'
 import { PostingSummary } from './postingSummary'
+import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 
 type PostingDetailContentProps = Pick<PageProps<'/postings/[postingId]'>, 'params'>
 
@@ -36,25 +38,36 @@ async function PostingDetailContent({ params }: PostingDetailContentProps) {
   return (
     <div className="mx-auto flex max-w-195 flex-col gap-gap-xl">
       <div className="flex flex-col gap-gap-xl">
-        <PostingDetailHeader title={detail.title} application={detail.application} phase={phase} />
+        <PageHeader
+          className="gap-gap-s"
+          backLink={{ href: '/postings', label: '전체 공고' }}
+          title={detail.title}
+          actions={
+            <div className="flex items-center gap-gap-m">
+              <RecruitmentStatusBadge phase={phase} />
+              <div id={HEADER_APPLY_CTA_ID}>
+                <PostingApplyButton application={detail.application} phase={phase} />
+              </div>
+            </div>
+          }
+        />
+
         <PostingSummary detail={detail} />
-        {/* 짧은 탭으로 바꿔도 탭바가 화면 위에 고정된 채 남도록 확보, 남는 공간은 신고하기 줄 아래 */}
-        <div className="flex min-h-[calc(100dvh-var(--sticky-top)-var(--page-padding-bottom))] flex-col gap-gap-xl">
-          <PostingDetailTabs detail={detail} />
-          <div className="flex items-center gap-gap-s border-t border-neutral-subtle pt-padding-xl">
-            <AlertCircleIcon aria-hidden className="size-4 shrink-0 text-neutral-subtle" />
-            <p className="text-label2 font-medium text-neutral-subtle">
-              공고 내용에 문제가 있나요?
-            </p>
-            <button
-              type="button"
-              className="flex h-8 shrink-0 cursor-pointer items-center rounded-s px-padding-s text-label2 font-bold text-neutral-subtle underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
-            >
-              신고하기
-            </button>
-          </div>
+
+        <PostingDetailTabs detail={detail} now={now} />
+
+        <div className="flex items-center gap-gap-s border-t border-neutral-subtle pt-padding-xl">
+          <AlertCircleIcon aria-hidden className="size-4 shrink-0 text-neutral-subtle" />
+          <p className="text-label2 font-medium text-neutral-subtle">공고 내용에 문제가 있나요?</p>
+          <button
+            type="button"
+            className="flex h-8 shrink-0 cursor-pointer items-center rounded-s px-padding-s text-label2 font-bold text-neutral-subtle underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+          >
+            신고하기
+          </button>
         </div>
       </div>
+
       {phase.status === 'open' && (
         <PostingApplyBar
           title={detail.title}

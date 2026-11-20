@@ -1,14 +1,28 @@
 import { Badge, type BADGE_TONES } from '@/components/ui/Badge/badge'
 import {
+  getDeadlineUrgency,
   getRecruitmentStatusLabel,
+  type DeadlineUrgency,
   type PostingRecruitmentPhase,
 } from '@/features/posting/utils/postingDetail'
 
-const STATUS_BADGE_TONE = {
-  open: 'critical',
-  upcoming: 'warning',
-  closed: 'neutral',
-} satisfies Record<PostingRecruitmentPhase['status'], (typeof BADGE_TONES)[number]>
+type BadgeTone = (typeof BADGE_TONES)[number]
+
+const DEADLINE_BADGE_TONE = {
+  imminent: 'critical',
+  soon: 'warning',
+  relaxed: 'informative',
+} satisfies Record<DeadlineUrgency, BadgeTone>
+
+function getStatusBadgeTone(phase: PostingRecruitmentPhase): BadgeTone {
+  switch (phase.status) {
+    case 'open':
+    case 'upcoming':
+      return DEADLINE_BADGE_TONE[getDeadlineUrgency(phase.daysLeft)]
+    case 'closed':
+      return 'neutral'
+  }
+}
 
 type RecruitmentStatusBadgeProps = {
   phase: PostingRecruitmentPhase
@@ -17,7 +31,7 @@ type RecruitmentStatusBadgeProps = {
 
 function RecruitmentStatusBadge({ phase, className }: RecruitmentStatusBadgeProps) {
   return (
-    <Badge tone={STATUS_BADGE_TONE[phase.status]} variant="weak" className={className}>
+    <Badge tone={getStatusBadgeTone(phase)} variant="weak" className={className}>
       {getRecruitmentStatusLabel(phase)}
     </Badge>
   )

@@ -137,9 +137,6 @@ type PostingContentBlock =
 type PostingQuestion = {
   id: string
   title: string
-  // TODO: 문항 유형·글자 수 명세 확정 후 필드로 분리
-  guide: string | null
-  isOptional: boolean
 }
 
 type PostingPosition = {
@@ -147,6 +144,7 @@ type PostingPosition = {
   name: string
   // null은 아직 지원하지 않은 포지션
   appliedAt: string | null
+  questions: PostingQuestion[]
 }
 
 // 포지션 없는 모집(학생회 등)은 포지션 선택 없이 바로 지원
@@ -157,7 +155,8 @@ type PostingApplication =
 type OrganizationOngoingPosting = {
   postingId: string
   title: string
-  summary: string
+  recruitmentStartsAt: string
+  recruitmentEndsAt: string
 }
 
 type PostingOrganization = {
@@ -166,6 +165,7 @@ type PostingOrganization = {
   activityType: PostingActivityType
   scope: PostingScope
   introduction: string
+  activityFields: PostingActivityField[]
   keywords: string[]
   links: string[]
   ongoingPostings: OrganizationOngoingPosting[]
@@ -176,7 +176,6 @@ type PostingDetail = {
   id: string
   title: string
   organization: PostingOrganization
-  activityFields: PostingActivityField[]
   // null은 면접 없는 모집
   interview: { method: string; startDate: string; endDate: string } | null
   eligibility: string

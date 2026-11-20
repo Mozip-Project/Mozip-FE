@@ -1,5 +1,4 @@
 import {
-  POSTING_ACTIVITY_FIELD_LABEL,
   type PostingApplication,
   type PostingDetail,
   type PostingPosition,
@@ -31,6 +30,12 @@ type PostingPositionRow = {
 type PostingFactRow = PostingSummaryRow | PostingPositionRow
 
 type PostingFactCandidate = { label: string; value: string | null } | PostingPositionRow
+
+// Figma "일정 뱃지" 기준: D-day·D-1 임박, D-2~D-5 가까움, D-6부터 여유
+const DEADLINE_IMMINENT_MAX_DAYS = 1
+const DEADLINE_SOON_MAX_DAYS = 5
+
+type DeadlineUrgency = 'imminent' | 'soon' | 'relaxed'
 
 const FINAL_RESULT_PENDING_LABEL = '추후 안내'
 
@@ -74,16 +79,12 @@ function isFilledFactRow(row: PostingFactCandidate): row is PostingFactRow {
 // 값이 빈 행 생략, 포지션 없는 모집은 모집 포지션 행도 생략
 function getPostingFactRows(detail: PostingDetail): PostingFactRow[] {
   const { application, interview } = detail
-  const activityFields = detail.activityFields
-    .map((field) => POSTING_ACTIVITY_FIELD_LABEL[field])
-    .join(', ')
   const rows: PostingFactCandidate[] = [
-    { label: '활동 분야', value: activityFields },
     {
       label: '모집 포지션',
       positions: application.type === 'byPosition' ? application.positions : [],
     },
-    { label: '면접', value: interview ? `있음 (${interview.method})` : '없음 (비면접)' },
+    { label: '면접', value: interview ? '있음' : '없음' },
     { label: '지원 자격', value: detail.eligibility },
     { label: '활동 지역', value: detail.activityArea },
     { label: '회비', value: detail.membershipFee },
@@ -153,7 +154,20 @@ function getRecruitmentStatusLabel(phase: PostingRecruitmentPhase) {
   }
 }
 
+function getDeadlineUrgency(daysLeft: number): DeadlineUrgency {
+  if (daysLeft <= DEADLINE_IMMINENT_MAX_DAYS) {
+    return 'imminent'
+  }
+
+  if (daysLeft <= DEADLINE_SOON_MAX_DAYS) {
+    return 'soon'
+  }
+
+  return 'relaxed'
+}
+
 export {
+  getDeadlineUrgency,
   getPostingFactRows,
   getPostingRecruitmentPhase,
   getPostingScheduleRows,
@@ -161,4 +175,4 @@ export {
   hasAppliedPosting,
   hasCompletedApplication,
 }
-export type { PostingRecruitmentPhase, PostingSummaryRow }
+export type { DeadlineUrgency, PostingRecruitmentPhase, PostingSummaryRow }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PostingDetail } from '@/features/posting/types'
 import {
+  getDeadlineUrgency,
   getPostingFactRows,
   getPostingRecruitmentPhase,
   getPostingScheduleRows,
@@ -21,11 +22,11 @@ const BASE_DETAIL = {
     activityType: 'club',
     scope: 'campus',
     introduction: '',
+    activityFields: [],
     keywords: [],
     links: [],
     ongoingPostings: [],
   },
-  activityFields: ['it', 'design'],
   interview: { method: '대면', startDate: '2026-10-21', endDate: '2026-10-23' },
   eligibility: '대학생 · 휴학생',
   activityArea: '신촌 · 온라인 병행',
@@ -111,18 +112,16 @@ describe('getPostingRecruitmentPhase', () => {
 describe('getPostingFactRows', () => {
   it('Figma 순서대로 핵심 정보 표시', () => {
     expect(getPostingFactRows(BASE_DETAIL)).toEqual([
-      { label: '활동 분야', value: 'IT · 개발, 디자인 · 미디어' },
-      { label: '면접', value: '있음 (대면)' },
+      { label: '면접', value: '있음' },
       { label: '지원 자격', value: '대학생 · 휴학생' },
       { label: '활동 지역', value: '신촌 · 온라인 병행' },
       { label: '회비', value: '학기당 30,000원' },
     ])
   })
 
-  it('입력하지 않은 활동 분야·활동 지역·회비는 행 생략', () => {
+  it('입력하지 않은 활동 지역·회비는 행 생략', () => {
     const detail = {
       ...BASE_DETAIL,
-      activityFields: [],
       activityArea: null,
       membershipFee: null,
     } satisfies PostingDetail
@@ -130,10 +129,10 @@ describe('getPostingFactRows', () => {
     expect(getPostingFactRows(detail).map(({ label }) => label)).toEqual(['면접', '지원 자격'])
   })
 
-  it('포지션 있는 모집은 활동 분야 다음에 모집 포지션 표시', () => {
+  it('포지션 있는 모집은 맨 앞에 모집 포지션 표시', () => {
     const positions = [
-      { id: 'design', name: '디자인', appliedAt: '2026-10-03' },
-      { id: 'dev', name: '개발', appliedAt: null },
+      { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
+      { id: 'dev', name: '개발', appliedAt: null, questions: [] },
     ]
     const rows = getPostingFactRows({
       ...BASE_DETAIL,
@@ -141,14 +140,13 @@ describe('getPostingFactRows', () => {
     })
 
     expect(rows.map(({ label }) => label)).toEqual([
-      '활동 분야',
       '모집 포지션',
       '면접',
       '지원 자격',
       '활동 지역',
       '회비',
     ])
-    expect(rows[1]).toEqual({ label: '모집 포지션', positions })
+    expect(rows[0]).toEqual({ label: '모집 포지션', positions })
   })
 
   it('포지션 목록이 비면 모집 포지션 행 생략', () => {
@@ -160,10 +158,10 @@ describe('getPostingFactRows', () => {
     expect(rows.map(({ label }) => label)).not.toContain('모집 포지션')
   })
 
-  it('면접 없는 모집은 비면접으로 표시', () => {
-    expect(getPostingFactRows({ ...BASE_DETAIL, interview: null })[1]).toEqual({
+  it('면접 없는 모집은 없음으로 표시', () => {
+    expect(getPostingFactRows({ ...BASE_DETAIL, interview: null })[0]).toEqual({
       label: '면접',
-      value: '없음 (비면접)',
+      value: '없음',
     })
   })
 })
@@ -206,8 +204,8 @@ describe('hasAppliedPosting', () => {
       hasAppliedPosting({
         type: 'byPosition',
         positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03' },
-          { id: 'dev', name: '개발', appliedAt: null },
+          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
+          { id: 'dev', name: '개발', appliedAt: null, questions: [] },
         ],
       }),
     ).toBe(true)
@@ -217,7 +215,7 @@ describe('hasAppliedPosting', () => {
     expect(
       hasAppliedPosting({
         type: 'byPosition',
-        positions: [{ id: 'design', name: '디자인', appliedAt: null }],
+        positions: [{ id: 'design', name: '디자인', appliedAt: null, questions: [] }],
       }),
     ).toBe(false)
   })
@@ -234,8 +232,8 @@ describe('hasCompletedApplication', () => {
       hasCompletedApplication({
         type: 'byPosition',
         positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03' },
-          { id: 'dev', name: '개발', appliedAt: '2026-10-04' },
+          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
+          { id: 'dev', name: '개발', appliedAt: '2026-10-04', questions: [] },
         ],
       }),
     ).toBe(true)
@@ -246,8 +244,8 @@ describe('hasCompletedApplication', () => {
       hasCompletedApplication({
         type: 'byPosition',
         positions: [
-          { id: 'design', name: '디자인', appliedAt: '2026-10-03' },
-          { id: 'dev', name: '개발', appliedAt: null },
+          { id: 'design', name: '디자인', appliedAt: '2026-10-03', questions: [] },
+          { id: 'dev', name: '개발', appliedAt: null, questions: [] },
         ],
       }),
     ).toBe(false)
@@ -272,5 +270,22 @@ describe('getRecruitmentStatusLabel', () => {
 
   it('마감 후에는 남은 날 없이 모집 마감', () => {
     expect(getRecruitmentStatusLabel({ status: 'closed' })).toBe('모집 마감')
+  })
+})
+
+describe('getDeadlineUrgency', () => {
+  it('D-day와 D-1은 임박', () => {
+    expect(getDeadlineUrgency(0)).toBe('imminent')
+    expect(getDeadlineUrgency(1)).toBe('imminent')
+  })
+
+  it('D-2부터 D-5까지는 가까움', () => {
+    expect(getDeadlineUrgency(2)).toBe('soon')
+    expect(getDeadlineUrgency(5)).toBe('soon')
+  })
+
+  it('D-6부터는 여유', () => {
+    expect(getDeadlineUrgency(6)).toBe('relaxed')
+    expect(getDeadlineUrgency(30)).toBe('relaxed')
   })
 })

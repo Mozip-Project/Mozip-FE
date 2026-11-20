@@ -4,6 +4,7 @@ import type {
   PostingDetail,
   PostingOrganization,
   PostingPosition,
+  PostingQuestion,
 } from '@/features/posting/types'
 import { addDaysToIsoDate } from '@/utils/date'
 
@@ -23,25 +24,34 @@ const POSTING_DETAIL_SAMPLE_ID = {
   directClosed: 'sw-council-staff-closed',
 } as const
 
-const UXUX_POSITION_NAMES = ['디자인', '개발', '기획']
+const UXUX_POSITION_NAMES = ['디자인', '개발', '기획'] as const
 
-const UXUX_ORGANIZATION = {
-  name: 'UXUX',
-  // TODO: 로고 이미지 호스트 확정 후 샘플 이미지 주소로 교체
-  logoUrl: null,
-  activityType: 'club',
-  scope: 'campus',
-  introduction: '성균관대 UI/UX 디자인 동아리 14기 모집',
-  keywords: ['UX', '디자인', '피그마', '프로토타이핑'],
-  links: ['https://www.instagram.com/uxux_official', 'https://uxux.notion.site'],
-  ongoingPostings: [
-    {
-      postingId: POSTING_DETAIL_SAMPLE_ID.supporters,
-      title: '홍보 서포터즈 모집',
-      summary: '모집중 D-12 · 비면접 · 신촌',
-    },
-  ],
-} satisfies PostingOrganization
+// 홍보 서포터즈 공고(supporters)와 같은 모집 기간
+const UXUX_SUPPORTERS_DAYS_LEFT = 12
+
+function createUxuxOrganization(today: string): PostingOrganization {
+  const supportersSchedule = getUxuxSchedule(addDaysToIsoDate(today, UXUX_SUPPORTERS_DAYS_LEFT))
+
+  return {
+    name: 'UXUX',
+    // TODO: 로고 이미지 호스트 확정 후 샘플 이미지 주소로 교체
+    logoUrl: null,
+    activityType: 'club',
+    scope: 'campus',
+    introduction: '성균관대 UI/UX 디자인 동아리 14기 모집',
+    activityFields: ['it', 'design'],
+    keywords: ['UX', '디자인', '피그마', '프로토타이핑'],
+    links: ['https://www.instagram.com/uxux_official', 'https://uxux.notion.site'],
+    ongoingPostings: [
+      {
+        postingId: POSTING_DETAIL_SAMPLE_ID.supporters,
+        title: '홍보 서포터즈 모집',
+        recruitmentStartsAt: supportersSchedule.recruitmentStartsAt,
+        recruitmentEndsAt: supportersSchedule.recruitmentEndsAt,
+      },
+    ],
+  }
+}
 
 const SW_COUNCIL_ORGANIZATION = {
   name: '소프트웨어학과 학생회',
@@ -49,6 +59,7 @@ const SW_COUNCIL_ORGANIZATION = {
   activityType: 'studentCouncil',
   scope: 'campus',
   introduction: '소프트웨어학과 학우들의 의견을 학과에 전달하는 학생회',
+  activityFields: [],
   keywords: ['학생회', '학과 행사'],
   links: ['https://example.com/sw-council'],
   ongoingPostings: [],
@@ -133,6 +144,31 @@ function getUxuxSchedule(endDate: string) {
   }
 }
 
+const UXUX_MOTIVATION_QUESTION = { id: 'motivation', title: 'UXUX에 지원한 동기를 작성해 주세요.' }
+const UXUX_PORTFOLIO_QUESTION = { id: 'portfolio', title: '포트폴리오 링크 또는 파일' }
+const UXUX_INTERVIEW_TIME_QUESTION = { id: 'interview-time', title: '면접 가능 시간 선택' }
+
+// 기획은 Figma 문항, 디자인·개발은 포지션별 차이 확인용
+const UXUX_QUESTIONS_BY_POSITION = {
+  디자인: [
+    UXUX_MOTIVATION_QUESTION,
+    { id: 'conflict', title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.' },
+    UXUX_PORTFOLIO_QUESTION,
+    UXUX_INTERVIEW_TIME_QUESTION,
+  ],
+  개발: [
+    UXUX_MOTIVATION_QUESTION,
+    { id: 'conflict', title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.' },
+    UXUX_INTERVIEW_TIME_QUESTION,
+  ],
+  기획: [
+    UXUX_MOTIVATION_QUESTION,
+    { id: 'experience', title: '활동 경험을 입력해 주세요.' },
+    UXUX_PORTFOLIO_QUESTION,
+    UXUX_INTERVIEW_TIME_QUESTION,
+  ],
+} satisfies Record<(typeof UXUX_POSITION_NAMES)[number], PostingQuestion[]>
+
 function getUxuxPositions(
   appliedNames: readonly string[] = [],
   appliedAt: string | null = null,
@@ -141,11 +177,13 @@ function getUxuxPositions(
     id: name,
     name,
     appliedAt: appliedNames.includes(name) ? appliedAt : null,
+    questions: UXUX_QUESTIONS_BY_POSITION[name],
   }))
 }
 
 function createUxuxDetail(
   id: string,
+  today: string,
   endDate: string,
   overrides: Partial<PostingDetail> = {},
 ): PostingDetail {
@@ -154,40 +192,14 @@ function createUxuxDetail(
   return {
     id,
     title: 'UXUX 14기 신입 부원 모집',
-    organization: UXUX_ORGANIZATION,
-    activityFields: ['it', 'design'],
+    organization: createUxuxOrganization(today),
     eligibility: '대학생 · 휴학생 (1~3학년, 졸업 예정자 가능)',
     activityArea: '신촌 · 온라인 병행',
     membershipFee: '학기당 30,000원',
     ...schedule,
     coverImage: null,
     content: UXUX_CONTENT,
-    questions: [
-      {
-        id: 'motivation',
-        title: 'UXUX에 지원한 동기를 작성해 주세요.',
-        guide: '서술형 · 500자 이내',
-        isOptional: false,
-      },
-      {
-        id: 'conflict',
-        title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.',
-        guide: '서술형 · 700자 이내',
-        isOptional: false,
-      },
-      {
-        id: 'portfolio',
-        title: '포트폴리오 링크 또는 파일',
-        guide: '링크 · 파일 첨부',
-        isOptional: true,
-      },
-      {
-        id: 'interview-time',
-        title: '면접 가능 시간 선택',
-        guide: null,
-        isOptional: false,
-      },
-    ],
+    questions: [],
     application: { type: 'byPosition', positions: getUxuxPositions() },
     ...overrides,
   }
@@ -202,7 +214,6 @@ function createSwCouncilDetail(
     id,
     title: '집행부원 추가 모집',
     organization: SW_COUNCIL_ORGANIZATION,
-    activityFields: [],
     interview: null,
     eligibility: '소프트웨어학과 재학생 · 휴학생',
     activityArea: '학생회실',
@@ -217,14 +228,10 @@ function createSwCouncilDetail(
       {
         id: 'motivation',
         title: '집행부에 지원한 동기를 작성해 주세요.',
-        guide: '서술형 · 500자 이내',
-        isOptional: false,
       },
       {
         id: 'experience',
         title: '행사를 기획하거나 운영한 경험이 있다면 알려 주세요.',
-        guide: '서술형 · 500자 이내',
-        isOptional: true,
       },
     ],
     application,
@@ -239,47 +246,49 @@ function getPostingDetailSample(postingId: string, today: string): PostingDetail
 
   switch (postingId) {
     case ID.open:
-      return createUxuxDetail(postingId, openEndDate)
+      return createUxuxDetail(postingId, today, openEndDate)
     case ID.upcoming:
-      return createUxuxDetail(postingId, addDaysToIsoDate(today, 17))
+      return createUxuxDetail(postingId, today, addDaysToIsoDate(today, 17))
     case ID.closed:
-      return createUxuxDetail(postingId, addDaysToIsoDate(today, -1))
+      return createUxuxDetail(postingId, today, addDaysToIsoDate(today, -1))
     case ID.partiallyApplied:
-      return createUxuxDetail(postingId, openEndDate, {
+      return createUxuxDetail(postingId, today, openEndDate, {
         application: { type: 'byPosition', positions: getUxuxPositions(['디자인'], appliedAt) },
       })
     case ID.fullyApplied:
-      return createUxuxDetail(postingId, openEndDate, {
+      return createUxuxDetail(postingId, today, openEndDate, {
         application: {
           type: 'byPosition',
           positions: getUxuxPositions(UXUX_POSITION_NAMES, appliedAt),
         },
       })
     case ID.missingInfo:
-      return createUxuxDetail(postingId, openEndDate, {
+      return createUxuxDetail(postingId, today, openEndDate, {
         activityArea: null,
         membershipFee: null,
         finalResultDate: null,
       })
     case ID.supporters:
-      return createUxuxDetail(postingId, addDaysToIsoDate(today, 12), {
-        title: '홍보 서포터즈 모집',
-        activityFields: ['design'],
-        interview: null,
-        eligibility: '대학생 · 휴학생',
-        activityArea: '신촌',
-        membershipFee: null,
-        documentResultDate: null,
-        questions: [
-          {
-            id: 'motivation',
-            title: '홍보 서포터즈에 지원한 동기를 작성해 주세요.',
-            guide: '서술형 · 300자 이내',
-            isOptional: false,
-          },
-        ],
-        application: { type: 'direct', appliedAt: null },
-      })
+      return createUxuxDetail(
+        postingId,
+        today,
+        addDaysToIsoDate(today, UXUX_SUPPORTERS_DAYS_LEFT),
+        {
+          title: '홍보 서포터즈 모집',
+          interview: null,
+          eligibility: '대학생 · 휴학생',
+          activityArea: '신촌',
+          membershipFee: null,
+          documentResultDate: null,
+          questions: [
+            {
+              id: 'motivation',
+              title: '홍보 서포터즈에 지원한 동기를 작성해 주세요.',
+            },
+          ],
+          application: { type: 'direct', appliedAt: null },
+        },
+      )
     case ID.direct:
       return createSwCouncilDetail(postingId, addDaysToIsoDate(today, 3))
     case ID.directApplied:

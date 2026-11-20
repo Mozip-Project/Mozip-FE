@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/Button/button'
 import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
 import { formatMonthDayTimeWithWeekday } from '@/utils/date'
 import { PostingApplyBarReveal } from './postingApplyBarReveal'
-import { HEADER_APPLY_CTA_ID } from './postingDetailHeader'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
+
+// 헤더의 지원 버튼 감싸는 요소 id, 화면 밖으로 나가면 하단 바 표시
+const HEADER_APPLY_CTA_ID = 'posting-header-apply-cta'
 
 type PostingApplyBarProps = {
   title: string
@@ -11,7 +13,6 @@ type PostingApplyBarProps = {
   phase: PostingRecruitmentPhase
 }
 
-// 운영진 SummaryBar와 같은 틀, 모집 중에만 쓰여 버튼은 [지원하기] 고정
 function PostingApplyBar({ title, recruitmentEndsAt, phase }: PostingApplyBarProps) {
   return (
     <PostingApplyBarReveal targetId={HEADER_APPLY_CTA_ID}>
@@ -32,4 +33,4 @@ function PostingApplyBar({ title, recruitmentEndsAt, phase }: PostingApplyBarPro
   )
 }
 
-export { PostingApplyBar }
+export { HEADER_APPLY_CTA_ID, PostingApplyBar }
