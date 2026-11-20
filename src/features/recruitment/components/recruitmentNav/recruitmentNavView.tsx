@@ -5,7 +5,7 @@ import UsersIcon from '@/assets/icons/users.svg'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
 import type { DocumentResultOverview } from '@/features/recruitment/types'
 import { Lnb } from './lnb'
-import { LnbStageItem } from './lnbStageItem'
+import { LnbStageItem, LnbStageLink } from './lnbStageItem'
 import { LnbSubButton, LnbSubItem } from './lnbSubItem'
 import { RecruitSwitcher } from './recruitSwitcher'
 
@@ -58,7 +58,7 @@ function RecruitmentNavView({
         </PostingStartDialog>
       </li>
       <li>
-        <LnbStageItem icon={<UsersIcon aria-hidden />} label="지원자 관리" />
+        <LnbStageLink icon={<UsersIcon aria-hidden />} label="지원자 관리" path="applicants" />
       </li>
       <li>
         <LnbStageItem
