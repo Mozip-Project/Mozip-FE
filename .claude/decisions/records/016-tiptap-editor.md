@@ -28,4 +28,4 @@
 ## 영향 범위
 
 - `src/features/posting/components/postingCreate/postingContentEditor.tsx`
-- 저장한 HTML을 지원자 화면 등에 표시할 때는 허용한 태그(h2, p, strong, em, ul, li)만 남기는 처리가 필요합니다. 표시 화면을 만들 때 함께 정합니다.
+- 저장한 HTML을 지원자 화면 등에 표시할 때는 허용한 태그(h2, p, strong, em, ul, li, br)만 남기는 처리가 필요합니다. `br`은 Shift+Enter 줄바꿈(StarterKit hardBreak)입니다. 표시 화면을 만들 때 함께 정합니다.
