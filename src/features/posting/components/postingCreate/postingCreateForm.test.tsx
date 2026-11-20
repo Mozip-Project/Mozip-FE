@@ -66,6 +66,19 @@ async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: '다음' }))
 }
 
+async function addPosition(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(screen.getByRole('button', { name: '포지션 추가' }))
+  const dialog = await screen.findByRole('dialog', { name: '추가할 포지션을 입력해 주세요' })
+  await user.type(within(dialog).getByRole('textbox', { name: '포지션' }), name)
+  await user.click(within(dialog).getByRole('button', { name: '추가하기' }))
+}
+
+function getQuestionCards() {
+  return within(screen.getByRole('list', { name: '지원서 문항' }))
+    .getAllByRole('button', { name: /^Q\d+ .* 편집$/ })
+    .map((button) => button.getAttribute('aria-label'))
+}
+
 describe('PostingCreateForm', () => {
   beforeEach(() => {
     vi.stubGlobal('ResizeObserver', ResizeObserverStub)
@@ -268,9 +281,7 @@ describe('PostingCreateForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
 
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    expect(screen.getByRole('radio', { name: '통합 모집' })).toBeChecked()
-    // TODO: 지원서 양식 단계 구현 후 다음 활성 확인
-    expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+    await waitFor(() => expect(screen.getByRole('button', { name: '다음' })).toBeEnabled())
     // 현재·아직 가지 않은 단계는 이동 불가, 돌아가도 입력값 유지
     const stepList = screen.getByRole('list', { name: '공고 작성 단계' })
     expect(within(stepList).queryByRole('button', { name: /모집 방식/ })).not.toBeInTheDocument()
@@ -288,5 +299,152 @@ describe('PostingCreateForm', () => {
     await user.type(titleInput, '새 제목')
     await user.click(within(stepList).getByRole('button', { name: /모집 방식/ }))
     expect(screen.getByRole('radio', { name: '통합 모집' })).toBeChecked()
+  })
+
+  // TODO: 면접 시간·검토 단계 구현 후 지원서 양식의 다음 활성 조건 확인 추가
+  it('통합 모집 지원서 양식은 기본 문항 3개, 선택한 문항 설정을 고치면 카드에 바로 반영', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(await screen.findByText('기본 문항 3개를 추가했어요')).toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: '지원자 프로필 사진을 필수로 받기' })).toBeChecked()
+    await user.click(screen.getByRole('button', { name: '프로필 사진 필수 안내' }))
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      '사진이 없는 지원자는 업로드 후 지원할 수 있어요',
+    )
+    expect(getQuestionCards()).toEqual([
+      'Q1 자기소개를 해 주세요 편집',
+      'Q2 지원 동기를 작성해 주세요 편집',
+      'Q3 지원 분야와 관련된 경험을 알려 주세요 편집',
+    ])
+    expect(screen.getByRole('complementary', { name: 'Q1 문항 설정' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^Q2 / }))
+    const settings = screen.getByRole('complementary', { name: 'Q2 문항 설정' })
+    expect(settings.closest('li')).toContainElement(
+      screen.getByRole('button', { name: /^Q2 .* 편집$/ }),
+    )
+    const titleInput = within(settings).getByRole('textbox', { name: /질문/ })
+    await user.clear(titleInput)
+    expect(screen.getByRole('button', { name: 'Q2 질문을 작성해 주세요 편집' })).toBeInTheDocument()
+
+    await user.type(titleInput, '가장 몰입했던 경험')
+    expect(screen.getByRole('button', { name: 'Q2 가장 몰입했던 경험 편집' })).toBeInTheDocument()
+
+    await user.click(within(settings).getByRole('switch'))
+    expect(within(settings).getByRole('switch')).not.toBeChecked()
+  })
+
+  it('문항 유형 버튼으로 추가하면 새 문항이 선택되고, 메뉴에서 삭제', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    await user.click(screen.getByRole('button', { name: '활동 경험 문항 추가' }))
+    expect(getQuestionCards().at(-1)).toBe('Q4 질문을 작성해 주세요 편집')
+    const settings = screen.getByRole('complementary', { name: 'Q4 문항 설정' })
+    expect(within(settings).getByRole('textbox', { name: /질문/ })).toHaveFocus()
+    expect(within(settings).getByText('활동 경험')).toBeInTheDocument()
+    expect(
+      within(settings).queryByRole('textbox', { name: /최대 글자 수/ }),
+    ).not.toBeInTheDocument()
+    expect(within(settings).getByRole('checkbox', { name: '활동명' })).toBeDisabled()
+
+    const card = screen.getByRole('button', { name: 'Q4 질문을 작성해 주세요 편집' }).closest('li')
+    if (!card) {
+      throw new Error('Q4 카드 없음')
+    }
+    expect(within(card).getByRole('textbox', { name: '역할' })).toBeInTheDocument()
+    await user.click(within(settings).getByRole('checkbox', { name: '역할' }))
+    expect(within(card).queryByRole('textbox', { name: '역할' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    expect((await screen.findAllByRole('menuitem')).map((item) => item.textContent)).toEqual([
+      '팀워크형',
+      '활동 의지형',
+      '포트폴리오형',
+    ])
+    await user.keyboard('{Escape}')
+
+    await user.click(screen.getByRole('button', { name: 'Q4 문항 메뉴' }))
+    await user.click(await screen.findByRole('menuitem', { name: '질문 삭제' }))
+    expect(getQuestionCards()).toHaveLength(3)
+  })
+
+  it('포트폴리오형 템플릿을 고르면 문항이 바뀌고, 파일 문항 설정이 카드 미리보기에 반영', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    await user.click(await screen.findByRole('menuitem', { name: '포트폴리오형' }))
+    expect(getQuestionCards()).toEqual([
+      'Q1 포트폴리오 또는 결과물을 첨부해 주세요. 편집',
+      'Q2 대표 결과물에 대해 설명해 주세요. (기획 의도, 내 역할 등) 편집',
+      'Q3 작업에 사용한 도구나 기술을 알려 주세요. 편집',
+    ])
+    const settings = screen.getByRole('complementary', { name: 'Q1 문항 설정' })
+    expect(
+      within(settings).getByText('파일이나 링크 중 하나는 꼭 제출해야 해요'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('PDF, 이미지만 업로드 가능합니다')).toBeInTheDocument()
+
+    await user.click(within(settings).getByRole('button', { name: 'PPT' }))
+    expect(screen.getByText('PDF, 이미지, PPT만 업로드 가능합니다')).toBeInTheDocument()
+
+    await user.click(within(settings).getByRole('checkbox', { name: '파일 업로드' }))
+    expect(screen.queryByText('파일을 끌어다 놓거나 파일 선택')).not.toBeInTheDocument()
+    expect(screen.queryByText(/업로드 가능합니다$/)).not.toBeInTheDocument()
+    expect(screen.getByText('https:// (노션 · 깃허브 등)')).toBeInTheDocument()
+
+    await user.click(within(settings).getByRole('checkbox', { name: 'URL 링크' }))
+    expect(screen.queryByText('https:// (노션 · 깃허브 등)')).not.toBeInTheDocument()
+  })
+
+  it('포지션별 모집은 포지션마다 탭과 문항을 따로 관리', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+    await addPosition(user, '개발팀')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(screen.getByRole('tab', { name: '디자인팀' })).toHaveAttribute('aria-selected', 'true')
+    await user.click(screen.getByRole('button', { name: '파일 또는 URL 문항 추가' }))
+    expect(getQuestionCards()).toHaveLength(4)
+
+    await user.click(screen.getByRole('tab', { name: '개발팀' }))
+    expect(getQuestionCards()).toHaveLength(3)
+
+    await user.click(screen.getByRole('tab', { name: '디자인팀' }))
+    expect(getQuestionCards()).toHaveLength(4)
+  })
+
+  it('포지션을 삭제하면 그 포지션의 문항도 함께 지워지고 남은 포지션 문항은 유지', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+    await addPosition(user, '개발팀')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    await user.click(screen.getByRole('button', { name: '파일 또는 URL 문항 추가' }))
+    expect(getQuestionCards()).toHaveLength(4)
+
+    await user.click(screen.getByRole('button', { name: /모집 방식/ }))
+    await user.click(screen.getByRole('button', { name: '디자인팀 삭제' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(screen.getByRole('tab', { name: '개발팀' })).toHaveAttribute('aria-selected', 'true')
+    expect(getQuestionCards()).toHaveLength(3)
   })
 })

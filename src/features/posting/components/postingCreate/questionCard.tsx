@@ -10,6 +10,7 @@ type QuestionCardProps = {
   required?: boolean
   isSelected?: boolean
   actions?: ReactNode
+  onSelect?: () => void
   children: ReactNode
 }
 
@@ -20,16 +21,27 @@ function QuestionCard({
   required = false,
   isSelected = false,
   actions,
+  onSelect,
   children,
 }: QuestionCardProps) {
   return (
     <article
       data-selected={isSelected ? '' : undefined}
       className={cn(
-        'flex min-w-70 flex-col gap-gap-l rounded-l border bg-layer-default p-padding-xl',
+        'relative flex min-w-70 flex-col gap-gap-l rounded-l border bg-layer-default p-padding-xl',
         isSelected ? 'border-neutral-solid' : 'border-neutral-muted',
       )}
     >
+      {onSelect && (
+        // 카드 안 메뉴 버튼과 겹치지 않도록 카드 전체를 덮는 선택 버튼
+        <button
+          type="button"
+          aria-label={`Q${index} ${title} 편집`}
+          aria-pressed={isSelected}
+          onClick={onSelect}
+          className="absolute inset-0 cursor-pointer rounded-l outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+        />
+      )}
       <div className="flex flex-col gap-gap-s">
         <div className="flex items-center justify-between gap-gap-s">
           <div className="flex items-center gap-gap-xs">
@@ -38,7 +50,7 @@ function QuestionCard({
               Q{index}
             </Badge>
           </div>
-          {actions}
+          {actions && <div className="relative">{actions}</div>}
         </div>
         <div className="flex flex-col gap-gap-xxs break-keep">
           <p className="text-body1 font-semibold text-neutral">
