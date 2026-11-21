@@ -1,2 +1,4 @@
-schema: schema.graphql
+schema:
+  - schema.graphql
+  - schema.pending.graphql
 documents: src/features/**/api/**/*.graphql

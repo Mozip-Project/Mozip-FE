@@ -112,6 +112,58 @@ describe('requestGraphQL', () => {
     })
   })
 
+  it('입력값 검증 실패의 extensions.fieldErrors를 입력별 메시지로 담는다', async () => {
+    server.use(
+      graphqlApi.query('Health', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: '잘못된 요청입니다.',
+              extensions: {
+                code: 'COMMON_400',
+                fieldErrors: [
+                  { field: 'title', message: '제목을 입력해 주세요.' },
+                  { field: 'title' },
+                  'invalid',
+                ],
+              },
+            },
+          ],
+          data: null,
+        }),
+      ),
+    )
+
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({
+      code: 'COMMON_400',
+      fieldErrors: [{ field: 'title', message: '제목을 입력해 주세요.' }],
+    })
+  })
+
+  it('REST 형식 검증 실패는 data의 입력별 메시지를 담고, 없으면 빈 목록이다', async () => {
+    server.use(
+      http.post(GRAPHQL_ENDPOINT, () =>
+        HttpResponse.json(
+          {
+            success: false,
+            code: 'COMMON_400',
+            message: 'phone: 휴대폰 번호 형식이 올바르지 않습니다.',
+            data: [{ field: 'phone', message: '휴대폰 번호 형식이 올바르지 않습니다.' }],
+          },
+          { status: 400 },
+        ),
+      ),
+    )
+
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({
+      code: 'COMMON_400',
+      fieldErrors: [{ field: 'phone', message: '휴대폰 번호 형식이 올바르지 않습니다.' }],
+    })
+
+    server.use(http.post(GRAPHQL_ENDPOINT, () => restError(403, 'COMMON_403')))
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({ fieldErrors: [] })
+  })
+
   it('토큰이 만료되면 재발급한 뒤 같은 요청을 다시 보낸다', async () => {
     const { getReissueCount } = expireOnceThenSucceed()
 
@@ -245,15 +297,26 @@ describe('requestGraphQL', () => {
   })
 })
 
+function isNonRetryableCode(code: string) {
+  return isNonRetryableError(new ApiError({ code, message: code }))
+}
+
 describe('isNonRetryableError', () => {
-  it('재발급까지 거친 인증 실패는 다시 시도하지 않는다', () => {
-    for (const code of ['AUTH_002', 'AUTH_004', 'AUTH_005']) {
-      expect(isNonRetryableError(new ApiError({ code, message: code }))).toBe(true)
+  it('로그인 실패·만료·손상·세션 종료는 다시 시도하지 않는다', () => {
+    for (const code of ['AUTH_001', 'AUTH_002', 'AUTH_003', 'AUTH_004', 'AUTH_005']) {
+      expect(isNonRetryableCode(code)).toBe(true)
     }
   })
 
-  it('그 밖의 에러는 다시 시도한다', () => {
-    expect(isNonRetryableError(new ApiError({ code: 'COMMON_500', message: '' }))).toBe(false)
+  it('4xx 코드는 공통·도메인 구분 없이 다시 시도하지 않는다', () => {
+    for (const code of ['COMMON_400', 'COMMON_401', 'COMMON_403', 'COMMON_404', 'POSTING_409']) {
+      expect(isNonRetryableCode(code)).toBe(true)
+    }
+  })
+
+  it('서버 오류, 잠시 후 재시도 안내, 코드 없는 에러는 다시 시도한다', () => {
+    expect(isNonRetryableCode('COMMON_500')).toBe(false)
+    expect(isNonRetryableCode('AUTH_006')).toBe(false)
     expect(isNonRetryableError(new TypeError('Failed to fetch'))).toBe(false)
   })
 })

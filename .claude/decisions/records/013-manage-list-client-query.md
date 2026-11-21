@@ -30,6 +30,7 @@
 
 - `src/features/recruitment/hooks/`, `src/features/recruitment/components/documentResult/`
 - `src/features/posting/hooks/useManagedPostings.ts`, `src/features/posting/components/postingManage/`: 운영진 홈의 공고 목록은 클라이언트 조회와 삭제 낙관적 반영만 적용. 탭은 URL 대신 화면 상태, UP은 순위·잔여 횟수가 서버 값이라 응답 후 재조회
+- `src/features/recruitment/components/applicantManagement/`: 지원자 관리 목록은 조회 전용이라 mutation 없이 클라이언트 조회만 적용. 서류 평가 취합에서 결과를 확정하면 같은 모집의 지원자 관리 목록도 다시 조회
 - 서류 평가 목록(`documentReview/`)은 아직 Server Component 조회이며, MSW 도입 시 이 기준으로 옮길지 팀 합의 필요
 - 팀 합의 후 `docs/ARCHITECTURE.md`의 "서버 상태" 사용 기준 갱신
 
@@ -40,3 +41,4 @@
 - 2026-11-12: 공고 관리 목록을 클라이언트 조회로 전환하고 삭제만 낙관적 반영, 탭 URL 이전은 보류
 - 2026-11-12: 맥락의 graphql-request 도입은 [015](./015-graphql-request.md)로 확정
 - 2026-11-20: 공고 목록을 운영진 홈으로 옮기고, 같은 화면의 이용권 배너 UP 잔여 횟수도 같은 query로 표시
+- 2026-11-20: 지원자 관리 목록을 클라이언트 조회로 구현하고, 서류 결과 확정 시 지원자 관리 목록도 재조회

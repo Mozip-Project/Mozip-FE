@@ -3,7 +3,7 @@ import type { NotificationsQuery, NotificationType } from '@/gql/graphql'
 import { formatRelativeTime } from '@/utils/date'
 import type { Route } from 'next'
 
-type NotificationItems = NotificationsQuery['notifications']['items']
+type NotificationItems = NotificationsQuery['notifications']['content']
 
 const AUDIENCE_BY_TYPE = {
   POSTING_NOTICE: 'applicant',
@@ -18,6 +18,10 @@ const AUDIENCE_BY_TYPE = {
   EVALUATION_REQUEST: 'organizer',
   EVALUATION_DEADLINE: 'organizer',
 } satisfies Record<NotificationType, NotificationEntry['audience']>
+
+function getNotificationAudience(type: NotificationType) {
+  return AUDIENCE_BY_TYPE[type]
+}
 
 // 외부 주소와 //, /\로 시작하는 다른 출처 주소 제외
 const INTERNAL_PATH_PATTERN = /^\/(?![/\\])/
@@ -39,13 +43,13 @@ function isInternalPath(link: string | null): link is Route {
 function toNotificationEntries(items: NotificationItems, now: Date): NotificationEntry[] {
   return items.map((item) => ({
     id: item.id,
-    audience: AUDIENCE_BY_TYPE[item.type],
-    href: isInternalPath(item.link) ? item.link : null,
-    isRead: item.read,
+    audience: getNotificationAudience(item.type),
+    href: isInternalPath(item.linkUrl) ? item.linkUrl : null,
+    isRead: item.isRead,
     source: item.organization?.name ?? null,
     title: item.title,
     meta: formatRelativeTime(new Date(item.createdAt), now),
   }))
 }
 
-export { toNotificationEntries }
+export { getNotificationAudience, toNotificationEntries }

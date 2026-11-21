@@ -3,6 +3,10 @@ import type { Route } from 'next'
 const POSTING_CREATE_PATH = '/manage/postings/new' satisfies Route
 
 // typedRoutes는 리터럴만 검사, Next 문서 안내대로 Route 단언
+function getApplicantManagementPath(postingId: string) {
+  return `/manage/postings/${postingId}/applicants` as Route
+}
+
 function getDocumentReviewPath(postingId: string) {
   return `/manage/postings/${postingId}/documents` as Route
 }
@@ -32,6 +36,7 @@ function getPostingManageDetailPath(postingId: string) {
 }
 
 export {
+  getApplicantManagementPath,
   getApplicantReviewPath,
   getDocumentResultPath,
   getDocumentReviewPath,

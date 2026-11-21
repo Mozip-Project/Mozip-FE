@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "next typegen && tsc --noEmit",
+    "schema:pull": "node --env-file-if-exists=.env.local scripts/pullSchema.mjs && prettier --write schema.graphql",
     "codegen": "graphql-codegen --config codegen.ts",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch",
     "test": "vitest",

@@ -238,6 +238,37 @@ const NO_INTERVIEW_RECRUITMENT_STAGES = [
 
 type InterviewRecruitmentStage = (typeof INTERVIEW_RECRUITMENT_STAGES)[number]
 type NoInterviewRecruitmentStage = (typeof NO_INTERVIEW_RECRUITMENT_STAGES)[number]
+
+const APPLICANT_MANAGEMENT_PAGE_SIZE = 10
+
+const APPLICANT_POSITION_TABS = ['all', ...DOCUMENT_REVIEW_POSITIONS] as const
+
+type ApplicantPositionTab = (typeof APPLICANT_POSITION_TABS)[number]
+
+const APPLICANT_POSITION_TAB_LABEL = {
+  all: '전체',
+  ...DOCUMENT_REVIEW_POSITION_LABEL,
+} satisfies Record<ApplicantPositionTab, string>
+
+// TODO: postingApplications 명세 확정 후 서버 필드·enum으로 교체
+type ManagedApplicant = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  submittedAt: string
+  // null은 서류 결과 확정 전
+  documentResult: ResultNoticeTarget | null
+}
+
+type ApplicantManagementQuery = RecruitmentBoardQuery<ApplicantPositionTab, DocumentReviewSort>
+
+type ApplicantManagementPage = {
+  applicants: ManagedApplicant[]
+  tabCounts: Record<ApplicantPositionTab, number>
+  currentPage: number
+  totalPages: number
+  progress: RecruitmentProgress
+}
 type RecruitmentStage = InterviewRecruitmentStage | NoInterviewRecruitmentStage
 
 // 완료일은 해당 단계를 마친 뒤에만 존재
@@ -264,6 +295,9 @@ type ApplicantProfile = {
 }
 
 export {
+  APPLICANT_MANAGEMENT_PAGE_SIZE,
+  APPLICANT_POSITION_TAB_LABEL,
+  APPLICANT_POSITION_TABS,
   DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
   DOCUMENT_RESULT_NO_SCORE_SORTS,
   DOCUMENT_RESULT_PAGE_SIZE,
@@ -288,6 +322,9 @@ export {
 }
 export type {
   ApplicantProfile,
+  ApplicantManagementPage,
+  ApplicantManagementQuery,
+  ApplicantPositionTab,
   DocumentResult,
   DocumentResultApplicant,
   DocumentResultApplicantPage,
@@ -302,6 +339,7 @@ export type {
   DocumentReviewSort,
   DocumentReviewStatus,
   InterviewRecruitmentStage,
+  ManagedApplicant,
   NoInterviewRecruitmentStage,
   RecipientDelivery,
   RecruitmentBoardQuery,

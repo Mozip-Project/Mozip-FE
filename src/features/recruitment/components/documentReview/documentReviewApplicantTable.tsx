@@ -1,10 +1,14 @@
 import {
+  ApplicantRow,
+  ApplicantTable,
+  ApplicantTableHead,
+} from '@/features/recruitment/components/recruitmentBoard/applicantTable'
+import {
   DOCUMENT_REVIEW_POSITION_LABEL,
   type DocumentReviewApplicant,
 } from '@/features/recruitment/types'
 import { getApplicantReviewPath } from '@/features/recruitment/utils/recruitmentRoutes'
 import { formatMonthDayWithWeekday } from '@/utils/date'
-import { ApplicantRow, ApplicantTable, ApplicantTableHead } from './applicantTable'
 import type { ReactNode } from 'react'
 
 type DocumentReviewApplicantTableProps = {

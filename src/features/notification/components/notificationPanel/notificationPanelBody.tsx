@@ -4,31 +4,44 @@ import BellIcon from '@/assets/icons/bell.svg'
 import { Chip } from '@/components/ui/Chip/chip'
 import { PopoverClose } from '@/components/ui/Popover/popover'
 import { useNotificationPanel } from '@/features/notification/hooks/useNotificationPanel'
-import type { NotificationAudience, NotificationEntry } from '@/features/notification/types'
+import type { NotificationAudience } from '@/features/notification/types'
+import type { UnreadCount } from '@/features/notification/utils/notificationPage'
+import type { NotificationTab } from '@/gql/graphql'
+import { useInViewTrigger } from '@/hooks/useInViewTrigger'
 import { NotificationItem } from './notificationItem'
 import { NotificationPanelError } from './notificationPanelError'
 import { NotificationPanelSkeleton } from './notificationPanelSkeleton'
 
+const LOAD_MORE_SKELETON_ROW_COUNT = 2
+
 const NOTIFICATION_FILTERS = [
-  { value: 'all', label: '전체' },
-  { value: 'organizer', label: '운영진' },
-  { value: 'applicant', label: '지원자' },
-] as const satisfies readonly { value: NotificationAudience | 'all'; label: string }[]
+  { value: 'all', label: '전체', tab: undefined, unreadCountKey: 'all' },
+  { value: 'organizer', label: '운영진', tab: 'OPERATOR', unreadCountKey: 'operator' },
+  { value: 'applicant', label: '지원자', tab: 'APPLICANT', unreadCountKey: 'applicant' },
+] as const satisfies readonly {
+  value: NotificationAudience | 'all'
+  label: string
+  tab: NotificationTab | undefined
+  unreadCountKey: keyof UnreadCount
+}[]
 
 type NotificationFilter = (typeof NOTIFICATION_FILTERS)[number]['value']
-
-function filterNotifications(notifications: NotificationEntry[], filter: NotificationFilter) {
-  if (filter === 'all') {
-    return notifications
-  }
-  return notifications.filter((notification) => notification.audience === filter)
-}
 
 // 패널이 열릴 때만 마운트되어 열 때마다 조회
 function NotificationPanelBody() {
   const [filter, setFilter] = useState<NotificationFilter>('all')
-  const { notifications, isLoading, hasLoadError, markAsRead } = useNotificationPanel()
-  const visibleNotifications = notifications ? filterNotifications(notifications, filter) : []
+  const selectedTab = NOTIFICATION_FILTERS.find(({ value }) => value === filter)?.tab
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    hasLoadError,
+    canLoadMore,
+    isLoadingMore,
+    loadMore,
+    markAsRead,
+  } = useNotificationPanel(selectedTab)
+  const loadMoreTriggerRef = useInViewTrigger<HTMLDivElement>(loadMore, canLoadMore)
 
   return (
     <>
@@ -37,9 +50,9 @@ function NotificationPanelBody() {
         aria-label="알림 필터"
         className="flex shrink-0 gap-gap-xs border-b border-neutral-subtle px-padding-l py-padding-s"
       >
-        {NOTIFICATION_FILTERS.map(({ value, label }) => (
+        {NOTIFICATION_FILTERS.map(({ value, label, unreadCountKey }) => (
           <Chip key={value} pressed={filter === value} onPressedChange={() => setFilter(value)}>
-            {label} {notifications && filterNotifications(notifications, value).length}
+            {label} {unreadCount?.[unreadCountKey]}
           </Chip>
         ))}
       </div>
@@ -48,7 +61,7 @@ function NotificationPanelBody() {
 
       {hasLoadError && <NotificationPanelError />}
 
-      {notifications && visibleNotifications.length === 0 && (
+      {notifications?.length === 0 && (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-gap-m pb-15">
           <div
             aria-hidden
@@ -65,36 +78,48 @@ function NotificationPanelBody() {
         </div>
       )}
 
-      {visibleNotifications.length > 0 && (
-        <ul
-          aria-label="알림 목록"
-          className="min-h-0 flex-1 [scrollbar-width:none] divide-y divide-neutral-subtle overflow-y-auto [&::-webkit-scrollbar]:hidden"
+      {notifications && notifications.length > 0 && (
+        // 탭마다 새로 그려 캐시된 탭으로 바꿔도 맨 위부터 표시
+        <div
+          key={filter}
+          className="min-h-0 flex-1 [scrollbar-width:none] overflow-y-auto [&::-webkit-scrollbar]:hidden"
         >
-          {visibleNotifications.map((notification) => {
-            const { id, href, isRead, source, title, meta } = notification
-            const item = (
-              <NotificationItem isRead={isRead} source={source} title={title} meta={meta} />
-            )
+          <ul aria-label="알림 목록" className="divide-y divide-neutral-subtle">
+            {notifications.map((notification) => {
+              const { id, href, isRead, source, title, meta } = notification
+              const item = (
+                <NotificationItem isRead={isRead} source={source} title={title} meta={meta} />
+              )
 
-            return (
-              <li key={id}>
-                {href ? (
-                  <PopoverClose asChild>
-                    <Link
-                      href={href}
-                      onClick={() => markAsRead(notification)}
-                      className="block outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
-                    >
-                      {item}
-                    </Link>
-                  </PopoverClose>
-                ) : (
-                  item
-                )}
-              </li>
-            )
-          })}
-        </ul>
+              return (
+                <li key={id}>
+                  {href ? (
+                    <PopoverClose asChild>
+                      <Link
+                        href={href}
+                        onClick={() => markAsRead(notification)}
+                        className="block outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+                      >
+                        {item}
+                      </Link>
+                    </PopoverClose>
+                  ) : (
+                    item
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          {canLoadMore && <div ref={loadMoreTriggerRef} aria-hidden className="h-px" />}
+          {isLoadingMore && (
+            <div className="border-t border-neutral-subtle">
+              <NotificationPanelSkeleton
+                rowCount={LOAD_MORE_SKELETON_ROW_COUNT}
+                label="알림을 더 불러오는 중"
+              />
+            </div>
+          )}
+        </div>
       )}
     </>
   )

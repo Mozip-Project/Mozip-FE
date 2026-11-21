@@ -5,6 +5,7 @@ import { useParams, usePathname } from 'next/navigation'
 import { Suspense, type ComponentProps } from 'react'
 import { ARIA_CURRENT } from '@/components/ui/ActiveLink/activeLink'
 import {
+  getApplicantManagementPath,
   getDocumentResultPath,
   getDocumentReviewPath,
   getPostingManageDetailPath,
@@ -70,8 +71,13 @@ function LnbSubItemLink({ label, path }: LnbSubItemProps) {
     )
   }
 
-  // 상세 화면에서도 상위 메뉴 표시, 공고 작성 화면은 공고 관리 대신 공고 작성 메뉴가 현재 위치
-  const current = getClosestActivePath(pathname, [...Object.values(hrefs), POSTING_CREATE_PATH])
+  // 상세 화면에서도 상위 메뉴 표시, 공고 작성·지원자 관리 화면은 공고 관리 메뉴가 현재 위치가 아님
+  const stageHrefs = postingId ? [getApplicantManagementPath(postingId)] : []
+  const current = getClosestActivePath(pathname, [
+    ...Object.values(hrefs),
+    ...stageHrefs,
+    POSTING_CREATE_PATH,
+  ])
 
   return (
     <Link

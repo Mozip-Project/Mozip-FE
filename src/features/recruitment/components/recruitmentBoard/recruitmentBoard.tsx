@@ -48,15 +48,24 @@ type RecruitmentBoardQueryChange<TStatus extends string, TSort extends string> =
 type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
   // 헤더의 검색창이 목록 조건과 상태를 공유해 함께 렌더링
   header: RecruitmentBoardHeader
+  // 헤더와 목록 사이 요약 영역
+  summary?: ReactNode
   query: RecruitmentBoardQuery<TStatus, TSort>
   statusTabs: readonly RecruitmentBoardTab<TStatus>[]
   tabsLabel: string
   sortOptions: readonly { value: TSort; label: string }[]
+  // 생략하면 드롭다운 공통 간격
+  sortMenuSideOffset?: number
   positionCounts: Record<DocumentReviewPosition, number> | null
+  // 탭이 포지션인 화면은 포지션 메뉴 생략
+  canFilterPosition?: boolean
   isPending: boolean
   skeleton: ReactNode
   currentPage: number
   totalPages: number
+  shouldShowSinglePage?: boolean
+  // 스켈레톤이 보이는 동안 이전 목록의 페이지 번호 숨김
+  shouldHidePaginationWhilePending?: boolean
   getPageHref: (page: number) => Route
   // 검색어를 포함한 변경 조건 전달, 페이지 초기화는 호출자 담당
   onQueryChange: (change: RecruitmentBoardQueryChange<TStatus, TSort>) => void
@@ -68,15 +77,20 @@ type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
 
 function RecruitmentBoard<TStatus extends string, TSort extends string>({
   header,
+  summary,
   query,
   statusTabs,
   tabsLabel,
   sortOptions,
+  sortMenuSideOffset,
   positionCounts,
+  canFilterPosition = true,
   isPending,
   skeleton,
   currentPage,
   totalPages,
+  shouldShowSinglePage,
+  shouldHidePaginationWhilePending = false,
   getPageHref,
   onQueryChange,
   onPageNavigate,
@@ -163,6 +177,7 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
           </>
         }
       />
+      {summary}
       <section ref={sectionRef} inert={isPlaceholder} aria-label="지원자 목록">
         <ListToolBar
           tabs={statusTabs}
@@ -171,21 +186,24 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
           onValueChange={(status) => applyQueryChange({ status })}
           controls={
             <>
-              <div ref={positionMenuRef} className="contents">
-                <MultiSelectMenu
-                  label="포지션"
-                  options={positionOptions}
-                  values={query.positions}
-                  onValuesChange={(positions) => applyQueryChange({ positions })}
-                  totalCount={positionTotalCount}
-                  minSelectionMessage="포지션을 1개 이상 선택해 주세요"
-                />
-              </div>
+              {canFilterPosition && (
+                <div ref={positionMenuRef} className="contents">
+                  <MultiSelectMenu
+                    label="포지션"
+                    options={positionOptions}
+                    values={query.positions}
+                    onValuesChange={(positions) => applyQueryChange({ positions })}
+                    totalCount={positionTotalCount}
+                    minSelectionMessage="포지션을 1개 이상 선택해 주세요"
+                  />
+                </div>
+              )}
               <SelectMenu
                 label="정렬"
                 options={sortOptions}
                 value={query.sort}
                 onValueChange={(sort) => applyQueryChange({ sort })}
+                sideOffset={sortMenuSideOffset}
               />
             </>
           }
@@ -214,6 +232,13 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
         totalPages={totalPages}
         getPageHref={getPageHref}
         onPageNavigate={handlePageNavigate}
+        shouldShowSinglePage={shouldShowSinglePage}
+        // 스켈레톤과 같은 300ms 뒤 숨겨 짧은 로딩의 깜빡임 방지
+        className={
+          isPending && shouldHidePaginationWhilePending
+            ? 'animate-skeleton-delayed-hide'
+            : undefined
+        }
       />
     </>
   )
