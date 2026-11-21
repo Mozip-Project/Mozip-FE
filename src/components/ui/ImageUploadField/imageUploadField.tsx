@@ -17,11 +17,21 @@ type ImageUploadFieldProps = {
   label: string
   // 미리보기 옆 제목 줄, 화면마다 제목 스타일·안내 아이콘이 달라 slot으로 받음
   title: ReactNode
+  // 이미 저장된 이미지, 새 파일을 고르기 전과 초기화 후 미리보기에 표시
+  savedImageUrl?: string | null
 }
 
-function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldProps) {
+function ImageUploadField({
+  value,
+  onChange,
+  label,
+  title,
+  savedImageUrl = null,
+}: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const previewUrl = useObjectUrl(value)
+  const selectedImageUrl = useObjectUrl(value)
+  const previewUrl = selectedImageUrl ?? savedImageUrl
+  const previewAlt = selectedImageUrl ? `선택한 ${label}` : `현재 ${label}`
   const imagePicker = useImageFilePicker(onChange)
   const errorId = useId()
   const hasError = imagePicker.errorMessage !== null
@@ -39,7 +49,7 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
         {previewUrl ? (
           <Image
             src={previewUrl}
-            alt={`선택한 ${label}`}
+            alt={previewAlt}
             width={PREVIEW_SIZE_PX}
             height={PREVIEW_SIZE_PX}
             unoptimized

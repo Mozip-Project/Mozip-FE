@@ -5,9 +5,9 @@ import {
   MemberTable,
   MemberTableSkeleton,
 } from '@/features/organization/components/memberTable/memberTable'
+import { OrganizationLoadError } from '@/features/organization/components/organizationLoadError/organizationLoadError'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { toOrganizationMembers } from '@/features/organization/utils/organizationMember'
-import { OrganizationMembersError } from './organizationMembersError'
 import { OrganizationMembersHeader } from './organizationMembersHeader'
 
 type OrganizationMembersContentProps = {
@@ -34,7 +34,9 @@ function OrganizationMembersContent({ savedOrganizationId }: OrganizationMembers
 
   function renderList() {
     if (hasError) {
-      return <OrganizationMembersError onRetry={handleRetry} />
+      return (
+        <OrganizationLoadError message="운영진 목록을 불러오지 못했어요" onRetry={handleRetry} />
+      )
     }
     if (members) {
       return <MemberTable members={members} />

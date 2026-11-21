@@ -11,26 +11,23 @@ import {
   createOrganizationProfileSchema,
   type OrganizationProfileValues,
 } from '@/features/organization/schemas/organizationProfileSchema'
-import type { OrganizationProfile } from '@/features/organization/types'
+import {
+  isStudentCouncil,
+  toOrganizationProfileValues,
+} from '@/features/organization/utils/organizationProfile'
+import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import { ActivityCategoryField } from './activityCategoryField'
 import { KeywordField } from './keywordField'
 import { LinkField } from './linkField'
 import { LogoField } from './logoField'
 
-// TODO: 단체 프로필 조회 API 확정 후 저장된 값으로 교체
-const EMPTY_PROFILE_VALUES = {
-  logo: null,
-  introduction: '',
-  categories: [],
-  keywords: [],
-  links: [{ url: '' }],
-} satisfies OrganizationProfileValues
-
 type OrganizationProfileFormProps = {
-  profile: OrganizationProfile
+  // 단체가 바뀌면 호출부에서 key로 폼을 새로 만듦
+  organization: OrganizationProfileFieldsFragment
 }
 
-function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
+function OrganizationProfileForm({ organization }: OrganizationProfileFormProps) {
+  const isStudentCouncilOrganization = isStudentCouncil(organization)
   const {
     control,
     register,
@@ -40,14 +37,13 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
     formState: { isValid, isDirty, isSubmitSuccessful },
   } = useForm<OrganizationProfileValues>({
     mode: 'onChange',
-    // TODO: 단체 프로필 조회 연결 시 저장된 로고 여부 전달
     resolver: zodResolver(
       createOrganizationProfileSchema({
-        isStudentCouncil: profile.isStudentCouncil,
-        hasSavedLogo: false,
+        isStudentCouncil: isStudentCouncilOrganization,
+        hasSavedLogo: organization.logoUrl !== null,
       }),
     ),
-    defaultValues: EMPTY_PROFILE_VALUES,
+    defaultValues: toOrganizationProfileValues(organization),
   })
   const canSave = isValid && isDirty
   // 최대 글자수에 도달하면 더 입력되지 않으므로 안내만 표시
@@ -79,12 +75,18 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
         <Controller
           name="logo"
           control={control}
-          render={({ field }) => <LogoField value={field.value} onChange={field.onChange} />}
+          render={({ field }) => (
+            <LogoField
+              value={field.value}
+              onChange={field.onChange}
+              savedLogoUrl={organization.logoUrl}
+            />
+          )}
         />
         <TextField
           label="단체명"
           helper="단체명 변경은 관리자에게 문의해 주세요"
-          defaultValue={profile.name}
+          defaultValue={organization.name}
           disabled
         />
         <TextField
@@ -100,7 +102,7 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
           }
           required
         />
-        {!profile.isStudentCouncil && (
+        {!isStudentCouncilOrganization && (
           <Controller
             name="categories"
             control={control}

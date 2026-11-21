@@ -1,11 +1,26 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import { OrganizationProfileForm } from './organizationProfileForm'
 
-function renderForm(isStudentCouncil: boolean) {
+// 아직 아무것도 저장하지 않은 단체
+const EMPTY_ORGANIZATION: OrganizationProfileFieldsFragment = {
+  id: '1',
+  name: '샘플 단체',
+  type: 'CLUB',
+  logoUrl: null,
+  tagline: null,
+  fields: [],
+  keywords: [],
+  links: [],
+}
+
+function renderForm(isStudentCouncil: boolean, organization = EMPTY_ORGANIZATION) {
   const { container } = render(
-    <OrganizationProfileForm profile={{ name: '샘플 단체', isStudentCouncil }} />,
+    <OrganizationProfileForm
+      organization={{ ...organization, type: isStudentCouncil ? 'STUDENT_COUNCIL' : 'CLUB' }}
+    />,
   )
   return container
 }
@@ -69,6 +84,28 @@ describe('OrganizationProfileForm', () => {
 
     await user.click(saveButton)
     await waitFor(() => expect(saveButton).toBeDisabled())
+  })
+
+  it('저장된 값으로 채워지고, 저장된 로고가 있으면 바꾼 항목만으로 저장 활성', async () => {
+    const user = userEvent.setup()
+    renderForm(false, {
+      ...EMPTY_ORGANIZATION,
+      logoUrl: 'https://example.com/logo.png',
+      tagline: '디자인 동아리',
+      fields: ['DESIGN_MEDIA'],
+      keywords: ['UX'],
+      links: [{ id: 'link-1', url: 'https://instagram.com/a' }],
+    })
+    const introduction = screen.getByRole('textbox', { name: /한 줄 소개/ })
+    const saveButton = screen.getByRole('button', { name: '저장' })
+
+    expect(introduction).toHaveValue('디자인 동아리')
+    expect(screen.getByRole('img', { name: '현재 로고' })).toBeInTheDocument()
+    expect(saveButton).toBeDisabled()
+
+    await user.type(introduction, '입니다')
+
+    await waitFor(() => expect(saveButton).toBeEnabled())
   })
 
   it('한 줄 소개가 최대 글자수에 도달하면 안내 문구 표시', async () => {

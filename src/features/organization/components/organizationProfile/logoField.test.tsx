@@ -6,7 +6,7 @@ import { LogoField } from './logoField'
 
 function ControlledLogoField() {
   const [logo, setLogo] = useState<File | null>(null)
-  return <LogoField value={logo} onChange={setLogo} />
+  return <LogoField value={logo} onChange={setLogo} savedLogoUrl={null} />
 }
 
 const PREVIEW_URL = 'blob:logo-preview'

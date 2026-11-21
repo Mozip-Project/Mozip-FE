@@ -7,13 +7,15 @@ import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
 type LogoFieldProps = {
   value: File | null
   onChange: (file: File | null) => void
+  savedLogoUrl: string | null
 }
 
-function LogoField({ value, onChange }: LogoFieldProps) {
+function LogoField({ value, onChange, savedLogoUrl }: LogoFieldProps) {
   return (
     <ImageUploadField
       value={value}
       onChange={onChange}
+      savedImageUrl={savedLogoUrl}
       label="로고"
       title={
         <div className="flex items-center gap-gap-xs text-label1 font-semibold">
