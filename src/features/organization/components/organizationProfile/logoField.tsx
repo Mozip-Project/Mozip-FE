@@ -3,6 +3,13 @@
 import InfoIcon from '@/assets/icons/info.svg'
 import { ImageUploadField } from '@/components/ui/ImageUploadField/imageUploadField'
 import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
+import type { ImageFileFormat } from '@/hooks/useImageFilePicker'
+
+// 로고만 webp·svg까지 허용
+const LOGO_FILE_FORMAT = {
+  acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
+  invalidTypeMessage: '.png, .jpg, .webp, .svg 이미지만 업로드 가능해요',
+} satisfies ImageFileFormat
 
 type LogoFieldProps = {
   value: File | null
@@ -16,6 +23,7 @@ function LogoField({ value, onChange, savedLogoUrl }: LogoFieldProps) {
       value={value}
       onChange={onChange}
       savedImageUrl={savedLogoUrl}
+      fileFormat={LOGO_FILE_FORMAT}
       label="로고"
       title={
         <div className="flex items-center gap-gap-xs text-label1 font-semibold">
@@ -34,7 +42,7 @@ function LogoField({ value, onChange, savedLogoUrl }: LogoFieldProps) {
             description={
               <ul className="list-disc pl-5.25">
                 <li>최적 사이즈는 240 × 240 px이며, 10MB 이하의 이미지만 업로드 가능합니다.</li>
-                <li>PNG, JPG 형식의 이미지를 업로드해 주세요.</li>
+                <li>.png, .jpg, .webp, .svg 형식의 이미지를 업로드해 주세요.</li>
               </ul>
             }
             side="bottom"
