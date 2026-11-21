@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef, type ReactNode } from 'react'
+import { useId, useRef, type ReactNode } from 'react'
 import RefreshIcon from '@/assets/icons/refresh.svg'
 import UploadIcon from '@/assets/icons/upload.svg'
 import { Button } from '@/components/ui/Button/button'
@@ -23,6 +23,8 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
   const fileInputRef = useRef<HTMLInputElement>(null)
   const previewUrl = useObjectUrl(value)
   const imagePicker = useImageFilePicker(onChange)
+  const errorId = useId()
+  const hasError = imagePicker.errorMessage !== null
 
   function handleReset() {
     onChange(null)
@@ -59,7 +61,13 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
               <label>
                 <UploadIcon aria-hidden className="size-4" />
                 이미지 업로드
-                <input ref={fileInputRef} {...imagePicker.inputProps} className="sr-only" />
+                <input
+                  ref={fileInputRef}
+                  {...imagePicker.inputProps}
+                  aria-invalid={hasError}
+                  aria-describedby={hasError ? errorId : undefined}
+                  className="sr-only"
+                />
               </label>
             </Button>
             {value && (
@@ -71,8 +79,8 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
           </div>
         </div>
       </div>
-      {imagePicker.errorMessage && (
-        <p role="alert" className="text-label2 font-normal text-critical">
+      {hasError && (
+        <p id={errorId} role="alert" className="text-label2 font-normal text-critical">
           {imagePicker.errorMessage}
         </p>
       )}
