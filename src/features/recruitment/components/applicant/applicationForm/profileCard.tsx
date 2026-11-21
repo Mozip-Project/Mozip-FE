@@ -2,13 +2,13 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useId, type ReactNode } from 'react'
 import CameraIcon from '@/assets/icons/camera.svg'
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
 import { Button } from '@/components/ui/Button/button'
 import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
 import { useImageFilePicker } from '@/hooks/useImageFilePicker'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
-import type { ReactNode } from 'react'
 
 const PHOTO_SIZE_PX = 72
 
@@ -37,17 +37,22 @@ function ProfileCard({
   isPhotoRequired = false,
   children,
 }: ProfileCardProps) {
+  const photoInputId = useId()
   const photoPicker = useImageFilePicker(onPhotoChange)
   const previewUrl = useObjectUrl(photo)
   const photoSrc = previewUrl ?? savedPhotoUrl
   const isPhotoMissing = isPhotoRequired && !photoSrc
+  // 오류 문구와 사진 필수 문구는 한 번에 하나만 표시
+  const photoNoticeId = `${photoInputId}-notice`
+  const hasPhotoNotice = photoPicker.errorMessage !== null || isPhotoMissing
 
   return (
     <div className="flex flex-col gap-gap-xl rounded-xl border border-neutral-subtle bg-layer-default p-padding-xl">
       <div className="flex flex-col gap-gap-xs">
         <div className="flex items-center justify-between gap-gap-m">
           <div className="flex min-w-0 items-center gap-gap-l">
-            <div className="relative flex shrink-0">
+            {/* 사진, 카메라 아이콘 클릭도 같은 파일 선택 열기 */}
+            <label htmlFor={photoInputId} className="relative flex shrink-0 cursor-pointer">
               {photoSrc ? (
                 <Image
                   src={photoSrc}
@@ -58,7 +63,7 @@ function ProfileCard({
                   className="size-18 rounded-full bg-neutral-weak-pressed object-cover"
                 />
               ) : (
-                <div className="size-18 rounded-full checkerboard" />
+                <span className="size-18 rounded-full checkerboard" />
               )}
               <span
                 aria-hidden
@@ -66,7 +71,7 @@ function ProfileCard({
               >
                 <CameraIcon className="size-3.5" />
               </span>
-            </div>
+            </label>
             <p className="min-w-0 truncate text-headline2 font-semibold text-neutral">{name}</p>
           </div>
           {/* TODO: 업로드 API 생기면 저장 연결*/}
@@ -78,17 +83,22 @@ function ProfileCard({
           >
             <label>
               사진 변경
-              <input {...photoPicker.inputProps} className="sr-only" />
+              <input
+                id={photoInputId}
+                {...photoPicker.inputProps}
+                aria-describedby={hasPhotoNotice ? photoNoticeId : undefined}
+                className="sr-only"
+              />
             </label>
           </Button>
         </div>
         {photoPicker.errorMessage && (
-          <p role="alert" className="text-label1 font-normal text-critical">
+          <p id={photoNoticeId} role="alert" className="text-label1 font-normal text-critical">
             {photoPicker.errorMessage}
           </p>
         )}
         {!photoPicker.errorMessage && isPhotoMissing && (
-          <p className="text-label1 font-normal text-critical">
+          <p id={photoNoticeId} className="text-label1 font-normal text-critical">
             해당 공고는 사진을 올려야 지원서를 작성할 수 있어요
           </p>
         )}

@@ -37,6 +37,7 @@ const BASE_DETAIL = {
   content: [],
   questions: [],
   application: { type: 'direct', appliedAt: null },
+  requiresProfilePhoto: false,
 } satisfies PostingDetail
 
 describe('getPostingRecruitmentPhase', () => {
