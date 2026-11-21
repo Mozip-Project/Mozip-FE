@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -12,13 +12,14 @@ import { OrganizationProfileContent } from './organizationProfileContent'
 function renderProfile(savedOrganizationId?: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
-  return render(
+  render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <OrganizationProfileContent savedOrganizationId={savedOrganizationId} />
       </ToastProvider>
     </QueryClientProvider>,
   )
+  return queryClient
 }
 
 function failProfileQueryOnce() {
@@ -63,6 +64,19 @@ describe('OrganizationProfileContent', () => {
 
     expect(await screen.findByRole('textbox', { name: '단체명' })).toHaveValue('멋쟁이개발자')
     expect(screen.queryByRole('button', { name: '디자인 · 미디어' })).not.toBeInTheDocument()
+  })
+
+  it('다시 불러오기가 실패해도 편집 중인 폼과 입력값 유지', async () => {
+    const user = userEvent.setup()
+    const queryClient = renderProfile()
+    const introduction = await screen.findByRole('textbox', { name: /한 줄 소개/ })
+
+    await user.type(introduction, ' 수정')
+    failProfileQueryOnce()
+    await act(() => queryClient.refetchQueries())
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(introduction).toHaveValue('사용자 경험을 연구하고 만드는 동아리 수정')
   })
 
   it('불러오지 못하면 안내 후 다시 시도', async () => {
