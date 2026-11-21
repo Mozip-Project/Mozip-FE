@@ -10,13 +10,12 @@ import type {
   NotificationUnreadCountQueryVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 type NotificationItems = NotificationPage['content']
 
 // 명세 기본 size, 지난 알림은 무한스크롤 확인용으로 기본 목록을 주 단위로 반복
 const PAGE_SIZE = 20
-// 스켈레톤은 300ms 뒤에 보여 개발 중 로딩 상태를 확인할 수 있게 응답 지연
-const RESPONSE_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 800
 const OLDER_ITEM_ROUNDS = 2
 const WEEK_DAYS = 7
 
@@ -183,7 +182,7 @@ const notificationHandlers = [
   graphqlApi.query<NotificationsQuery, NotificationsQueryVariables>(
     'Notifications',
     async ({ variables }) => {
-      await delay(RESPONSE_DELAY_MS)
+      await delay(MOCK_RESPONSE_DELAY_MS)
       const tabItems = filterByTab(notificationItems, variables.tab)
       const start = (variables.page ?? 0) * PAGE_SIZE
 
@@ -201,7 +200,7 @@ const notificationHandlers = [
   graphqlApi.query<NotificationUnreadCountQuery, NotificationUnreadCountQueryVariables>(
     'NotificationUnreadCount',
     async () => {
-      await delay(RESPONSE_DELAY_MS)
+      await delay(MOCK_RESPONSE_DELAY_MS)
       return HttpResponse.json({
         data: { notifications: { unreadCount: countUnread(notificationItems) } },
       })

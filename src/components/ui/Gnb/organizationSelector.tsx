@@ -19,17 +19,22 @@ type OrganizationOption = {
 type OrganizationSelectorProps = {
   organizations: readonly OrganizationOption[]
   currentOrganizationId: string
+  onOrganizationChange: (organizationId: string) => void
+  onCreateOrganization: () => void
+  onTakeOverRepresentative: () => void
 }
 
-function OrganizationSelector({ organizations, currentOrganizationId }: OrganizationSelectorProps) {
+function OrganizationSelector({
+  organizations,
+  currentOrganizationId,
+  onOrganizationChange,
+  onCreateOrganization,
+  onTakeOverRepresentative,
+}: OrganizationSelectorProps) {
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
   const currentName =
     organizations.find((organization) => organization.id === currentOrganizationId)?.name ?? ''
   const options = organizations.map(({ id, name }) => ({ value: id, label: name }))
-
-  function handleOrganizationChange() {
-    // TODO: 단체 전환 방식(URL 단체 ID 등) 결정 후 연결, 현재는 메뉴만 닫힘
-  }
 
   return (
     <DropdownMenu>
@@ -55,13 +60,14 @@ function OrganizationSelector({ organizations, currentOrganizationId }: Organiza
         groupLabel="내 단체"
         options={options}
         value={currentOrganizationId}
-        onValueChange={handleOrganizationChange}
+        onValueChange={onOrganizationChange}
         sideOffset={ORGANIZATION_MENU_SIDE_OFFSET_PX}
         actions={
-          // TODO: 새 단체 등록·대표 인수 화면 확정 후 연결
           <>
-            <DropdownMenuItem>새 단체 등록</DropdownMenuItem>
-            <DropdownMenuItem>기존 단체 대표 인수</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onCreateOrganization}>새 단체 등록</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onTakeOverRepresentative}>
+              기존 단체 대표 인수
+            </DropdownMenuItem>
           </>
         }
       />

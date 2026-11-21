@@ -38,7 +38,7 @@ src/app/
 
 - 공고는 `postings`로 부르고, 목록 경로는 복수형을 씁니다.
 - 운영진 모집 화면은 공고 ID 하나로 구분합니다(`/manage/postings/[postingId]/...`). 공고 목록(운영진 홈 `/manage`)과 공고 작성은 공고 ID 없이 헤더에서 고른 단체 기준이고, 공고 ID 없는 `/manage/postings`는 첫 진행 중 공고 상세로, 진행 중 공고가 없으면 운영진 홈으로 이동합니다(결정 기록 017).
-- 단체 ID는 URL에 넣지 않고, 헤더에서 고를 때 프론트엔드가 쿠키에 단체 ID만 저장합니다. 역할은 `me.memberships`에서 찾고, 쿠키가 없으면 소속 단체가 없을 때 지원자 홈, 있을 때 첫 번째 단체로 정합니다(결정 기록 018).
+- 단체 ID는 URL에 넣지 않고, 헤더에서 고를 때 프론트엔드가 쿠키에 단체 ID만 저장합니다. 역할은 `me.memberships`에서 찾습니다. 현재 단체는 쿠키의 단체, 백엔드가 준 단체(`me.lastOrganization`), 첫 번째 소속 단체 순으로 정하고 소속에 없는 단체 ID는 건너뜁니다. 소속 단체가 없으면 지원자 홈으로 보냅니다(결정 기록 018).
 - 사이드바 + 본문의 2단 화면은 해당 영역의 `layout.tsx`에서 `components/ui/Sidebar/sidebarLayout.tsx`의 `SidebarLayout`으로 구성합니다.
 
 인증이 정해지기 전까지 GNB 상태는 주소로만 구분합니다. 임시 동작이므로 인증과 모드 저장 방식이 정해지면 다시 정합니다.
@@ -77,7 +77,7 @@ src/
 ├── gql/             # codegen 생성 결과. 직접 수정하지 않음
 ├── hooks/           # 도메인을 모르는 공용 hook과 테스트
 ├── lib/             # 라이브러리 설정·래퍼
-├── mocks/           # MSW 설정. 도메인 handler를 모으는 handler.ts, browser.ts·server.ts, GraphQL link(graphqlApi.ts)
+├── mocks/           # MSW 설정. 도메인 handler를 모으는 handler.ts, browser.ts·server.ts, GraphQL link(graphqlApi.ts), 응답 지연(responseDelay.ts)
 ├── providers/       # 전역 Provider (Query, 토스트, MSW 대기)
 └── utils/           # 의존성 없는 순수 함수와 테스트
 ```
@@ -104,6 +104,7 @@ src/features/recruitment/
 ├── hooks/               # 화면 상태·폼·여러 query를 조합하는 hook (query hook은 api/queries.ts)
 ├── mocks/               # MSW handler와 샘플 데이터
 ├── schemas/             # 폼 검증 zod 스키마와 폼 값 타입
+├── server/              # 서버에서만 실행하는 코드 (쿠키 읽기, 'use server' Server Function)
 ├── utils/               # 도메인을 아는 순수 함수 (URL 쿼리 변환 등)
 └── types.ts
 ```

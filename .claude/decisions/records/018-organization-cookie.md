@@ -28,7 +28,11 @@
 
 ## 영향 범위
 
-- 헤더 단체 선택(`components/ui/Gnb/organizationSelector.tsx`), 운영진 layout, 단체 ID를 인자로 받는 운영진 API
+- 헤더 단체 선택(`features/organization/components/organizationSwitcher/`), 운영진 layout, 단체 ID를 인자로 받는 운영진 API
 - 쿠키의 단체가 `me.memberships`에 없을 때(탈퇴, 같은 브라우저의 다른 계정)는 쿠키가 없을 때와 같은 기본값을 적용합니다.
 - 확인 필요: 한 단체가 팀별로 `memberships`에 여러 번 올 수 있는지, 그때 역할이 다를 수 있는지, "첫 번째 단체"의 순서 기준
 - 서버에서 `me.memberships`를 조회할 때의 로그인 쿠키 전달은 인증 작업에서 정합니다.
+
+## 변경 이력
+
+- 2026-11-21: 백엔드가 `me`로 단체 ID(`lastOrganization`)를 주기로 해 우선순위를 쿠키 → `me.lastOrganization` → 첫 번째 소속 단체로 구현. 쿠키 이름 `mozip_organization_id`, 저장은 Server Function(`features/organization/server/saveCurrentOrganization.ts`). 소속 단체가 없을 때 이동 경로는 회원가입의 단체 생성 화면이 생기면 변경

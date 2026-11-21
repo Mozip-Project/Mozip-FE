@@ -1,6 +1,7 @@
 'use client'
 
 import { Sidebar, type SidebarItem } from '@/components/ui/Sidebar/sidebar'
+import { COMING_SOON_TOAST } from '@/features/organization/constants'
 import { useToast } from '@/providers/toastProvider'
 
 const UPCOMING_MENU_LABELS = ['팀 설정', '대표자 변경', '이용권 결제'] as const
@@ -14,7 +15,7 @@ function OrganizationNav() {
     { label: '운영진 관리', href: '/manage/organization/members' },
     ...UPCOMING_MENU_LABELS.map((label) => ({
       label,
-      onSelect: () => showToast({ title: '준비 중인 기능이에요', icon: 'alert' }),
+      onSelect: () => showToast(COMING_SOON_TOAST),
     })),
   ]
 
