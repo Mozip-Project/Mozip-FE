@@ -27,6 +27,14 @@ const FIELD_BY_ACTIVITY_CATEGORY = Object.fromEntries(
   Object.entries(ACTIVITY_CATEGORY_BY_FIELD).map(([field, category]) => [category, field]),
 ) as Record<ActivityCategory, OrganizationField>
 
+const HTTP_URL_PATTERN = /^https?:\/\//i
+
+// 서버는 http·https 링크만 받아 프로토콜 없이 입력한 주소는 https로 보냄
+function toHttpUrl(url: string) {
+  const trimmedUrl = url.trim()
+  return HTTP_URL_PATTERN.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`
+}
+
 function isStudentCouncil({ type }: Pick<OrganizationProfileFieldsFragment, 'type'>) {
   return type === 'STUDENT_COUNCIL'
 }
@@ -61,7 +69,7 @@ function toUpdateOrganizationInput(
       ? []
       : values.categories.map((category) => FIELD_BY_ACTIVITY_CATEGORY[category]),
     keywords: values.keywords,
-    links: values.links.map(({ url }) => ({ url: url.trim() })),
+    links: values.links.map(({ url }) => ({ url: toHttpUrl(url) })),
   }
 }
 

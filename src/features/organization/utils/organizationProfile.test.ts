@@ -72,6 +72,26 @@ describe('toUpdateOrganizationInput', () => {
     expect(input.links).toEqual([{ url: 'https://a.com' }])
   })
 
+  it('프로토콜 없는 링크는 https를 붙이고 http·https 링크는 그대로', () => {
+    const input = toUpdateOrganizationInput(
+      {
+        ...values,
+        links: [
+          { url: 'instagram.com/uxux' },
+          { url: 'http://uxux.kr' },
+          { url: 'HTTPS://youtube.com/@uxux' },
+        ],
+      },
+      false,
+    )
+
+    expect(input.links).toEqual([
+      { url: 'https://instagram.com/uxux' },
+      { url: 'http://uxux.kr' },
+      { url: 'HTTPS://youtube.com/@uxux' },
+    ])
+  })
+
   it('학생회는 활동 분야를 빈 배열로 보냄', () => {
     expect(toUpdateOrganizationInput(values, true).fields).toEqual([])
   })
