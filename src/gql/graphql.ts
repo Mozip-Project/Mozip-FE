@@ -26,11 +26,48 @@ export type NotificationType =
   | 'TRANSFER_REJECTED'
   | 'TRANSFER_REQUEST';
 
+export type OrganizationField =
+  | 'ACADEMIC_STUDY'
+  | 'CULTURE_HOBBY'
+  | 'DESIGN_MEDIA'
+  | 'ETC'
+  | 'IT_DEV'
+  | 'LANGUAGE_GLOBAL'
+  | 'PERFORMANCE_MUSIC'
+  | 'RELIGION'
+  | 'SPORTS'
+  | 'STARTUP_BUSINESS'
+  | 'VOLUNTEER';
+
+export type OrganizationLinkInput = {
+  /** http, https만, 500자까지. type은 서버가 도메인으로 판별 */
+  url: string;
+};
+
+/** 단체, 팀, 운영진, 초대, 대표자 인수 */
+export type OrganizationType =
+  | 'ACADEMIC'
+  | 'CLUB'
+  | 'STUDENT_COUNCIL';
+
 export type ReportReason =
   | 'ETC'
   | 'EXCESSIVE_PERSONAL_INFO'
   | 'FALSE_INFO'
   | 'INAPPROPRIATE';
+
+export type UpdateOrganizationInput = {
+  /** 학생회는 빈 배열 */
+  fields: Array<OrganizationField>;
+  /** 1~10개, 중복 제거 */
+  keywords: Array<string>;
+  /** 1개 이상 */
+  links: Array<OrganizationLinkInput>;
+  /** 업로드 후 받은 key, null이면 기존 로고 유지 */
+  logoFileKey?: string | null | undefined;
+  /** 최대 40자 */
+  tagline: string;
+};
 
 export type NotificationsQueryVariables = Exact<{
   tab?: NotificationTab | null | undefined;
@@ -58,6 +95,30 @@ export type OrganizationMembersQueryVariables = Exact<{
 
 
 export type OrganizationMembersQuery = { members: Array<{ id: string, role: MemberRole, createdAt: string, user: { id: string, name: string }, team: { name: string } | null }> };
+
+export type OrganizationProfileFieldsFragment = { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> };
+
+export type OrganizationProfileQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type OrganizationProfileQuery = { organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> } };
+
+export type UpdateOrganizationMutationVariables = Exact<{
+  id: string | number;
+  input: UpdateOrganizationInput;
+}>;
+
+
+export type UpdateOrganizationMutation = { updateOrganization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> } };
+
+export type KeywordSuggestionsQueryVariables = Exact<{
+  query: string;
+}>;
+
+
+export type KeywordSuggestionsQuery = { keywordSuggestions: Array<string> };
 
 export type ReportPostingMutationVariables = Exact<{
   postingId: string | number;
@@ -91,7 +152,21 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
-
+export const OrganizationProfileFieldsFragmentDoc = new TypedDocumentString(`
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}
+    `, {"fragmentName":"OrganizationProfileFields"}) as unknown as TypedDocumentString<OrganizationProfileFieldsFragment, unknown>;
 export const NotificationsDocument = new TypedDocumentString(`
     query Notifications($tab: NotificationTab, $page: Int) {
   notifications(tab: $tab, page: $page) {
@@ -142,6 +217,49 @@ export const OrganizationMembersDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<OrganizationMembersQuery, OrganizationMembersQueryVariables>;
+export const OrganizationProfileDocument = new TypedDocumentString(`
+    query OrganizationProfile($id: ID!) {
+  organization(id: $id) {
+    ...OrganizationProfileFields
+  }
+}
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}`) as unknown as TypedDocumentString<OrganizationProfileQuery, OrganizationProfileQueryVariables>;
+export const UpdateOrganizationDocument = new TypedDocumentString(`
+    mutation UpdateOrganization($id: ID!, $input: UpdateOrganizationInput!) {
+  updateOrganization(id: $id, input: $input) {
+    ...OrganizationProfileFields
+  }
+}
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}`) as unknown as TypedDocumentString<UpdateOrganizationMutation, UpdateOrganizationMutationVariables>;
+export const KeywordSuggestionsDocument = new TypedDocumentString(`
+    query KeywordSuggestions($query: String!) {
+  keywordSuggestions(query: $query)
+}
+    `) as unknown as TypedDocumentString<KeywordSuggestionsQuery, KeywordSuggestionsQueryVariables>;
 export const ReportPostingDocument = new TypedDocumentString(`
     mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
   reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
