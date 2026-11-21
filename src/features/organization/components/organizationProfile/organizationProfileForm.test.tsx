@@ -107,7 +107,10 @@ describe('OrganizationProfileForm', () => {
     await waitFor(() => expect(saveButton).toBeEnabled())
 
     await user.click(saveButton)
-    await waitFor(() => expect(saveButton).toBeDisabled())
+
+    // 저장 중에도 비활성이라 완료 후 저장값이 새 기준이 됐는지 확인
+    expect(await screen.findByText('단체 프로필을 저장했어요')).toBeInTheDocument()
+    expect(saveButton).toBeDisabled()
   })
 
   it('저장하면 완료 안내, 링크는 https가 붙은 저장값으로 바뀜', async () => {
