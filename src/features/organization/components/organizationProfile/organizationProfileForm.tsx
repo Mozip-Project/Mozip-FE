@@ -1,6 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
@@ -44,6 +45,7 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     handleSubmit,
     reset,
     setError,
+    setFocus,
     formState: { isValid, isDirty, isSubmitting, errors },
   } = useForm<OrganizationProfileValues>({
     mode: 'onChange',
@@ -55,7 +57,15 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     ),
     defaultValues: toOrganizationProfileValues(organization),
   })
+  // 저장 중에는 입력이 잠겨 포커스를 줄 수 없어, 잠금이 풀린 뒤 첫 오류 칸으로 이동
+  const [errorFocusPath, setErrorFocusPath] = useState<ProfileFieldPath | null>(null)
   const canSave = isValid && isDirty && !isSubmitting
+
+  useEffect(() => {
+    if (!isSubmitting && errorFocusPath) {
+      setFocus(errorFocusPath)
+    }
+  }, [isSubmitting, errorFocusPath, setFocus])
   // 최대 글자수에 도달하면 더 입력되지 않으므로 안내만 표시
   const isIntroductionAtMax =
     useWatch({ control, name: 'introduction' }).length >= INTRODUCTION_MAX_LENGTH
@@ -66,6 +76,8 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     (isIntroductionAtMax ? `최대 ${INTRODUCTION_MAX_LENGTH}자까지 입력할 수 있어요` : undefined)
 
   async function handleSave(values: OrganizationProfileValues) {
+    // 이전 저장의 오류 칸으로 다시 포커스가 가지 않도록 초기화
+    setErrorFocusPath(null)
     try {
       const saved = await updateOrganization.mutateAsync(
         toUpdateOrganizationInput(values, isStudentCouncilOrganization),
@@ -83,9 +95,10 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     const inlineErrors = fieldErrors.filter(({ path }) => INLINE_ERROR_PATHS.includes(path))
     const otherError = fieldErrors.find(({ path }) => !INLINE_ERROR_PATHS.includes(path))
 
-    inlineErrors.forEach(({ path, message }, index) => {
-      setError(path, { type: 'server', message }, { shouldFocus: index === 0 })
+    inlineErrors.forEach(({ path, message }) => {
+      setError(path, { type: 'server', message })
     })
+    setErrorFocusPath(inlineErrors[0]?.path ?? null)
 
     if (inlineErrors.length > 0 && !otherError) {
       return
@@ -108,7 +121,11 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
           </Button>
         }
       />
-      <div className="flex flex-col gap-gap-xl bg-layer-default p-padding-xl">
+      {/* 저장 중 입력이 응답 후 reset으로 덮어써지지 않도록 모든 입력 잠금 */}
+      <fieldset
+        disabled={isSubmitting}
+        className="flex min-w-0 flex-col gap-gap-xl bg-layer-default p-padding-xl"
+      >
         <Controller
           name="logo"
           control={control}
@@ -152,7 +169,7 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
           )}
         />
         <LinkField control={control} />
-      </div>
+      </fieldset>
     </form>
   )
 }

@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
-import { HttpResponse } from 'msw'
+import { delay, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetOrganizationProfiles } from '@/features/organization/mocks/organizationProfileHandlers'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
@@ -9,6 +9,9 @@ import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { OrganizationProfileForm } from './organizationProfileForm'
+
+// 저장 중 상태를 확인할 수 있게 응답을 늦춘 뒤 기본 handler로 넘김
+const SLOW_SAVE_DELAY_MS = 100
 
 // 아직 아무것도 저장하지 않은 단체
 const EMPTY_ORGANIZATION: OrganizationProfileFieldsFragment = {
@@ -124,6 +127,29 @@ describe('OrganizationProfileForm', () => {
     expect(screen.getByRole('textbox', { name: 'SNS/웹사이트 링크' })).toHaveValue(
       'https://instagram.com/a',
     )
+  })
+
+  it('저장 중에는 입력을 잠그고 끝나면 다시 편집 가능', async () => {
+    const user = userEvent.setup()
+    const container = renderForm(true)
+    server.use(
+      graphqlApi.mutation(
+        'UpdateOrganization',
+        async () => {
+          await delay(SLOW_SAVE_DELAY_MS)
+          return undefined
+        },
+        { once: true },
+      ),
+    )
+
+    await fillRequiredWithoutCategories(user, container)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    const introduction = screen.getByRole('textbox', { name: /한 줄 소개/ })
+    await waitFor(() => expect(introduction).toBeDisabled())
+    expect(await screen.findByText('단체 프로필을 저장했어요')).toBeInTheDocument()
+    expect(introduction).toBeEnabled()
   })
 
   it('서버 입력 오류는 해당 입력에 표시하고 포커스 이동', async () => {
