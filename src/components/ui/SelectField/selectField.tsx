@@ -3,14 +3,14 @@
 import { useId } from 'react'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/DropdownMenu/dropdownMenu'
+import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
 import {
   SelectMenuContent,
   type SelectMenuOption,
 } from '@/components/ui/SelectMenu/selectMenuContent'
 import { usePointerFocus } from '@/hooks/usePointerFocus'
 import { cn } from '@/lib/utils'
-import { FieldLabel } from './fieldLabel'
-import { FIELD_TRIGGER_CLASS } from './fieldTriggerClass'
+import { FIELD_TRIGGER_CLASS } from './selectField.variants'
 
 const SELECT_MENU_OFFSET_PX = 8
 

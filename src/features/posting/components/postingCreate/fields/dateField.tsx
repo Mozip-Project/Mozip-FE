@@ -2,13 +2,13 @@
 
 import { useId, useState } from 'react'
 import CalendarIcon from '@/assets/icons/calendar.svg'
+import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover/popover'
+import { FIELD_TRIGGER_CLASS } from '@/components/ui/SelectField/selectField.variants'
 import { usePointerFocus } from '@/hooks/usePointerFocus'
 import { cn } from '@/lib/utils'
 import { formatFullDateWithWeekday } from '@/utils/calendar'
 import { DatePicker } from './datePicker'
-import { FieldLabel } from './fieldLabel'
-import { FIELD_TRIGGER_CLASS } from './fieldTriggerClass'
 
 const DATE_PICKER_OFFSET_PX = 8
 
