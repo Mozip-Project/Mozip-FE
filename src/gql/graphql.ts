@@ -4,6 +4,10 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type MemberRole =
+  | 'OPERATOR'
+  | 'REPRESENTATIVE';
+
 export type NotificationTab =
   | 'APPLICANT'
   | 'OPERATOR';
@@ -48,6 +52,13 @@ export type MarkNotificationsReadMutationVariables = Exact<{
 
 export type MarkNotificationsReadMutation = { markNotificationsRead: boolean };
 
+export type OrganizationMembersQueryVariables = Exact<{
+  organizationId: string | number;
+}>;
+
+
+export type OrganizationMembersQuery = { members: Array<{ id: string, role: MemberRole, createdAt: string, user: { id: string, name: string }, team: { name: string } | null }> };
+
 export type ReportPostingMutationVariables = Exact<{
   postingId: string | number;
   reason: ReportReason;
@@ -56,6 +67,11 @@ export type ReportPostingMutationVariables = Exact<{
 
 
 export type ReportPostingMutation = { reportPosting: boolean };
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string } }> } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -110,8 +126,41 @@ export const MarkNotificationsReadDocument = new TypedDocumentString(`
   markNotificationsRead(ids: $ids)
 }
     `) as unknown as TypedDocumentString<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>;
+export const OrganizationMembersDocument = new TypedDocumentString(`
+    query OrganizationMembers($organizationId: ID!) {
+  members(organizationId: $organizationId) {
+    id
+    role
+    createdAt
+    user {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<OrganizationMembersQuery, OrganizationMembersQueryVariables>;
 export const ReportPostingDocument = new TypedDocumentString(`
     mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
   reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
 }
     `) as unknown as TypedDocumentString<ReportPostingMutation, ReportPostingMutationVariables>;
+export const MeDocument = new TypedDocumentString(`
+    query Me {
+  me {
+    id
+    lastOrganization {
+      id
+    }
+    memberships {
+      role
+      organization {
+        id
+        name
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<MeQuery, MeQueryVariables>;

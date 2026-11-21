@@ -1,0 +1,15 @@
+query Me {
+  me {
+    id
+    lastOrganization {
+      id
+    }
+    memberships {
+      role
+      organization {
+        id
+        name
+      }
+    }
+  }
+}

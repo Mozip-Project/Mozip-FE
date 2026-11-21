@@ -16,11 +16,15 @@ import * as types from './graphql';
  */
 type Documents = {
     "query Notifications($tab: NotificationTab, $page: Int) {\n  notifications(tab: $tab, page: $page) {\n    content {\n      id\n      type\n      title\n      linkUrl\n      isRead\n      createdAt\n      organization {\n        name\n      }\n    }\n    totalCount\n  }\n}\n\nquery NotificationUnreadCount {\n  notifications {\n    unreadCount {\n      all\n      operator\n      applicant\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": typeof types.NotificationsDocument,
+    "query OrganizationMembers($organizationId: ID!) {\n  members(organizationId: $organizationId) {\n    id\n    role\n    createdAt\n    user {\n      id\n      name\n    }\n    team {\n      name\n    }\n  }\n}": typeof types.OrganizationMembersDocument,
     "mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {\n  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)\n}": typeof types.ReportPostingDocument,
+    "query Me {\n  me {\n    id\n    lastOrganization {\n      id\n    }\n    memberships {\n      role\n      organization {\n        id\n        name\n      }\n    }\n  }\n}": typeof types.MeDocument,
 };
 const documents: Documents = {
     "query Notifications($tab: NotificationTab, $page: Int) {\n  notifications(tab: $tab, page: $page) {\n    content {\n      id\n      type\n      title\n      linkUrl\n      isRead\n      createdAt\n      organization {\n        name\n      }\n    }\n    totalCount\n  }\n}\n\nquery NotificationUnreadCount {\n  notifications {\n    unreadCount {\n      all\n      operator\n      applicant\n    }\n  }\n}\n\nmutation MarkNotificationsRead($ids: [ID!]) {\n  markNotificationsRead(ids: $ids)\n}": types.NotificationsDocument,
+    "query OrganizationMembers($organizationId: ID!) {\n  members(organizationId: $organizationId) {\n    id\n    role\n    createdAt\n    user {\n      id\n      name\n    }\n    team {\n      name\n    }\n  }\n}": types.OrganizationMembersDocument,
     "mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {\n  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)\n}": types.ReportPostingDocument,
+    "query Me {\n  me {\n    id\n    lastOrganization {\n      id\n    }\n    memberships {\n      role\n      organization {\n        id\n        name\n      }\n    }\n  }\n}": types.MeDocument,
 };
 
 /**
@@ -30,7 +34,15 @@ export function graphql(source: "query Notifications($tab: NotificationTab, $pag
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "query OrganizationMembers($organizationId: ID!) {\n  members(organizationId: $organizationId) {\n    id\n    role\n    createdAt\n    user {\n      id\n      name\n    }\n    team {\n      name\n    }\n  }\n}"): typeof import('./graphql').OrganizationMembersDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {\n  reportPosting(postingId: $postingId, reason: $reason, detail: $detail)\n}"): typeof import('./graphql').ReportPostingDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query Me {\n  me {\n    id\n    lastOrganization {\n      id\n    }\n    memberships {\n      role\n      organization {\n        id\n        name\n      }\n    }\n  }\n}"): typeof import('./graphql').MeDocument;
 
 
 export function graphql(source: string) {

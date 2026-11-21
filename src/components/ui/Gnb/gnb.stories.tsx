@@ -82,7 +82,13 @@ export const Organizer: Story = {
       navItems={ORGANIZER_NAV_ITEMS}
       actions={
         <>
-          <OrganizationSelector organizations={ORGANIZATIONS} currentOrganizationId="1" />
+          <OrganizationSelector
+            organizations={ORGANIZATIONS}
+            currentOrganizationId="1"
+            onOrganizationChange={() => undefined}
+            onCreateOrganization={() => undefined}
+            onTakeOverRepresentative={() => undefined}
+          />
           {NOTIFICATION_TRIGGER}
           <ProfileMenu mode="organizer" {...PROFILE_MENU_PROPS} />
         </>

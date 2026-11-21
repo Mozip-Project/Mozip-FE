@@ -1,6 +1,9 @@
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
-import { getOrganizationPlan, getOrganizationProfile } from '@/features/organization/api/organizer'
+import {
+  getOrganizationPlan,
+  getOrganizationProfile,
+} from '@/features/organization/api/organizer/api'
 import { OrganizationPlanBanner } from '@/features/organization/components/organizationPlan/organizationPlanBanner'
 import { getUpRemainingCount } from '@/features/posting/api/organizer'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
