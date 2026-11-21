@@ -35,8 +35,11 @@ function useUpdateOrganizationMutation(organizationId: string) {
 
   return useMutation({
     mutationFn: (input: UpdateOrganizationInput) => updateOrganization(organizationId, input),
-    onSuccess: (organization) => {
-      queryClient.setQueryData(organizationKeys.detail(organizationId), organization)
+    onSuccess: async (organization) => {
+      const detailKey = organizationKeys.detail(organizationId)
+      // 저장 전 값을 담은 진행 중인 조회가 저장 결과를 덮지 않도록 취소
+      await queryClient.cancelQueries({ queryKey: detailKey })
+      queryClient.setQueryData(detailKey, organization)
     },
   })
 }
