@@ -112,15 +112,15 @@ describe('getDocumentResultApplicants', () => {
     ])
   })
 
-  it('점수 없는 공고는 합격 의견 많은순으로 순위를 매기고 동점은 같은 순위', async () => {
-    const result = await getDocumentResultApplicants('2', RESULT_QUERY)
+  it('평균 점수가 같으면 같은 순위', async () => {
+    const result = await getDocumentResultApplicants('1', RESULT_QUERY)
 
-    expect(result.hasScore).toBe(false)
-    expect(result.applicants.every(({ averageScore }) => averageScore === null)).toBe(true)
-    expect(result.applicants.slice(0, 3).map(({ rank, name }) => [rank, name])).toEqual([
-      [1, '이지원'],
-      [1, '정세나'],
-      [3, '구민서'],
+    expect(
+      result.applicants.slice(7).map(({ rank, averageScore }) => [rank, averageScore]),
+    ).toEqual([
+      [8, 1.8],
+      [9, 1.7],
+      [9, 1.7],
     ])
   })
 

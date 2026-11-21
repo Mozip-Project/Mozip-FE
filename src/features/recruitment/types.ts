@@ -58,7 +58,7 @@ const DOCUMENT_RESULT_PAGE_SIZE = 10
 
 const DOCUMENT_RESULTS = ['pass', 'hold', 'fail'] as const
 const DOCUMENT_RESULT_STATUSES = ['all', ...DOCUMENT_RESULTS] as const
-// 순위 기준은 서버 담당, 점수 있는 공고는 평균 점수·없는 공고는 합격 의견 수
+// 순위 기준(평균 점수)은 서버 담당
 const DOCUMENT_RESULT_SORTS = ['rankDesc', 'rankAsc', 'nameAsc', 'nameDesc'] as const
 
 type DocumentResult = (typeof DOCUMENT_RESULTS)[number]
@@ -79,26 +79,13 @@ const DOCUMENT_RESULT_SORT_LABEL = {
   nameDesc: '이름 역순',
 } satisfies Record<DocumentResultSort, string>
 
-// 점수 없는 공고는 합격 의견 많은순만 제공
-const DOCUMENT_RESULT_NO_SCORE_SORTS = [
-  'rankDesc',
-  'nameAsc',
-  'nameDesc',
-] as const satisfies readonly DocumentResultSort[]
-
-const DOCUMENT_RESULT_NO_SCORE_SORT_LABEL = {
-  ...DOCUMENT_RESULT_SORT_LABEL,
-  rankDesc: '합격 의견 많은순',
-} satisfies Record<(typeof DOCUMENT_RESULT_NO_SCORE_SORTS)[number], string>
-
 type DocumentResultApplicant = {
   id: string
   name: string
   position: DocumentReviewPosition
   rank: number
   opinionCounts: Record<DocumentResult, number>
-  // null은 점수 없는 공고
-  averageScore: number | null
+  averageScore: number
   result: DocumentResult
 }
 
@@ -110,8 +97,6 @@ type DocumentResultApplicantPage = {
   positionCounts: Record<DocumentReviewPosition, number>
   currentPage: number
   totalPages: number
-  // 지원서 양식에서 점수를 받는 공고인지
-  hasScore: boolean
   // 확정 버튼 활성·확정 팝업 요약용, 필터·검색과 무관한 공고 전체 기준
   totalResultCounts: Record<DocumentResult, number>
 }
@@ -289,8 +274,6 @@ export {
   APPLICANT_MANAGEMENT_PAGE_SIZE,
   APPLICANT_POSITION_TAB_LABEL,
   APPLICANT_POSITION_TABS,
-  DOCUMENT_RESULT_NO_SCORE_SORT_LABEL,
-  DOCUMENT_RESULT_NO_SCORE_SORTS,
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_SORT_LABEL,
   DOCUMENT_RESULT_SORTS,

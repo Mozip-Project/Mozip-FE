@@ -33,19 +33,13 @@ const COLUMN_CLASS = {
   opinion: 'w-34 shrink-0',
   // '평균 (5점 만점)' 헤더가 최종 결과 열과 겹치지 않는 최소 폭
   score: 'min-w-24 flex-1',
-}
-
-// 평균 열이 없으면 최종 결과가 남는 폭 차지, chevron은 오른쪽 끝 유지
-function getResultColumnClass(hasScore: boolean) {
-  return hasScore ? 'w-[309px] shrink-0' : 'min-w-[309px] flex-1'
+  result: 'w-[309px] shrink-0',
 }
 
 const ROW_CLASS = 'flex items-center gap-gap-m px-padding-l py-padding-s'
 
 type ResultTableProps = {
   label: string
-  // 지원서 양식에서 점수를 받지 않는 공고는 평균 열 숨김
-  hasScore: boolean
   // 로딩 중에는 children 대신 스켈레톤 행 표시
   isLoading?: boolean
   loadingRowCount?: number
@@ -56,7 +50,6 @@ type ResultTableProps = {
 
 function ResultTable({
   label,
-  hasScore,
   isLoading = false,
   loadingRowCount = 0,
   emptyState,
@@ -67,11 +60,11 @@ function ResultTable({
   return (
     <div className="relative overflow-x-auto bg-layer-default">
       {/* 고정 열 폭 합계, 좁은 화면에서는 표 안 가로 스크롤 */}
-      <div className={hasScore ? 'min-w-[877px]' : 'min-w-[769px]'}>
+      <div className="min-w-[877px]">
         <div role="table" aria-label={label} aria-busy={isLoading} data-slot="result-table">
-          <ResultTableHead hasScore={hasScore} />
+          <ResultTableHead />
           {isLoading
-            ? skeletonRowKeys.map((key) => <ResultTableSkeletonRow key={key} hasScore={hasScore} />)
+            ? skeletonRowKeys.map((key) => <ResultTableSkeletonRow key={key} />)
             : children}
         </div>
         {!isLoading && emptyState}
@@ -80,7 +73,7 @@ function ResultTable({
   )
 }
 
-function ResultTableHead({ hasScore }: { hasScore: boolean }) {
+function ResultTableHead() {
   return (
     <div role="row" className={cn(ROW_CLASS, 'bg-neutral-weak')}>
       <TableHeadCell className={COLUMN_CLASS.rank}>순위</TableHeadCell>
@@ -102,8 +95,8 @@ function ResultTableHead({ hasScore }: { hasScore: boolean }) {
       >
         평가자 의견
       </TableHeadCell>
-      {hasScore && <TableHeadCell className={COLUMN_CLASS.score}>평균 (5점 만점)</TableHeadCell>}
-      <TableHeadCell className={getResultColumnClass(hasScore)}>최종 결과</TableHeadCell>
+      <TableHeadCell className={COLUMN_CLASS.score}>평균 (5점 만점)</TableHeadCell>
+      <TableHeadCell className={COLUMN_CLASS.result}>최종 결과</TableHeadCell>
     </div>
   )
 }
@@ -113,8 +106,7 @@ type ResultTableRowProps = {
   name: string
   position: string
   opinionCounts: OpinionCounts
-  // null은 점수 없는 공고
-  averageScore: number | null
+  averageScore: number
   // 확정 전 ResultTableSelector, 확정 후 확정 배지
   result: ReactNode
 }
@@ -127,8 +119,6 @@ function ResultTableRow({
   averageScore,
   result,
 }: ResultTableRowProps) {
-  const hasScore = averageScore !== null
-
   return (
     <div
       role="row"
@@ -151,18 +141,13 @@ function ResultTableRow({
         <OpinionBar opinionCounts={opinionCounts} />
       </span>
       {/* 만점은 헤더에 표기, 셀에는 숫자만 */}
-      {hasScore && (
-        <span
-          role="cell"
-          className={cn(COLUMN_CLASS.score, 'text-headline1 font-semibold text-neutral')}
-        >
-          {averageScore.toFixed(1)}
-        </span>
-      )}
       <span
         role="cell"
-        className={cn(getResultColumnClass(hasScore), 'flex items-center justify-between')}
+        className={cn(COLUMN_CLASS.score, 'text-headline1 font-semibold text-neutral')}
       >
+        {averageScore.toFixed(1)}
+      </span>
+      <span role="cell" className={cn(COLUMN_CLASS.result, 'flex items-center justify-between')}>
         {result}
         <ChevronRightIcon aria-hidden className="size-5 text-neutral-faint" />
       </span>
@@ -203,7 +188,7 @@ function ResultTableConfirmedBadge({ result }: { result: DocumentResult }) {
 }
 
 // 데이터 요청이 300ms를 넘길 때만 보이도록 호출자가 지연 표시
-function ResultTableSkeletonRow({ hasScore }: { hasScore: boolean }) {
+function ResultTableSkeletonRow() {
   return (
     <div
       aria-hidden
@@ -223,12 +208,10 @@ function ResultTableSkeletonRow({ hasScore }: { hasScore: boolean }) {
       <span className={cn(COLUMN_CLASS.opinion, 'flex items-center')}>
         <span className="skeleton-bar h-1.5 w-30 rounded-full" />
       </span>
-      {hasScore && (
-        <span className={cn(COLUMN_CLASS.score, 'flex items-center')}>
-          <span className="skeleton-bar h-4.5 w-8 rounded-full" />
-        </span>
-      )}
-      <span className={cn(getResultColumnClass(hasScore), 'flex items-center gap-gap-xs')}>
+      <span className={cn(COLUMN_CLASS.score, 'flex items-center')}>
+        <span className="skeleton-bar h-4.5 w-8 rounded-full" />
+      </span>
+      <span className={cn(COLUMN_CLASS.result, 'flex items-center gap-gap-xs')}>
         {DOCUMENT_RESULTS.map((result) => (
           <span key={result} className="skeleton-bar h-8 w-19 rounded-m" />
         ))}
