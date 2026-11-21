@@ -3,8 +3,10 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useTransition } from 'react'
 import { OrganizationSelector } from '@/components/ui/Gnb/organizationSelector'
+import { COMING_SOON_TOAST } from '@/features/organization/constants'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { saveCurrentOrganization } from '@/features/organization/server/saveCurrentOrganization'
+import { useToast } from '@/providers/toastProvider'
 
 // TODO: 회원가입의 단체 생성 화면이 생기면 그 경로로 변경
 const NO_ORGANIZATION_REDIRECT_PATH = '/postings'
@@ -15,6 +17,7 @@ type OrganizationSwitcherProps = {
 
 function OrganizationSwitcher({ savedOrganizationId }: OrganizationSwitcherProps) {
   const router = useRouter()
+  const { showToast } = useToast()
   const { meQuery, organizations, currentOrganizationId } =
     useCurrentOrganization(savedOrganizationId)
   const [, startTransition] = useTransition()
@@ -34,6 +37,11 @@ function OrganizationSwitcher({ savedOrganizationId }: OrganizationSwitcherProps
     startTransition(() => saveCurrentOrganization(organizationId))
   }
 
+  // TODO: 새 단체 등록은 createOrganization, 대표 인수는 화면 확정 후 연결
+  function showComingSoon() {
+    showToast(COMING_SOON_TOAST)
+  }
+
   if (!currentOrganizationId) {
     return null
   }
@@ -43,6 +51,8 @@ function OrganizationSwitcher({ savedOrganizationId }: OrganizationSwitcherProps
       organizations={organizations}
       currentOrganizationId={currentOrganizationId}
       onOrganizationChange={handleOrganizationChange}
+      onCreateOrganization={showComingSoon}
+      onTakeOverRepresentative={showComingSoon}
     />
   )
 }

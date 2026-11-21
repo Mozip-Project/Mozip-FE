@@ -5,6 +5,7 @@ import { HttpResponse } from 'msw'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { OrganizationMembersContent } from './organizationMembersContent'
 
 function renderMembers(savedOrganizationId?: string) {
@@ -12,7 +13,9 @@ function renderMembers(savedOrganizationId?: string) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <OrganizationMembersContent savedOrganizationId={savedOrganizationId} />
+      <ToastProvider>
+        <OrganizationMembersContent savedOrganizationId={savedOrganizationId} />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
@@ -65,5 +68,24 @@ describe('OrganizationMembersContent', () => {
     await user.click(screen.getByRole('button', { name: '다시 시도' }))
 
     expect(await screen.findByRole('heading', { name: '운영진 4명' })).toBeInTheDocument()
+  })
+
+  it('운영진 초대하기는 준비 중 안내', async () => {
+    const user = userEvent.setup()
+    renderMembers()
+
+    await user.click(screen.getByRole('button', { name: '운영진 초대하기' }))
+
+    expect(await screen.findByText('준비 중인 기능이에요')).toBeInTheDocument()
+  })
+
+  it('대표자 변경은 준비 중 안내', async () => {
+    const user = userEvent.setup()
+    renderMembers()
+
+    await user.click(await screen.findByRole('button', { name: '김하준 관리 메뉴' }))
+    await user.click(await screen.findByRole('menuitem', { name: '대표자 변경' }))
+
+    expect(await screen.findByText('준비 중인 기능이에요')).toBeInTheDocument()
   })
 })

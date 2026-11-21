@@ -20,12 +20,16 @@ type OrganizationSelectorProps = {
   organizations: readonly OrganizationOption[]
   currentOrganizationId: string
   onOrganizationChange: (organizationId: string) => void
+  onCreateOrganization: () => void
+  onTakeOverRepresentative: () => void
 }
 
 function OrganizationSelector({
   organizations,
   currentOrganizationId,
   onOrganizationChange,
+  onCreateOrganization,
+  onTakeOverRepresentative,
 }: OrganizationSelectorProps) {
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
   const currentName =
@@ -59,10 +63,11 @@ function OrganizationSelector({
         onValueChange={onOrganizationChange}
         sideOffset={ORGANIZATION_MENU_SIDE_OFFSET_PX}
         actions={
-          // TODO: 새 단체 등록·대표 인수 화면 확정 후 연결
           <>
-            <DropdownMenuItem>새 단체 등록</DropdownMenuItem>
-            <DropdownMenuItem>기존 단체 대표 인수</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onCreateOrganization}>새 단체 등록</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onTakeOverRepresentative}>
+              기존 단체 대표 인수
+            </DropdownMenuItem>
           </>
         }
       />

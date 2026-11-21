@@ -86,6 +86,8 @@ export const Organizer: Story = {
             organizations={ORGANIZATIONS}
             currentOrganizationId="1"
             onOrganizationChange={() => undefined}
+            onCreateOrganization={() => undefined}
+            onTakeOverRepresentative={() => undefined}
           />
           {NOTIFICATION_TRIGGER}
           <ProfileMenu mode="organizer" {...PROFILE_MENU_PROPS} />
