@@ -6,6 +6,7 @@ import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { SaveStatus, type SaveState } from '@/components/ui/SaveStatus/saveStatus'
+import { StepList } from '@/components/ui/StepList/stepList'
 import {
   EMPTY_POSTING_CREATE,
   type PostingCreateValues,
@@ -27,7 +28,6 @@ import {
   resizeQuestionSets,
 } from '@/features/posting/utils/postingQuestions'
 import { useToast } from '@/providers/toastProvider'
-import { PostingCreateStepList } from './postingCreateStepList'
 import { PostingFormStep } from './postingFormStep/postingFormStep'
 import { PostingInfoStep } from './postingInfoStep/postingInfoStep'
 import { PostingInterviewStep } from './postingInterviewStep/postingInterviewStep'
@@ -87,14 +87,9 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
     })
   }
 
-  // 한 번 다녀온 단계까지, 그 앞 단계가 모두 통과 조건을 만족할 때만 이동 가능
-  function canSelectStep(index: number) {
-    if (index === stepIndex || index > furthestIndex) {
-      return false
-    }
-    return steps
-      .slice(0, index)
-      .every((step) => getStepSchema(step.id, hasInterview)?.safeParse(values).success ?? true)
+  // 검사할 스키마가 없는 단계는 통과
+  function isStepComplete(index: number) {
+    return getStepSchema(steps[index]?.id, hasInterview)?.safeParse(values).success ?? true
   }
 
   // 지원서 양식으로 들어갈 때 포지션 수에 맞춰 문항 묶음 정리
@@ -163,11 +158,11 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
         }
       />
       <div className="flex items-center justify-between gap-gap-l">
-        <PostingCreateStepList
+        <StepList
+          label="공고 작성 단계"
           steps={steps}
           currentIndex={stepIndex}
-          canSelectStep={canSelectStep}
-          onStepSelect={moveToStep}
+          stepSelection={{ furthestIndex, isStepComplete, onSelect: moveToStep }}
         />
         <SaveStatus {...saveState} />
       </div>

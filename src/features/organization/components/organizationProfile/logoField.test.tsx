@@ -48,7 +48,7 @@ describe('LogoField', () => {
 
     expect(screen.queryByRole('img', { name: '선택한 로고' })).not.toBeInTheDocument()
     expect(resetButton).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '이미지 업로드' })).toHaveFocus()
+    expect(screen.getByLabelText('이미지 업로드')).toHaveFocus()
     expect(revokeObjectURL).toHaveBeenCalledWith(PREVIEW_URL)
   })
 

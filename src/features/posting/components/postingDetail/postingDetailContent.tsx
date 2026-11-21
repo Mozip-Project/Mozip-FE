@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
 import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
 import { getSeoulIsoDate } from '@/utils/date'
 import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
 import { PostingDetailTabs } from './postingDetailTabs'
@@ -49,10 +51,15 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
             <div className="flex items-center gap-gap-m">
               <RecruitmentStatusBadge phase={phase} />
               <div id={HEADER_APPLY_CTA_ID}>
-                {/* TODO: 지원서 작성 경로 확정 후 이동 연결 */}
-                <Button size="m" disabled={phase.status !== 'open'}>
-                  {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}
-                </Button>
+                {phase.status === 'open' ? (
+                  <Button asChild size="m">
+                    <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
+                  </Button>
+                ) : (
+                  <Button size="m" disabled>
+                    {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}
+                  </Button>
+                )}
               </div>
             </div>
           }
@@ -75,6 +82,7 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
 
       {phase.status === 'open' && (
         <PostingApplyBar
+          postingId={postingId}
           title={detail.title}
           recruitmentEndsAt={detail.recruitmentEndsAt}
           phase={phase}

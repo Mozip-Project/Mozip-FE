@@ -6,6 +6,7 @@ import { useController, useWatch, type Control } from 'react-hook-form'
 import CalendarIcon from '@/assets/icons/calendar.svg'
 import { Button } from '@/components/ui/Button/button'
 import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
+import { SelectField } from '@/components/ui/SelectField/selectField'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
 import {
   INTERVIEW_APPLICANT_COUNTS,
@@ -21,7 +22,6 @@ import { useToast } from '@/providers/toastProvider'
 import { formatMonthDayWithWeekday } from '@/utils/date'
 import { InterviewDateStrip } from './interviewDateStrip'
 import { InterviewTimetable } from './interviewTimetable'
-import { SelectField } from '../fields/selectField'
 
 function toUnitOptions<TValue extends string>(values: readonly TValue[], unit: string) {
   return values.map((value) => ({ value, label: `${value}${unit}` }))

@@ -5,4 +5,8 @@ function getPostingDetailPath(postingId: string) {
   return `/postings/${postingId}` as Route
 }
 
-export { getPostingDetailPath }
+function getPostingApplyPath(postingId: string) {
+  return `/postings/${postingId}/apply` as Route
+}
+
+export { getPostingApplyPath, getPostingDetailPath }

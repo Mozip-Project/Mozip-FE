@@ -190,6 +190,8 @@ type PostingDetail = {
   content: PostingContentBlock[]
   questions: PostingQuestion[]
   application: PostingApplication
+  // 운영진 공고 작성의 "프로필 사진 필수" 설정
+  requiresProfilePhoto: boolean
 }
 
 export {

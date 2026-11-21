@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ImageUploadField } from '@/components/ui/ImageUploadField/imageUploadField'
 
 describe('ImageUploadField', () => {
-  it('업로드·초기화 버튼을 label 이름의 묶음으로 연결', () => {
+  it('업로드 입력을 label 이름의 묶음으로 연결', () => {
     render(
       <ImageUploadField
         value={null}
@@ -14,7 +14,7 @@ describe('ImageUploadField', () => {
     )
 
     expect(screen.getByRole('group', { name: '프로필 이미지' })).toContainElement(
-      screen.getByRole('button', { name: '이미지 업로드' }),
+      screen.getByLabelText('이미지 업로드'),
     )
   })
 })

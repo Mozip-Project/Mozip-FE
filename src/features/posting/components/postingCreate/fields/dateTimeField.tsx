@@ -1,4 +1,6 @@
 import { useId } from 'react'
+import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
+import { SelectField } from '@/components/ui/SelectField/selectField'
 import { cn } from '@/lib/utils'
 import {
   createTimeOptions,
@@ -7,8 +9,6 @@ import {
   type TimeOptionType,
 } from '@/utils/time'
 import { DateField } from './dateField'
-import { FieldLabel } from './fieldLabel'
-import { SelectField } from './selectField'
 
 const TIME_OPTION_INTERVAL_MINUTES = 30
 

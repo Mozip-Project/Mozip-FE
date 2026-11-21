@@ -1,5 +1,7 @@
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
 import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
 import { formatMonthDayTimeWithWeekday } from '@/utils/date'
 import { PostingApplyBarReveal } from './postingApplyBarReveal'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
@@ -8,12 +10,13 @@ import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 const HEADER_APPLY_CTA_ID = 'posting-header-apply-cta'
 
 type PostingApplyBarProps = {
+  postingId: string
   title: string
   recruitmentEndsAt: string
   phase: PostingRecruitmentPhase
 }
 
-function PostingApplyBar({ title, recruitmentEndsAt, phase }: PostingApplyBarProps) {
+function PostingApplyBar({ postingId, title, recruitmentEndsAt, phase }: PostingApplyBarProps) {
   return (
     <PostingApplyBarReveal targetId={HEADER_APPLY_CTA_ID}>
       <div className="flex items-center gap-gap-l rounded-l border border-neutral-subtle bg-layer-default px-padding-xl py-padding-m shadow-floating">
@@ -28,8 +31,9 @@ function PostingApplyBar({ title, recruitmentEndsAt, phase }: PostingApplyBarPro
           </p>
         </div>
 
-        {/* TODO: 지원서 작성 경로 확정 후 이동 연결 */}
-        <Button size="m">지원하기</Button>
+        <Button asChild size="m">
+          <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
+        </Button>
       </div>
     </PostingApplyBarReveal>
   )
