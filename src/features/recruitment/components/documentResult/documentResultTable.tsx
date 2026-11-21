@@ -15,7 +15,6 @@ import type { ReactNode } from 'react'
 const TABLE_LABEL = '서류 평가 취합 결과'
 
 type DocumentResultTableProps = {
-  hasScore: boolean
   isConfirmed: boolean
   applicants: readonly DocumentResultApplicant[]
   onResultChange: (applicantId: string, result: DocumentResult) => void
@@ -25,18 +24,13 @@ type DocumentResultTableProps = {
 
 // TODO: 운영진 의견 페이지 경로 확정 후 행 클릭 이동 연결
 function DocumentResultTable({
-  hasScore,
   isConfirmed,
   applicants,
   onResultChange,
   emptyState,
 }: DocumentResultTableProps) {
   return (
-    <ResultTable
-      label={TABLE_LABEL}
-      hasScore={hasScore}
-      emptyState={applicants.length === 0 && emptyState}
-    >
+    <ResultTable label={TABLE_LABEL} emptyState={applicants.length === 0 && emptyState}>
       {applicants.map((applicant) => (
         <ResultTableRow
           key={applicant.id}
@@ -62,15 +56,8 @@ function DocumentResultTable({
   )
 }
 
-function DocumentResultSkeletonTable({ hasScore }: { hasScore: boolean }) {
-  return (
-    <ResultTable
-      label={TABLE_LABEL}
-      hasScore={hasScore}
-      isLoading
-      loadingRowCount={DOCUMENT_RESULT_PAGE_SIZE}
-    />
-  )
+function DocumentResultSkeletonTable() {
+  return <ResultTable label={TABLE_LABEL} isLoading loadingRowCount={DOCUMENT_RESULT_PAGE_SIZE} />
 }
 
 export { DocumentResultSkeletonTable, DocumentResultTable }
