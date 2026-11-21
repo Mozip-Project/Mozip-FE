@@ -22,7 +22,7 @@ import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import { ApiError } from '@/lib/apiError'
 import { useToast } from '@/providers/toastProvider'
 import { ActivityCategoryField } from './activityCategoryField'
-import { KeywordField } from './keywordField'
+import { KeywordSuggestionField } from './keywordSuggestionField'
 import { LinkField } from './linkField'
 import { LogoField } from './logoField'
 
@@ -148,8 +148,7 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
           name="keywords"
           control={control}
           render={({ field }) => (
-            // TODO: 키워드 추천 API 확정 후 추천 목록 연결
-            <KeywordField value={field.value} onChange={field.onChange} suggestions={[]} />
+            <KeywordSuggestionField value={field.value} onChange={field.onChange} />
           )}
         />
         <LinkField control={control} />
