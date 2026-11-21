@@ -55,6 +55,7 @@ function ApplicationInfoStep({
             render={({ field }) => (
               <RadioGroup
                 aria-labelledby={positionTitleId}
+                required
                 value={field.value}
                 onValueChange={field.onChange}
                 className="flex-col"
