@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveCurrentOrganizationId } from './currentOrganization'
+import { resolveCurrentOrganizationId, toUniqueOrganizations } from './currentOrganization'
 
 function createMembership(organizationId: string) {
   return {
@@ -45,5 +45,16 @@ describe('resolveCurrentOrganizationId', () => {
     expect(
       resolveCurrentOrganizationId('1', { lastOrganization: { id: '1' }, memberships: [] }),
     ).toBeNull()
+  })
+})
+
+describe('toUniqueOrganizations', () => {
+  it('같은 단체가 여러 번 와도 한 번만, 처음 나온 순서 유지', () => {
+    expect(
+      toUniqueOrganizations([createMembership('2'), createMembership('1'), createMembership('2')]),
+    ).toEqual([
+      { id: '2', name: '단체 2' },
+      { id: '1', name: '단체 1' },
+    ])
   })
 })
