@@ -5,8 +5,38 @@ import type {
 import type {
   OrganizationField,
   OrganizationProfileFieldsFragment,
+  OrganizationScope,
+  OrganizationType,
   UpdateOrganizationInput,
 } from '@/gql/graphql'
+
+const ORGANIZATION_TYPE_LABEL = {
+  CLUB: '동아리',
+  ACADEMIC: '학회',
+  STUDENT_COUNCIL: '학생회',
+} satisfies Record<OrganizationType, string>
+
+const ORGANIZATION_SCOPE_LABEL = {
+  CAMPUS: '교내',
+  UNION: '연합',
+} satisfies Record<OrganizationScope, string>
+
+type OrganizationSummary = {
+  type: string
+  scope: string
+  // 연합 단체는 학교가 없어 학교 칸을 숨김
+  school: string | null
+}
+
+function toOrganizationSummary(
+  organization: Pick<OrganizationProfileFieldsFragment, 'type' | 'scope' | 'school'>,
+): OrganizationSummary {
+  return {
+    type: ORGANIZATION_TYPE_LABEL[organization.type],
+    scope: ORGANIZATION_SCOPE_LABEL[organization.scope],
+    school: organization.school?.name ?? null,
+  }
+}
 
 const ACTIVITY_CATEGORY_BY_FIELD = {
   ACADEMIC_STUDY: '학술 · 스터디',
@@ -95,7 +125,8 @@ function toProfileFieldErrors(fieldErrors: readonly { field: string; message: st
 export {
   isStudentCouncil,
   toOrganizationProfileValues,
+  toOrganizationSummary,
   toProfileFieldErrors,
   toUpdateOrganizationInput,
 }
-export type { ProfileFieldPath }
+export type { OrganizationSummary, ProfileFieldPath }

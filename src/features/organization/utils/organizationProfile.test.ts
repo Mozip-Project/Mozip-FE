@@ -7,6 +7,7 @@ import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import {
   isStudentCouncil,
   toOrganizationProfileValues,
+  toOrganizationSummary,
   toProfileFieldErrors,
   toUpdateOrganizationInput,
 } from './organizationProfile'
@@ -15,6 +16,8 @@ const organization: OrganizationProfileFieldsFragment = {
   id: '1',
   name: 'UXUX',
   type: 'CLUB',
+  scope: 'CAMPUS',
+  school: { name: '과학기술연합대학원대학교' },
   logoUrl: 'https://example.com/logo.png',
   tagline: '사용자 경험을 연구하는 동아리',
   fields: ['DESIGN_MEDIA', 'IT_DEV'],
@@ -125,5 +128,23 @@ describe('toProfileFieldErrors', () => {
       { path: 'keywords', message: '키워드 오류' },
       { path: 'categories', message: '분야 오류' },
     ])
+  })
+})
+
+describe('toOrganizationSummary', () => {
+  it('단체 유형·공고 범위·학교를 화면 문구로 변환', () => {
+    expect(toOrganizationSummary(organization)).toEqual({
+      type: '동아리',
+      scope: '교내',
+      school: '과학기술연합대학원대학교',
+    })
+  })
+
+  it('연합 단체는 학교 없음', () => {
+    expect(toOrganizationSummary({ type: 'ACADEMIC', scope: 'UNION', school: null })).toEqual({
+      type: '학회',
+      scope: '연합',
+      school: null,
+    })
   })
 })

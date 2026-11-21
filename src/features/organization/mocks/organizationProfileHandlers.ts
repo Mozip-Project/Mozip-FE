@@ -23,13 +23,15 @@ const DEFAULT_SUGGESTION_LIMIT = 5
 const SAMPLE_LOGO_URL =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"%3E%3Crect width="240" height="240" fill="%23e8f0ff"/%3E%3Ctext x="120" y="140" font-size="64" text-anchor="middle" fill="%23356af5"%3EUX%3C/text%3E%3C/svg%3E'
 
-// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 단체 2는 로고 없는 학생회
+// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 단체 2는 로고·학교 없는 연합 학생회
 function createInitialOrganizations(): Record<string, OrganizationProfileFieldsFragment> {
   return {
     '1': {
       id: '1',
       name: 'UXUX',
       type: 'CLUB',
+      scope: 'CAMPUS',
+      school: { name: '과학기술연합대학원대학교' },
       logoUrl: SAMPLE_LOGO_URL,
       tagline: '사용자 경험을 연구하고 만드는 동아리',
       fields: ['DESIGN_MEDIA', 'IT_DEV'],
@@ -40,6 +42,8 @@ function createInitialOrganizations(): Record<string, OrganizationProfileFieldsF
       id: '2',
       name: '멋쟁이개발자',
       type: 'STUDENT_COUNCIL',
+      scope: 'UNION',
+      school: null,
       logoUrl: null,
       tagline: null,
       fields: [],

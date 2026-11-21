@@ -17,6 +17,10 @@ fragment OrganizationProfileFields on Organization {
   id
   name
   type
+  scope
+  school {
+    name
+  }
   logoUrl
   tagline
   fields

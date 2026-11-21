@@ -18,6 +18,8 @@ const EMPTY_ORGANIZATION: OrganizationProfileFieldsFragment = {
   id: '1',
   name: '샘플 단체',
   type: 'CLUB',
+  scope: 'CAMPUS',
+  school: { name: '샘플대학교' },
   logoUrl: null,
   tagline: null,
   fields: [],

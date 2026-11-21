@@ -15,6 +15,7 @@ import {
 import {
   isStudentCouncil,
   toOrganizationProfileValues,
+  toOrganizationSummary,
   toProfileFieldErrors,
   toUpdateOrganizationInput,
   type ProfileFieldPath,
@@ -26,6 +27,7 @@ import { ActivityCategoryField } from './activityCategoryField'
 import { KeywordSuggestionField } from './keywordSuggestionField'
 import { LinkField } from './linkField'
 import { LogoField } from './logoField'
+import { OrganizationSummary } from './organizationSummary'
 
 // 오류 문구 자리가 있는 입력, 나머지 서버 오류는 토스트로 안내
 const INLINE_ERROR_PATHS: readonly ProfileFieldPath[] = ['introduction', 'links.0.url']
@@ -121,55 +123,58 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
           </Button>
         }
       />
-      {/* 저장 중 입력이 응답 후 reset으로 덮어써지지 않도록 모든 입력 잠금 */}
-      <fieldset
-        disabled={isSubmitting}
-        className="flex min-w-0 flex-col gap-gap-xl bg-layer-default p-padding-xl"
-      >
-        <Controller
-          name="logo"
-          control={control}
-          render={({ field }) => (
-            <LogoField
-              value={field.value}
-              onChange={field.onChange}
-              savedLogoUrl={organization.logoUrl}
-            />
-          )}
-        />
-        <TextField
-          label="단체명"
-          helper="단체명 변경은 관리자에게 문의해 주세요"
-          defaultValue={organization.name}
-          disabled
-        />
-        <TextField
-          {...register('introduction')}
-          label={`한 줄 소개 (최대 ${INTRODUCTION_MAX_LENGTH}자)`}
-          placeholder="단체 소개를 입력해 주세요"
-          maxLength={INTRODUCTION_MAX_LENGTH}
-          aria-invalid={isIntroductionAtMax || introductionServerError !== undefined}
-          helper={introductionHelper}
-          required
-        />
-        {!isStudentCouncilOrganization && (
+      <div className="flex flex-col gap-gap-s">
+        <OrganizationSummary summary={toOrganizationSummary(organization)} />
+        {/* 저장 중 입력이 응답 후 reset으로 덮어써지지 않도록 모든 입력 잠금 */}
+        <fieldset
+          disabled={isSubmitting}
+          className="flex min-w-0 flex-col gap-gap-xl bg-layer-default p-padding-xl"
+        >
           <Controller
-            name="categories"
+            name="logo"
             control={control}
             render={({ field }) => (
-              <ActivityCategoryField value={field.value} onChange={field.onChange} />
+              <LogoField
+                value={field.value}
+                onChange={field.onChange}
+                savedLogoUrl={organization.logoUrl}
+              />
             )}
           />
-        )}
-        <Controller
-          name="keywords"
-          control={control}
-          render={({ field }) => (
-            <KeywordSuggestionField value={field.value} onChange={field.onChange} />
+          <TextField
+            label="단체명"
+            helper="단체명 변경은 관리자에게 문의해 주세요"
+            defaultValue={organization.name}
+            disabled
+          />
+          <TextField
+            {...register('introduction')}
+            label={`한 줄 소개 (최대 ${INTRODUCTION_MAX_LENGTH}자)`}
+            placeholder="단체 소개를 입력해 주세요"
+            maxLength={INTRODUCTION_MAX_LENGTH}
+            aria-invalid={isIntroductionAtMax || introductionServerError !== undefined}
+            helper={introductionHelper}
+            required
+          />
+          {!isStudentCouncilOrganization && (
+            <Controller
+              name="categories"
+              control={control}
+              render={({ field }) => (
+                <ActivityCategoryField value={field.value} onChange={field.onChange} />
+              )}
+            />
           )}
-        />
-        <LinkField control={control} />
-      </fieldset>
+          <Controller
+            name="keywords"
+            control={control}
+            render={({ field }) => (
+              <KeywordSuggestionField value={field.value} onChange={field.onChange} />
+            )}
+          />
+          <LinkField control={control} />
+        </fieldset>
+      </div>
     </form>
   )
 }

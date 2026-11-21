@@ -44,6 +44,11 @@ export type OrganizationLinkInput = {
   url: string;
 };
 
+/** 교내 / 연합 (연합이면 학교 없음) */
+export type OrganizationScope =
+  | 'CAMPUS'
+  | 'UNION';
+
 /** 단체, 팀, 운영진, 초대, 대표자 인수 */
 export type OrganizationType =
   | 'ACADEMIC'
@@ -96,14 +101,14 @@ export type OrganizationMembersQueryVariables = Exact<{
 
 export type OrganizationMembersQuery = { members: Array<{ id: string, role: MemberRole, createdAt: string, user: { id: string, name: string }, team: { name: string } | null }> };
 
-export type OrganizationProfileFieldsFragment = { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> };
+export type OrganizationProfileFieldsFragment = { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> };
 
 export type OrganizationProfileQueryVariables = Exact<{
   id: string | number;
 }>;
 
 
-export type OrganizationProfileQuery = { organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> } };
+export type OrganizationProfileQuery = { organization: { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> } };
 
 export type UpdateOrganizationMutationVariables = Exact<{
   id: string | number;
@@ -111,7 +116,7 @@ export type UpdateOrganizationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOrganizationMutation = { updateOrganization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, links: Array<{ id: string, url: string }> } };
+export type UpdateOrganizationMutation = { updateOrganization: { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> } };
 
 export type KeywordSuggestionsQueryVariables = Exact<{
   query: string;
@@ -157,6 +162,10 @@ export const OrganizationProfileFieldsFragmentDoc = new TypedDocumentString(`
   id
   name
   type
+  scope
+  school {
+    name
+  }
   logoUrl
   tagline
   fields
@@ -227,6 +236,10 @@ export const OrganizationProfileDocument = new TypedDocumentString(`
   id
   name
   type
+  scope
+  school {
+    name
+  }
   logoUrl
   tagline
   fields
@@ -246,6 +259,10 @@ export const UpdateOrganizationDocument = new TypedDocumentString(`
   id
   name
   type
+  scope
+  school {
+    name
+  }
   logoUrl
   tagline
   fields

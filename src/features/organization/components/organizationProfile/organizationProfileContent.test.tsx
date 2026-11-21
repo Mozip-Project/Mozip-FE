@@ -57,6 +57,8 @@ describe('OrganizationProfileContent', () => {
     )
     expect(screen.getByRole('textbox', { name: '단체명' })).toHaveValue('UXUX')
     expect(screen.getByRole('button', { name: '디자인 · 미디어' })).toBeInTheDocument()
+    expect(screen.getByText('과학기술연합대학원대학교')).toBeInTheDocument()
+    expect(screen.getByText('완료')).toBeInTheDocument()
   })
 
   it('학생회는 활동 분야 없이 표시', async () => {
@@ -64,6 +66,11 @@ describe('OrganizationProfileContent', () => {
 
     expect(await screen.findByRole('textbox', { name: '단체명' })).toHaveValue('멋쟁이개발자')
     expect(screen.queryByRole('button', { name: '디자인 · 미디어' })).not.toBeInTheDocument()
+    expect(screen.getByText('학생회')).toBeInTheDocument()
+    // 연합 단체는 학교 칸 없이 단체 유형·공고 범위·단체 인증만 표시
+    expect(screen.getByText('연합')).toBeInTheDocument()
+    expect(screen.queryByText('학교')).not.toBeInTheDocument()
+    expect(screen.getByText('완료')).toBeInTheDocument()
   })
 
   it('다시 불러오기가 실패해도 편집 중인 폼과 입력값 유지', async () => {
