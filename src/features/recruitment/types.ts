@@ -285,6 +285,15 @@ type RecruitmentProgress =
   | { hasInterview: true; stage: InterviewRecruitmentStage; schedule: RecruitmentSchedule }
   | { hasInterview: false; stage: NoInterviewRecruitmentStage; schedule: RecruitmentSchedule }
 
+// 지원서 작성 화면의 지원자 프로필, 휴대폰 번호는 가운데를 가린 값
+type ApplicantProfile = {
+  name: string
+  savedPhotoUrl: string | null
+  maskedPhone: string
+  university: string
+  email: string
+}
+
 export {
   APPLICANT_MANAGEMENT_PAGE_SIZE,
   APPLICANT_POSITION_TAB_LABEL,
@@ -312,6 +321,7 @@ export {
   RESULT_NOTICE_VARIABLES,
 }
 export type {
+  ApplicantProfile,
   ApplicantManagementPage,
   ApplicantManagementQuery,
   ApplicantPositionTab,

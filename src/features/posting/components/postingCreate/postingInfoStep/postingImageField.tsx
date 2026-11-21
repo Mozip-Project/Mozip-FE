@@ -3,6 +3,7 @@
 import { useId, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import InfoIcon from '@/assets/icons/info.svg'
+import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
 import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
 import {
   POSTING_IMAGE_MAX_SIZE_BYTES,
@@ -12,7 +13,6 @@ import { useObjectUrl } from '@/hooks/useObjectUrl'
 import { useToast } from '@/providers/toastProvider'
 import type { FileRejection } from '@/utils/file'
 import { ImageThumbnail } from './imageThumbnail'
-import { FieldLabel } from '../fields/fieldLabel'
 import { FileUpload } from '../fields/fileUpload'
 
 const INFO_POPOVER_OFFSET_PX = 9

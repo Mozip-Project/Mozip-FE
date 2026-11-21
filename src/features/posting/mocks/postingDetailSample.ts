@@ -17,6 +17,8 @@ const POSTING_DETAIL_SAMPLE_ID = {
   partiallyApplied: 'uxux-14-partially-applied',
   fullyApplied: 'uxux-14-fully-applied',
   missingInfo: 'uxux-14-missing-info',
+  // 지원서 작성 "프로필 이미지 필수" 확인용
+  photoRequired: 'uxux-14-photo-required',
   supporters: 'uxux-supporters',
   direct: 'sw-council-staff',
   directApplied: 'sw-council-staff-applied',
@@ -201,6 +203,7 @@ function createUxuxDetail(
     content: UXUX_CONTENT,
     questions: [],
     application: { type: 'byPosition', positions: getUxuxPositions() },
+    requiresProfilePhoto: false,
     ...overrides,
   }
 }
@@ -235,6 +238,7 @@ function createSwCouncilDetail(
       },
     ],
     application,
+    requiresProfilePhoto: false,
   }
 }
 
@@ -268,6 +272,8 @@ function getPostingDetailSample(postingId: string, today: string): PostingDetail
         membershipFee: null,
         finalResultDate: null,
       })
+    case ID.photoRequired:
+      return createUxuxDetail(postingId, today, openEndDate, { requiresProfilePhoto: true })
     case ID.supporters:
       return createUxuxDetail(
         postingId,
