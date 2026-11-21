@@ -1,7 +1,13 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
+import { HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { resetOrganizationProfiles } from '@/features/organization/mocks/organizationProfileHandlers'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
+import { graphqlApi } from '@/mocks/graphqlApi'
+import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { OrganizationProfileForm } from './organizationProfileForm'
 
 // 아직 아무것도 저장하지 않은 단체
@@ -17,12 +23,27 @@ const EMPTY_ORGANIZATION: OrganizationProfileFieldsFragment = {
 }
 
 function renderForm(isStudentCouncil: boolean, organization = EMPTY_ORGANIZATION) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const { container } = render(
-    <OrganizationProfileForm
-      organization={{ ...organization, type: isStudentCouncil ? 'STUDENT_COUNCIL' : 'CLUB' }}
-    />,
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <OrganizationProfileForm
+          organization={{ ...organization, type: isStudentCouncil ? 'STUDENT_COUNCIL' : 'CLUB' }}
+        />
+      </ToastProvider>
+    </QueryClientProvider>,
   )
   return container
+}
+
+function failUpdateOnce(extensions: Record<string, unknown>) {
+  server.use(
+    graphqlApi.mutation(
+      'UpdateOrganization',
+      () => HttpResponse.json({ errors: [{ message: '저장 실패', extensions }], data: null }),
+      { once: true },
+    ),
+  )
 }
 
 async function fillRequiredWithoutCategories(user: UserEvent, container: HTMLElement) {
@@ -40,12 +61,15 @@ async function fillRequiredWithoutCategories(user: UserEvent, container: HTMLEle
 
 describe('OrganizationProfileForm', () => {
   beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:logo')
     vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllEnvs()
+    resetOrganizationProfiles()
   })
 
   it('학생회 외는 활동 분야까지 선택해야 저장 활성', async () => {
@@ -84,6 +108,48 @@ describe('OrganizationProfileForm', () => {
 
     await user.click(saveButton)
     await waitFor(() => expect(saveButton).toBeDisabled())
+  })
+
+  it('저장하면 완료 안내, 링크는 https가 붙은 저장값으로 바뀜', async () => {
+    const user = userEvent.setup()
+    const container = renderForm(true)
+
+    await fillRequiredWithoutCategories(user, container)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('단체 프로필을 저장했어요')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'SNS/웹사이트 링크' })).toHaveValue(
+      'https://instagram.com/a',
+    )
+  })
+
+  it('서버 입력 오류는 해당 입력에 표시하고 포커스 이동', async () => {
+    const user = userEvent.setup()
+    const container = renderForm(true)
+    failUpdateOnce({
+      code: 'ORG_400',
+      fieldErrors: [{ field: 'tagline', message: '한 줄 소개를 확인해 주세요.' }],
+    })
+
+    await fillRequiredWithoutCategories(user, container)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    const introduction = screen.getByRole('textbox', { name: /한 줄 소개/ })
+    expect(await screen.findByText('한 줄 소개를 확인해 주세요.')).toBeInTheDocument()
+    expect(introduction).toHaveAttribute('aria-invalid', 'true')
+    expect(introduction).toHaveFocus()
+  })
+
+  it('그 밖의 저장 실패는 안내 후 다시 저장 가능', async () => {
+    const user = userEvent.setup()
+    const container = renderForm(true)
+    failUpdateOnce({ code: 'COMMON_500' })
+
+    await fillRequiredWithoutCategories(user, container)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('단체 프로필을 저장하지 못했어요')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '저장' })).toBeEnabled()
   })
 
   it('저장된 값으로 채워지고, 저장된 로고가 있으면 바꾼 항목만으로 저장 활성', async () => {

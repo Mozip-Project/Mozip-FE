@@ -73,4 +73,29 @@ function toUpdateOrganizationInput(
   }
 }
 
-export { isStudentCouncil, toOrganizationProfileValues, toUpdateOrganizationInput }
+type ProfileFieldPath = 'introduction' | 'categories' | 'keywords' | 'links.0.url'
+
+// 서버 입력 필드 이름 → 폼 입력 위치, 링크는 어느 칸인지 알 수 없어 첫 칸에 표시
+const PROFILE_FIELD_BY_SERVER_FIELD: Record<string, ProfileFieldPath> = {
+  tagline: 'introduction',
+  fields: 'categories',
+  keywords: 'keywords',
+  links: 'links.0.url',
+}
+
+function toProfileFieldErrors(fieldErrors: readonly { field: string; message: string }[]) {
+  return fieldErrors.flatMap(({ field, message }) => {
+    // links[0].url처럼 와도 앞부분 이름으로 판단
+    const serverField = field.split(/[.[]/)[0] ?? field
+    const path = PROFILE_FIELD_BY_SERVER_FIELD[serverField]
+    return path ? [{ path, message }] : []
+  })
+}
+
+export {
+  isStudentCouncil,
+  toOrganizationProfileValues,
+  toProfileFieldErrors,
+  toUpdateOrganizationInput,
+}
+export type { ProfileFieldPath }

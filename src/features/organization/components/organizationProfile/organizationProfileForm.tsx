@@ -1,11 +1,11 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { TextField } from '@/components/ui/TextField/textField'
+import { useUpdateOrganizationMutation } from '@/features/organization/api/organizer/queries'
 import {
   INTRODUCTION_MAX_LENGTH,
   createOrganizationProfileSchema,
@@ -14,12 +14,20 @@ import {
 import {
   isStudentCouncil,
   toOrganizationProfileValues,
+  toProfileFieldErrors,
+  toUpdateOrganizationInput,
+  type ProfileFieldPath,
 } from '@/features/organization/utils/organizationProfile'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
+import { ApiError } from '@/lib/apiError'
+import { useToast } from '@/providers/toastProvider'
 import { ActivityCategoryField } from './activityCategoryField'
 import { KeywordField } from './keywordField'
 import { LinkField } from './linkField'
 import { LogoField } from './logoField'
+
+// 오류 문구 자리가 있는 입력, 나머지 서버 오류는 토스트로 안내
+const INLINE_ERROR_PATHS: readonly ProfileFieldPath[] = ['introduction', 'links.0.url']
 
 type OrganizationProfileFormProps = {
   // 단체가 바뀌면 호출부에서 key로 폼을 새로 만듦
@@ -28,13 +36,15 @@ type OrganizationProfileFormProps = {
 
 function OrganizationProfileForm({ organization }: OrganizationProfileFormProps) {
   const isStudentCouncilOrganization = isStudentCouncil(organization)
+  const { showToast } = useToast()
+  const updateOrganization = useUpdateOrganizationMutation(organization.id)
   const {
     control,
     register,
     handleSubmit,
-    getValues,
     reset,
-    formState: { isValid, isDirty, isSubmitSuccessful },
+    setError,
+    formState: { isValid, isDirty, isSubmitting, errors },
   } = useForm<OrganizationProfileValues>({
     mode: 'onChange',
     resolver: zodResolver(
@@ -45,20 +55,47 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     ),
     defaultValues: toOrganizationProfileValues(organization),
   })
-  const canSave = isValid && isDirty
+  const canSave = isValid && isDirty && !isSubmitting
   // 최대 글자수에 도달하면 더 입력되지 않으므로 안내만 표시
   const isIntroductionAtMax =
     useWatch({ control, name: 'introduction' }).length >= INTRODUCTION_MAX_LENGTH
+  const introductionServerError =
+    errors.introduction?.type === 'server' ? errors.introduction.message : undefined
+  const introductionHelper =
+    introductionServerError ??
+    (isIntroductionAtMax ? `최대 ${INTRODUCTION_MAX_LENGTH}자까지 입력할 수 있어요` : undefined)
 
-  // 저장한 값을 새 기준으로 삼아 다시 바꿀 때까지 저장 비활성
-  useEffect(() => {
-    if (isSubmitSuccessful) {
-      reset(getValues())
+  async function handleSave(values: OrganizationProfileValues) {
+    try {
+      const saved = await updateOrganization.mutateAsync(
+        toUpdateOrganizationInput(values, isStudentCouncilOrganization),
+      )
+      // 서버가 정리한 값(https 링크 등)을 새 기준으로 삼아 다시 바꿀 때까지 저장 비활성
+      reset(toOrganizationProfileValues(saved))
+      showToast({ title: '단체 프로필을 저장했어요' })
+    } catch (error) {
+      showSaveError(error)
     }
-  }, [isSubmitSuccessful, getValues, reset])
+  }
 
-  // TODO: 저장 API 연결
-  function handleSave() {}
+  function showSaveError(error: unknown) {
+    const fieldErrors = error instanceof ApiError ? toProfileFieldErrors(error.fieldErrors) : []
+    const inlineErrors = fieldErrors.filter(({ path }) => INLINE_ERROR_PATHS.includes(path))
+    const otherError = fieldErrors.find(({ path }) => !INLINE_ERROR_PATHS.includes(path))
+
+    inlineErrors.forEach(({ path, message }, index) => {
+      setError(path, { type: 'server', message }, { shouldFocus: index === 0 })
+    })
+
+    if (inlineErrors.length > 0 && !otherError) {
+      return
+    }
+    showToast({
+      title: '단체 프로필을 저장하지 못했어요',
+      description: otherError?.message ?? '잠시 후 다시 시도해 주세요',
+      icon: 'alert',
+    })
+  }
 
   return (
     // 검증은 zod가 맡고, 브라우저 기본 검증(https 없는 링크 거부 등) 비활성
@@ -94,12 +131,8 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
           label={`한 줄 소개 (최대 ${INTRODUCTION_MAX_LENGTH}자)`}
           placeholder="단체 소개를 입력해 주세요"
           maxLength={INTRODUCTION_MAX_LENGTH}
-          aria-invalid={isIntroductionAtMax}
-          helper={
-            isIntroductionAtMax
-              ? `최대 ${INTRODUCTION_MAX_LENGTH}자까지 입력할 수 있어요`
-              : undefined
-          }
+          aria-invalid={isIntroductionAtMax || introductionServerError !== undefined}
+          helper={introductionHelper}
           required
         />
         {!isStudentCouncilOrganization && (

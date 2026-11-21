@@ -7,6 +7,7 @@ import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import {
   isStudentCouncil,
   toOrganizationProfileValues,
+  toProfileFieldErrors,
   toUpdateOrganizationInput,
 } from './organizationProfile'
 
@@ -105,5 +106,24 @@ describe('toUpdateOrganizationInput', () => {
 
     expect(new Set(input.fields).size).toBe(ACTIVITY_CATEGORIES.length)
     expect(restored.categories).toEqual([...ACTIVITY_CATEGORIES])
+  })
+})
+
+describe('toProfileFieldErrors', () => {
+  it('서버 필드 이름을 폼 입력 위치로 바꾸고 모르는 필드는 제외', () => {
+    expect(
+      toProfileFieldErrors([
+        { field: 'tagline', message: '소개 오류' },
+        { field: 'links[0].url', message: '링크 오류' },
+        { field: 'keywords', message: '키워드 오류' },
+        { field: 'fields', message: '분야 오류' },
+        { field: 'logoFileKey', message: '로고 오류' },
+      ]),
+    ).toEqual([
+      { path: 'introduction', message: '소개 오류' },
+      { path: 'links.0.url', message: '링크 오류' },
+      { path: 'keywords', message: '키워드 오류' },
+      { path: 'categories', message: '분야 오류' },
+    ])
   })
 })

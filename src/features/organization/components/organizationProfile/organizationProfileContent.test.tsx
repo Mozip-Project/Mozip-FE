@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { resetOrganizationProfiles } from '@/features/organization/mocks/organizationProfileHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { OrganizationProfileContent } from './organizationProfileContent'
 
 function renderProfile(savedOrganizationId?: string) {
@@ -13,7 +14,9 @@ function renderProfile(savedOrganizationId?: string) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <OrganizationProfileContent savedOrganizationId={savedOrganizationId} />
+      <ToastProvider>
+        <OrganizationProfileContent savedOrganizationId={savedOrganizationId} />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }

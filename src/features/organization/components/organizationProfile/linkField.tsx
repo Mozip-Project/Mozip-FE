@@ -42,37 +42,45 @@ function LinkField({ control }: LinkFieldProps) {
             key={item.id}
             name={`links.${index}.url`}
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                ref={(element) => {
-                  field.ref(element)
-                  if (element) {
-                    inputRefs.current.set(item.id, element)
-                  } else {
-                    inputRefs.current.delete(item.id)
+            render={({ field, fieldState }) => {
+              // 빈칸 같은 폼 검증은 저장 버튼 비활성으로 대신하고, 서버 오류만 문구로 표시
+              const serverError =
+                fieldState.error?.type === 'server' ? fieldState.error.message : undefined
+
+              return (
+                <TextField
+                  {...field}
+                  aria-invalid={serverError !== undefined}
+                  helper={serverError}
+                  ref={(element) => {
+                    field.ref(element)
+                    if (element) {
+                      inputRefs.current.set(item.id, element)
+                    } else {
+                      inputRefs.current.delete(item.id)
+                    }
+                  }}
+                  type="url"
+                  label={isFirst ? LINK_LABEL : undefined}
+                  aria-label={isFirst ? undefined : `${LINK_LABEL} ${order}`}
+                  placeholder="SNS 또는 웹사이트 링크를 입력해 주세요"
+                  required={isFirst}
+                  trailing={
+                    canRemove && (
+                      <button
+                        type="button"
+                        aria-label={`${order}번째 링크 삭제`}
+                        onClick={() => handleRemove(index)}
+                        // 20px 아이콘 대신 32px 터치 영역 확보
+                        className="relative flex size-5 cursor-pointer items-center justify-center rounded-s text-neutral-subtle outline-none after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+                      >
+                        <CloseIcon aria-hidden className="size-5" />
+                      </button>
+                    )
                   }
-                }}
-                type="url"
-                label={isFirst ? LINK_LABEL : undefined}
-                aria-label={isFirst ? undefined : `${LINK_LABEL} ${order}`}
-                placeholder="SNS 또는 웹사이트 링크를 입력해 주세요"
-                required={isFirst}
-                trailing={
-                  canRemove && (
-                    <button
-                      type="button"
-                      aria-label={`${order}번째 링크 삭제`}
-                      onClick={() => handleRemove(index)}
-                      // 20px 아이콘 대신 32px 터치 영역 확보
-                      className="relative flex size-5 cursor-pointer items-center justify-center rounded-s text-neutral-subtle outline-none after:absolute after:-inset-1.5 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
-                    >
-                      <CloseIcon aria-hidden className="size-5" />
-                    </button>
-                  )
-                }
-              />
-            )}
+                />
+              )
+            }}
           />
         )
       })}
