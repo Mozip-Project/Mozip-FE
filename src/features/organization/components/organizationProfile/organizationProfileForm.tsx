@@ -40,7 +40,13 @@ function OrganizationProfileForm({ profile }: OrganizationProfileFormProps) {
     formState: { isValid, isDirty, isSubmitSuccessful },
   } = useForm<OrganizationProfileValues>({
     mode: 'onChange',
-    resolver: zodResolver(createOrganizationProfileSchema(profile.isStudentCouncil)),
+    // TODO: 단체 프로필 조회 연결 시 저장된 로고 여부 전달
+    resolver: zodResolver(
+      createOrganizationProfileSchema({
+        isStudentCouncil: profile.isStudentCouncil,
+        hasSavedLogo: false,
+      }),
+    ),
     defaultValues: EMPTY_PROFILE_VALUES,
   })
   const canSave = isValid && isDirty
