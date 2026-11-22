@@ -28,7 +28,18 @@ function getWithdrawErrorMessage(error: Error) {
   return error instanceof ApiError ? error.message : WITHDRAW_FAILED_MESSAGE
 }
 
+type WithdrawMutation = ReturnType<typeof useWithdraw>
+
+// 요청 상태를 다이얼로그 밖에 두고, 요청 중에는 Esc·바깥 클릭으로 닫히지 않게 해 중복 요청 방지
 function WithdrawalDialog() {
+  const withdrawMutation = useWithdraw()
+
+  function preventCloseWhilePending(event: Event) {
+    if (withdrawMutation.isPending) {
+      event.preventDefault()
+    }
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -36,16 +47,23 @@ function WithdrawalDialog() {
           회원 탈퇴
         </Button>
       </DialogTrigger>
-      <DialogContent className="px-padding-xxl pt-padding-xxl">
-        <WithdrawalConfirmForm />
+      <DialogContent
+        onEscapeKeyDown={preventCloseWhilePending}
+        onInteractOutside={preventCloseWhilePending}
+        className="px-padding-xxl pt-padding-xxl"
+      >
+        <WithdrawalConfirmForm withdrawMutation={withdrawMutation} />
       </DialogContent>
     </Dialog>
   )
 }
 
-function WithdrawalConfirmForm() {
+type WithdrawalConfirmFormProps = {
+  withdrawMutation: WithdrawMutation
+}
+
+function WithdrawalConfirmForm({ withdrawMutation }: WithdrawalConfirmFormProps) {
   const [hasConfirmedNotice, setHasConfirmedNotice] = useState(false)
-  const withdrawMutation = useWithdraw()
   const { isPending } = withdrawMutation
 
   return (

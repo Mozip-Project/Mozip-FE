@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -182,6 +182,38 @@ describe('AccountSettingsContent', () => {
       '대표자로 있는 단체가 있어 탈퇴할 수 없습니다.',
     )
     expect(assign).not.toHaveBeenCalled()
+  })
+
+  it('탈퇴 요청 중에는 Esc·바깥 클릭으로 닫히지 않아 다시 열어 중복 요청할 수 없음', async () => {
+    stubLocationAssign()
+    let withdrawRequestCount = 0
+    let releaseWithdraw = () => {}
+    server.use(
+      graphqlApi.mutation('Withdraw', async () => {
+        withdrawRequestCount += 1
+        await new Promise<void>((resolve) => {
+          releaseWithdraw = resolve
+        })
+        return HttpResponse.json({ data: { withdraw: true } })
+      }),
+    )
+    renderAccountSettings()
+    const dialog = await openWithdrawalDialog()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: '탈퇴하기' }))
+    await waitFor(() => expect(withdrawRequestCount).toBe(1))
+    await userEvent.keyboard('{Escape}')
+    // 모달이 열리면 body는 pointer-events: none이라 실제 바깥 영역인 오버레이 클릭
+    const overlay = document.querySelector('[data-slot="dialog-overlay"]')
+    if (!(overlay instanceof HTMLElement)) {
+      throw new Error('다이얼로그 오버레이 없음')
+    }
+    await userEvent.click(overlay)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: '탈퇴하기' })).toBeDisabled()
+    expect(withdrawRequestCount).toBe(1)
+    releaseWithdraw()
   })
 
   it('불러오기에 실패하면 다시 시도로 계정 정보를 다시 불러옴', async () => {
