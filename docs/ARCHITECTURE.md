@@ -159,7 +159,7 @@ Figma 디자인 시스템이 바뀌면 `tokens.css`, 화면 구현에 필요한 
 | 실시간 갱신 | 폴링                  | 면접 보드처럼 다른 사람의 변경을 봐야 하는 화면. 방식 변경은 백엔드와 결정            |
 | UI 문서     | Storybook             | 공용 UI와 핵심 도메인 컴포넌트. 스토리는 컴포넌트 옆 `*.stories.tsx`                  |
 | 서식 편집   | Tiptap                | 공고 내용처럼 제목·굵게·목록 서식을 넣는 입력. 필요한 서식만 켜서 사용(결정 기록 016) |
-| API 목킹    | MSW                   | 개발 서버에서만. 아래 "API 목킹" 참고                                                 |
+| API 목킹    | MSW                   | 환경 변수로 켬. 아래 "API 목킹" 참고                                                  |
 
 설치는 각 라이브러리를 처음 실제로 쓰는 작업에서 합니다.
 
@@ -173,7 +173,8 @@ handler 목록 하나를 브라우저, Next 서버, 테스트가 함께 씁니�
 | Next 서버        | `src/mocks/server.ts`  | `src/instrumentation.ts`의 `register()`                        |
 | Vitest           | `src/mocks/server.ts`  | `src/test/setup.ts`                                            |
 
-- `.env.local`에 `NEXT_PUBLIC_API_MOCKING=enabled`를 두면 `pnpm dev`에서 켜집니다. production build에서는 값과 관계없이 꺼집니다.
+- `NEXT_PUBLIC_API_MOCKING=enabled`일 때만 켜집니다. 로컬은 `.env.local`, 배포는 Vercel 환경 변수에 둡니다. 빌드할 때 값이 코드에 들어가므로 Vercel 값을 바꾸면 다시 배포해야 합니다.
+- 백엔드 API가 배포되기 전까지 Vercel Preview·Production에서도 켜 둡니다. 켜진 동안에는 이미 배포된 API도 MSW 응답으로 바뀌므로, 백엔드 API가 배포되면 Vercel 값을 지워 실제 서버로 전환합니다.
 - handler는 도메인의 `features/<도메인>/mocks/`에 작성하고 `src/mocks/handler.ts`에 추가합니다.
 - GraphQL handler는 `src/mocks/graphqlApi.ts`의 `graphqlApi.query`·`graphqlApi.mutation`으로 작성합니다. msw v3는 `graphql.link(url)`로 만든 link에서만 handler를 만들 수 있습니다.
 - `public/mockServiceWorker.js`는 msw가 만드는 파일이라 직접 고치지 않습니다. msw 버전을 올리면 `pnpm exec msw init`으로 다시 만듭니다.
