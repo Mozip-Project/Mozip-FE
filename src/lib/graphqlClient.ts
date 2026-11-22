@@ -115,4 +115,4 @@ async function requestGraphQL<TResult, TVariables extends Variables>(
   }
 }
 
-export { isNonRetryableError, requestGraphQL }
+export { getGraphQLEndpoint, isNonRetryableError, requestGraphQL }

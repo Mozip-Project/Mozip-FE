@@ -1,11 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button/button'
 import { AccountSettingsSkeleton } from '@/features/mypage/components/accountSettings/accountSettingsSkeleton'
 import { toAccountSettings } from '@/features/mypage/utils/accountSettings'
 import { OrganizationLoadError } from '@/features/organization/components/organizationLoadError/organizationLoadError'
 import { useMyAccountQuery } from '@/features/user/api/queries'
+import { LogoutButton } from './logoutButton'
 import { OrganizationSection } from './organizationSection'
 import { ProfileSection } from './profileSection'
 import { SchoolVerificationSection } from './schoolVerificationSection'
@@ -48,11 +47,8 @@ function AccountSettingsContent() {
   return (
     <div className="flex flex-col gap-gap-l">
       <AccountSettingsSections />
-      {/* TODO: 로그아웃 동작 연결 */}
       <div className="flex justify-end gap-gap-s">
-        <Button variant="secondary" size="m" asChild>
-          <Link href="/">로그아웃</Link>
-        </Button>
+        <LogoutButton />
         <WithdrawalDialog />
       </div>
     </div>
