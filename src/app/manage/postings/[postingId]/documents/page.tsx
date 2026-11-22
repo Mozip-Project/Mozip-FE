@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import {
   DocumentReviewContent,
   DocumentReviewContentFallback,
-} from '@/features/recruitment/components/documentReview/documentReviewContent'
+} from '@/features/recruitment/components/organizer/documentReview/documentReviewContent'
 
 export default function RecruitmentDocumentsPage({
   params,

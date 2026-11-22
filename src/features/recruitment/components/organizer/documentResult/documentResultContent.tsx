@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/Badge/badge'
 import {
   RecruitmentBoard,
   type RecruitmentBoardQueryChange,
-} from '@/features/recruitment/components/recruitmentBoard/recruitmentBoard'
+} from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
 import {
   useDocumentResultOverview,
   useDocumentResultsQuery,

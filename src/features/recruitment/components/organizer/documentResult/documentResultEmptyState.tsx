@@ -1,6 +1,6 @@
 import SearchIcon from '@/assets/icons/search.svg'
-import { RecruitmentBoardFilterEmptyState } from '@/features/recruitment/components/recruitmentBoard/recruitmentBoardFilterEmptyState'
-import { RecruitmentBoardSearchEmptyState } from '@/features/recruitment/components/recruitmentBoard/recruitmentBoardSearchEmptyState'
+import { RecruitmentBoardFilterEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardFilterEmptyState'
+import { RecruitmentBoardSearchEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardSearchEmptyState'
 import type { DocumentResultQuery } from '@/features/recruitment/types'
 import { getDocumentResultFilterEmptyDescription } from '@/features/recruitment/utils/documentResult'
 

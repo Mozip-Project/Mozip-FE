@@ -3,7 +3,7 @@ import {
   ResultTableConfirmedBadge,
   ResultTableRow,
   ResultTableSelector,
-} from '@/features/recruitment/components/resultTable/resultTable'
+} from '@/features/recruitment/components/organizer/resultTable/resultTable'
 import {
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_REVIEW_POSITION_LABEL,

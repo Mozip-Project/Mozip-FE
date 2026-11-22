@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import { ResultNoticeContent } from '@/features/recruitment/components/resultNotice/resultNoticeContent'
+import { ResultNoticeContent } from '@/features/recruitment/components/organizer/resultNotice/resultNoticeContent'
 import {
   ResultNoticeHeader,
   ResultNoticeHeaderFallback,
-} from '@/features/recruitment/components/resultNotice/resultNoticeHeader'
+} from '@/features/recruitment/components/organizer/resultNotice/resultNoticeHeader'
 
 export default function InterviewResultNoticePage({
   params,

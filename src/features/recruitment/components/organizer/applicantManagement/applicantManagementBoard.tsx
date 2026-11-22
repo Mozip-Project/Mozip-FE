@@ -3,7 +3,7 @@
 import {
   RecruitmentBoard,
   type RecruitmentBoardQueryChange,
-} from '@/features/recruitment/components/recruitmentBoard/recruitmentBoard'
+} from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
 import {
   APPLICANT_POSITION_TAB_LABEL,
   APPLICANT_POSITION_TABS,

@@ -5,7 +5,7 @@ import { useOptimistic, useTransition, type ReactNode } from 'react'
 import {
   RecruitmentBoard,
   type RecruitmentBoardQueryChange,
-} from '@/features/recruitment/components/recruitmentBoard/recruitmentBoard'
+} from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
 import {
   DOCUMENT_REVIEW_SORT_LABEL,
   DOCUMENT_REVIEW_SORTS,
