@@ -1,4 +1,4 @@
-import { delay, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import type {
   MeQuery,
   MeQueryVariables,
@@ -97,6 +97,17 @@ const userHandlers = [
     await delay(MOCK_RESPONSE_DELAY_MS)
     return HttpResponse.json({
       data: { updateNotificationSettings: applyNotificationSettings(variables.input) },
+    })
+  }),
+
+  // 엔드포인트 origin과 관계없이 처리, 실제 쿠키는 지우지 않음
+  http.post('*/auth/logout', async () => {
+    await delay(MOCK_RESPONSE_DELAY_MS)
+    return HttpResponse.json({
+      success: true,
+      code: 'OK',
+      message: '요청이 성공했습니다.',
+      data: null,
     })
   }),
 ]
