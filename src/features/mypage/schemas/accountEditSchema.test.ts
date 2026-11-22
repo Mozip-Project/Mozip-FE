@@ -75,6 +75,18 @@ describe('accountEditSchema', () => {
   })
 
   describe('새 비밀번호 조건', () => {
+    it('서버 상한인 64자까지 통과', () => {
+      const newPassword = `abcd12!@${'a'.repeat(56)}`
+
+      expect(
+        getIssues({
+          currentPassword: CURRENT_PASSWORD,
+          newPassword,
+          newPasswordConfirm: newPassword,
+        }),
+      ).toEqual([])
+    })
+
     it('영문·숫자·특수문자를 모두 포함한 8자는 통과', () => {
       expect(
         getIssues({
@@ -91,6 +103,7 @@ describe('accountEditSchema', () => {
       ['숫자 없음', 'abcdefg!'],
       ['영문 없음', '1234567!'],
       ['공백을 특수문자로 사용', 'abcd 1234'],
+      ['서버 상한 64자 초과', `abcd12!@${'a'.repeat(57)}`],
     ])('%s이면 조건 오류', (_, newPassword) => {
       expect(
         getIssues({

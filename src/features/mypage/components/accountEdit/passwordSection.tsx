@@ -1,12 +1,16 @@
 import { useController, type Control, type UseFormTrigger } from 'react-hook-form'
 import { TextField } from '@/components/ui/TextField/textField'
 import {
+  PASSWORD_MAX_LENGTH,
   PASSWORD_RULE_MESSAGE,
   type AccountEditValues,
 } from '@/features/mypage/schemas/accountEditSchema'
+import { useDebounce } from '@/hooks/useDebounce'
 import type { ChangeEvent } from 'react'
 
 const PASSWORD_MATCH_MESSAGE = '비밀번호가 일치해요'
+// 확인 칸은 입력이 멈춘 뒤 비교, 타이핑 중 불일치 안내 깜빡임 방지
+const CONFIRM_CHECK_DELAY_MS = 500
 
 type PasswordFieldName = 'currentPassword' | 'newPassword' | 'newPasswordConfirm'
 
@@ -28,6 +32,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
     control,
     name: 'newPasswordConfirm',
   })
+  const confirmCheck = useDebounce(CONFIRM_CHECK_DELAY_MS)
 
   const isChangingPassword = Boolean(currentField.value || newField.value || confirmField.value)
   const isConfirmMatched =
@@ -44,7 +49,13 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
         ['newPasswordConfirm', confirmState.invalid || confirmState.isTouched],
       ] as const
     )
-      .filter(([name, needsRevalidation]) => name !== changed && needsRevalidation)
+      // 새 비밀번호를 고칠 때 확인 칸은 scheduleConfirmCheck의 예약 검사로만 갱신
+      .filter(
+        ([name, needsRevalidation]) =>
+          name !== changed &&
+          needsRevalidation &&
+          !(changed === 'newPassword' && name === 'newPasswordConfirm'),
+      )
       .map(([name]) => name)
 
     if (staleFields.length > 0) {
@@ -57,14 +68,25 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
     revalidateOtherPasswordFields('currentPassword')
   }
 
+  // 확인 칸에 값이 있을 때만 예약, 비우면 대기 중인 비교 취소
+  function scheduleConfirmCheck(confirmValue: string) {
+    if (!confirmValue) {
+      confirmCheck.cancel()
+      return
+    }
+    confirmCheck.schedule(() => void trigger('newPasswordConfirm'))
+  }
+
   function handleNewPasswordChange(event: ChangeEvent<HTMLInputElement>) {
     newField.onChange(event)
     revalidateOtherPasswordFields('newPassword')
+    scheduleConfirmCheck(confirmField.value)
   }
 
   function handleConfirmPasswordChange(event: ChangeEvent<HTMLInputElement>) {
     confirmField.onChange(event)
     revalidateOtherPasswordFields('newPasswordConfirm')
+    scheduleConfirmCheck(event.target.value)
   }
 
   return (
@@ -95,6 +117,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
           type="password"
           autoComplete="new-password"
           placeholder="새 비밀번호를 입력해 주세요"
+          maxLength={PASSWORD_MAX_LENGTH}
           required={isChangingPassword}
           aria-invalid={newState.invalid}
           helper={newState.error?.message ?? PASSWORD_RULE_MESSAGE}
@@ -107,6 +130,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
           type="password"
           autoComplete="new-password"
           placeholder="새 비밀번호를 한 번 더 입력해 주세요"
+          maxLength={PASSWORD_MAX_LENGTH}
           required={isChangingPassword}
           aria-invalid={confirmState.invalid}
           helper={confirmHelper}

@@ -33,4 +33,9 @@ function maskPhoneNumber(value: string) {
   return `${areaCode}-${'*'.repeat(middle.length)}-${last}`
 }
 
-export { formatPhoneNumber, maskPhoneNumber }
+// 서버 로그인 ID처럼 숫자만 남김
+function toPhoneDigits(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+export { formatPhoneNumber, maskPhoneNumber, toPhoneDigits }

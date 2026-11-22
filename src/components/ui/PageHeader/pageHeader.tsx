@@ -14,7 +14,7 @@ type PageHeaderProps = {
 
 function PageHeader({ backLink, title, description, actions, className }: PageHeaderProps) {
   return (
-    <header className={cn('flex flex-col items-start justify-center gap-gap-s', className)}>
+    <header className={cn('flex flex-col items-start justify-center gap-gap-xl', className)}>
       {backLink && <BackLink {...backLink} />}
 
       {/* Figma 미정의인 모바일은 버튼 잘림 방지용 세로 배치 */}

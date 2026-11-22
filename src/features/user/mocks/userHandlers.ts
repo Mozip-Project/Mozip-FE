@@ -66,6 +66,16 @@ function resetMyAccount() {
   account = createInitialAccount()
 }
 
+// 정보 수정 MSW(accountEditHandlers)가 같은 계정을 읽고 고치도록 공개
+function getMockAccount() {
+  return account
+}
+
+function updateMockAccount(patch: Partial<Pick<MyAccountFieldsFragment, 'name' | 'phone'>>) {
+  account = { ...account, ...patch }
+  return account
+}
+
 // 명세상 보내지 않은(null) 필드는 기존 값 유지
 function applyNotificationSettings(input: NotificationSettingsInput) {
   const current = account.notificationSettings
@@ -120,4 +130,4 @@ const userHandlers = [
   }),
 ]
 
-export { resetMyAccount, userHandlers }
+export { getMockAccount, resetMyAccount, updateMockAccount, userHandlers }

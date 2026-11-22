@@ -1,32 +1,68 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { HttpResponse } from 'msw'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { resetMyAccount } from '@/features/user/mocks/userHandlers'
+import { graphqlApi } from '@/mocks/graphqlApi'
+import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { AccountEditContent } from './accountEditContent'
 
-describe('AccountEditContent 비밀번호 검증', () => {
-  it('현재 비밀번호를 비우면 다른 칸에 남은 오류가 사라지고 저장 가능', async () => {
-    const user = userEvent.setup()
-    render(<AccountEditContent />)
-    const currentPassword = screen.getByLabelText(/현재 비밀번호/)
-    const newPassword = screen.getByLabelText(/^새 비밀번호(?! 확인)/)
+function renderAccountEdit() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
-    await user.type(currentPassword, 'abc')
-    await user.click(screen.getByRole('button', { name: '저장' }))
-    expect(newPassword).toHaveAttribute('aria-invalid', 'true')
+  render(
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AccountEditContent />
+      </ToastProvider>
+    </QueryClientProvider>,
+  )
+}
 
-    await user.clear(currentPassword)
-    await user.type(screen.getByLabelText(/이름/), '수정')
+beforeAll(() => {
+  vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
+})
 
-    expect(newPassword).toHaveAttribute('aria-invalid', 'false')
-    expect(screen.getByRole('button', { name: '저장' })).toBeEnabled()
+afterEach(() => {
+  resetMyAccount()
+})
+
+afterAll(() => {
+  vi.unstubAllEnvs()
+})
+
+describe('AccountEditContent', () => {
+  it('내 계정 정보로 이름과 가린 현재 번호를 채움', async () => {
+    renderAccountEdit()
+
+    expect(await screen.findByRole('textbox', { name: /이름/ })).toHaveValue('김모집')
+    expect(screen.getByDisplayValue('010-****-5678')).toBeInTheDocument()
   })
 
-  it('새 비밀번호만 입력해도 아직 건드리지 않은 확인 칸에 오류가 미리 뜨지 않음', async () => {
-    const user = userEvent.setup()
-    render(<AccountEditContent />)
+  it('불러오기에 실패하면 다시 시도로 계정 정보를 다시 불러옴', async () => {
+    server.use(
+      graphqlApi.query(
+        'MyAccount',
+        () =>
+          HttpResponse.json({
+            errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
+            data: null,
+          }),
+        { once: true },
+      ),
+    )
+    renderAccountEdit()
 
-    await user.type(screen.getByLabelText(/^새 비밀번호(?! 확인)/), 'abcd1234!')
+    expect(await screen.findByRole('alert')).toHaveTextContent('계정 정보를 불러오지 못했어요')
+    expect(screen.getByRole('link', { name: '계정 설정' })).toHaveAttribute(
+      'href',
+      '/manage/mypage',
+    )
 
-    expect(screen.getByLabelText(/새 비밀번호 확인/)).toHaveAttribute('aria-invalid', 'false')
+    await userEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+
+    expect(await screen.findByRole('textbox', { name: /이름/ })).toHaveValue('김모집')
   })
 })

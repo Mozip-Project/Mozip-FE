@@ -4,6 +4,12 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type ChangePasswordInput = {
+  currentPassword: string;
+  /** 회원가입과 같은 규칙 (8~64자, 영문+숫자) */
+  newPassword: string;
+};
+
 export type MemberRole =
   | 'OPERATOR'
   | 'REPRESENTATIVE';
@@ -82,6 +88,19 @@ export type UpdateOrganizationInput = {
   tagline: string;
 };
 
+export type UpdateProfileInput = {
+  birthYear?: number | null | undefined;
+  /** 아래 4개는 지원자 프로필용, 정보 수정 화면에는 없음 */
+  email?: string | null | undefined;
+  grade?: number | null | undefined;
+  major?: string | null | undefined;
+  name?: string | null | undefined;
+  /** 로그인 ID가 바뀜 */
+  phone?: string | null | undefined;
+  /** 업로드한 파일 URL, 빈 문자열이면 기본 아바타 */
+  profileImageUrl?: string | null | undefined;
+};
+
 export type NotificationsQueryVariables = Exact<{
   tab?: NotificationTab | null | undefined;
   page?: number | null | undefined;
@@ -158,6 +177,35 @@ export type UpdateNotificationSettingsMutationVariables = Exact<{
 
 
 export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type UpdateProfileMutationVariables = Exact<{
+  input: UpdateProfileInput;
+}>;
+
+
+export type UpdateProfileMutation = { updateProfile: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type RequestPhoneChangeMutationVariables = Exact<{
+  phone: string;
+}>;
+
+
+export type RequestPhoneChangeMutation = { requestPhoneChange: boolean };
+
+export type VerifyPhoneChangeMutationVariables = Exact<{
+  phone: string;
+  code: string;
+}>;
+
+
+export type VerifyPhoneChangeMutation = { verifyPhoneChange: boolean };
+
+export type ChangePasswordMutationVariables = Exact<{
+  input: ChangePasswordInput;
+}>;
+
+
+export type ChangePasswordMutation = { changePassword: boolean };
 
 export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
 
@@ -436,6 +484,59 @@ export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
     marketingAgreed
   }
 }`) as unknown as TypedDocumentString<UpdateNotificationSettingsMutation, UpdateNotificationSettingsMutationVariables>;
+export const UpdateProfileDocument = new TypedDocumentString(`
+    mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    ...MyAccountFields
+  }
+}
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}`) as unknown as TypedDocumentString<UpdateProfileMutation, UpdateProfileMutationVariables>;
+export const RequestPhoneChangeDocument = new TypedDocumentString(`
+    mutation RequestPhoneChange($phone: String!) {
+  requestPhoneChange(phone: $phone)
+}
+    `) as unknown as TypedDocumentString<RequestPhoneChangeMutation, RequestPhoneChangeMutationVariables>;
+export const VerifyPhoneChangeDocument = new TypedDocumentString(`
+    mutation VerifyPhoneChange($phone: String!, $code: String!) {
+  verifyPhoneChange(phone: $phone, code: $code)
+}
+    `) as unknown as TypedDocumentString<VerifyPhoneChangeMutation, VerifyPhoneChangeMutationVariables>;
+export const ChangePasswordDocument = new TypedDocumentString(`
+    mutation ChangePassword($input: ChangePasswordInput!) {
+  changePassword(input: $input)
+}
+    `) as unknown as TypedDocumentString<ChangePasswordMutation, ChangePasswordMutationVariables>;
 export const WithdrawDocument = new TypedDocumentString(`
     mutation Withdraw {
   withdraw

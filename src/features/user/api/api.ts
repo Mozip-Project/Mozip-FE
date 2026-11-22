@@ -1,9 +1,15 @@
 import {
+  ChangePasswordDocument,
   MeDocument,
   MyAccountDocument,
+  RequestPhoneChangeDocument,
   UpdateNotificationSettingsDocument,
+  UpdateProfileDocument,
+  VerifyPhoneChangeDocument,
   WithdrawDocument,
+  type ChangePasswordInput,
   type NotificationSettingsInput,
+  type UpdateProfileInput,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 import { postRest } from '@/lib/restClient'
@@ -35,4 +41,34 @@ async function withdraw() {
   return data.withdraw
 }
 
-export { getMe, getMyAccount, logout, updateNotificationSettings, withdraw }
+async function updateProfile(input: UpdateProfileInput) {
+  const data = await requestGraphQL(UpdateProfileDocument, { input })
+  return data.updateProfile
+}
+
+async function requestPhoneChange(phone: string) {
+  const data = await requestGraphQL(RequestPhoneChangeDocument, { phone })
+  return data.requestPhoneChange
+}
+
+async function verifyPhoneChange(phone: string, code: string) {
+  const data = await requestGraphQL(VerifyPhoneChangeDocument, { phone, code })
+  return data.verifyPhoneChange
+}
+
+async function changePassword(input: ChangePasswordInput) {
+  const data = await requestGraphQL(ChangePasswordDocument, { input })
+  return data.changePassword
+}
+
+export {
+  changePassword,
+  getMe,
+  getMyAccount,
+  logout,
+  requestPhoneChange,
+  updateNotificationSettings,
+  updateProfile,
+  verifyPhoneChange,
+  withdraw,
+}

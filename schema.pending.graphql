@@ -62,6 +62,33 @@ type Mutation {
   updateNotificationSettings(input: NotificationSettingsInput!): Me!
   "대표자로 있는 단체가 남아 있으면 USER_409, 성공 후 프론트가 /auth/logout 호출"
   withdraw: Boolean!
+  "phone은 verifyPhoneChange를 10분 안에 통과한 번호만, 아니면 USER_403"
+  updateProfile(input: UpdateProfileInput!): Me!
+  "인증번호 6자리 SMS, 3분 유효. 같은 번호 1분에 1회(USER_429), 가입된 번호면 USER_001"
+  requestPhoneChange(phone: String!): Boolean!
+  "불일치 또는 만료면 USER_400"
+  verifyPhoneChange(phone: String!, code: String!): Boolean!
+  "현재 비밀번호 불일치는 AUTH_001, 성공하면 다른 기기 로그인 끊김"
+  changePassword(input: ChangePasswordInput!): Boolean!
+}
+
+input UpdateProfileInput {
+  name: String
+  "업로드한 파일 URL, 빈 문자열이면 기본 아바타"
+  profileImageUrl: String
+  "로그인 ID가 바뀜"
+  phone: String
+  "아래 4개는 지원자 프로필용, 정보 수정 화면에는 없음"
+  email: String
+  birthYear: Int
+  grade: Int
+  major: String
+}
+
+input ChangePasswordInput {
+  currentPassword: String!
+  "회원가입과 같은 규칙 (8~64자, 영문+숫자)"
+  newPassword: String!
 }
 
 input UpdateOrganizationInput {
