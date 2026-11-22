@@ -24,6 +24,7 @@ async function ApplicationFormContent({ params }: ApplicationFormContentProps) {
       postingId={postingId}
       postingTitle={detail.title}
       positions={detail.application.type === 'byPosition' ? detail.application.positions : null}
+      questions={detail.questions}
       requiresProfilePhoto={detail.requiresProfilePhoto}
       profile={APPLICANT_PROFILE_SAMPLE}
     />

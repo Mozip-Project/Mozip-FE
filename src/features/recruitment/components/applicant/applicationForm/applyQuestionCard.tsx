@@ -5,20 +5,24 @@ import type { ReactNode } from 'react'
 type ApplyQuestionCardProps = {
   questionNumber: number
   title: string
+  titleId?: string
   description?: string
   required?: boolean
   hasDivider?: boolean
   errorMessage?: string
+  errorId?: string
   children: ReactNode
 }
 
 function ApplyQuestionCard({
   questionNumber,
   title,
+  titleId,
   description,
   required = false,
   hasDivider = true,
   errorMessage,
+  errorId,
   children,
 }: ApplyQuestionCardProps) {
   return (
@@ -28,7 +32,7 @@ function ApplyQuestionCard({
           Q{questionNumber}
         </Badge>
         <div className="flex flex-col gap-gap-xxs break-words break-keep">
-          <h2 className="text-body1 font-semibold text-neutral">
+          <h2 id={titleId} className="text-body1 font-semibold text-neutral">
             {title}
             {required && (
               <>
@@ -50,7 +54,7 @@ function ApplyQuestionCard({
       {children}
 
       {errorMessage && (
-        <InlineNotice tone="critical" role="alert">
+        <InlineNotice id={errorId} tone="critical" role="alert">
           {errorMessage}
         </InlineNotice>
       )}
