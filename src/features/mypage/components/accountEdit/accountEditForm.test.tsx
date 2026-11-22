@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { MOCK_VERIFICATION_CODE, resetAccountEdit } from '@/features/user/mocks/accountEditHandlers'
-import { getMockAccount, resetMyAccount } from '@/features/user/mocks/userHandlers'
+import {
+  getMockAccount,
+  resetMyAccount,
+  updateMockAccount,
+} from '@/features/user/mocks/userHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
@@ -201,6 +205,7 @@ describe('AccountEditForm 휴대폰 번호 인증', () => {
 
     await waitFor(() => expect(newPhone).toBeDisabled())
     expect(screen.getByRole('button', { name: '인증번호 받기' })).toBeDisabled()
+    expect(screen.getByLabelText(/인증번호 입력/)).toBeDisabled()
 
     releaseVerify()
     await waitFor(() =>
@@ -307,5 +312,30 @@ describe('AccountEditForm 저장', () => {
     releaseSave()
     expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
     expect(name).toBeEnabled()
+  })
+  it('편집 중 서버 이름이 바뀌어 들어와도 비밀번호만 바꾸면 이름을 보내지 않음', async () => {
+    const user = userEvent.setup()
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    function renderForm(name: string) {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <AccountEditForm name={name} maskedPhone="010-****-5678" />
+          </ToastProvider>
+        </QueryClientProvider>
+      )
+    }
+
+    const { rerender } = render(renderForm('김모집'))
+    // 다른 곳에서 이름을 바꾼 뒤 계정 조회가 다시 일어나 새 이름이 prop으로 들어온 상황
+    updateMockAccount({ name: '이모집' })
+    rerender(renderForm('이모집'))
+
+    await typeNewPassword(user, 'mozip1234!')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
+    expect(getMockAccount().name).toBe('이모집')
   })
 })

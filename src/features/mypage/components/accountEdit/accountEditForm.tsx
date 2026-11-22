@@ -79,7 +79,7 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
     reset,
     resetField,
     setError,
-    formState: { isDirty, isSubmitting, errors },
+    formState: { isDirty, isSubmitting, errors, defaultValues },
   } = useForm<AccountEditValues>({
     mode: 'onTouched',
     resolver: zodResolver(accountEditSchema),
@@ -99,7 +99,9 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
   // 현재 비밀번호 불일치가 가장 흔한 실패라 비밀번호를 먼저 바꿔 실패 시 아무것도 저장하지 않음
   async function handleSave(values: AccountEditValues) {
     const passwordInput = toChangePasswordInput(values)
-    const profileInput = toUpdateProfileInput(values, { savedName: name, verifiedPhone })
+    // 조회로 바뀔 수 있는 name prop 대신 폼이 불러오거나 저장한 이름과 비교, 최신 서버 이름 덮어쓰기 방지
+    const savedName = defaultValues?.name ?? name
+    const profileInput = toUpdateProfileInput(values, { savedName, verifiedPhone })
     // TODO: 프로필 이미지만 바꾼 경우는 업로드 API 배포 후 저장, 지금은 보낼 값이 없어 요청하지 않음
     if (!passwordInput && !profileInput) {
       return

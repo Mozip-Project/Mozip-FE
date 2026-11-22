@@ -146,7 +146,7 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           placeholder="인증번호 6자리"
           maxLength={6}
           required={isChangingPhone}
-          disabled={!canEnterCode}
+          disabled={!canEnterCode || isVerifying}
           aria-invalid={codeHelper !== undefined}
           helper={codeHelper ?? remainingTimeMessage}
           className="min-w-0 flex-1"
