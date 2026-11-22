@@ -6,7 +6,7 @@ import { LogoField } from './logoField'
 
 function ControlledLogoField() {
   const [logo, setLogo] = useState<File | null>(null)
-  return <LogoField value={logo} onChange={setLogo} />
+  return <LogoField value={logo} onChange={setLogo} savedLogoUrl={null} />
 }
 
 const PREVIEW_URL = 'blob:logo-preview'
@@ -70,6 +70,29 @@ describe('LogoField', () => {
 
     await user.upload(fileInput, new File(['logo'], 'logo.png', { type: 'image/png' }))
 
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: '선택한 로고' })).toBeInTheDocument()
+  })
+
+  it('webp·svg도 선택 가능, 그 밖의 형식은 로고 형식 안내', async () => {
+    // accept로 걸러지기 전 검증 확인용
+    const user = userEvent.setup({ applyAccept: false })
+    const { container } = render(<ControlledLogoField />)
+    const fileInput = container.querySelector<HTMLInputElement>('input[type=file]')
+
+    if (!fileInput) {
+      throw new Error('파일 입력 없음')
+    }
+
+    await user.upload(fileInput, new File(['logo'], 'logo.gif', { type: 'image/gif' }))
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '.png, .jpg, .webp, .svg 이미지만 업로드 가능해요',
+    )
+
+    await user.upload(fileInput, new File(['logo'], 'logo.webp', { type: 'image/webp' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+
+    await user.upload(fileInput, new File(['<svg />'], 'logo.svg', { type: 'image/svg+xml' }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByRole('img', { name: '선택한 로고' })).toBeInTheDocument()
   })

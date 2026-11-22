@@ -1,11 +1,11 @@
 import { Suspense } from 'react'
-import { OrganizationProfileContent } from '@/features/organization/components/organizationProfile/organizationProfileContent'
+import { CurrentOrganizationProfile } from '@/features/organization/components/organizationProfile/currentOrganizationProfile'
+import { OrganizationProfileSkeleton } from '@/features/organization/components/organizationProfile/organizationProfileSkeleton'
 
 export default function OrganizationPage() {
   return (
-    // TODO: 로딩 화면 디자인 확정 후 fallback 추가
-    <Suspense>
-      <OrganizationProfileContent />
+    <Suspense fallback={<OrganizationProfileSkeleton />}>
+      <CurrentOrganizationProfile />
     </Suspense>
   )
 }

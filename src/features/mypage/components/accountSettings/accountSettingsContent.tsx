@@ -1,27 +1,53 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
-import { ACCOUNT_SETTINGS_SAMPLE } from '@/features/mypage/mocks/accountSettingsSample'
+import { AccountSettingsSkeleton } from '@/features/mypage/components/accountSettings/accountSettingsSkeleton'
+import { toAccountSettings } from '@/features/mypage/utils/accountSettings'
+import { OrganizationLoadError } from '@/features/organization/components/organizationLoadError/organizationLoadError'
+import { useMyAccountQuery } from '@/features/user/api/queries'
 import { OrganizationSection } from './organizationSection'
 import { ProfileSection } from './profileSection'
 import { SchoolVerificationSection } from './schoolVerificationSection'
 import { WithdrawalDialog } from './withdrawalDialog'
 
-// TODO: 로그인 사용자 계정 정보 API 연결 후 샘플 데이터 제거
-function AccountSettingsContent() {
-  const { profile, schoolVerification, organizations } = ACCOUNT_SETTINGS_SAMPLE
+function AccountSettingsSections() {
+  const accountQuery = useMyAccountQuery()
 
+  if (accountQuery.data) {
+    const { profile, schoolVerification, organizations } = toAccountSettings(accountQuery.data)
+
+    return (
+      <>
+        <ProfileSection name={profile.name} maskedPhone={profile.maskedPhone} />
+        <hr className="border-neutral-subtle" />
+
+        <SchoolVerificationSection
+          schoolName={schoolVerification.schoolName}
+          email={schoolVerification.email}
+        />
+        <hr className="border-neutral-subtle" />
+
+        <OrganizationSection organizations={organizations} />
+      </>
+    )
+  }
+  if (accountQuery.isError) {
+    return (
+      <OrganizationLoadError
+        message="계정 정보를 불러오지 못했어요"
+        onRetry={() => void accountQuery.refetch()}
+      />
+    )
+  }
+  return <AccountSettingsSkeleton />
+}
+
+// 조회에 실패해도 로그아웃·탈퇴는 쓸 수 있도록 버튼은 항상 표시
+function AccountSettingsContent() {
   return (
     <div className="flex flex-col gap-gap-l">
-      <ProfileSection name={profile.name} maskedPhone={profile.maskedPhone} />
-      <hr className="border-neutral-subtle" />
-
-      <SchoolVerificationSection
-        schoolName={schoolVerification.schoolName}
-        email={schoolVerification.email}
-      />
-      <hr className="border-neutral-subtle" />
-
-      <OrganizationSection organizations={organizations} />
+      <AccountSettingsSections />
       {/* TODO: 로그아웃 동작 연결 */}
       <div className="flex justify-end gap-gap-s">
         <Button variant="secondary" size="m" asChild>

@@ -137,8 +137,6 @@ function getDocumentResultState(postingId: string) {
   return initialState
 }
 
-// TODO: 점수 없는 공고 확인용, 공고의 점수 사용 여부 API 확정 후 삭제
-const NO_SCORE_POSTING_ID = '2'
 // TODO: 면접 없는 공고 확인용, 공고의 면접 사용 여부 API 확정 후 삭제
 const NO_INTERVIEW_POSTING_ID = '3'
 
@@ -148,15 +146,10 @@ const documentResultConfirmedAt = new Map<string, string>()
 const DOCUMENT_RESULT_MOCK_LATENCY_MS = process.env.NODE_ENV === 'test' ? 0 : 800
 
 // 순위는 필터와 무관한 공고 전체 기준, 동점은 같은 순위
-// TODO: 점수 없는 공고의 순위 기준(합격 의견 많은순) 기획 확인 필요
-function getRankValue(applicant: DocumentResultEntry) {
-  return applicant.averageScore ?? applicant.opinionCounts.pass
-}
-
 function withRank(applicants: readonly DocumentResultEntry[]) {
   return applicants.map((applicant) => ({
     ...applicant,
-    rank: applicants.filter((other) => getRankValue(other) > getRankValue(applicant)).length + 1,
+    rank: applicants.filter((other) => other.averageScore > applicant.averageScore).length + 1,
   }))
 }
 
@@ -192,13 +185,7 @@ async function getDocumentResultApplicants(
   await new Promise((resolve) => setTimeout(resolve, DOCUMENT_RESULT_MOCK_LATENCY_MS))
 
   const keyword = query.keyword.trim()
-  const hasScore = postingId !== NO_SCORE_POSTING_ID
-  const applicants = withRank(
-    getDocumentResultState(postingId).map((applicant) => ({
-      ...applicant,
-      averageScore: hasScore ? applicant.averageScore : null,
-    })),
-  )
+  const applicants = withRank(getDocumentResultState(postingId))
   const matchesKeyword = (applicant: DocumentResultApplicant) => applicant.name.includes(keyword)
 
   const filtered = applicants.filter(
@@ -221,7 +208,6 @@ async function getDocumentResultApplicants(
     ...paginate(list, query.page, DOCUMENT_RESULT_PAGE_SIZE),
     statusCounts,
     positionCounts,
-    hasScore,
     totalResultCounts: countBy(
       DOCUMENT_RESULTS,
       applicants,

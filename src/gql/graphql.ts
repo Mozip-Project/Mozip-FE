@@ -4,6 +4,18 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type MemberRole =
+  | 'OPERATOR'
+  | 'REPRESENTATIVE';
+
+/** 보내지 않은 필드는 그대로 유지 */
+export type NotificationSettingsInput = {
+  marketingAgreed?: boolean | null | undefined;
+  notifyOperator?: boolean | null | undefined;
+  notifyResult?: boolean | null | undefined;
+  notifyScrap?: boolean | null | undefined;
+};
+
 export type NotificationTab =
   | 'APPLICANT'
   | 'OPERATOR';
@@ -22,11 +34,53 @@ export type NotificationType =
   | 'TRANSFER_REJECTED'
   | 'TRANSFER_REQUEST';
 
+export type OrganizationField =
+  | 'ACADEMIC_STUDY'
+  | 'CULTURE_HOBBY'
+  | 'DESIGN_MEDIA'
+  | 'ETC'
+  | 'IT_DEV'
+  | 'LANGUAGE_GLOBAL'
+  | 'PERFORMANCE_MUSIC'
+  | 'RELIGION'
+  | 'SPORTS'
+  | 'STARTUP_BUSINESS'
+  | 'VOLUNTEER';
+
+export type OrganizationLinkInput = {
+  /** http, https만, 500자까지. type은 서버가 도메인으로 판별 */
+  url: string;
+};
+
+/** 교내 / 연합 (연합이면 학교 없음) */
+export type OrganizationScope =
+  | 'CAMPUS'
+  | 'UNION';
+
+/** 단체, 팀, 운영진, 초대, 대표자 인수 */
+export type OrganizationType =
+  | 'ACADEMIC'
+  | 'CLUB'
+  | 'STUDENT_COUNCIL';
+
 export type ReportReason =
   | 'ETC'
   | 'EXCESSIVE_PERSONAL_INFO'
   | 'FALSE_INFO'
   | 'INAPPROPRIATE';
+
+export type UpdateOrganizationInput = {
+  /** 학생회는 빈 배열 */
+  fields: Array<OrganizationField>;
+  /** 1~10개, 중복 제거 */
+  keywords: Array<string>;
+  /** 1개 이상 */
+  links: Array<OrganizationLinkInput>;
+  /** 업로드 후 받은 key, null이면 기존 로고 유지 */
+  logoFileKey?: string | null | undefined;
+  /** 최대 40자 */
+  tagline: string;
+};
 
 export type NotificationsQueryVariables = Exact<{
   tab?: NotificationTab | null | undefined;
@@ -48,6 +102,37 @@ export type MarkNotificationsReadMutationVariables = Exact<{
 
 export type MarkNotificationsReadMutation = { markNotificationsRead: boolean };
 
+export type OrganizationMembersQueryVariables = Exact<{
+  organizationId: string | number;
+}>;
+
+
+export type OrganizationMembersQuery = { members: Array<{ id: string, role: MemberRole, createdAt: string, user: { id: string, name: string }, team: { name: string } | null }> };
+
+export type OrganizationProfileFieldsFragment = { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> };
+
+export type OrganizationProfileQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type OrganizationProfileQuery = { organization: { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> } };
+
+export type UpdateOrganizationMutationVariables = Exact<{
+  id: string | number;
+  input: UpdateOrganizationInput;
+}>;
+
+
+export type UpdateOrganizationMutation = { updateOrganization: { id: string, name: string, type: OrganizationType, scope: OrganizationScope, logoUrl: string | null, tagline: string | null, fields: Array<OrganizationField>, keywords: Array<string>, school: { name: string } | null, links: Array<{ id: string, url: string }> } };
+
+export type KeywordSuggestionsQueryVariables = Exact<{
+  query: string;
+}>;
+
+
+export type KeywordSuggestionsQuery = { keywordSuggestions: Array<string> };
+
 export type ReportPostingMutationVariables = Exact<{
   postingId: string | number;
   reason: ReportReason;
@@ -56,6 +141,25 @@ export type ReportPostingMutationVariables = Exact<{
 
 
 export type ReportPostingMutation = { reportPosting: boolean };
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string } }> } };
+
+export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyAccountQuery = { me: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type UpdateNotificationSettingsMutationVariables = Exact<{
+  input: NotificationSettingsInput;
+}>;
+
+
+export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -75,7 +179,59 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
-
+export const OrganizationProfileFieldsFragmentDoc = new TypedDocumentString(`
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  scope
+  school {
+    name
+  }
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}
+    `, {"fragmentName":"OrganizationProfileFields"}) as unknown as TypedDocumentString<OrganizationProfileFieldsFragment, unknown>;
+export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}
+    `, {"fragmentName":"MyAccountFields"}) as unknown as TypedDocumentString<MyAccountFieldsFragment, unknown>;
 export const NotificationsDocument = new TypedDocumentString(`
     query Notifications($tab: NotificationTab, $page: Int) {
   notifications(tab: $tab, page: $page) {
@@ -110,8 +266,168 @@ export const MarkNotificationsReadDocument = new TypedDocumentString(`
   markNotificationsRead(ids: $ids)
 }
     `) as unknown as TypedDocumentString<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>;
+export const OrganizationMembersDocument = new TypedDocumentString(`
+    query OrganizationMembers($organizationId: ID!) {
+  members(organizationId: $organizationId) {
+    id
+    role
+    createdAt
+    user {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<OrganizationMembersQuery, OrganizationMembersQueryVariables>;
+export const OrganizationProfileDocument = new TypedDocumentString(`
+    query OrganizationProfile($id: ID!) {
+  organization(id: $id) {
+    ...OrganizationProfileFields
+  }
+}
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  scope
+  school {
+    name
+  }
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}`) as unknown as TypedDocumentString<OrganizationProfileQuery, OrganizationProfileQueryVariables>;
+export const UpdateOrganizationDocument = new TypedDocumentString(`
+    mutation UpdateOrganization($id: ID!, $input: UpdateOrganizationInput!) {
+  updateOrganization(id: $id, input: $input) {
+    ...OrganizationProfileFields
+  }
+}
+    fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  scope
+  school {
+    name
+  }
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}`) as unknown as TypedDocumentString<UpdateOrganizationMutation, UpdateOrganizationMutationVariables>;
+export const KeywordSuggestionsDocument = new TypedDocumentString(`
+    query KeywordSuggestions($query: String!) {
+  keywordSuggestions(query: $query)
+}
+    `) as unknown as TypedDocumentString<KeywordSuggestionsQuery, KeywordSuggestionsQueryVariables>;
 export const ReportPostingDocument = new TypedDocumentString(`
     mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
   reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
 }
     `) as unknown as TypedDocumentString<ReportPostingMutation, ReportPostingMutationVariables>;
+export const MeDocument = new TypedDocumentString(`
+    query Me {
+  me {
+    id
+    lastOrganization {
+      id
+    }
+    memberships {
+      role
+      organization {
+        id
+        name
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<MeQuery, MeQueryVariables>;
+export const MyAccountDocument = new TypedDocumentString(`
+    query MyAccount {
+  me {
+    ...MyAccountFields
+  }
+}
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}`) as unknown as TypedDocumentString<MyAccountQuery, MyAccountQueryVariables>;
+export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
+    mutation UpdateNotificationSettings($input: NotificationSettingsInput!) {
+  updateNotificationSettings(input: $input) {
+    ...MyAccountFields
+  }
+}
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}`) as unknown as TypedDocumentString<UpdateNotificationSettingsMutation, UpdateNotificationSettingsMutationVariables>;

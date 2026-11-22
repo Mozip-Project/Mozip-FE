@@ -28,7 +28,6 @@ const PAGE = {
   positionCounts: { design: 3, development: 0, planning: 0 },
   currentPage: 1,
   totalPages: 1,
-  hasScore: true,
   totalResultCounts: { pass: 1, hold: 2, fail: 1 },
 } satisfies DocumentResultApplicantPage
 

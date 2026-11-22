@@ -1,0 +1,60 @@
+query Me {
+  me {
+    id
+    lastOrganization {
+      id
+    }
+    memberships {
+      role
+      organization {
+        id
+        name
+      }
+    }
+  }
+}
+
+query MyAccount {
+  me {
+    ...MyAccountFields
+  }
+}
+
+mutation UpdateNotificationSettings($input: NotificationSettingsInput!) {
+  updateNotificationSettings(input: $input) {
+    ...MyAccountFields
+  }
+}
+
+fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}

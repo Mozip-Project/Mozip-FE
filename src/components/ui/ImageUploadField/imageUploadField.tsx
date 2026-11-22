@@ -5,7 +5,7 @@ import { useId, useRef, type ReactNode } from 'react'
 import RefreshIcon from '@/assets/icons/refresh.svg'
 import UploadIcon from '@/assets/icons/upload.svg'
 import { Button } from '@/components/ui/Button/button'
-import { useImageFilePicker } from '@/hooks/useImageFilePicker'
+import { useImageFilePicker, type ImageFileFormat } from '@/hooks/useImageFilePicker'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 
 const PREVIEW_SIZE_PX = 72
@@ -17,12 +17,25 @@ type ImageUploadFieldProps = {
   label: string
   // 미리보기 옆 제목 줄, 화면마다 제목 스타일·안내 아이콘이 달라 slot으로 받음
   title: ReactNode
+  // 이미 저장된 이미지, 새 파일을 고르기 전과 초기화 후 미리보기에 표시
+  savedImageUrl?: string | null
+  // 생략하면 PNG, JPG
+  fileFormat?: ImageFileFormat
 }
 
-function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldProps) {
+function ImageUploadField({
+  value,
+  onChange,
+  label,
+  title,
+  savedImageUrl = null,
+  fileFormat,
+}: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const previewUrl = useObjectUrl(value)
-  const imagePicker = useImageFilePicker(onChange)
+  const selectedImageUrl = useObjectUrl(value)
+  const previewUrl = selectedImageUrl ?? savedImageUrl
+  const previewAlt = selectedImageUrl ? `선택한 ${label}` : `현재 ${label}`
+  const imagePicker = useImageFilePicker(onChange, fileFormat)
   const errorId = useId()
   const hasError = imagePicker.errorMessage !== null
 
@@ -39,7 +52,7 @@ function ImageUploadField({ value, onChange, label, title }: ImageUploadFieldPro
         {previewUrl ? (
           <Image
             src={previewUrl}
-            alt={`선택한 ${label}`}
+            alt={previewAlt}
             width={PREVIEW_SIZE_PX}
             height={PREVIEW_SIZE_PX}
             unoptimized

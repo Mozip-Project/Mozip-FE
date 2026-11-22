@@ -21,4 +21,16 @@ function formatPhoneNumber(value: string) {
   return `${digits.slice(0, AREA_CODE_LENGTH)}-${digits.slice(AREA_CODE_LENGTH, middleEnd)}-${digits.slice(middleEnd)}`
 }
 
-export { formatPhoneNumber }
+// 국번이 덜 입력된 번호는 가릴 가운데가 없어 포맷 결과 그대로 사용
+function maskPhoneNumber(value: string) {
+  const formatted = formatPhoneNumber(value)
+  const [areaCode, middle, last] = formatted.split('-')
+
+  if (middle === undefined || last === undefined) {
+    return formatted
+  }
+
+  return `${areaCode}-${'*'.repeat(middle.length)}-${last}`
+}
+
+export { formatPhoneNumber, maskPhoneNumber }

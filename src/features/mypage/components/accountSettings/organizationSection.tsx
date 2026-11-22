@@ -1,7 +1,11 @@
+'use client'
+
 import PlusIcon from '@/assets/icons/plus.svg'
 import RefreshIcon from '@/assets/icons/refresh.svg'
 import { Badge } from '@/components/ui/Badge/badge'
 import { Button } from '@/components/ui/Button/button'
+import { COMING_SOON_TOAST } from '@/features/organization/constants'
+import { useToast } from '@/providers/toastProvider'
 
 type AffiliatedOrganization = {
   id: string
@@ -15,6 +19,8 @@ type OrganizationSectionProps = {
 }
 
 function OrganizationSection({ organizations }: OrganizationSectionProps) {
+  const { showToast } = useToast()
+
   return (
     <section className="flex flex-col gap-gap-l py-padding-m">
       <h2 className="text-headline1 font-semibold text-neutral">소속 단체</h2>
@@ -45,10 +51,10 @@ function OrganizationSection({ organizations }: OrganizationSectionProps) {
       <hr className="border-neutral-subtle" />
       {/* TODO: 새 단체 등록, 기존 단체 대표 인수 화면 확정 후 연결 */}
       <div className="flex flex-wrap gap-gap-s">
-        <Button variant="tertiary" size="s">
+        <Button variant="tertiary" size="s" onClick={() => showToast(COMING_SOON_TOAST)}>
           <PlusIcon aria-hidden />새 단체 등록
         </Button>
-        <Button variant="tertiary" size="s">
+        <Button variant="tertiary" size="s" onClick={() => showToast(COMING_SOON_TOAST)}>
           <RefreshIcon aria-hidden />
           기존 단체 대표 인수
         </Button>
