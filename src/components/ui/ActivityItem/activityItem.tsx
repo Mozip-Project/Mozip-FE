@@ -25,9 +25,16 @@ function ActivityItem({
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const bodyId = useId()
   const headerTitle = isOpen ? title : collapsedTitle || title
+  // Figma 기준 입력한 활동명으로 접힌 항목은 배경 구분
+  const isCollapsedWithTitle = !isOpen && Boolean(collapsedTitle)
 
   return (
-    <section className="overflow-hidden rounded-l border border-neutral-subtle bg-layer-default">
+    <section
+      className={cn(
+        'overflow-hidden rounded-l border border-neutral-subtle',
+        isCollapsedWithTitle ? 'bg-layer-basement' : 'bg-layer-default',
+      )}
+    >
       <div className={cn('flex items-center gap-gap-s p-padding-m', isOpen && 'h-15')}>
         <p
           className={cn(

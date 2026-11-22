@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFileRejection } from './file'
+import { formatFileSize, getFileRejection } from './file'
 
 const PDF_RULE = { acceptedTypes: ['application/pdf'], maxSizeBytes: 20 * 1024 * 1024 }
 
@@ -24,5 +24,23 @@ describe('getFileRejection', () => {
     expect(
       getFileRejection(createFile('application/pdf', PDF_RULE.maxSizeBytes + 1), PDF_RULE),
     ).toBe('oversized')
+  })
+})
+
+describe('formatFileSize', () => {
+  it('1MB 이상은 소수 첫째 자리까지 MB로 표시', () => {
+    expect(formatFileSize(8.2 * 1024 * 1024)).toBe('8.2MB')
+    expect(formatFileSize(1024 * 1024)).toBe('1MB')
+    expect(formatFileSize(10 * 1024 * 1024)).toBe('10MB')
+  })
+
+  it('1MB 미만은 KB로 내려서 표시', () => {
+    expect(formatFileSize(512 * 1024)).toBe('512KB')
+    expect(formatFileSize(1024 * 1024 - 1)).toBe('1023KB')
+  })
+
+  it('1KB 미만도 1KB로 표시', () => {
+    expect(formatFileSize(0)).toBe('1KB')
+    expect(formatFileSize(100)).toBe('1KB')
   })
 })

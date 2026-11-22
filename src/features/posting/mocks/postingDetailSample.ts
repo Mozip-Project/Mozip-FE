@@ -146,40 +146,111 @@ function getUxuxSchedule(endDate: string) {
   }
 }
 
-const UXUX_MOTIVATION_QUESTION = { id: 'motivation', title: 'UXUX에 지원한 동기를 작성해 주세요.' }
-const UXUX_PORTFOLIO_QUESTION = { id: 'portfolio', title: '포트폴리오 링크 또는 파일' }
-const UXUX_INTERVIEW_TIME_QUESTION = { id: 'interview-time', title: '면접 가능 시간 선택' }
+const UXUX_MOTIVATION_QUESTION = {
+  id: 'motivation',
+  type: 'text',
+  title: 'UXUX에 지원한 동기를 작성해 주세요.',
+  description: null,
+  isRequired: true,
+  maxLength: 500,
+} satisfies PostingQuestion
+
+const UXUX_CONFLICT_QUESTION = {
+  id: 'conflict',
+  type: 'text',
+  title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.',
+  description: null,
+  isRequired: true,
+  maxLength: 500,
+} satisfies PostingQuestion
+
+const UXUX_EXPERIENCE_QUESTION = {
+  id: 'experience',
+  type: 'activity',
+  title: '활동 경험을 입력해 주세요.',
+  description: null,
+  isRequired: true,
+  activityFields: ['period', 'role', 'achievement'],
+  maxActivityCount: 3,
+} satisfies PostingQuestion
+
+const UXUX_PORTFOLIO_QUESTION = {
+  id: 'portfolio',
+  type: 'file',
+  title: '포트폴리오 링크 또는 파일',
+  description: '파일과 링크를 함께 올릴 수 있어요',
+  isRequired: true,
+  acceptsFile: true,
+  acceptsLink: true,
+  fileTypes: ['pdf', 'image'],
+} satisfies PostingQuestion
+
+// Figma 지원서 2단계 면접 가능 시간, 면접 첫날부터 날짜별 30분 칸 시작 시각
+const UXUX_INTERVIEW_SLOT_TIMES = [
+  ['13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
+  ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
+  ['13:00', '13:30', '14:00', '14:30'],
+]
+
+function createUxuxInterviewTimeQuestion(interviewStartDate: string): PostingQuestion {
+  return {
+    id: 'interview-time',
+    type: 'availability',
+    title: '면접 가능 시간 선택',
+    description: '면접에 참석할 수 있는 시간을 모두 골라 주세요.',
+    isRequired: true,
+    interviewSlots: UXUX_INTERVIEW_SLOT_TIMES.flatMap((times, dayIndex) =>
+      times.map((time) => `${addDaysToIsoDate(interviewStartDate, dayIndex)}T${time}`),
+    ),
+  }
+}
 
 // 기획은 Figma 문항, 디자인·개발은 포지션별 차이 확인용
-const UXUX_QUESTIONS_BY_POSITION = {
-  디자인: [
-    UXUX_MOTIVATION_QUESTION,
-    { id: 'conflict', title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.' },
-    UXUX_PORTFOLIO_QUESTION,
-    UXUX_INTERVIEW_TIME_QUESTION,
-  ],
-  개발: [
-    UXUX_MOTIVATION_QUESTION,
-    { id: 'conflict', title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.' },
-    UXUX_INTERVIEW_TIME_QUESTION,
-  ],
-  기획: [
-    UXUX_MOTIVATION_QUESTION,
-    { id: 'experience', title: '활동 경험을 입력해 주세요.' },
-    UXUX_PORTFOLIO_QUESTION,
-    UXUX_INTERVIEW_TIME_QUESTION,
-  ],
-} satisfies Record<(typeof UXUX_POSITION_NAMES)[number], PostingQuestion[]>
+const UXUX_POSITION_QUESTION_ID_PREFIX = {
+  디자인: 'design',
+  개발: 'development',
+  기획: 'planning',
+} satisfies Record<(typeof UXUX_POSITION_NAMES)[number], string>
+
+function getUxuxQuestionsByPosition(interviewStartDate: string) {
+  const interviewTimeQuestion = createUxuxInterviewTimeQuestion(interviewStartDate)
+
+  return {
+    디자인: [
+      UXUX_MOTIVATION_QUESTION,
+      UXUX_CONFLICT_QUESTION,
+      UXUX_PORTFOLIO_QUESTION,
+      interviewTimeQuestion,
+    ],
+    개발: [UXUX_MOTIVATION_QUESTION, UXUX_CONFLICT_QUESTION, interviewTimeQuestion],
+    기획: [
+      UXUX_MOTIVATION_QUESTION,
+      UXUX_CONFLICT_QUESTION,
+      UXUX_EXPERIENCE_QUESTION,
+      UXUX_PORTFOLIO_QUESTION,
+      interviewTimeQuestion,
+    ],
+  } satisfies Record<(typeof UXUX_POSITION_NAMES)[number], PostingQuestion[]>
+}
 
 function getUxuxPositions(
+  endDate: string,
   appliedNames: readonly string[] = [],
   appliedAt: string | null = null,
 ): PostingPosition[] {
+  const questionsByPosition = getUxuxQuestionsByPosition(
+    getUxuxSchedule(endDate).interview.startDate,
+  )
+
   return UXUX_POSITION_NAMES.map((name) => ({
     id: name,
     name,
     appliedAt: appliedNames.includes(name) ? appliedAt : null,
-    questions: UXUX_QUESTIONS_BY_POSITION[name],
+    // 운영진 공고 작성은 포지션마다 문항을 따로 만들어 제목이 같아도 id가 다름
+    questions: questionsByPosition[name].map((question) => ({
+      ...question,
+      id: `${UXUX_POSITION_QUESTION_ID_PREFIX[name]}-${question.id}`,
+    })),
   }))
 }
 
@@ -202,7 +273,7 @@ function createUxuxDetail(
     coverImage: null,
     content: UXUX_CONTENT,
     questions: [],
-    application: { type: 'byPosition', positions: getUxuxPositions() },
+    application: { type: 'byPosition', positions: getUxuxPositions(endDate) },
     requiresProfilePhoto: false,
     ...overrides,
   }
@@ -230,11 +301,19 @@ function createSwCouncilDetail(
     questions: [
       {
         id: 'motivation',
+        type: 'text',
         title: '집행부에 지원한 동기를 작성해 주세요.',
+        description: null,
+        isRequired: true,
+        maxLength: 500,
       },
       {
         id: 'experience',
+        type: 'text',
         title: '행사를 기획하거나 운영한 경험이 있다면 알려 주세요.',
+        description: null,
+        isRequired: false,
+        maxLength: 1000,
       },
     ],
     application,
@@ -257,13 +336,16 @@ function getPostingDetailSample(postingId: string, today: string): PostingDetail
       return createUxuxDetail(postingId, today, addDaysToIsoDate(today, -1))
     case ID.partiallyApplied:
       return createUxuxDetail(postingId, today, openEndDate, {
-        application: { type: 'byPosition', positions: getUxuxPositions(['디자인'], appliedAt) },
+        application: {
+          type: 'byPosition',
+          positions: getUxuxPositions(openEndDate, ['디자인'], appliedAt),
+        },
       })
     case ID.fullyApplied:
       return createUxuxDetail(postingId, today, openEndDate, {
         application: {
           type: 'byPosition',
-          positions: getUxuxPositions(UXUX_POSITION_NAMES, appliedAt),
+          positions: getUxuxPositions(openEndDate, UXUX_POSITION_NAMES, appliedAt),
         },
       })
     case ID.missingInfo:
@@ -289,7 +371,11 @@ function getPostingDetailSample(postingId: string, today: string): PostingDetail
           questions: [
             {
               id: 'motivation',
+              type: 'text',
               title: '홍보 서포터즈에 지원한 동기를 작성해 주세요.',
+              description: null,
+              isRequired: true,
+              maxLength: 500,
             },
           ],
           application: { type: 'direct', appliedAt: null },
