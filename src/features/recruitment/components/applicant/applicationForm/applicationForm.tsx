@@ -154,6 +154,13 @@ function ApplicationForm({
     }
   }, [isStepParamInvalid, postingId, searchParams])
 
+  // 답변 오류, 벗어난 기록을 지워 돌아왔을 때 처음 상태로 표시, 바뀐 값 기록은 유지
+  useEffect(() => {
+    if (currentStepIndex === INFO_STEP_INDEX) {
+      resetAnswers(getAnswerValues(), { keepDefaultValues: true, keepDirty: true })
+    }
+  }, [currentStepIndex, getAnswerValues, resetAnswers])
+
   // TODO: 임시 저장 API 연결, 지금은 저장한 값을 이탈 확인 기준으로만 사용
   function handleTemporarySave() {
     // 보이던 오류가 저장 후에도 남도록 오류, 벗어난 칸 기록 유지
