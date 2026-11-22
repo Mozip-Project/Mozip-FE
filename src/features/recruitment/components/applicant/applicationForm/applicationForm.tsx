@@ -2,13 +2,15 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
+import { BackLink } from '@/components/ui/BackLink/backLink'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { SaveStatus, type SaveState } from '@/components/ui/SaveStatus/saveStatus'
 import { StepList } from '@/components/ui/StepList/stepList'
+import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import type { PostingPosition, PostingQuestion } from '@/features/posting/types'
 import { getPostingApplyPath, getPostingDetailPath } from '@/features/posting/utils/postingRoutes'
 import {
@@ -24,6 +26,7 @@ import {
 import type { ApplicantProfile } from '@/features/recruitment/types'
 import { hasOverLimitTextAnswer } from '@/features/recruitment/utils/applicationAnswer'
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm'
+import { useStickyTopBarHeight } from '@/hooks/useStickyTopBarHeight'
 import { getHrefWithSearchParams } from '@/utils/searchParams'
 import { ApplicationAnswerStep } from './applicationAnswerStep'
 import { ApplicationInfoStep } from './applicationInfoStep'
@@ -127,6 +130,8 @@ function ApplicationForm({
 
   // 마지막 임시 저장 뒤 바뀐 값이 있을 때만 이탈 확인
   const { pendingHref, cancelLeave } = useLeaveConfirm(isInfoDirty || isAnswerDirty)
+  const stickyHeaderRef = useRef<HTMLDivElement>(null)
+  useStickyTopBarHeight(stickyHeaderRef)
 
   const isInfoComplete = infoSchema.safeParse(infoValues).success
   const isAnswerStepRequested = searchParams.get('step') === ANSWER_STEP_PARAM
@@ -171,44 +176,52 @@ function ApplicationForm({
 
   return (
     <div className="mx-auto flex max-w-195 flex-col gap-gap-xl">
-      <PageHeader
-        backLink={{ href: getPostingDetailPath(postingId), label: '공고 상세' }}
-        title={postingTitle}
-        actions={
-          <div className="flex items-center gap-gap-m">
-            <Button variant="secondary" size="m" onClick={handleTemporarySave}>
-              임시 저장
-            </Button>
-            {currentStepIndex === INFO_STEP_INDEX ? (
-              <Button
-                size="m"
-                disabled={!isInfoComplete}
-                onClick={() => moveToStep(ANSWER_STEP_INDEX)}
-              >
-                다음
-                <ArrowRightIcon aria-hidden />
-              </Button>
-            ) : (
-              <Button size="m" disabled={!canSubmit} onClick={handleSubmitClick}>
-                지원서 제출
-              </Button>
-            )}
-          </div>
-        }
+      <BackLink
+        href={getPostingDetailPath(postingId)}
+        label="공고 상세"
+        className="-mb-[calc(var(--spacing-gap-xl)-var(--spacing-gap-s))] self-start"
       />
-      <div className="flex items-center justify-between gap-gap-l">
-        <StepList
-          label="지원 단계"
-          steps={APPLICATION_STEPS}
-          currentIndex={currentStepIndex}
-          stepSelection={{
-            furthestIndex: Math.max(visitedStepIndex, currentStepIndex),
-            isStepComplete: (stepIndex) => stepIndex === INFO_STEP_INDEX && isInfoComplete,
-            onSelect: moveToStep,
-          }}
-        />
-        <SaveStatus {...saveState} />
-      </div>
+      <StickyTopBar className="-mb-gap-xl">
+        <div ref={stickyHeaderRef} className="flex flex-col gap-gap-xl pb-gap-xl">
+          <PageHeader
+            title={postingTitle}
+            actions={
+              <div className="flex items-center gap-gap-m">
+                <Button variant="secondary" size="m" onClick={handleTemporarySave}>
+                  임시 저장
+                </Button>
+                {currentStepIndex === INFO_STEP_INDEX ? (
+                  <Button
+                    size="m"
+                    disabled={!isInfoComplete}
+                    onClick={() => moveToStep(ANSWER_STEP_INDEX)}
+                  >
+                    다음
+                    <ArrowRightIcon aria-hidden />
+                  </Button>
+                ) : (
+                  <Button size="m" disabled={!canSubmit} onClick={handleSubmitClick}>
+                    지원서 제출
+                  </Button>
+                )}
+              </div>
+            }
+          />
+          <div className="flex items-center justify-between gap-gap-l">
+            <StepList
+              label="지원 단계"
+              steps={APPLICATION_STEPS}
+              currentIndex={currentStepIndex}
+              stepSelection={{
+                furthestIndex: Math.max(visitedStepIndex, currentStepIndex),
+                isStepComplete: (stepIndex) => stepIndex === INFO_STEP_INDEX && isInfoComplete,
+                onSelect: moveToStep,
+              }}
+            />
+            <SaveStatus {...saveState} />
+          </div>
+        </div>
+      </StickyTopBar>
 
       {currentStepIndex === INFO_STEP_INDEX ? (
         <ApplicationInfoStep
