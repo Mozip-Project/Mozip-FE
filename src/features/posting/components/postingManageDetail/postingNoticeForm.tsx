@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/Button/button'
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/Dialog/dialog'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
 import { POSTING_NOTICE_SAMPLE_MESSAGE } from '@/features/posting/mocks/postingNoticeSample'
-import { MessageEditor } from '@/features/recruitment/components/resultNotice/messageEditor'
-import { MessagePreview } from '@/features/recruitment/components/resultNotice/messagePreview'
+import { MessageEditor } from '@/features/recruitment/components/organizer/resultNotice/messageEditor'
+import { MessagePreview } from '@/features/recruitment/components/organizer/resultNotice/messagePreview'
 import {
   resultNoticeMessageSchema,
   type ResultNoticeMessageValues,

@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { InterviewTimetableContent } from '@/features/recruitment/components/interviewTimetable/interviewTimetableContent'
+import { InterviewTimetableContent } from '@/features/recruitment/components/organizer/interviewTimetable/interviewTimetableContent'
 
 export default function InterviewTimetablePage({
   params,

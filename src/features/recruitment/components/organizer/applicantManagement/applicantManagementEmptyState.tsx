@@ -1,6 +1,6 @@
 import UsersIcon from '@/assets/icons/users.svg'
-import { RecruitmentBoardEmptyState } from '@/features/recruitment/components/recruitmentBoard/recruitmentBoardEmptyState'
-import { RecruitmentBoardSearchEmptyState } from '@/features/recruitment/components/recruitmentBoard/recruitmentBoardSearchEmptyState'
+import { RecruitmentBoardEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardEmptyState'
+import { RecruitmentBoardSearchEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardSearchEmptyState'
 
 type ApplicantManagementEmptyStateProps = {
   keyword: string

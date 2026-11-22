@@ -2,7 +2,7 @@ import {
   ApplicantRow,
   ApplicantTable,
   ApplicantTableHead,
-} from '@/features/recruitment/components/recruitmentBoard/applicantTable'
+} from '@/features/recruitment/components/organizer/recruitmentBoard/applicantTable'
 import {
   DOCUMENT_REVIEW_POSITION_LABEL,
   type DocumentReviewApplicant,

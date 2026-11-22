@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useSearchParams } from 'next/navigation'
-import { RecruitmentProgressCard } from '@/features/recruitment/components/recruitmentStage/recruitmentProgressCard'
+import { RecruitmentProgressCard } from '@/features/recruitment/components/organizer/recruitmentStage/recruitmentProgressCard'
 import { useApplicantManagementQuery } from '@/features/recruitment/hooks/useApplicantManagement'
 import { parseApplicantManagementQuery } from '@/features/recruitment/utils/applicantManagementQuery'
 import {

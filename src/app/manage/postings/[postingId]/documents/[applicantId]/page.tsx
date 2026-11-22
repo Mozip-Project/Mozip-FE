@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { DocumentEvaluationContent } from '@/features/recruitment/components/documentEvaluation/documentEvaluationContent'
+import { DocumentEvaluationContent } from '@/features/recruitment/components/organizer/documentEvaluation/documentEvaluationContent'
 
 export default function DocumentEvaluationPage({
   params,

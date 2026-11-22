@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import {
   ApplicantManagementContent,
   ApplicantManagementContentFallback,
-} from '@/features/recruitment/components/applicantManagement/applicantManagementContent'
+} from '@/features/recruitment/components/organizer/applicantManagement/applicantManagementContent'
 
 export default function ApplicantManagementPage() {
   return (

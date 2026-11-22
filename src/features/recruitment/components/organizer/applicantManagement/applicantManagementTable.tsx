@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/Badge/badge'
 import {
   ApplicantSkeletonRow,
   ApplicantTable,
-} from '@/features/recruitment/components/recruitmentBoard/applicantTable'
+} from '@/features/recruitment/components/organizer/recruitmentBoard/applicantTable'
 import {
   APPLICANT_MANAGEMENT_PAGE_SIZE,
   DOCUMENT_REVIEW_POSITION_LABEL,
