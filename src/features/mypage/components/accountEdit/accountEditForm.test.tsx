@@ -63,6 +63,39 @@ describe('AccountEditForm 비밀번호 검증', () => {
   })
 })
 
+describe('AccountEditForm 새 비밀번호 확인', () => {
+  it('확인 칸 입력이 멈추면 불일치를 칸을 벗어나지 않아도 표시', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const confirm = screen.getByLabelText(/새 비밀번호 확인/)
+
+    await user.type(screen.getByLabelText(/^새 비밀번호(?! 확인)/), 'abcd1234!')
+    await user.type(confirm, 'abcd1234@')
+
+    expect(confirm).toHaveAttribute('aria-invalid', 'false')
+    await waitFor(() => expect(confirm).toHaveAttribute('aria-invalid', 'true'))
+    expect(confirm).toHaveFocus()
+    expect(screen.getByText('비밀번호가 일치하지 않습니다')).toBeInTheDocument()
+  })
+
+  it('새 비밀번호를 고쳐 확인 칸과 같아지면 입력이 멈춘 뒤 일치로 바뀜', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const newPassword = screen.getByLabelText(/^새 비밀번호(?! 확인)/)
+    const confirm = screen.getByLabelText(/새 비밀번호 확인/)
+
+    await user.type(newPassword, 'abcd1234!')
+    await user.type(confirm, 'abcd1234@')
+    await waitFor(() => expect(confirm).toHaveAttribute('aria-invalid', 'true'))
+
+    await user.clear(newPassword)
+    await user.type(newPassword, 'abcd1234@')
+
+    await waitFor(() => expect(confirm).toHaveAttribute('aria-invalid', 'false'))
+    expect(screen.getByText('비밀번호가 일치해요')).toBeInTheDocument()
+  })
+})
+
 describe('AccountEditForm 휴대폰 번호 인증', () => {
   it('인증번호를 받아 확인하면 인증 완료로 바뀌고 저장 가능', async () => {
     const user = userEvent.setup()
