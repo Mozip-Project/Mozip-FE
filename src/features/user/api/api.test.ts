@@ -92,7 +92,7 @@ describe('정보 수정', () => {
   })
 
   it('이미 가입된 번호로 인증번호를 요청하면 USER_001', async () => {
-    await expect(requestPhoneChange('01011112222')).rejects.toMatchObject({ code: 'USER_001' })
+    await expect(requestPhoneChange('01000000002')).rejects.toMatchObject({ code: 'USER_001' })
   })
 
   it('같은 번호로 바로 다시 요청하면 USER_429', async () => {
