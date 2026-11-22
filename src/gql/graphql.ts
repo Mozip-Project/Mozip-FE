@@ -161,6 +161,11 @@ export type UpdateNotificationSettingsMutation = { updateNotificationSettings: {
 
 export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
 
+export type WithdrawMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WithdrawMutation = { withdraw: boolean };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -431,3 +436,8 @@ export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
     marketingAgreed
   }
 }`) as unknown as TypedDocumentString<UpdateNotificationSettingsMutation, UpdateNotificationSettingsMutationVariables>;
+export const WithdrawDocument = new TypedDocumentString(`
+    mutation Withdraw {
+  withdraw
+}
+    `) as unknown as TypedDocumentString<WithdrawMutation, WithdrawMutationVariables>;

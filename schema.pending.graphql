@@ -60,6 +60,8 @@ type Mutation {
   "단체명은 받지 않음, 검증 실패는 ORG_400"
   updateOrganization(id: ID!, input: UpdateOrganizationInput!): Organization!
   updateNotificationSettings(input: NotificationSettingsInput!): Me!
+  "대표자로 있는 단체가 남아 있으면 USER_409, 성공 후 프론트가 /auth/logout 호출"
+  withdraw: Boolean!
 }
 
 input UpdateOrganizationInput {

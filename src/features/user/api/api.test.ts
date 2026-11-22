@@ -1,8 +1,9 @@
 import { http, HttpResponse } from 'msw'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/lib/apiError'
+import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
-import { logout } from './api'
+import { logout, withdraw } from './api'
 
 beforeAll(() => {
   vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
@@ -35,5 +36,29 @@ describe('logout', () => {
 
     await expect(logout()).rejects.toBeInstanceOf(ApiError)
     await expect(logout()).rejects.toMatchObject({ code: 'AUTH_006' })
+  })
+})
+
+describe('withdraw', () => {
+  it('MSW 기본 응답으로 성공', async () => {
+    await expect(withdraw()).resolves.toBe(true)
+  })
+
+  it('대표자로 있는 단체가 남아 있으면 USER_409 ApiError로 실패', async () => {
+    server.use(
+      graphqlApi.mutation('Withdraw', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: '대표자로 있는 단체가 있어 탈퇴할 수 없습니다.',
+              extensions: { code: 'USER_409' },
+            },
+          ],
+          data: null,
+        }),
+      ),
+    )
+
+    await expect(withdraw()).rejects.toMatchObject({ code: 'USER_409' })
   })
 })

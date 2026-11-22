@@ -58,3 +58,7 @@ fragment MyAccountFields on Me {
     marketingAgreed
   }
 }
+
+mutation Withdraw {
+  withdraw
+}

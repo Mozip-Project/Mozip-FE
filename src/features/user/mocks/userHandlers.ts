@@ -8,6 +8,8 @@ import type {
   NotificationSettingsInput,
   UpdateNotificationSettingsMutation,
   UpdateNotificationSettingsMutationVariables,
+  WithdrawMutation,
+  WithdrawMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
@@ -98,6 +100,12 @@ const userHandlers = [
     return HttpResponse.json({
       data: { updateNotificationSettings: applyNotificationSettings(variables.input) },
     })
+  }),
+
+  // 샘플 회원은 대표자라 명세대로면 항상 USER_409, 개발 중 탈퇴 흐름 확인을 위해 성공 응답
+  graphqlApi.mutation<WithdrawMutation, WithdrawMutationVariables>('Withdraw', async () => {
+    await delay(MOCK_RESPONSE_DELAY_MS)
+    return HttpResponse.json({ data: { withdraw: true } })
   }),
 
   // 엔드포인트 origin과 관계없이 처리, 실제 쿠키는 지우지 않음

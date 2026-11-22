@@ -2,6 +2,7 @@ import {
   MeDocument,
   MyAccountDocument,
   UpdateNotificationSettingsDocument,
+  WithdrawDocument,
   type NotificationSettingsInput,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
@@ -29,4 +30,9 @@ async function logout() {
   await postRest(LOGOUT_PATH)
 }
 
-export { getMe, getMyAccount, logout, updateNotificationSettings }
+async function withdraw() {
+  const data = await requestGraphQL(WithdrawDocument)
+  return data.withdraw
+}
+
+export { getMe, getMyAccount, logout, updateNotificationSettings, withdraw }
