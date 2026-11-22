@@ -8,6 +8,14 @@ export type MemberRole =
   | 'OPERATOR'
   | 'REPRESENTATIVE';
 
+/** 보내지 않은 필드는 그대로 유지 */
+export type NotificationSettingsInput = {
+  marketingAgreed?: boolean | null | undefined;
+  notifyOperator?: boolean | null | undefined;
+  notifyResult?: boolean | null | undefined;
+  notifyScrap?: boolean | null | undefined;
+};
+
 export type NotificationTab =
   | 'APPLICANT'
   | 'OPERATOR';
@@ -139,6 +147,20 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string } }> } };
 
+export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyAccountQuery = { me: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type UpdateNotificationSettingsMutationVariables = Exact<{
+  input: NotificationSettingsInput;
+}>;
+
+
+export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+
+export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -176,6 +198,40 @@ export const OrganizationProfileFieldsFragmentDoc = new TypedDocumentString(`
   }
 }
     `, {"fragmentName":"OrganizationProfileFields"}) as unknown as TypedDocumentString<OrganizationProfileFieldsFragment, unknown>;
+export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}
+    `, {"fragmentName":"MyAccountFields"}) as unknown as TypedDocumentString<MyAccountFieldsFragment, unknown>;
 export const NotificationsDocument = new TypedDocumentString(`
     query Notifications($tab: NotificationTab, $page: Int) {
   notifications(tab: $tab, page: $page) {
@@ -299,3 +355,79 @@ export const MeDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<MeQuery, MeQueryVariables>;
+export const MyAccountDocument = new TypedDocumentString(`
+    query MyAccount {
+  me {
+    ...MyAccountFields
+  }
+}
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}`) as unknown as TypedDocumentString<MyAccountQuery, MyAccountQueryVariables>;
+export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
+    mutation UpdateNotificationSettings($input: NotificationSettingsInput!) {
+  updateNotificationSettings(input: $input) {
+    ...MyAccountFields
+  }
+}
+    fragment MyAccountFields on Me {
+  id
+  phone
+  name
+  school {
+    name
+  }
+  schoolVerification {
+    schoolName
+    email
+    school {
+      name
+    }
+  }
+  memberships {
+    id
+    role
+    organization {
+      id
+      name
+    }
+    team {
+      name
+    }
+  }
+  notificationSettings {
+    notifyResult
+    notifyScrap
+    notifyOperator
+    marketingAgreed
+  }
+}`) as unknown as TypedDocumentString<UpdateNotificationSettingsMutation, UpdateNotificationSettingsMutationVariables>;

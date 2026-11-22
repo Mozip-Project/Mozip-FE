@@ -1,5 +1,10 @@
 const userKeys = {
   me: ['user', 'me'] as const,
+  myAccount: ['user', 'me', 'account'] as const,
 }
 
-export { userKeys }
+const userMutationKeys = {
+  updateNotificationSettings: ['user', 'updateNotificationSettings'] as const,
+}
+
+export { userKeys, userMutationKeys }
