@@ -14,14 +14,43 @@ extend type Query {
   keywordSuggestions(query: String!, limit: Int = 5): [String!]!
 }
 
-"단체 선택에 필요한 최소 필드만 정의, 나머지는 명세 me 참고"
 type Me {
   id: ID!
+  "로그인 ID, 화면에서 가운데 4자리 마스킹"
+  phone: String!
   name: String!
+  "null이면 기본 아바타"
+  profileImageUrl: String
+  email: String
+  "null이면 학교 인증 전"
+  school: School
+  "승인된 인증. email이 인증 이메일, 재학증명서면 null"
+  schoolVerification: SchoolVerification
   lastRole: Role!
   "운영진 홈에서 마지막으로 본 단체"
   lastOrganization: Organization
   memberships: [Member!]!
+  notificationSettings: NotificationSettings!
+  unreadNotificationCount: Int!
+}
+
+type NotificationSettings {
+  "지원 결과 및 면접 일정"
+  notifyResult: Boolean!
+  "스크랩 공고 모집 시작"
+  notifyScrap: Boolean!
+  "운영진 활동 알림"
+  notifyOperator: Boolean!
+  "이벤트 및 마케팅"
+  marketingAgreed: Boolean!
+}
+
+"보내지 않은 필드는 그대로 유지"
+input NotificationSettingsInput {
+  notifyResult: Boolean
+  notifyScrap: Boolean
+  notifyOperator: Boolean
+  marketingAgreed: Boolean
 }
 
 type Mutation {
@@ -30,6 +59,7 @@ type Mutation {
   reportPosting(postingId: ID!, reason: ReportReason!, detail: String): Boolean!
   "단체명은 받지 않음, 검증 실패는 ORG_400"
   updateOrganization(id: ID!, input: UpdateOrganizationInput!): Organization!
+  updateNotificationSettings(input: NotificationSettingsInput!): Me!
 }
 
 input UpdateOrganizationInput {
