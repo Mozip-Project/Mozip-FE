@@ -1,8 +1,12 @@
+import { Badge } from '@/components/ui/Badge/badge'
 import { JobCard } from '@/components/ui/JobCard/jobCard'
+import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 import type { ComponentProps, ReactNode } from 'react'
 
-type PostingListItem = ComponentProps<typeof JobCard> & {
+type PostingListItem = Omit<ComponentProps<typeof JobCard>, 'badge'> & {
   id: string
+  phase: PostingRecruitmentPhase
 }
 
 type PostingListContentProps = {
@@ -35,9 +39,9 @@ function PostingListContent({
         </div>
         {appliedFilters}
         <ul className="grid grid-cols-3 gap-gap-xl">
-          {postings.map(({ id, ...posting }) => (
+          {postings.map(({ id, phase, ...posting }) => (
             <li key={id}>
-              <JobCard {...posting} />
+              <JobCard {...posting} badge={<Badge {...getRecruitmentStatusBadgeProps(phase)} />} />
             </li>
           ))}
         </ul>

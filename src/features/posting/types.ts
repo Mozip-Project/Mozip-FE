@@ -102,7 +102,8 @@ type ManagedPostingPreview = {
   title: string
   organizationType: string
   organizationName: string
-  deadlineLabel: string
+  // 모집 마감까지 남은 날
+  daysLeft: number
   tags: string[]
 }
 
@@ -110,7 +111,7 @@ type ManagedPostingDetail = {
   id: string
   title: string
   // TODO: D-day 계산 기준 확정 후 날짜 필드로 교체
-  postingDeadlineLabel: string
+  postingDaysLeft: number
   recruitmentStartsAt: string
   recruitmentEndsAt: string
   documentResultDate: string

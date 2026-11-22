@@ -123,6 +123,7 @@ function toProfileFieldErrors(fieldErrors: readonly { field: string; message: st
 }
 
 export {
+  ORGANIZATION_TYPE_LABEL,
   isStudentCouncil,
   toOrganizationProfileValues,
   toOrganizationSummary,

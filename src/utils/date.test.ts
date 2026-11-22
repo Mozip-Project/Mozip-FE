@@ -78,8 +78,8 @@ describe('formatMonthDayTimeWithWeekday', () => {
 })
 
 describe('formatDday', () => {
-  it('당일은 D-day, 그 외는 D-n', () => {
-    expect(formatDday(0)).toBe('D-day')
+  it('당일은 D-DAY, 그 외는 D-n', () => {
+    expect(formatDday(0)).toBe('D-DAY')
     expect(formatDday(1)).toBe('D-1')
   })
 })

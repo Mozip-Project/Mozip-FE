@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/Badge/badge'
 import type { ManagedPostingDetail } from '@/features/posting/types'
 import { getPostingDetailRows } from '@/features/posting/utils/postingDetailRows'
+import { getScheduleBadgeProps } from '@/features/posting/utils/scheduleBadge'
 
 type PostingDetailCardProps = {
   detail: ManagedPostingDetail
@@ -11,9 +12,7 @@ function PostingDetailCard({ detail }: PostingDetailCardProps) {
     <section className="flex min-w-0 flex-1 flex-col gap-gap-m rounded-l border border-neutral-muted bg-layer-default p-padding-xl desktop:self-stretch">
       <div className="flex items-center justify-between gap-gap-s">
         <h2 className="text-body1 font-semibold text-neutral">공고 상세 내용</h2>
-        <Badge tone="warning" variant="weak">
-          {detail.postingDeadlineLabel}
-        </Badge>
+        <Badge {...getScheduleBadgeProps(detail.postingDaysLeft, '게시 마감')} />
       </div>
       <dl className="flex flex-col gap-gap-s">
         {getPostingDetailRows(detail).map(({ label, value }) => (

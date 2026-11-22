@@ -5,7 +5,7 @@ import { getPostingDetailRows } from './postingDetailRows'
 const DETAIL: ManagedPostingDetail = {
   id: '1',
   title: 'UXUX 14기 신입 부원 모집',
-  postingDeadlineLabel: '게시 마감 D-5',
+  postingDaysLeft: 5,
   recruitmentStartsAt: '2025-10-01T00:00',
   recruitmentEndsAt: '2025-10-15T23:59',
   documentResultDate: '2025-10-18',
@@ -19,7 +19,7 @@ const DETAIL: ManagedPostingDetail = {
     title: 'UI/UX 디자인 동아리 14기 모집',
     organizationType: '동아리',
     organizationName: 'UXUX',
-    deadlineLabel: '모집 D-5',
+    daysLeft: 5,
     tags: [],
   },
 }

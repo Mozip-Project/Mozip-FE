@@ -2,13 +2,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge/badge'
 import type { Route } from 'next'
+import type { ReactNode } from 'react'
 
 type JobCardProps = {
   href: Route
   title: string
   organizationType: string
   organizationName: string
-  deadlineLabel: string
+  badge?: ReactNode
   tags: readonly string[]
   thumbnailSrc?: string
 }
@@ -18,14 +19,15 @@ function JobCard({
   title,
   organizationType,
   organizationName,
-  deadlineLabel,
+  badge,
   tags,
   thumbnailSrc,
 }: JobCardProps) {
   return (
     <article
       data-slot="job-card"
-      className="group/job-card relative flex flex-col rounded-xl bg-layer-default"
+      // 태그가 없어도 같은 높이 유지
+      className="group/job-card relative flex min-h-68 flex-col rounded-xl bg-layer-default"
     >
       <div className="relative h-40 overflow-hidden rounded-l bg-neutral-weak">
         {thumbnailSrc && (
@@ -38,9 +40,7 @@ function JobCard({
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover/job-card:scale-120"
           />
         )}
-        <div className="relative p-padding-s">
-          <Badge>{deadlineLabel}</Badge>
-        </div>
+        {badge && <div className="relative p-padding-s">{badge}</div>}
       </div>
 
       <div className="flex flex-col gap-gap-s px-0.5 py-padding-m">
@@ -61,15 +61,17 @@ function JobCard({
           </h3>
         </div>
 
-        <ul className="flex flex-wrap gap-gap-xs">
-          {tags.map((tag) => (
-            <li key={tag}>
-              <Badge tone="neutral" variant="weak">
-                {tag}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+        {tags.length > 0 && (
+          <ul className="flex flex-wrap gap-gap-xs">
+            {tags.map((tag) => (
+              <li key={tag}>
+                <Badge tone="neutral" variant="weak">
+                  {tag}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </article>
   )

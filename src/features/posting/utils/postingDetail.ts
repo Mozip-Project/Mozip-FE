@@ -1,6 +1,5 @@
 import { type PostingDetail, type PostingPosition } from '@/features/posting/types'
 import {
-  formatDday,
   formatMonthDayTimeWithWeekday,
   formatMonthDayWithWeekday,
   getDaysBetween,
@@ -26,12 +25,6 @@ type PostingPositionRow = {
 type PostingFactRow = PostingSummaryRow | PostingPositionRow
 
 type PostingFactCandidate = { label: string; value: string | null } | PostingPositionRow
-
-// Figma "일정 뱃지" 기준: D-day·D-1 임박, D-2~D-5 가까움, D-6부터 여유
-const DEADLINE_IMMINENT_MAX_DAYS = 1
-const DEADLINE_SOON_MAX_DAYS = 5
-
-type DeadlineUrgency = 'imminent' | 'soon' | 'relaxed'
 
 const FINAL_RESULT_PENDING_LABEL = '추후 안내'
 
@@ -119,35 +112,5 @@ function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
   ].filter(hasValue)
 }
 
-// Figma 헤더 상태 칩 문구, 마감·시작 당일은 D-day
-function getRecruitmentStatusLabel(phase: PostingRecruitmentPhase) {
-  switch (phase.status) {
-    case 'open':
-      return `마감 ${formatDday(phase.daysLeft)}`
-    case 'upcoming':
-      return `모집 예정 ${formatDday(phase.daysLeft)}`
-    case 'closed':
-      return '모집 마감'
-  }
-}
-
-function getDeadlineUrgency(daysLeft: number): DeadlineUrgency {
-  if (daysLeft <= DEADLINE_IMMINENT_MAX_DAYS) {
-    return 'imminent'
-  }
-
-  if (daysLeft <= DEADLINE_SOON_MAX_DAYS) {
-    return 'soon'
-  }
-
-  return 'relaxed'
-}
-
-export {
-  getDeadlineUrgency,
-  getPostingFactRows,
-  getPostingRecruitmentPhase,
-  getPostingScheduleRows,
-  getRecruitmentStatusLabel,
-}
-export type { DeadlineUrgency, PostingRecruitmentPhase, PostingSummaryRow }
+export { getPostingFactRows, getPostingRecruitmentPhase, getPostingScheduleRows }
+export type { PostingRecruitmentPhase, PostingSummaryRow }

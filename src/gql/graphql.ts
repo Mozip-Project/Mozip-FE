@@ -161,6 +161,14 @@ export type ReportPostingMutationVariables = Exact<{
 
 export type ReportPostingMutation = { reportPosting: boolean };
 
+export type PostingsQueryVariables = Exact<{
+  page?: number | null | undefined;
+  size?: number | null | undefined;
+}>;
+
+
+export type PostingsQuery = { postings: { totalCount: number, items: Array<{ id: string, title: string, thumbnailUrl: string | null, recruitEndAt: string, organization: { name: string, type: OrganizationType }, positions: Array<{ id: string, name: string, sortOrder: number } | null> }> } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -391,6 +399,28 @@ export const ReportPostingDocument = new TypedDocumentString(`
   reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
 }
     `) as unknown as TypedDocumentString<ReportPostingMutation, ReportPostingMutationVariables>;
+export const PostingsDocument = new TypedDocumentString(`
+    query Postings($page: Int, $size: Int) {
+  postings(page: $page, size: $size) {
+    totalCount
+    items {
+      id
+      title
+      organization {
+        name
+        type
+      }
+      thumbnailUrl
+      recruitEndAt
+      positions {
+        id
+        name
+        sortOrder
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PostingsQuery, PostingsQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

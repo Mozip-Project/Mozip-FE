@@ -36,8 +36,9 @@ function formatMonthDayTimeWithWeekday(isoDateTime: string) {
   return `${formatMonthDayWithWeekday(isoDateTime)} ${isoDateTime.slice(11, 16)}`
 }
 
+// Figma 일정 뱃지 표기, 당일은 대문자 D-DAY
 function formatDday(daysLeft: number) {
-  return daysLeft === 0 ? 'D-day' : `D-${daysLeft}`
+  return daysLeft === 0 ? 'D-DAY' : `D-${daysLeft}`
 }
 
 // 날짜 부분(YYYY-MM-DD)만 UTC 자정 시각으로 변환, 형식이 다르면 NaN
