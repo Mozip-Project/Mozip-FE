@@ -2,8 +2,8 @@
 
 import { Suspense, use, type ReactNode } from 'react'
 
-const isMockingEnabled =
-  process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_API_MOCKING === 'enabled'
+// 백엔드 배포 전 배포 환경에서도 확인하도록 NODE_ENV와 관계없이 이 값 하나로 켜고 끔
+const isMockingEnabled = process.env.NEXT_PUBLIC_API_MOCKING === 'enabled'
 
 let mockingReady: Promise<void> | undefined
 
