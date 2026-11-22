@@ -69,6 +69,22 @@ export type OrganizationType =
   | 'CLUB'
   | 'STUDENT_COUNCIL';
 
+export type PostingFilter = {
+  /** 마감 3일 이내 */
+  closingSoon?: boolean | null | undefined;
+  fields?: Array<string> | null | undefined;
+  hasInterview?: boolean | null | undefined;
+  keyword?: string | null | undefined;
+  /** 명세는 하나, 여러 개 선택이라 배열로 요청 중(백엔드 확인 전 가정) */
+  organizationType?: Array<OrganizationType> | null | undefined;
+  schoolId?: string | number | null | undefined;
+};
+
+export type PostingSort =
+  | 'CLOSING_SOON'
+  | 'LATEST'
+  | 'POPULAR';
+
 export type ReportReason =
   | 'ETC'
   | 'EXCESSIVE_PERSONAL_INFO'
@@ -162,6 +178,8 @@ export type ReportPostingMutationVariables = Exact<{
 export type ReportPostingMutation = { reportPosting: boolean };
 
 export type PostingsQueryVariables = Exact<{
+  filter?: PostingFilter | null | undefined;
+  sort?: PostingSort | null | undefined;
   page?: number | null | undefined;
   size?: number | null | undefined;
 }>;
@@ -400,8 +418,8 @@ export const ReportPostingDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<ReportPostingMutation, ReportPostingMutationVariables>;
 export const PostingsDocument = new TypedDocumentString(`
-    query Postings($page: Int, $size: Int) {
-  postings(page: $page, size: $size) {
+    query Postings($filter: PostingFilter, $sort: PostingSort, $page: Int, $size: Int) {
+  postings(filter: $filter, sort: $sort, page: $page, size: $size) {
     totalCount
     items {
       id

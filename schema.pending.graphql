@@ -137,7 +137,8 @@ type UnreadCount {
 input PostingFilter {
   keyword: String
   schoolId: ID
-  organizationType: OrganizationType
+  "명세는 하나, 여러 개 선택이라 배열로 요청 중(백엔드 확인 전 가정)"
+  organizationType: [OrganizationType!]
   fields: [String!]
   hasInterview: Boolean
   "마감 3일 이내"

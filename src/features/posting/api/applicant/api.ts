@@ -1,13 +1,13 @@
 import {
   PostingsDocument,
   ReportPostingDocument,
+  type PostingsQueryVariables,
   type ReportPostingMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
-// page는 서버 기준 0부터
-async function getPostings(page: number, size: number) {
-  const data = await requestGraphQL(PostingsDocument, { page, size })
+async function getPostings(variables: PostingsQueryVariables) {
+  const data = await requestGraphQL(PostingsDocument, variables)
   return data.postings
 }
 

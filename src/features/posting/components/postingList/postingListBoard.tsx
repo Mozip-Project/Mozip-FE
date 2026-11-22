@@ -1,10 +1,18 @@
+import { unstable_rethrow } from 'next/navigation'
 import { Suspense } from 'react'
+import FileTextIcon from '@/assets/icons/fileText.svg'
+import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { getPostings } from '@/features/posting/api/applicant/api'
 import { PostingFilterChips } from '@/features/posting/components/postingFilter/postingFilterChips'
 import { PostingFilterPanel } from '@/features/posting/components/postingFilter/postingFilterPanel'
 import type { PostingListQuery } from '@/features/posting/types'
-import { getPostingListTotalPages, toPostingListItem } from '@/features/posting/utils/postingList'
+import {
+  getPostingListTotalPages,
+  toPostingListItem,
+  toPostingsVariables,
+} from '@/features/posting/utils/postingList'
 import { parsePostingListQuery } from '@/features/posting/utils/postingListQuery'
+import type { PostingsQueryVariables } from '@/gql/graphql'
 import type { SearchParamsSource } from '@/utils/searchParams'
 import { PostingListContent } from './postingListContent'
 import { PostingListPagination } from './postingListPagination'
@@ -42,10 +50,32 @@ type PostingListResultsProps = {
   query: PostingListQuery
 }
 
+async function getPostingsOrNull(variables: PostingsQueryVariables) {
+  try {
+    return await getPostings(variables)
+  } catch (error) {
+    unstable_rethrow(error)
+    console.error(error)
+    return null
+  }
+}
+
 async function PostingListResults({ query }: PostingListResultsProps) {
-  // TODO: 검색·필터·정렬 조건 반영
-  // 화면 페이지는 1부터, 서버 페이지는 0부터
-  const { totalCount, items } = await getPostings(query.page - 1, POSTING_LIST_PAGE_SIZE)
+  const postingPage = await getPostingsOrNull(toPostingsVariables(query, POSTING_LIST_PAGE_SIZE))
+
+  if (!postingPage) {
+    return (
+      <div role="alert">
+        <EmptyState
+          icon={<FileTextIcon className="size-7" />}
+          title="조회에 실패했어요"
+          className="min-h-162.5 justify-center border-0"
+        />
+      </div>
+    )
+  }
+
+  const { totalCount, items } = postingPage
   const now = new Date()
 
   return (

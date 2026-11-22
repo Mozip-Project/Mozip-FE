@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import type { PostingListQuery } from '@/features/posting/types'
 import {
   getPostingCardPhase,
   getPostingCardPositionNames,
   getPostingListTotalPages,
   toPostingListItem,
+  toPostingsVariables,
   type PostingCard,
 } from './postingList'
 
@@ -107,5 +109,73 @@ describe('getPostingListTotalPages', () => {
   it('나누어떨어지면 그대로, 공고가 없으면 0', () => {
     expect(getPostingListTotalPages(18, 9)).toBe(2)
     expect(getPostingListTotalPages(0, 9)).toBe(0)
+  })
+})
+
+describe('toPostingsVariables', () => {
+  const BASE_QUERY = {
+    scopes: [],
+    activityTypes: [],
+    activityFields: [],
+    keyword: '',
+    sort: 'latest',
+    page: 1,
+  } satisfies PostingListQuery
+
+  it('조건이 없으면 필터 값 없이 최신순 첫 페이지(서버 0부터)', () => {
+    expect(toPostingsVariables(BASE_QUERY, 9)).toEqual({
+      filter: { keyword: undefined, organizationType: undefined, fields: undefined },
+      sort: 'LATEST',
+      page: 0,
+      size: 9,
+    })
+  })
+
+  it('검색어 앞뒤 공백 제거, 활동 분야·정렬은 서버 값으로 변환', () => {
+    expect(
+      toPostingsVariables(
+        {
+          ...BASE_QUERY,
+          keyword: '  디자인 ',
+          activityFields: ['it', 'design'],
+          sort: 'deadline',
+          page: 3,
+        },
+        9,
+      ),
+    ).toEqual({
+      filter: { keyword: '디자인', fields: ['IT_DEV', 'DESIGN_MEDIA'] },
+      sort: 'CLOSING_SOON',
+      page: 2,
+      size: 9,
+    })
+  })
+
+  it('연합 공고만 고르면 schoolId를 null로 보냄', () => {
+    const { filter } = toPostingsVariables({ ...BASE_QUERY, scopes: ['union'] }, 9)
+
+    expect(filter).toHaveProperty('schoolId', null)
+  })
+
+  it('교내·연합을 둘 다 고르거나 안 고르면 schoolId를 보내지 않음', () => {
+    expect(
+      toPostingsVariables({ ...BASE_QUERY, scopes: ['campus', 'union'] }, 9).filter,
+    ).not.toHaveProperty('schoolId')
+    expect(toPostingsVariables(BASE_QUERY, 9).filter).not.toHaveProperty('schoolId')
+  })
+
+  it('활동 유형은 서버 값 배열로 변환', () => {
+    const { filter } = toPostingsVariables(
+      { ...BASE_QUERY, activityTypes: ['club', 'studentCouncil'] },
+      9,
+    )
+
+    expect(filter).toHaveProperty('organizationType', ['CLUB', 'STUDENT_COUNCIL'])
+  })
+
+  it('교내 공고는 아직 보내지 않음', () => {
+    const { filter } = toPostingsVariables({ ...BASE_QUERY, scopes: ['campus'] }, 9)
+
+    expect(filter).not.toHaveProperty('schoolId')
   })
 })
