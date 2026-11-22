@@ -6,7 +6,12 @@ import {
   VERIFICATION_CODE_PATTERN,
   type AccountEditValues,
 } from '@/features/mypage/schemas/accountEditSchema'
+import {
+  useRequestPhoneChangeMutation,
+  useVerifyPhoneChangeMutation,
+} from '@/features/user/api/queries'
 import { useCountdown } from '@/hooks/useCountdown'
+import { ApiError } from '@/lib/apiError'
 import { formatRemainingTime } from '@/utils/date'
 import { formatPhoneNumber } from '@/utils/phone'
 
@@ -14,6 +19,17 @@ const VERIFICATION_DURATION_SECONDS = 180
 const PHONE_PATTERN = /^01[016789]-\d{3,4}-\d{4}$/
 const CODE_SENT_MESSAGE = '인증번호가 발송되었습니다.'
 const VERIFIED_MESSAGE = '인증이 완료되었습니다.'
+const REQUEST_FAILED_MESSAGE = '잠시 후 다시 시도해 주세요.'
+
+// 서버가 로그인 ID와 같은 숫자만 받음
+function toPhoneDigits(phone: string) {
+  return phone.replace(/\D/g, '')
+}
+
+// TODO: USER_001·USER_429·USER_400 안내 문구 디자인 확인 필요, 지금은 서버 메시지 표시
+function getErrorMessage(error: Error) {
+  return error instanceof ApiError ? error.message : REQUEST_FAILED_MESSAGE
+}
 
 type PhoneSectionProps = {
   control: Control<AccountEditValues>
@@ -29,16 +45,24 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
     name: 'verificationCode',
   })
   const [sentPhone, setSentPhone] = useState<string | null>(null)
+  const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(null)
+  const [codeErrorMessage, setCodeErrorMessage] = useState<string | null>(null)
   const countdown = useCountdown()
+  const requestPhoneChange = useRequestPhoneChangeMutation()
+  const verifyPhoneChange = useVerifyPhoneChangeMutation()
 
   const newPhone = newPhoneField.value
   const isChangingPhone = newPhone !== ''
   // 발송 후 번호를 고치면 다시 받아야 하므로 발송한 번호와 같을 때만 인증 단계 유지
   const isCodeSent = sentPhone !== null && sentPhone === newPhone
-  const canSendCode = PHONE_PATTERN.test(newPhone) && !isVerified
+  const canSendCode = PHONE_PATTERN.test(newPhone) && !isVerified && !requestPhoneChange.isPending
   const canEnterCode = isCodeSent && !isVerified
   const canConfirmCode =
-    canEnterCode && countdown.isRunning && VERIFICATION_CODE_PATTERN.test(codeField.value)
+    canEnterCode &&
+    countdown.isRunning &&
+    VERIFICATION_CODE_PATTERN.test(codeField.value) &&
+    !verifyPhoneChange.isPending
+  const codeHelper = codeErrorMessage ?? codeState.error?.message
   const remainingTimeMessage = canEnterCode
     ? `남은 시간 ${formatRemainingTime(countdown.remainingSeconds)}`
     : undefined
@@ -51,24 +75,42 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
   }
 
   function handleNewPhoneChange(event: ChangeEvent<HTMLInputElement>) {
+    setPhoneErrorMessage(null)
     newPhoneField.onChange(formatPhoneNumber(event.target.value))
   }
 
   function handleCodeChange(event: ChangeEvent<HTMLInputElement>) {
+    setCodeErrorMessage(null)
     codeField.onChange(event.target.value.replace(/\D/g, ''))
   }
 
   function handleSendCode() {
-    // TODO: 인증번호 발송 API 연결
-    setSentPhone(newPhone)
-    codeField.onChange('')
-    countdown.start(VERIFICATION_DURATION_SECONDS)
+    const phone = newPhone
+    setPhoneErrorMessage(null)
+    requestPhoneChange.mutate(toPhoneDigits(phone), {
+      onSuccess: () => {
+        setSentPhone(phone)
+        setCodeErrorMessage(null)
+        codeField.onChange('')
+        countdown.start(VERIFICATION_DURATION_SECONDS)
+      },
+      onError: (error) => setPhoneErrorMessage(getErrorMessage(error)),
+    })
   }
 
   function handleConfirmCode() {
-    // TODO: 인증번호 확인 API 연결, 틀리면 인증번호 입력에 오류 표시
-    countdown.stop()
-    onVerified(newPhone)
+    const phone = newPhone
+    setCodeErrorMessage(null)
+    verifyPhoneChange.mutate(
+      { phone: toPhoneDigits(phone), code: codeField.value },
+      {
+        onSuccess: () => {
+          countdown.stop()
+          onVerified(phone)
+        },
+        onError: (error) => setCodeErrorMessage(getErrorMessage(error)),
+      },
+    )
   }
 
   return (
@@ -88,7 +130,8 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           autoComplete="tel"
           placeholder="010-0000-0000"
           required={isChangingPhone}
-          helper={isCodeSent ? CODE_SENT_MESSAGE : undefined}
+          aria-invalid={phoneErrorMessage !== null}
+          helper={phoneErrorMessage ?? (isCodeSent ? CODE_SENT_MESSAGE : undefined)}
           className="min-w-0 flex-1"
         />
         <Button
@@ -111,8 +154,8 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           maxLength={6}
           required={isChangingPhone}
           disabled={!canEnterCode}
-          aria-invalid={codeState.invalid}
-          helper={codeState.error?.message ?? remainingTimeMessage}
+          aria-invalid={codeHelper !== undefined}
+          helper={codeHelper ?? remainingTimeMessage}
           className="min-w-0 flex-1"
         />
         <Button
