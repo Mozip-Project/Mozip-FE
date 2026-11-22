@@ -34,14 +34,20 @@ function ManagedPostingActions({ posting }: ManagedPostingCardProps) {
   const { id, title } = posting
 
   switch (posting.status) {
-    case 'published':
+    case 'published': {
+      const { latestRank, canUp } = posting
+
       return (
         <>
-          <p className="shrink-0 text-label2 font-medium text-neutral-subtle">
-            최신순 {posting.latestRank}위
-          </p>
+          {latestRank !== null && (
+            <p className="shrink-0 text-label2 font-medium text-neutral-subtle">
+              최신순 {latestRank}위
+            </p>
+          )}
           <div className="flex shrink-0 items-center gap-gap-xs">
-            <PostingUpDialog postingId={id} title={title} latestRank={posting.latestRank} />
+            {canUp && latestRank !== null && (
+              <PostingUpDialog postingId={id} title={title} latestRank={latestRank} />
+            )}
             <Button asChild variant="secondary" size="s">
               <Link href={getPostingManageDetailPath(id)} aria-label={`${title} 관리하기`}>
                 관리하기
@@ -50,6 +56,7 @@ function ManagedPostingActions({ posting }: ManagedPostingCardProps) {
           </div>
         </>
       )
+    }
     case 'draft':
       return <DraftPostingMenu postingId={id} title={title} />
     case 'closed':
