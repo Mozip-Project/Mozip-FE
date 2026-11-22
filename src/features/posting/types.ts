@@ -1,3 +1,7 @@
+import type {
+  PostingActivityField as PostingQuestionActivityField,
+  PostingFileType,
+} from '@/features/posting/schemas/postingFormSchema'
 import type { RecruitmentProgress } from '@/features/recruitment/types'
 
 // TODO: 공고 목록 API 명세 확정 후 필터 값을 서버 enum으로 교체
@@ -133,10 +137,30 @@ type PostingContentBlock =
   | { type: 'paragraph'; runs: PostingRichTextRun[] }
   | { type: 'list'; items: PostingRichTextRun[][] }
 
-type PostingQuestion = {
+type PostingQuestionBase = {
   id: string
   title: string
+  // null은 운영진이 설명을 쓰지 않은 문항
+  description: string | null
+  isRequired: boolean
 }
+
+// TODO: 지원서 API 명세 확정 후 문항 유형별 필드를 서버 응답 기준으로 교체, 지금은 운영진 공고 작성 문항 기준
+type PostingQuestion =
+  | (PostingQuestionBase & { type: 'text'; maxLength: number })
+  | (PostingQuestionBase & {
+      type: 'activity'
+      activityFields: PostingQuestionActivityField[]
+      maxActivityCount: number
+    })
+  | (PostingQuestionBase & {
+      type: 'file'
+      acceptsFile: boolean
+      acceptsLink: boolean
+      fileTypes: PostingFileType[]
+    })
+  // 운영진이 면접 단계에서 연 30분 칸 시작 시각('YYYY-MM-DDTHH:mm')
+  | (PostingQuestionBase & { type: 'availability'; interviewSlots: string[] })
 
 type PostingPosition = {
   id: string
