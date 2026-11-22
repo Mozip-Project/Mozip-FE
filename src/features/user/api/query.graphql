@@ -26,6 +26,24 @@ mutation UpdateNotificationSettings($input: NotificationSettingsInput!) {
   }
 }
 
+mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    ...MyAccountFields
+  }
+}
+
+mutation RequestPhoneChange($phone: String!) {
+  requestPhoneChange(phone: $phone)
+}
+
+mutation VerifyPhoneChange($phone: String!, $code: String!) {
+  verifyPhoneChange(phone: $phone, code: $code)
+}
+
+mutation ChangePassword($input: ChangePasswordInput!) {
+  changePassword(input: $input)
+}
+
 fragment MyAccountFields on Me {
   id
   phone
