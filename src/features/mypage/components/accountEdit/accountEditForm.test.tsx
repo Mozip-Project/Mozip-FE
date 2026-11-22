@@ -1,9 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { MOCK_VERIFICATION_CODE, resetAccountEdit } from '@/features/user/mocks/accountEditHandlers'
-import { resetMyAccount } from '@/features/user/mocks/userHandlers'
+import { getMockAccount, resetMyAccount } from '@/features/user/mocks/userHandlers'
+import { graphqlApi } from '@/mocks/graphqlApi'
+import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { AccountEditForm } from './accountEditForm'
 
 function renderAccountEditForm() {
@@ -11,7 +15,9 @@ function renderAccountEditForm() {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <AccountEditForm name="김모집" maskedPhone="010-****-5678" />
+      <ToastProvider>
+        <AccountEditForm name="김모집" maskedPhone="010-****-5678" />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
@@ -114,5 +120,87 @@ describe('AccountEditForm 휴대폰 번호 인증', () => {
     ).toBeInTheDocument()
     expect(code).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+  })
+})
+
+describe('AccountEditForm 저장', () => {
+  async function typeNewPassword(user: ReturnType<typeof userEvent.setup>, current: string) {
+    await user.type(screen.getByLabelText(/현재 비밀번호/), current)
+    await user.type(screen.getByLabelText(/^새 비밀번호(?! 확인)/), 'newpass123!')
+    await user.type(screen.getByLabelText(/새 비밀번호 확인/), 'newpass123!')
+  }
+
+  it('바꾼 이름을 저장하면 완료 토스트를 띄우고 서버 값이 바뀜', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const name = screen.getByLabelText(/이름/)
+
+    await user.clear(name)
+    await user.type(name, '이모집')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
+    expect(getMockAccount().name).toBe('이모집')
+  })
+
+  it('인증한 번호를 저장하면 숫자만 보내 서버 번호가 바뀜', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+
+    await user.type(screen.getByLabelText(/새 휴대폰 번호/), '01098765432')
+    await user.click(screen.getByRole('button', { name: '인증번호 받기' }))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('인증번호가 발송되었습니다.'),
+    )
+    await user.type(screen.getByLabelText(/인증번호 입력/), MOCK_VERIFICATION_CODE)
+    await user.click(screen.getByRole('button', { name: '확인' }))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('인증이 완료되었습니다.'),
+    )
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
+    expect(getMockAccount().phone).toBe('01098765432')
+  })
+
+  it('현재 비밀번호가 틀리면 그 칸에 표시하고 이름도 저장하지 않음', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const name = screen.getByLabelText(/이름/)
+
+    await user.clear(name)
+    await user.type(name, '이모집')
+    await typeNewPassword(user, 'wrong-password1!')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(/현재 비밀번호/)).toHaveAttribute('aria-invalid', 'true'),
+    )
+    expect(screen.getByText('휴대폰 번호 또는 비밀번호가 일치하지 않습니다.')).toBeInTheDocument()
+    expect(getMockAccount().name).toBe('김모집')
+  })
+
+  it('비밀번호만 바뀌고 프로필 저장이 실패하면 비밀번호 변경 사실을 알림', async () => {
+    const user = userEvent.setup()
+    server.use(
+      graphqlApi.mutation('UpdateProfile', () =>
+        HttpResponse.json({
+          errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
+          data: null,
+        }),
+      ),
+    )
+    renderAccountEditForm()
+    const name = screen.getByLabelText(/이름/)
+
+    await user.clear(name)
+    await user.type(name, '이모집')
+    await typeNewPassword(user, 'mozip1234!')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(
+      await screen.findByText('비밀번호만 변경하고 나머지는 저장하지 못했어요'),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/현재 비밀번호/)).toHaveValue('')
   })
 })

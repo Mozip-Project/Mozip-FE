@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { resetMyAccount } from '@/features/user/mocks/userHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { AccountEditContent } from './accountEditContent'
 
 function renderAccountEdit() {
@@ -13,7 +14,9 @@ function renderAccountEdit() {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <AccountEditContent />
+      <ToastProvider>
+        <AccountEditContent />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }

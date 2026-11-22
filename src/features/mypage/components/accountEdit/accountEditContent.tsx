@@ -12,8 +12,15 @@ function AccountEditContent() {
   const accountQuery = useMyAccountQuery()
   const account = accountQuery.data
 
+  // 번호를 저장하면 초깃값만 쓰는 현재 번호 칸까지 새로 그리도록 번호를 key로 사용
   if (account) {
-    return <AccountEditForm name={account.name} maskedPhone={maskPhoneNumber(account.phone)} />
+    return (
+      <AccountEditForm
+        key={account.phone}
+        name={account.name}
+        maskedPhone={maskPhoneNumber(account.phone)}
+      />
+    )
   }
   if (accountQuery.isError) {
     return (
