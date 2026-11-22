@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useForm, useWatch, type UseFormSetError } from 'react-hook-form'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
+import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import {
   accountEditSchema,
   type AccountEditValues,
@@ -151,18 +152,23 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
     <form
       noValidate
       onSubmit={(event) => void handleSubmit(handleSave)(event)}
-      className="flex flex-col gap-gap-l"
+      className="flex flex-col"
     >
-      <PageHeader
-        title="정보 수정"
-        backLink={ACCOUNT_EDIT_BACK_LINK}
-        actions={
-          <Button type="submit" size="m" disabled={!canSave}>
-            저장
-          </Button>
-        }
-      />
-      <div className="flex flex-col gap-gap-xxl">
+      {/* 긴 폼에서도 저장 버튼이 보이도록 헤더 전체를 화면 위에 고정 */}
+      {/* 헤더 위에 다른 내용이 없어 위 가림막을 항상 켜 빠른 스크롤 때 고정 판정 지연으로 비침 방지 */}
+      <StickyTopBar className="pb-gap-l after:opacity-100 after:transition-none">
+        <PageHeader
+          title="정보 수정"
+          backLink={ACCOUNT_EDIT_BACK_LINK}
+          actions={
+            <Button type="submit" size="m" disabled={!canSave}>
+              저장
+            </Button>
+          }
+        />
+      </StickyTopBar>
+      {/* 공용 스크롤 여백은 48px 바 기준이라 더 높은 헤더에 focus된 칸이 가리지 않게 남는 높이만큼 추가 */}
+      <div className="flex flex-col gap-gap-xxl [&_input]:scroll-mt-10">
         <ProfileImageSection control={control} />
         <NameSection control={control} />
         <PhoneSection
