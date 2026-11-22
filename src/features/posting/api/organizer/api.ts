@@ -5,6 +5,14 @@ import {
   type ManagedPosting,
   type ManagedPostingDetail,
 } from '@/features/posting/types'
+import {
+  BumpPostingDocument,
+  DeletePostingDocument,
+  ManagedPostingSummaryDocument,
+  OrganizationPostingsDocument,
+  type PostingStatus,
+} from '@/gql/graphql'
+import { requestGraphQL } from '@/lib/graphqlClient'
 
 // 실제 API 전 화면 동작 확인용 샘플 상태
 let managedPostingState: ManagedPosting[] = MANAGED_POSTING_SAMPLE
@@ -57,7 +65,34 @@ async function upManagedPosting(postingId: string): Promise<{ latestRank: number
   return { latestRank: POSTING_UP_RANK }
 }
 
+async function getOrganizationPostings(organizationId: string, status: readonly PostingStatus[]) {
+  const data = await requestGraphQL(OrganizationPostingsDocument, {
+    organizationId,
+    status: [...status],
+  })
+  return data.organizationPostings
+}
+
+async function getManagedPostingSummary(organizationId: string) {
+  const data = await requestGraphQL(ManagedPostingSummaryDocument, { organizationId })
+  return data.organization
+}
+
+async function bumpPosting(postingId: string) {
+  const data = await requestGraphQL(BumpPostingDocument, { id: postingId })
+  return data.bumpPosting
+}
+
+async function deletePosting(postingId: string) {
+  const data = await requestGraphQL(DeletePostingDocument, { id: postingId })
+  return data.deletePosting
+}
+
 export {
+  bumpPosting,
+  deletePosting,
+  getManagedPostingSummary,
+  getOrganizationPostings,
   deleteManagedPosting,
   getFirstPublishedPostingId,
   getManagedPostingDetail,

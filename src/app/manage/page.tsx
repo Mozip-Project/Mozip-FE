@@ -5,7 +5,7 @@ import {
   getOrganizationProfile,
 } from '@/features/organization/api/organizer/api'
 import { OrganizationPlanBanner } from '@/features/organization/components/organizationPlan/organizationPlanBanner'
-import { getUpRemainingCount } from '@/features/posting/api/organizer'
+import { getUpRemainingCount } from '@/features/posting/api/organizer/api'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
 import { PostingManageBoard } from '@/features/posting/components/postingManage/postingManageBoard'
 

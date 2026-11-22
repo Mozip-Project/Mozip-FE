@@ -1,0 +1,41 @@
+fragment ManagedPostingFields on Posting {
+  id
+  title
+  status
+  hasInterview
+  publishedAt
+  recruitEndAt
+  docResultConfirmedAt
+  docResultAt
+  finalResultAt
+  bumpRank
+}
+
+query OrganizationPostings($organizationId: ID!, $status: [PostingStatus!]) {
+  organizationPostings(organizationId: $organizationId, status: $status) {
+    ...ManagedPostingFields
+  }
+}
+
+query ManagedPostingSummary($organizationId: ID!) {
+  organization(id: $organizationId) {
+    id
+    upCredits
+    postingCounts {
+      published
+      draft
+      ended
+    }
+  }
+}
+
+mutation BumpPosting($id: ID!) {
+  bumpPosting(id: $id) {
+    id
+    bumpRank
+  }
+}
+
+mutation DeletePosting($id: ID!) {
+  deletePosting(id: $id)
+}

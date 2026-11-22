@@ -4,7 +4,7 @@ import {
   getManagedPostings,
   getUpRemainingCount,
   upManagedPosting,
-} from '@/features/posting/api/organizer'
+} from '@/features/posting/api/organizer/api'
 import type { ManagedPosting } from '@/features/posting/types'
 
 const managedPostingKeys = {
