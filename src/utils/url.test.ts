@@ -23,5 +23,10 @@ describe('toWebUrl', () => {
   it('http·https가 아닌 프로토콜이면 null', () => {
     expect(toWebUrl('ftp://example.com')).toBeNull()
     expect(toWebUrl('javascript:alert(1)')).toBeNull()
+    expect(toWebUrl('mailto:person@example.com')).toBeNull()
+  })
+
+  it('아이디·비밀번호가 들어간 주소는 null', () => {
+    expect(toWebUrl('https://user:pass@example.com')).toBeNull()
   })
 })
