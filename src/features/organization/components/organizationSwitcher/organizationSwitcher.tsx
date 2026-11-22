@@ -9,7 +9,7 @@ import { saveCurrentOrganization } from '@/features/organization/server/saveCurr
 import { useToast } from '@/providers/toastProvider'
 
 // TODO: 회원가입의 단체 생성 화면이 생기면 그 경로로 변경
-const NO_ORGANIZATION_REDIRECT_PATH = '/postings'
+const NO_ORGANIZATION_REDIRECT_PATH = '/'
 
 type OrganizationSwitcherProps = {
   savedOrganizationId: string | undefined

@@ -73,7 +73,7 @@ function PostingPreview({ values, hasInterview }: Omit<PostingReviewStepProps, '
       {/* TODO: 단체 정보·모집 상태 문구 API 연결 후 교체 */}
       <div inert>
         <JobCard
-          href="/postings"
+          href="/"
           title={values.title.trim()}
           organizationType="동아리"
           organizationName="UXUX"

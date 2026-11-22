@@ -7,7 +7,7 @@ import type { Route } from 'next'
 import type { ReactNode } from 'react'
 
 type GnbProps = {
-  navItems: GnbNavItem[]
+  navItems?: GnbNavItem[]
   homeHref?: Route
   actions: ReactNode
 }
@@ -25,7 +25,7 @@ function Gnb({ navItems, homeHref, actions }: GnbProps) {
             <Image src={mozipLogo} alt="" className="h-auto w-24" />
           </Link>
 
-          <GnbNav items={navItems} />
+          {navItems && <GnbNav items={navItems} />}
         </div>
         <div className="ml-auto flex min-w-0 items-center gap-gap-m">{actions}</div>
       </div>

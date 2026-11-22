@@ -4,20 +4,21 @@
 
 ## 구조
 
-| 위치                   | 용도                                                                     |
-| ---------------------- | ------------------------------------------------------------------------ |
-| `src/app/layout.tsx`   | root layout. `html`·`body`, 전역 metadata·폰트·스타일·Provider           |
-| `src/app/(auth)/`      | 로그인·회원가입                                                          |
-| `src/app/(applicant)/` | 지원자 영역과 지원자용 layout                                            |
-| `src/app/manage/`      | 운영진 영역과 운영진용 layout                                            |
-| `src/components/ui/`   | 기본 UI. 컴포넌트 폴더에는 컴포넌트와 스토리만, 테스트는 `__tests__/`    |
-| `src/gql/`             | codegen 생성 결과. 직접 수정하지 않음                                    |
-| `src/features/`        | 도메인 코드. 지원자·운영진 구분은 `api/`·`components/` 안에서만          |
-| `src/hooks/`           | 도메인을 모르는 공용 hook과 테스트                                       |
-| `src/lib/`             | 라이브러리 설정·래퍼                                                     |
-| `src/mocks/`           | MSW 설정. 도메인 handler를 모으는 자리라 `features/*/mocks/` import 허용 |
-| `src/providers/`       | 전역 Provider                                                            |
-| `src/utils/`           | 도메인을 모르는 순수 함수와 테스트                                       |
+| 위치                   | 용도                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `src/app/layout.tsx`   | root layout. `html`·`body`, 전역 metadata·폰트·스타일·Provider                       |
+| `src/app/(auth)/`      | 로그인·회원가입                                                                      |
+| `src/app/(public)/`    | 로그인 여부와 상관없이 보는 화면(홈 `/` 전체 공고·공고 상세), 로그인 여부로 GNB 선택 |
+| `src/app/(applicant)/` | 로그인이 필요한 지원자 영역과 지원자용 layout                                        |
+| `src/app/manage/`      | 운영진 영역과 운영진용 layout                                                        |
+| `src/components/ui/`   | 기본 UI. 컴포넌트 폴더에는 컴포넌트와 스토리만, 테스트는 `__tests__/`                |
+| `src/gql/`             | codegen 생성 결과. 직접 수정하지 않음                                                |
+| `src/features/`        | 도메인 코드. 지원자·운영진 구분은 `api/`·`components/` 안에서만                      |
+| `src/hooks/`           | 도메인을 모르는 공용 hook과 테스트                                                   |
+| `src/lib/`             | 라이브러리 설정·래퍼                                                                 |
+| `src/mocks/`           | MSW 설정. 도메인 handler를 모으는 자리라 `features/*/mocks/` import 허용             |
+| `src/providers/`       | 전역 Provider                                                                        |
+| `src/utils/`           | 도메인을 모르는 순수 함수와 테스트                                                   |
 
 - `app/`은 라우팅만 담당합니다. `page.tsx`는 화면 구성 순서와 데이터 전달만 보여 주고, API 호출·비즈니스 로직·화면 컴포넌트는 `app/` 밖에 둡니다.
 - 도메인을 아는 컴포넌트는 한 화면에서만 쓰더라도 `src/features/<도메인>/components/`에 둡니다. route 옆에 `_components/`를 만들지 않습니다.
@@ -41,7 +42,7 @@
 
 ## 영역별 layout과 권한
 
-- 지원자, 운영진, 인증 영역은 각자의 `layout.tsx`에서 헤더·내비게이션을 관리합니다. root layout에 영역별 UI를 넣지 않습니다. 영역에 속하지 않는 로그아웃 홈(`/`)만 `page.tsx`에서 GNB를 렌더링합니다.
+- 공개, 지원자, 운영진, 인증 영역은 각자의 `layout.tsx`에서 헤더·내비게이션을 관리합니다. root layout에 영역별 UI를 넣지 않습니다.
 - 운영진 영역은 인증이 필요합니다. 인증 방식이 정해지기 전에는 접근 제어를 임의로 구현하지 않고 TODO로 보고합니다.
 - 운영진 전용 코드가 지원자 화면 번들에 섞이지 않게 import 범위를 유지합니다.
 

@@ -16,7 +16,7 @@ type Story = StoryObj
 export const Default: Story = {
   render: () => (
     <nav aria-label="메뉴" className="flex items-center gap-gap-xs">
-      <NavItem href="/postings">메뉴</NavItem>
+      <NavItem href="/applications">메뉴</NavItem>
       <NavItem href="/manage/postings">메뉴</NavItem>
       <NavItem href="/manage">메뉴</NavItem>
     </nav>

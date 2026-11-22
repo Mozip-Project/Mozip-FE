@@ -23,7 +23,7 @@ function PostingPreviewCard({ preview }: PostingPreviewCardProps) {
       {/* 지원자에게 보이는 모습만 확인, 카드 안 링크·스크랩 조작 차단 */}
       {/* TODO: 지원자 공고 상세 경로가 생기면 href 교체 */}
       <div inert className="w-70.5">
-        <JobCard href="/postings" {...preview} />
+        <JobCard href="/" {...preview} />
       </div>
     </section>
   )

@@ -6,7 +6,7 @@ import { PostingSearchField } from '@/features/posting/components/postingList/po
 
 const PAGE_TITLE = '전체 공고'
 
-export default function PostingsPage({ searchParams }: PageProps<'/postings'>) {
+export default function HomePage({ searchParams }: PageProps<'/'>) {
   return (
     <main className="flex flex-col gap-12">
       <Suspense fallback={<PageHeader title={PAGE_TITLE} />}>

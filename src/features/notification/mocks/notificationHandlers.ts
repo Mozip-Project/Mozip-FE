@@ -106,7 +106,7 @@ function createNotificationItems(): NotificationItems {
       id: '9',
       type: 'SCRAP_OPEN',
       title: '스크랩한 공고의 모집이 시작됐어요',
-      linkUrl: '/postings',
+      linkUrl: '/',
       isRead: true,
       createdAt: timeAgo(7 * DAY_MS),
       organization: { name: '멋쟁이개발자' },
