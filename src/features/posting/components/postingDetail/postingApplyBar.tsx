@@ -1,9 +1,7 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button/button'
 import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
-import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
 import { formatMonthDayTimeWithWeekday } from '@/utils/date'
 import { PostingApplyBarReveal } from './postingApplyBarReveal'
+import { PostingApplyButton } from './postingApplyButton'
 import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 
 // 헤더의 지원 버튼 감싸는 요소 id, 화면 밖으로 나가면 하단 바 표시
@@ -31,9 +29,7 @@ function PostingApplyBar({ postingId, title, recruitmentEndsAt, phase }: Posting
           </p>
         </div>
 
-        <Button asChild size="m">
-          <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
-        </Button>
+        <PostingApplyButton postingId={postingId} />
       </div>
     </PostingApplyBarReveal>
   )
