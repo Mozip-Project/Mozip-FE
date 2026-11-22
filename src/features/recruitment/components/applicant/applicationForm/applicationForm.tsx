@@ -13,6 +13,8 @@ import { StepList } from '@/components/ui/StepList/stepList'
 import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import type { PostingPosition, PostingQuestion } from '@/features/posting/types'
 import { getPostingApplyPath, getPostingDetailPath } from '@/features/posting/utils/postingRoutes'
+import { ApplicationAnswerStep } from '@/features/recruitment/components/applicant/applicationAnswerStep/applicationAnswerStep'
+import { ApplicationInfoStep } from '@/features/recruitment/components/applicant/applicationInfoStep/applicationInfoStep'
 import {
   createApplicationAnswerSchema,
   createEmptyApplicationAnswers,
@@ -28,8 +30,6 @@ import { hasOverLimitTextAnswer } from '@/features/recruitment/utils/application
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm'
 import { useStickyTopBarHeight } from '@/hooks/useStickyTopBarHeight'
 import { getHrefWithSearchParams } from '@/utils/searchParams'
-import { ApplicationAnswerStep } from './applicationAnswerStep'
-import { ApplicationInfoStep } from './applicationInfoStep'
 import { ApplicationLeaveDialog } from './applicationLeaveDialog'
 import { ApplicationSubmitDialog } from './applicationSubmitDialog'
 import type { Route } from 'next'
