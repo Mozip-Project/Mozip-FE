@@ -12,7 +12,11 @@ import type {
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
-import { useMyAccountQuery, useUpdateNotificationSettingMutation } from './queries'
+import {
+  useMyAccountQuery,
+  useUpdateNotificationSettingMutation,
+  useUpdateProfileMutation,
+} from './queries'
 import type { ReactNode } from 'react'
 
 function renderNotificationSettingHooks() {
@@ -179,5 +183,25 @@ describe('useUpdateNotificationSettingMutation', () => {
       notifyScrap: false,
       marketingAgreed: true,
     })
+  })
+})
+
+describe('useUpdateProfileMutation', () => {
+  it('저장 응답으로 계정 설정 캐시를 바로 갱신', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    }
+
+    const { result } = renderHook(
+      () => ({ account: useMyAccountQuery(), mutation: useUpdateProfileMutation() }),
+      { wrapper: Wrapper },
+    )
+    await waitFor(() => expect(result.current.account.isSuccess).toBe(true))
+
+    act(() => result.current.mutation.mutate({ name: '이모집' }))
+
+    await waitFor(() => expect(result.current.account.data?.name).toBe('이모집'))
   })
 })

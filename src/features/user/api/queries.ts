@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import type { MyAccountFieldsFragment } from '@/gql/graphql'
-import { getMe, getMyAccount, updateNotificationSettings } from './api'
+import {
+  changePassword,
+  getMe,
+  getMyAccount,
+  requestPhoneChange,
+  updateNotificationSettings,
+  updateProfile,
+  verifyPhoneChange,
+} from './api'
 import { userKeys, userMutationKeys } from './keys'
 
 type NotificationSettingKey = keyof MyAccountFieldsFragment['notificationSettings']
@@ -64,5 +72,40 @@ function useUpdateNotificationSettingMutation() {
   })
 }
 
-export { useMeQuery, useMyAccountQuery, useUpdateNotificationSettingMutation }
+// 응답이 조회와 같은 필드라 다시 요청하지 않고 계정 설정 캐시에 바로 반영
+function useUpdateProfileMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateProfile,
+    onSuccess: (account) => {
+      queryClient.setQueryData(userKeys.myAccount, account)
+    },
+  })
+}
+
+function useRequestPhoneChangeMutation() {
+  return useMutation({ mutationFn: requestPhoneChange })
+}
+
+function useVerifyPhoneChangeMutation() {
+  return useMutation({
+    mutationFn: ({ phone, code }: { phone: string; code: string }) =>
+      verifyPhoneChange(phone, code),
+  })
+}
+
+function useChangePasswordMutation() {
+  return useMutation({ mutationFn: changePassword })
+}
+
+export {
+  useChangePasswordMutation,
+  useMeQuery,
+  useMyAccountQuery,
+  useRequestPhoneChangeMutation,
+  useUpdateNotificationSettingMutation,
+  useUpdateProfileMutation,
+  useVerifyPhoneChangeMutation,
+}
 export type { NotificationSettingChange, NotificationSettingKey }
