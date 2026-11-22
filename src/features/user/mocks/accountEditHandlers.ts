@@ -14,14 +14,16 @@ import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { getMockAccount, updateMockAccount } from './userHandlers'
 import type { GraphQLResponseBody } from 'msw/graphql'
 
-// 명세: 개발 환경은 고정 인증번호, 3분 유효, 같은 번호 1분에 1회, 인증 후 10분 안에 저장
-const MOCK_VERIFICATION_CODE = '123456'
+// 명세: 3분 유효, 같은 번호 1분에 1회, 인증 후 10분 안에 저장
 const VERIFICATION_CODE_VALID_MS = 3 * 60 * 1000
 const PHONE_REQUEST_INTERVAL_MS = 60 * 1000
 const VERIFIED_PHONE_VALID_MS = 10 * 60 * 1000
 
-// 가상의 값, 이미 가입된 번호(USER_001)와 현재 비밀번호(AUTH_001) 확인용
-const REGISTERED_PHONES = ['01011112222']
+// 명세는 개발 환경 고정 인증번호만 정하고 번호는 없어 임의로 정함
+const MOCK_VERIFICATION_CODE = '123456'
+// 명세의 개발 서버 개발용 회원 번호(01000000001~3) 사용, USER_001 확인용
+const REGISTERED_PHONES = ['01000000001', '01000000002', '01000000003']
+// 가상의 값, 현재 비밀번호 불일치(AUTH_001) 확인용
 const INITIAL_PASSWORD = 'mozip1234!'
 
 let phoneRequestedAt = new Map<string, number>()
