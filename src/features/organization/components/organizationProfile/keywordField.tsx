@@ -11,9 +11,16 @@ type KeywordFieldProps = {
   value: string[]
   onChange: (keywords: string[]) => void
   suggestions: readonly string[]
+  // 추천 목록을 조회하는 쪽에 입력어 전달
+  onQueryChange?: (query: string) => void
 }
 
-function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldProps) {
+function KeywordField({
+  value: keywords,
+  onChange,
+  suggestions,
+  onQueryChange,
+}: KeywordFieldProps) {
   const inputId = useId()
   const listboxId = useId()
   const maxHelperId = useId()
@@ -32,6 +39,7 @@ function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldPr
   function selectKeyword(keyword: string) {
     onChange(addKeyword(keywords, keyword, KEYWORD_MAX_COUNT))
     setQuery('')
+    onQueryChange?.('')
     setActiveIndex(-1)
   }
 
@@ -41,6 +49,7 @@ function KeywordField({ value: keywords, onChange, suggestions }: KeywordFieldPr
 
   function handleQueryChange(value: string) {
     setQuery(value)
+    onQueryChange?.(value)
     setIsMenuDismissed(false)
     setActiveIndex(-1)
   }

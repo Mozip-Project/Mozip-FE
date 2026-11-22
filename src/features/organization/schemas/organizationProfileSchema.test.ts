@@ -12,8 +12,12 @@ const FILLED_VALUES = {
   links: [{ url: 'instagram.com/sample' }],
 } satisfies OrganizationProfileValues
 
-function isValid(values: OrganizationProfileValues, isStudentCouncil = false) {
-  return createOrganizationProfileSchema(isStudentCouncil).safeParse(values).success
+function isValid(
+  values: OrganizationProfileValues,
+  { isStudentCouncil = false, hasSavedLogo = false } = {},
+) {
+  return createOrganizationProfileSchema({ isStudentCouncil, hasSavedLogo }).safeParse(values)
+    .success
 }
 
 describe('createOrganizationProfileSchema', () => {
@@ -34,6 +38,10 @@ describe('createOrganizationProfileSchema', () => {
     const withoutCategories = { ...FILLED_VALUES, categories: [] }
 
     expect(isValid(withoutCategories)).toBe(false)
-    expect(isValid(withoutCategories, true)).toBe(true)
+    expect(isValid(withoutCategories, { isStudentCouncil: true })).toBe(true)
+  })
+
+  it('저장된 로고가 있으면 새 로고 없이 통과', () => {
+    expect(isValid({ ...FILLED_VALUES, logo: null }, { hasSavedLogo: true })).toBe(true)
   })
 })

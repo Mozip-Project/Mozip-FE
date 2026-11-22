@@ -25,9 +25,18 @@ const organizationProfileSchema = z.object({
   links: z.array(z.object({ url: z.string().trim().min(1) })).min(1),
 })
 
-function createOrganizationProfileSchema(isStudentCouncil: boolean) {
+type OrganizationProfileSchemaOptions = {
+  isStudentCouncil: boolean
+  // 이미 저장된 로고가 있으면 새 파일 없이도 통과
+  hasSavedLogo: boolean
+}
+
+function createOrganizationProfileSchema({
+  isStudentCouncil,
+  hasSavedLogo,
+}: OrganizationProfileSchemaOptions) {
   return organizationProfileSchema.superRefine(({ logo, categories }, context) => {
-    if (!logo) {
+    if (!logo && !hasSavedLogo) {
       context.addIssue({ code: 'custom', path: ['logo'], message: '로고를 업로드해 주세요' })
     }
 

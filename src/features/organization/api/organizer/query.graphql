@@ -12,3 +12,37 @@ query OrganizationMembers($organizationId: ID!) {
     }
   }
 }
+
+fragment OrganizationProfileFields on Organization {
+  id
+  name
+  type
+  scope
+  school {
+    name
+  }
+  logoUrl
+  tagline
+  fields
+  keywords
+  links {
+    id
+    url
+  }
+}
+
+query OrganizationProfile($id: ID!) {
+  organization(id: $id) {
+    ...OrganizationProfileFields
+  }
+}
+
+mutation UpdateOrganization($id: ID!, $input: UpdateOrganizationInput!) {
+  updateOrganization(id: $id, input: $input) {
+    ...OrganizationProfileFields
+  }
+}
+
+query KeywordSuggestions($query: String!) {
+  keywordSuggestions(query: $query)
+}
