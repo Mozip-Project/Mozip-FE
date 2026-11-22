@@ -30,11 +30,13 @@ const ANSWER_FILE_TYPE_META = {
 
 type AnswerGroupProps = {
   onBlur: () => void
+  titleId: string
+  errorId?: string
   children: ReactNode
 }
 
-// 여러 입력으로 된 답변은 포커스가 문항 밖으로 나갈 때 blur 처리
-function AnswerGroup({ onBlur, children }: AnswerGroupProps) {
+// 여러 입력으로 된 답변을 문항 제목 그룹으로 묶고, 문항 밖으로 나갈 때 blur 처리
+function AnswerGroup({ onBlur, titleId, errorId, children }: AnswerGroupProps) {
   function handleBlur(event: FocusEvent<HTMLDivElement>) {
     // 파일 선택 창, 다른 탭으로 창 포커스가 빠질 때는 문항을 벗어난 것으로 보지 않음
     if (!document.hasFocus()) {
@@ -46,7 +48,13 @@ function AnswerGroup({ onBlur, children }: AnswerGroupProps) {
   }
 
   return (
-    <div className="contents" onBlur={handleBlur}>
+    <div
+      role="group"
+      aria-labelledby={titleId}
+      aria-describedby={errorId}
+      className="flex flex-col gap-gap-l"
+      onBlur={handleBlur}
+    >
       {children}
     </div>
   )
@@ -83,7 +91,7 @@ function QuestionAnswer({ question, control, titleId, errorId }: QuestionAnswerP
           name={`activities.${question.id}`}
           control={control}
           render={({ field, formState }) => (
-            <AnswerGroup onBlur={field.onBlur}>
+            <AnswerGroup onBlur={field.onBlur} titleId={titleId}>
               <ActivityAnswerField
                 value={field.value}
                 onChange={field.onChange}
@@ -102,8 +110,12 @@ function QuestionAnswer({ question, control, titleId, errorId }: QuestionAnswerP
         <Controller
           name={`files.${question.id}`}
           control={control}
-          render={({ field }) => (
-            <AnswerGroup onBlur={field.onBlur}>
+          render={({ field, fieldState }) => (
+            <AnswerGroup
+              onBlur={field.onBlur}
+              titleId={titleId}
+              errorId={fieldState.invalid ? errorId : undefined}
+            >
               <FileAnswerField
                 value={field.value}
                 onChange={field.onChange}
@@ -128,8 +140,12 @@ function QuestionAnswer({ question, control, titleId, errorId }: QuestionAnswerP
         <Controller
           name={`availabilities.${question.id}`}
           control={control}
-          render={({ field }) => (
-            <AnswerGroup onBlur={field.onBlur}>
+          render={({ field, fieldState }) => (
+            <AnswerGroup
+              onBlur={field.onBlur}
+              titleId={titleId}
+              errorId={fieldState.invalid ? errorId : undefined}
+            >
               <AvailabilityAnswerField
                 interviewSlots={question.interviewSlots}
                 value={field.value}
