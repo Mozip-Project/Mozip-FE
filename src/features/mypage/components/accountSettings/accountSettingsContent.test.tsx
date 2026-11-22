@@ -7,6 +7,7 @@ import { resetMyAccount } from '@/features/user/mocks/userHandlers'
 import type { MyAccountQuery } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { AccountSettingsContent } from './accountSettingsContent'
 
 function renderAccountSettings() {
@@ -14,7 +15,9 @@ function renderAccountSettings() {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <AccountSettingsContent />
+      <ToastProvider>
+        <AccountSettingsContent />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
@@ -86,6 +89,17 @@ describe('AccountSettingsContent', () => {
     expect(await screen.findByText('직접입력대학교')).toBeInTheDocument()
     expect(screen.queryByText('인증 이메일')).not.toBeInTheDocument()
   })
+
+  it.each(['새 단체 등록', '기존 단체 대표 인수'])(
+    '%s 버튼을 누르면 준비 중 안내',
+    async (buttonName) => {
+      renderAccountSettings()
+
+      await userEvent.click(await screen.findByRole('button', { name: buttonName }))
+
+      expect(await screen.findByText('준비 중인 기능이에요')).toBeInTheDocument()
+    },
+  )
 
   it('불러오기에 실패하면 다시 시도로 계정 정보를 다시 불러옴', async () => {
     failMyAccountQueryOnce()
