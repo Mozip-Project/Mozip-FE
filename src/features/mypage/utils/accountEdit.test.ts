@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AccountEditValues } from '@/features/mypage/schemas/accountEditSchema'
-import { toChangePasswordInput, toPhoneDigits, toUpdateProfileInput } from './accountEdit'
+import { toChangePasswordInput, toUpdateProfileInput } from './accountEdit'
 
 const VALUES: AccountEditValues = {
   profileImage: null,
@@ -12,12 +12,6 @@ const VALUES: AccountEditValues = {
   newPasswordConfirm: '',
 }
 const CONTEXT = { savedName: '김모집', verifiedPhone: null }
-
-describe('toPhoneDigits', () => {
-  it('하이픈을 지우고 숫자만 남김', () => {
-    expect(toPhoneDigits('010-9876-5432')).toBe('01098765432')
-  })
-})
 
 describe('toChangePasswordInput', () => {
   it('비밀번호 칸이 비어 있으면 변경하지 않음', () => {

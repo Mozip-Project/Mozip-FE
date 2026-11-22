@@ -1,6 +1,7 @@
 import type { AccountEditValues } from '@/features/mypage/schemas/accountEditSchema'
 import type { ChangePasswordInput, UpdateProfileInput } from '@/gql/graphql'
 import { ApiError } from '@/lib/apiError'
+import { toPhoneDigits } from '@/utils/phone'
 
 const REQUEST_FAILED_MESSAGE = '잠시 후 다시 시도해 주세요.'
 
@@ -13,11 +14,6 @@ type ProfileChangeContext = {
 // TODO: 휴대폰 인증·저장 오류 안내 문구 디자인 확인 필요, 지금은 서버 메시지 표시
 function getServerErrorMessage(error: Error) {
   return error instanceof ApiError ? error.message : REQUEST_FAILED_MESSAGE
-}
-
-// 서버가 로그인 ID와 같은 숫자만 받음
-function toPhoneDigits(phone: string) {
-  return phone.replace(/\D/g, '')
 }
 
 // 비밀번호 칸을 비워 두면 변경하지 않음, 입력 규칙은 폼 검증이 먼저 확인
@@ -50,4 +46,4 @@ function toUpdateProfileInput(
   }
 }
 
-export { getServerErrorMessage, toChangePasswordInput, toPhoneDigits, toUpdateProfileInput }
+export { getServerErrorMessage, toChangePasswordInput, toUpdateProfileInput }

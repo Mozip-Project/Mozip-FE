@@ -1,6 +1,7 @@
 import { useController, type Control, type UseFormTrigger } from 'react-hook-form'
 import { TextField } from '@/components/ui/TextField/textField'
 import {
+  PASSWORD_MAX_LENGTH,
   PASSWORD_RULE_MESSAGE,
   type AccountEditValues,
 } from '@/features/mypage/schemas/accountEditSchema'
@@ -48,7 +49,13 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
         ['newPasswordConfirm', confirmState.invalid || confirmState.isTouched],
       ] as const
     )
-      .filter(([name, needsRevalidation]) => name !== changed && needsRevalidation)
+      // 새 비밀번호를 고칠 때 확인 칸은 scheduleConfirmCheck의 예약 검사로만 갱신
+      .filter(
+        ([name, needsRevalidation]) =>
+          name !== changed &&
+          needsRevalidation &&
+          !(changed === 'newPassword' && name === 'newPasswordConfirm'),
+      )
       .map(([name]) => name)
 
     if (staleFields.length > 0) {
@@ -110,6 +117,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
           type="password"
           autoComplete="new-password"
           placeholder="새 비밀번호를 입력해 주세요"
+          maxLength={PASSWORD_MAX_LENGTH}
           required={isChangingPassword}
           aria-invalid={newState.invalid}
           helper={newState.error?.message ?? PASSWORD_RULE_MESSAGE}
@@ -122,6 +130,7 @@ function PasswordSection({ control, trigger }: PasswordSectionProps) {
           type="password"
           autoComplete="new-password"
           placeholder="새 비밀번호를 한 번 더 입력해 주세요"
+          maxLength={PASSWORD_MAX_LENGTH}
           required={isChangingPassword}
           aria-invalid={confirmState.invalid}
           helper={confirmHelper}

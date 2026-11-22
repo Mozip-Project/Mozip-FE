@@ -168,7 +168,11 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
         />
       </StickyTopBar>
       {/* 공용 스크롤 여백은 48px 바 기준이라 더 높은 헤더에 focus된 칸이 가리지 않게 남는 높이만큼 추가 */}
-      <div className="flex flex-col gap-gap-xxl [&_input]:scroll-mt-10">
+      {/* 저장 중 입력이 응답 후 reset으로 덮어써지지 않도록 모든 입력 잠금 */}
+      <fieldset
+        disabled={isSubmitting}
+        className="flex min-w-0 flex-col gap-gap-xxl [&_input]:scroll-mt-10"
+      >
         <ProfileImageSection control={control} />
         <NameSection control={control} />
         <PhoneSection
@@ -178,7 +182,7 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
           onVerified={setVerifiedPhone}
         />
         <PasswordSection control={control} trigger={trigger} />
-      </div>
+      </fieldset>
     </form>
   )
 }

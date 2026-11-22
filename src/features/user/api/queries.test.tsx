@@ -12,6 +12,7 @@ import type {
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { userKeys } from './keys'
 import {
   useMyAccountQuery,
   useUpdateNotificationSettingMutation,
@@ -203,5 +204,42 @@ describe('useUpdateProfileMutation', () => {
     act(() => result.current.mutation.mutate({ name: '이모집' }))
 
     await waitFor(() => expect(result.current.account.data?.name).toBe('이모집'))
+  })
+  it('저장 전에 시작된 조회가 늦게 도착해도 저장한 값을 이전 값으로 덮지 않음', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+    function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    }
+
+    const { result } = renderHook(
+      () => ({ account: useMyAccountQuery(), mutation: useUpdateProfileMutation() }),
+      { wrapper: Wrapper },
+    )
+    await waitFor(() => expect(result.current.account.isSuccess).toBe(true))
+    const staleAccount = result.current.account.data
+
+    let releaseRefetch = () => {}
+    server.use(
+      graphqlApi.query('MyAccount', async () => {
+        await new Promise<void>((resolve) => {
+          releaseRefetch = resolve
+        })
+        return HttpResponse.json({ data: { me: staleAccount } })
+      }),
+    )
+    // 조회 중 여부는 렌더링 추적과 무관하게 QueryClient에서 직접 확인
+    const isAccountFetching = () => queryClient.isFetching({ queryKey: userKeys.myAccount }) > 0
+    act(() => void result.current.account.refetch())
+    await waitFor(() => expect(isAccountFetching()).toBe(true))
+
+    act(() => result.current.mutation.mutate({ name: '이모집' }))
+    await waitFor(() => expect(result.current.mutation.isSuccess).toBe(true))
+    act(() => releaseRefetch())
+
+    await waitFor(() => expect(isAccountFetching()).toBe(false))
+    expect(queryClient.getQueryData<MyAccountFieldsFragment>(userKeys.myAccount)?.name).toBe(
+      '이모집',
+    )
   })
 })

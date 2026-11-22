@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPhoneNumber, maskPhoneNumber } from './phone'
+import { formatPhoneNumber, maskPhoneNumber, toPhoneDigits } from './phone'
 
 describe('formatPhoneNumber', () => {
   it('숫자가 아닌 글자는 지움', () => {
@@ -44,5 +44,12 @@ describe('maskPhoneNumber', () => {
     expect(maskPhoneNumber('')).toBe('')
     expect(maskPhoneNumber('010')).toBe('010')
     expect(maskPhoneNumber('0101234')).toBe('010-1234')
+  })
+})
+
+describe('toPhoneDigits', () => {
+  it('하이픈 등 숫자가 아닌 글자를 지우고 숫자만 남김', () => {
+    expect(toPhoneDigits('010-9876-5432')).toBe('01098765432')
+    expect(toPhoneDigits('01098765432')).toBe('01098765432')
   })
 })

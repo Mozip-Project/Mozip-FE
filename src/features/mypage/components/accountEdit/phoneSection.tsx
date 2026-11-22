@@ -6,14 +6,14 @@ import {
   VERIFICATION_CODE_PATTERN,
   type AccountEditValues,
 } from '@/features/mypage/schemas/accountEditSchema'
-import { getServerErrorMessage, toPhoneDigits } from '@/features/mypage/utils/accountEdit'
+import { getServerErrorMessage } from '@/features/mypage/utils/accountEdit'
 import {
   useRequestPhoneChangeMutation,
   useVerifyPhoneChangeMutation,
 } from '@/features/user/api/queries'
 import { useCountdown } from '@/hooks/useCountdown'
 import { formatRemainingTime } from '@/utils/date'
-import { formatPhoneNumber } from '@/utils/phone'
+import { formatPhoneNumber, toPhoneDigits } from '@/utils/phone'
 
 const VERIFICATION_DURATION_SECONDS = 180
 const PHONE_PATTERN = /^01[016789]-\d{3,4}-\d{4}$/
@@ -44,13 +44,16 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
   const isChangingPhone = newPhone !== ''
   // 발송 후 번호를 고치면 다시 받아야 하므로 발송한 번호와 같을 때만 인증 단계 유지
   const isCodeSent = sentPhone !== null && sentPhone === newPhone
-  const canSendCode = PHONE_PATTERN.test(newPhone) && !isVerified && !requestPhoneChange.isPending
+  // 확인 중 번호를 바꾸거나 다시 받으면 늦게 온 확인 응답이 새 번호의 타이머를 멈추므로 잠금
+  const isVerifying = verifyPhoneChange.isPending
+  const canSendCode =
+    PHONE_PATTERN.test(newPhone) && !isVerified && !requestPhoneChange.isPending && !isVerifying
   const canEnterCode = isCodeSent && !isVerified
   const canConfirmCode =
     canEnterCode &&
     countdown.isRunning &&
     VERIFICATION_CODE_PATTERN.test(codeField.value) &&
-    !verifyPhoneChange.isPending
+    !isVerifying
   const codeHelper = codeErrorMessage ?? codeState.error?.message
   const remainingTimeMessage = canEnterCode
     ? `남은 시간 ${formatRemainingTime(countdown.remainingSeconds)}`
@@ -119,6 +122,7 @@ function PhoneSection({ control, maskedPhone, isVerified, onVerified }: PhoneSec
           autoComplete="tel"
           placeholder="010-0000-0000"
           required={isChangingPhone}
+          disabled={isVerifying}
           aria-invalid={phoneErrorMessage !== null}
           helper={phoneErrorMessage ?? (isCodeSent ? CODE_SENT_MESSAGE : undefined)}
           className="min-w-0 flex-1"

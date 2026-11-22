@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
-const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/
+// 상한 64자는 서버 changePassword 규칙, 입력 칸 maxLength와 같은 값
+const PASSWORD_MAX_LENGTH = 64
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,64}$/
 const VERIFICATION_CODE_PATTERN = /^\d{6}$/
 
 const PASSWORD_RULE_MESSAGE = '영문/숫자/특수문자 포함 8자 이상 입력해 주세요'
@@ -52,5 +54,5 @@ const accountEditSchema = z
 
 type AccountEditValues = z.infer<typeof accountEditSchema>
 
-export { PASSWORD_RULE_MESSAGE, VERIFICATION_CODE_PATTERN, accountEditSchema }
+export { PASSWORD_MAX_LENGTH, PASSWORD_RULE_MESSAGE, VERIFICATION_CODE_PATTERN, accountEditSchema }
 export type { AccountEditValues }

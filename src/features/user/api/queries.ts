@@ -78,7 +78,9 @@ function useUpdateProfileMutation() {
 
   return useMutation({
     mutationFn: updateProfile,
-    onSuccess: (account) => {
+    onSuccess: async (account) => {
+      // 저장 전 값을 담은 진행 중인 조회가 저장 결과를 덮지 않도록 취소
+      await queryClient.cancelQueries({ queryKey: userKeys.myAccount })
       queryClient.setQueryData(userKeys.myAccount, account)
     },
   })

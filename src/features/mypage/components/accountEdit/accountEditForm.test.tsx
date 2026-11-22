@@ -22,6 +22,20 @@ function renderAccountEditForm() {
   )
 }
 
+// 응답 시점을 테스트가 정하도록 요청을 붙잡고, 풀면 성공 응답 반환
+function holdMutation(operationName: string, data: Record<string, unknown>) {
+  let release = () => {}
+  server.use(
+    graphqlApi.mutation(operationName, async () => {
+      await new Promise<void>((resolve) => {
+        release = resolve
+      })
+      return HttpResponse.json({ data })
+    }),
+  )
+  return () => release()
+}
+
 beforeAll(() => {
   vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
 })
@@ -94,6 +108,22 @@ describe('AccountEditForm 새 비밀번호 확인', () => {
     await waitFor(() => expect(confirm).toHaveAttribute('aria-invalid', 'false'))
     expect(screen.getByText('비밀번호가 일치해요')).toBeInTheDocument()
   })
+
+  it('확인 칸을 거친 뒤 새 비밀번호를 고쳐도 타이핑 중에는 불일치를 바로 띄우지 않음', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const newPassword = screen.getByLabelText(/^새 비밀번호(?! 확인)/)
+    const confirm = screen.getByLabelText(/새 비밀번호 확인/)
+
+    await user.type(newPassword, 'abcd1234!')
+    await user.type(confirm, 'abcd1234!')
+    await user.tab()
+    await user.click(newPassword)
+    await user.type(newPassword, 'x')
+
+    expect(confirm).toHaveAttribute('aria-invalid', 'false')
+    await waitFor(() => expect(confirm).toHaveAttribute('aria-invalid', 'true'))
+  })
 })
 
 describe('AccountEditForm 휴대폰 번호 인증', () => {
@@ -153,6 +183,29 @@ describe('AccountEditForm 휴대폰 번호 인증', () => {
     ).toBeInTheDocument()
     expect(code).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('button', { name: '저장' })).toBeDisabled()
+  })
+
+  it('인증번호 확인 중에는 번호를 바꾸거나 다시 받을 수 없음', async () => {
+    const user = userEvent.setup()
+    renderAccountEditForm()
+    const newPhone = screen.getByLabelText(/새 휴대폰 번호/)
+
+    await user.type(newPhone, '01098765432')
+    await user.click(screen.getByRole('button', { name: '인증번호 받기' }))
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('인증번호가 발송되었습니다.'),
+    )
+    const releaseVerify = holdMutation('VerifyPhoneChange', { verifyPhoneChange: true })
+    await user.type(screen.getByLabelText(/인증번호 입력/), MOCK_VERIFICATION_CODE)
+    await user.click(screen.getByRole('button', { name: '확인' }))
+
+    await waitFor(() => expect(newPhone).toBeDisabled())
+    expect(screen.getByRole('button', { name: '인증번호 받기' })).toBeDisabled()
+
+    releaseVerify()
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('인증이 완료되었습니다.'),
+    )
   })
 })
 
@@ -235,5 +288,24 @@ describe('AccountEditForm 저장', () => {
       await screen.findByText('비밀번호만 변경하고 나머지는 저장하지 못했어요'),
     ).toBeInTheDocument()
     expect(screen.getByLabelText(/현재 비밀번호/)).toHaveValue('')
+  })
+  it('저장 중에는 입력을 잠가 응답 뒤 초기화로 입력이 사라지지 않게 함', async () => {
+    const user = userEvent.setup()
+    const releaseSave = holdMutation('UpdateProfile', {
+      updateProfile: { ...getMockAccount(), name: '이모집' },
+    })
+    renderAccountEditForm()
+    const name = screen.getByLabelText(/이름/)
+
+    await user.clear(name)
+    await user.type(name, '이모집')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    await waitFor(() => expect(name).toBeDisabled())
+    expect(screen.getByLabelText(/현재 비밀번호/)).toBeDisabled()
+
+    releaseSave()
+    expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
+    expect(name).toBeEnabled()
   })
 })
