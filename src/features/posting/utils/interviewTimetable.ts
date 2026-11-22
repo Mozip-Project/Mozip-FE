@@ -100,6 +100,26 @@ function getSlotBlocks(date: string, slotKeys: string[]): SlotBlock[] {
   return blocks
 }
 
+type SlotDateGroup = { date: string; slotKeys: string[] }
+
+// 날짜·시각 순으로 정렬해 날짜별로 묶음
+function groupSlotKeysByDate(slotKeys: readonly string[]): SlotDateGroup[] {
+  const groups: SlotDateGroup[] = []
+
+  for (const slotKey of [...slotKeys].sort()) {
+    const date = getSlotDate(slotKey)
+    const lastGroup = groups.at(-1)
+
+    if (lastGroup?.date === date) {
+      lastGroup.slotKeys.push(slotKey)
+    } else {
+      groups.push({ date, slotKeys: [slotKey] })
+    }
+  }
+
+  return groups
+}
+
 // 마지막 면접 뒤에는 쉬는 시간이 필요 없어 (길이 + 쉬는 시간) / (면접 + 쉬는 시간)
 function countInterviewsInBlock(block: SlotBlock, durationMinutes: number, breakMinutes: number) {
   if (durationMinutes <= 0) {
@@ -131,10 +151,11 @@ export {
   getSlotEndTime,
   getSlotKey,
   getSlotRangeKeys,
+  groupSlotKeysByDate,
   hasDateGap,
   isSamePosition,
   TIMETABLE_HOUR_LABELS,
   TIMETABLE_SLOT_TIMES,
   toSlotKey,
 }
-export type { SlotBlock, SlotPosition }
+export type { SlotBlock, SlotDateGroup, SlotPosition }

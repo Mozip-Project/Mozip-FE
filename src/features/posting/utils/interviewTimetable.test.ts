@@ -7,6 +7,7 @@ import {
   getSlotEndTime,
   getSlotKey,
   getSlotRangeKeys,
+  groupSlotKeysByDate,
   hasDateGap,
   isSamePosition,
   TIMETABLE_HOUR_LABELS,
@@ -88,5 +89,25 @@ describe('interviewTimetable', () => {
     expect(countInterviewsInBlock({ startIndex: 0, length: 2 }, 30, 0)).toBe(2)
     expect(blocks.map((block) => countInterviewsInBlock(block, 30, 0))).toEqual([3, 1])
     expect(countInterviewsInBlock({ startIndex: 0, length: 4 }, 40, 10)).toBe(2)
+  })
+})
+
+describe('groupSlotKeysByDate', () => {
+  it('날짜별로 묶고 날짜·시각 순으로 정렬', () => {
+    expect(
+      groupSlotKeysByDate([
+        '2026-10-22T14:00',
+        '2026-10-21T13:30',
+        '2026-10-21T13:00',
+        '2026-10-22T13:30',
+      ]),
+    ).toEqual([
+      { date: '2026-10-21', slotKeys: ['2026-10-21T13:00', '2026-10-21T13:30'] },
+      { date: '2026-10-22', slotKeys: ['2026-10-22T13:30', '2026-10-22T14:00'] },
+    ])
+  })
+
+  it('칸이 없으면 빈 배열', () => {
+    expect(groupSlotKeysByDate([])).toEqual([])
   })
 })
