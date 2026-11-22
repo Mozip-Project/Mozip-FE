@@ -15,7 +15,7 @@ handler 목록 하나를 실행 환경별 설정 세 곳이 함께 씁니다.
 - 브라우저: `src/mocks/browser.ts`(`setupWorker`)를 `src/providers/mockProvider.tsx`가 시작합니다. worker가 준비될 때까지 `Suspense` + `use()`로 자식 렌더링을 기다리고, 그동안 서버 HTML을 유지합니다.
 - Next 서버: `src/mocks/server.ts`(`setupServer`)를 `src/instrumentation.ts`의 `register()`에서 Node 런타임일 때만 시작합니다.
 - 테스트: 같은 `server.ts`를 `src/test/setup.ts`에서 시작하고, handler 없는 요청은 `onUnhandledFrame: 'error'`로 실패시킵니다. 테스트별 응답은 테스트 파일에서 `server.use`로 바꿉니다.
-- 켜기 조건은 `NODE_ENV === 'development'`이면서 `NEXT_PUBLIC_API_MOCKING === 'enabled'`일 때입니다. 서버와 브라우저가 같은 변수 하나를 읽습니다.
+- 켜기 조건은 `NEXT_PUBLIC_API_MOCKING === 'enabled'` 하나입니다. 서버와 브라우저가 같은 변수 하나를 읽고, `NODE_ENV`와 관계없이 배포 환경에서도 이 값으로 켜고 끕니다.
 - `public/mockServiceWorker.js`는 커밋하고 Prettier·ESLint 대상에서 제외합니다. msw 버전을 올리면 `pnpm exec msw init`으로 다시 생성합니다.
 
 ## 근거
@@ -40,3 +40,4 @@ handler 목록 하나를 실행 환경별 설정 세 곳이 함께 씁니다.
 ## 변경 기록
 
 - 2026-11-10: MSW 서버·브라우저 설정을 마치며 기록
+- 2026-11-22: 켜기 조건에서 `NODE_ENV === 'development'` 제한을 제거. 처음에는 개발 서버 전용이었지만, 백엔드 API 배포 전에 디자이너·기획자도 배포 사이트에서 화면을 확인하도록 Vercel Preview·Production 환경 변수로 켜기로 했습니다. 백엔드 API가 배포되면 Vercel에서 값을 지워 실제 서버로 전환합니다. 값이 켜진 동안에는 이미 배포된 API(로그아웃 등)도 MSW 응답으로 바뀝니다.
