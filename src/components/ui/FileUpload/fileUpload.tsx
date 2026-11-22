@@ -8,7 +8,7 @@ import type { ChangeEvent, DragEvent, Ref } from 'react'
 type FileUploadProps = FileRule & {
   description: string
   onFileSelect: (file: File) => void
-  onReject: (rejection: FileRejection) => void
+  onReject: (rejection: FileRejection, file: File) => void
   label?: string
   inputRef?: Ref<HTMLInputElement>
   className?: string
@@ -31,7 +31,7 @@ function FileUpload({
     const rejection = getFileRejection(file, { acceptedTypes, maxSizeBytes })
 
     if (rejection) {
-      onReject(rejection)
+      onReject(rejection, file)
       return
     }
     onFileSelect(file)
