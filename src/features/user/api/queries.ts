@@ -36,12 +36,12 @@ function setNotificationSetting(
   )
 }
 
-// 연달아 누른 토글이 있으면 마지막 요청이 끝날 때만 서버 값으로 맞춰 앞선 응답의 덮어쓰기 방지
 function isLastPendingChange(queryClient: QueryClient) {
   return queryClient.isMutating({ mutationKey: userMutationKeys.updateNotificationSettings }) === 1
 }
 
 // 토글 하나씩 낙관적으로 반영하고, 실패하면 그 토글만 되돌림
+// 응답 도착 순서가 서버 처리 순서와 다를 수 있어 응답 대신 마지막 요청이 끝날 때 다시 조회
 function useUpdateNotificationSettingMutation() {
   const queryClient = useQueryClient()
 
@@ -53,13 +53,10 @@ function useUpdateNotificationSettingMutation() {
       await queryClient.cancelQueries({ queryKey: userKeys.myAccount })
       setNotificationSetting(queryClient, key, isEnabled)
     },
-    onSuccess: (account) => {
-      if (isLastPendingChange(queryClient)) {
-        queryClient.setQueryData(userKeys.myAccount, account)
-      }
-    },
-    onError: async (_error, { key, isEnabled }) => {
+    onError: (_error, { key, isEnabled }) => {
       setNotificationSetting(queryClient, key, !isEnabled)
+    },
+    onSettled: async () => {
       if (isLastPendingChange(queryClient)) {
         await queryClient.invalidateQueries({ queryKey: userKeys.myAccount })
       }

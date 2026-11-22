@@ -5,6 +5,8 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { resetMyAccount } from '@/features/user/mocks/userHandlers'
 import type {
   MyAccountFieldsFragment,
+  MyAccountQuery,
+  MyAccountQueryVariables,
   UpdateNotificationSettingsMutation,
   UpdateNotificationSettingsMutationVariables,
 } from '@/gql/graphql'
@@ -42,7 +44,7 @@ function getSettings(account: MyAccountFieldsFragment | undefined) {
   return account?.notificationSettings
 }
 
-// 응답 시점을 테스트가 정하도록 요청을 붙잡고, 풀어 줄 때 그때까지의 서버 값을 반환
+// 서버는 요청이 도착한 순서로 처리하고, 응답 도착 순서는 테스트가 releases로 정함
 function holdNotificationSettingResponses(initialAccount: MyAccountFieldsFragment) {
   const releases: Array<() => void> = []
   let serverSettings = { ...initialAccount.notificationSettings }
@@ -52,19 +54,28 @@ function holdNotificationSettingResponses(initialAccount: MyAccountFieldsFragmen
       UpdateNotificationSettingsMutation,
       UpdateNotificationSettingsMutationVariables
     >('UpdateNotificationSettings', async ({ variables }) => {
-      await new Promise<void>((resolve) => releases.push(resolve))
       serverSettings = {
         notifyResult: variables.input.notifyResult ?? serverSettings.notifyResult,
         notifyScrap: variables.input.notifyScrap ?? serverSettings.notifyScrap,
         notifyOperator: variables.input.notifyOperator ?? serverSettings.notifyOperator,
         marketingAgreed: variables.input.marketingAgreed ?? serverSettings.marketingAgreed,
       }
+      const processedSettings = serverSettings
+      await new Promise<void>((resolve) => releases.push(resolve))
       return HttpResponse.json({
         data: {
-          updateNotificationSettings: { ...initialAccount, notificationSettings: serverSettings },
+          updateNotificationSettings: {
+            ...initialAccount,
+            notificationSettings: processedSettings,
+          },
         },
       })
     }),
+    graphqlApi.query<MyAccountQuery, MyAccountQueryVariables>('MyAccount', () =>
+      HttpResponse.json({
+        data: { me: { ...initialAccount, notificationSettings: serverSettings } },
+      }),
+    ),
   )
   return releases
 }
@@ -142,6 +153,28 @@ describe('useUpdateNotificationSettingMutation', () => {
 
     act(() => releases[1]?.())
     await waitFor(() => expect(queryClient.isMutating()).toBe(0))
+    expect(getSettings(result.current.account.data)).toMatchObject({
+      notifyScrap: false,
+      marketingAgreed: true,
+    })
+  })
+
+  it('나중에 처리된 응답이 먼저 도착해도 늦게 온 앞선 응답으로 되돌아가지 않음', async () => {
+    const { result, queryClient, initialAccount } = await renderLoadedHooks()
+    const releases = holdNotificationSettingResponses(initialAccount)
+
+    // 서버 처리 순서를 A(스크랩) → B(마케팅)로 고정
+    act(() => result.current.mutation.mutate({ key: 'notifyScrap', isEnabled: false }))
+    await waitFor(() => expect(releases).toHaveLength(1))
+    act(() => result.current.mutation.mutate({ key: 'marketingAgreed', isEnabled: true }))
+    await waitFor(() => expect(releases).toHaveLength(2))
+
+    // B 응답이 먼저, B 반영 전 값을 담은 A 응답이 마지막에 도착
+    act(() => releases[1]?.())
+    await waitFor(() => expect(queryClient.isMutating()).toBe(1))
+    act(() => releases[0]?.())
+    await waitFor(() => expect(queryClient.isMutating()).toBe(0))
+
     expect(getSettings(result.current.account.data)).toMatchObject({
       notifyScrap: false,
       marketingAgreed: true,
