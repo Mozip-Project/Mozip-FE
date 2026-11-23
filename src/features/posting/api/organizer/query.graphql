@@ -29,6 +29,23 @@ query ManagedPostingSummary($organizationId: ID!) {
   }
 }
 
+# 지원자 상세 필드에 단체 확인용 id와 공지 받는 사람 수 추가
+query ManagedPostingDetail($id: ID!) {
+  posting(id: $id) {
+    ...PostingDetailFields
+    applicationCount
+    organization {
+      id
+    }
+  }
+}
+
+mutation SendNotice($postingId: ID!, $subject: String!, $body: String!) {
+  sendNotice(postingId: $postingId, subject: $subject, body: $body) {
+    id
+  }
+}
+
 mutation BumpPosting($id: ID!) {
   bumpPosting(id: $id) {
     id

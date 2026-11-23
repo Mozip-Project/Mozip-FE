@@ -25,58 +25,63 @@ query Postings($filter: PostingFilter, $sort: PostingSort, $page: Int, $size: In
 
 query Posting($id: ID!) {
   posting(id: $id) {
+    ...PostingDetailFields
+  }
+}
+
+# 운영진 공고 관리 상세(organizer/query.graphql)도 같은 상세 필드 사용
+fragment PostingDetailFields on Posting {
+  id
+  title
+  content
+  noPosition
+  hasInterview
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  region
+  fee
+  recruitStartAt
+  recruitEndAt
+  docResultAt
+  finalResultAt
+  images {
+    url
+    isRepresentative
+    sortOrder
+  }
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
     id
     title
-    content
-    noPosition
-    hasInterview
-    allowEnrolled
-    allowOnLeave
-    eligibilityNote
-    region
-    fee
+    sortOrder
+    position {
+      id
+    }
+  }
+  interviewTimeRanges {
+    date
+  }
+  organization {
+    name
+    type
+    logoUrl
+    tagline
+    keywords
+    fields
+    links {
+      id
+      url
+    }
+  }
+  otherActivePostings {
+    id
+    title
     recruitStartAt
     recruitEndAt
-    docResultAt
-    finalResultAt
-    images {
-      url
-      isRepresentative
-      sortOrder
-    }
-    positions {
-      id
-      name
-      sortOrder
-    }
-    questions {
-      id
-      title
-      sortOrder
-      position {
-        id
-      }
-    }
-    interviewTimeRanges {
-      date
-    }
-    organization {
-      name
-      type
-      logoUrl
-      tagline
-      keywords
-      fields
-      links {
-        id
-        url
-      }
-    }
-    otherActivePostings {
-      id
-      title
-      recruitStartAt
-      recruitEndAt
-    }
   }
 }

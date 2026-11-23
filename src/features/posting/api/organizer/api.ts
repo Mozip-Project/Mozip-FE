@@ -4,9 +4,12 @@ import type { ManagedPostingDetail } from '@/features/posting/types'
 import {
   BumpPostingDocument,
   DeletePostingDocument,
+  ManagedPostingDetailDocument,
   ManagedPostingSummaryDocument,
   OrganizationPostingsDocument,
+  SendNoticeDocument,
   type PostingStatus,
+  type SendNoticeMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
@@ -45,11 +48,24 @@ async function deletePosting(postingId: string) {
   return data.deletePosting
 }
 
+// TODO: 화면 연결 시 샘플 getManagedPostingDetail 대체
+async function getManagedPosting(postingId: string) {
+  const data = await requestGraphQL(ManagedPostingDetailDocument, { id: postingId })
+  return data.posting
+}
+
+async function sendNotice(variables: SendNoticeMutationVariables) {
+  const data = await requestGraphQL(SendNoticeDocument, variables)
+  return data.sendNotice
+}
+
 export {
   bumpPosting,
   deletePosting,
+  getManagedPosting,
   getManagedPostingSummary,
   getFirstPublishedPostingId,
   getManagedPostingDetail,
   getOrganizationPostings,
+  sendNotice,
 }

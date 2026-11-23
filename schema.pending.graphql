@@ -107,6 +107,8 @@ type Mutation {
   bumpPosting(id: ID!): Posting!
   "DRAFT만 삭제 가능, 아니면 POSTING_409"
   deletePosting(id: ID!): Boolean!
+  "제출 지원자 전원에게 바로 발송, 제목 1~100자·본문 1~1,000자, DRAFT면 MESSAGE_409, 받는 사람 없으면 MESSAGE_422"
+  sendNotice(postingId: ID!, subject: String!, body: String!): Message!
 }
 
 input UpdateProfileInput {
