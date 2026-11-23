@@ -104,14 +104,26 @@ describe('PostingManageHomeContent', () => {
   })
 
   it('탭의 공고를 처음 불러오는 동안 목록 로딩 상태를 알리고, 받으면 카드로 교체', async () => {
+    // 종료 탭 응답을 붙잡아 로딩 상태 확인 순서 고정, 반환값 없이 끝나면 기본 handler가 응답
+    let releaseClosedPostings = () => {}
+    const closedPostingsGate = new Promise<void>((resolve) => {
+      releaseClosedPostings = resolve
+    })
+    server.use(
+      graphqlApi.query('OrganizationPostings', async ({ variables }) => {
+        if ([variables.status].flat().includes('ENDED')) {
+          await closedPostingsGate
+        }
+      }),
+    )
     const user = userEvent.setup()
     renderHome()
-    // 진행 중 탭을 받은 뒤 처음 여는 탭이어야 조회 중 상태가 생김
     await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' })
 
     await user.click(screen.getByRole('tab', { name: /종료된 공고/ }))
 
     expect(screen.getByRole('status', { name: '공고 목록 불러오는 중' })).toBeInTheDocument()
+    releaseClosedPostings()
     expect(
       await screen.findByRole('heading', { name: 'UXUX 13기 신입 부원 모집' }),
     ).toBeInTheDocument()
