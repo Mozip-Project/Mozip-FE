@@ -65,19 +65,24 @@ describe('PostingManageHomeContent', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('UP하면 잔여 1회를 쓰고 순위가 1위로 바뀜', async () => {
+  it('UP하면 잔여 1회를 쓰고 순위가 1위로 바뀌며, 잔여가 없으면 팝업의 사용 버튼 비활성', async () => {
     const user = userEvent.setup()
     renderHome()
 
     await user.click(await screen.findByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }))
     const dialog = await screen.findByRole('dialog')
     const useButton = within(dialog).getByRole('button', { name: '1회 사용하기' })
-    // 잔여 횟수를 받기 전에는 사용 불가
-    await waitFor(() => expect(useButton).toHaveAttribute('aria-disabled', 'false'))
+    await waitFor(() => expect(useButton).toBeEnabled())
     await user.click(useButton)
 
     expect(await screen.findByText('공고 UP을 완료했어요')).toBeInTheDocument()
     expect(await screen.findByText('최신순 1위')).toBeInTheDocument()
+    // 잔여가 0회면 팝업은 열리되 사용 버튼만 비활성
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }))
+    expect(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: '1회 사용하기' }),
+    ).toBeDisabled()
   })
 
   it('작성 중 공고는 일정 미정으로 표시하고 삭제하면 빈 상태와 탭 숫자 반영', async () => {

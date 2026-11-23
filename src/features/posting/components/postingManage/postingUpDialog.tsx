@@ -33,7 +33,7 @@ function PostingUpDialog({ organizationId, postingId, title, latestRank }: Posti
   const remainingCount = useManagedPostingSummaryQuery(organizationId).data?.upCredits
   const { mutate: upPosting, isPending } = useBumpPostingMutation()
   const { showToast } = useToast()
-  // TODO: 남은 횟수가 없을 때의 이용권 안내 디자인 확정 후 반영
+  // TODO: 남은 횟수가 없을 때의 이용권 안내 디자인 확정 후 반영, 지금은 팝업의 사용 버튼 비활성만
   const canUp = remainingCount !== undefined && remainingCount > 0
 
   function handleOpenChange(nextIsOpen: boolean) {
@@ -91,8 +91,8 @@ function PostingUpDialog({ organizationId, postingId, title, latestRank }: Posti
           <DialogClose asChild>
             <Button variant="secondary">취소</Button>
           </DialogClose>
-          {/* 요청 중 focus 유지를 위해 disabled 대신 aria-disabled 사용 */}
-          <Button aria-disabled={!canUp || isPending} onClick={handleUp}>
+          {/* 잔여 없음은 비활성 모양, 요청 중은 focus 유지를 위해 aria-disabled */}
+          <Button disabled={!canUp} aria-disabled={isPending} onClick={handleUp}>
             1회 사용하기
           </Button>
         </DialogFooter>
