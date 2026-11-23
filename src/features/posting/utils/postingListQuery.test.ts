@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PostingListQuery } from '@/features/posting/types'
-import { getPostingListHref, parsePostingListQuery } from './postingListQuery'
+import { getPostingListHref, isAllFilterSelected, parsePostingListQuery } from './postingListQuery'
 
 const DEFAULT_QUERY: PostingListQuery = {
   scopes: [],
@@ -56,5 +56,18 @@ describe('getPostingListHref', () => {
     expect(getPostingListHref('/postings', query)).toBe(
       '/postings?q=%EB%94%94%EC%9E%90%EC%9D%B8+%EB%8F%99%EC%95%84%EB%A6%AC',
     )
+  })
+})
+
+describe('isAllFilterSelected', () => {
+  const ALL = ['club', 'society', 'studentCouncil'] as const
+
+  it('모든 값을 고르면 true, 순서는 상관없음', () => {
+    expect(isAllFilterSelected(['studentCouncil', 'club', 'society'], ALL)).toBe(true)
+  })
+
+  it('하나라도 빠지거나 아무것도 안 고르면 false', () => {
+    expect(isAllFilterSelected(['club', 'society'], ALL)).toBe(false)
+    expect(isAllFilterSelected([], ALL)).toBe(false)
   })
 })

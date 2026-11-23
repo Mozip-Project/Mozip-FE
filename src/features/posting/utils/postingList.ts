@@ -1,13 +1,16 @@
 import { ORGANIZATION_TYPE_LABEL } from '@/features/organization/utils/organizationProfile'
-import type { PostingListItem } from '@/features/posting/components/postingList/postingListContent'
-import type {
-  PostingActivityField,
-  PostingActivityType,
-  PostingListQuery,
-  PostingScope,
-  PostingSort,
+import {
+  POSTING_ACTIVITY_FIELDS,
+  POSTING_ACTIVITY_TYPES,
+  type PostingActivityField,
+  type PostingActivityType,
+  type PostingListItem,
+  type PostingListQuery,
+  type PostingRecruitmentPhase,
+  type PostingScope,
+  type PostingSort,
 } from '@/features/posting/types'
-import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { isAllFilterSelected } from '@/features/posting/utils/postingListQuery'
 import { getPostingDetailPath } from '@/features/posting/utils/postingRoutes'
 import type {
   OrganizationField,
@@ -53,16 +56,30 @@ function getSchoolIdFilter(scopes: PostingScope[]): { schoolId?: null } {
   return isUnionOnly ? { schoolId: null } : {}
 }
 
+// 안 고르거나 모두 고르면 보내지 않음, 모두 보내면 값이 없는 공고가 빠짐
+function toFilterInput<TValue extends string, TInput>(
+  values: readonly TValue[],
+  allValues: readonly TValue[],
+  inputByValue: Record<TValue, TInput>,
+) {
+  if (values.length === 0 || isAllFilterSelected(values, allValues)) {
+    return undefined
+  }
+  return values.map((value) => inputByValue[value])
+}
+
 function toPostingsVariables(query: PostingListQuery, size: number): PostingsQueryVariables {
   const keyword = query.keyword.trim()
-  const organizationTypes = query.activityTypes.map((type) => ACTIVITY_TYPE_INPUT[type])
-  const fields = query.activityFields.map((field) => ACTIVITY_FIELD_INPUT[field])
 
   return {
     filter: {
       keyword: keyword === '' ? undefined : keyword,
-      organizationType: organizationTypes.length > 0 ? organizationTypes : undefined,
-      fields: fields.length > 0 ? fields : undefined,
+      organizationType: toFilterInput(
+        query.activityTypes,
+        POSTING_ACTIVITY_TYPES,
+        ACTIVITY_TYPE_INPUT,
+      ),
+      fields: toFilterInput(query.activityFields, POSTING_ACTIVITY_FIELDS, ACTIVITY_FIELD_INPUT),
       ...getSchoolIdFilter(query.scopes),
     },
     sort: POSTING_SORT_INPUT[query.sort],

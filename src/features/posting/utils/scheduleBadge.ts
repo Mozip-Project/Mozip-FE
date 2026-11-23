@@ -1,5 +1,5 @@
 import type { Badge } from '@/components/ui/Badge/badge'
-import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import type { PostingRecruitmentPhase } from '@/features/posting/types'
 import { formatDday } from '@/utils/date'
 import type { ComponentProps } from 'react'
 

@@ -28,43 +28,70 @@ function renderSection(values: OptionValue[]) {
 }
 
 describe('PostingFilterSection', () => {
-  it('선택한 항목이 없으면 전체를 체크 상태로 표시', () => {
+  it('선택한 항목이 없으면 전체를 포함해 아무것도 체크하지 않음', () => {
     renderSection([])
 
-    expect(screen.getByRole('checkbox', { name: '유형 전체' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: '유형 전체' })).not.toBeChecked()
     expect(screen.getByRole('checkbox', { name: '동아리' })).not.toBeChecked()
   })
 
-  it('항목을 체크하면 전체가 빠지고 옵션 순서대로 전달', async () => {
+  it('전체를 체크하면 모든 항목을 옵션 순서대로 전달', async () => {
+    const onValuesChange = renderSection(['society'])
+
+    await userEvent.click(screen.getByRole('checkbox', { name: '유형 전체' }))
+
+    expect(onValuesChange).toHaveBeenCalledWith(['club', 'society', 'studentCouncil'])
+  })
+
+  it('모두 선택된 상태에서 전체를 해제하면 모든 항목 해제', async () => {
+    const onValuesChange = renderSection(['club', 'society', 'studentCouncil'])
+
+    expect(screen.getByRole('checkbox', { name: '유형 전체' })).toBeChecked()
+
+    await userEvent.click(screen.getByRole('checkbox', { name: '유형 전체' }))
+
+    expect(onValuesChange).toHaveBeenCalledWith([])
+  })
+
+  it('모든 항목이 선택돼 있으면 전체도 체크, 하나라도 빠지면 전체 해제', () => {
+    const { rerender } = render(
+      <PostingFilterSection
+        title="활동 유형"
+        allLabel="유형 전체"
+        options={OPTIONS}
+        values={['club', 'society', 'studentCouncil']}
+        onValuesChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('checkbox', { name: '유형 전체' })).toBeChecked()
+
+    rerender(
+      <PostingFilterSection
+        title="활동 유형"
+        allLabel="유형 전체"
+        options={OPTIONS}
+        values={['club', 'society']}
+        onValuesChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('checkbox', { name: '유형 전체' })).not.toBeChecked()
+  })
+
+  it('항목을 체크하면 옵션 순서대로 전달', async () => {
     const onValuesChange = renderSection(['studentCouncil'])
 
     await userEvent.click(screen.getByRole('checkbox', { name: '동아리' }))
 
-    expect(screen.getByRole('checkbox', { name: '유형 전체' })).not.toBeChecked()
     expect(onValuesChange).toHaveBeenCalledWith(['club', 'studentCouncil'])
   })
 
-  it('마지막 항목을 해제하면 빈 배열(전체) 전달', async () => {
+  it('마지막 항목을 해제하면 빈 배열 전달', async () => {
     const onValuesChange = renderSection(['club'])
 
     await userEvent.click(screen.getByRole('checkbox', { name: '동아리' }))
 
     expect(onValuesChange).toHaveBeenCalledWith([])
-  })
-
-  it('전체를 체크하면 선택한 항목을 모두 해제', async () => {
-    const onValuesChange = renderSection(['club', 'society'])
-
-    await userEvent.click(screen.getByRole('checkbox', { name: '유형 전체' }))
-
-    expect(onValuesChange).toHaveBeenCalledWith([])
-  })
-
-  it('이미 전체인 상태에서 전체를 다시 누르면 변경 없음', async () => {
-    const onValuesChange = renderSection([])
-
-    await userEvent.click(screen.getByRole('checkbox', { name: '유형 전체' }))
-
-    expect(onValuesChange).not.toHaveBeenCalled()
   })
 })

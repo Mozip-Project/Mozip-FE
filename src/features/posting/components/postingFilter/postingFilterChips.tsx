@@ -7,28 +7,40 @@ import { RemovableChip } from '@/components/ui/Chip/removableChip'
 import { usePostingListQuery } from '@/features/posting/components/postingList/postingListQueryContext'
 import {
   POSTING_ACTIVITY_FIELD_LABEL,
+  POSTING_ACTIVITY_FIELDS,
   POSTING_ACTIVITY_TYPE_LABEL,
+  POSTING_ACTIVITY_TYPES,
   POSTING_SCOPE_LABEL,
+  POSTING_SCOPES,
 } from '@/features/posting/types'
+import { isAllFilterSelected } from '@/features/posting/utils/postingListQuery'
 
 function PostingFilterChips() {
   const { query, changeQuery } = usePostingListQuery()
   const { scopes, activityTypes, activityFields } = query
   const listRef = useRef<HTMLUListElement>(null)
+  // 모두 고른 항목은 필터 없음과 같아 칩 생략
+  const chipScopes = isAllFilterSelected(scopes, POSTING_SCOPES) ? [] : scopes
+  const chipActivityTypes = isAllFilterSelected(activityTypes, POSTING_ACTIVITY_TYPES)
+    ? []
+    : activityTypes
+  const chipActivityFields = isAllFilterSelected(activityFields, POSTING_ACTIVITY_FIELDS)
+    ? []
+    : activityFields
 
   const appliedFilters = [
-    ...scopes.map((scope) => ({
+    ...chipScopes.map((scope) => ({
       id: `scope-${scope}`,
       label: POSTING_SCOPE_LABEL[scope],
       onRemove: () => changeQuery({ scopes: scopes.filter((value) => value !== scope) }),
     })),
-    ...activityTypes.map((type) => ({
+    ...chipActivityTypes.map((type) => ({
       id: `type-${type}`,
       label: POSTING_ACTIVITY_TYPE_LABEL[type],
       onRemove: () =>
         changeQuery({ activityTypes: activityTypes.filter((value) => value !== type) }),
     })),
-    ...activityFields.map((field) => ({
+    ...chipActivityFields.map((field) => ({
       id: `field-${field}`,
       label: POSTING_ACTIVITY_FIELD_LABEL[field],
       onRemove: () =>

@@ -1,15 +1,14 @@
-import { type PostingDetail, type PostingPosition } from '@/features/posting/types'
+import {
+  type PostingDetail,
+  type PostingPosition,
+  type PostingRecruitmentPhase,
+} from '@/features/posting/types'
 import {
   formatMonthDayTimeWithWeekday,
   formatMonthDayWithWeekday,
   getDaysBetween,
   getSeoulIsoDate,
 } from '@/utils/date'
-
-type PostingRecruitmentPhase =
-  | { status: 'upcoming'; daysLeft: number }
-  | { status: 'open'; daysLeft: number }
-  | { status: 'closed' }
 
 type PostingSummaryRow = {
   label: string
@@ -113,4 +112,4 @@ function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
 }
 
 export { getPostingFactRows, getPostingRecruitmentPhase, getPostingScheduleRows }
-export type { PostingRecruitmentPhase, PostingSummaryRow }
+export type { PostingSummaryRow }

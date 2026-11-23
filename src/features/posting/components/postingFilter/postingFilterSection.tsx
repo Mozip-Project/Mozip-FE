@@ -1,6 +1,7 @@
 'use client'
 
 import { Checkbox } from '@/components/ui/Checkbox/checkbox'
+import { isAllFilterSelected } from '@/features/posting/utils/postingListQuery'
 
 type PostingFilterOption<TValue extends string> = {
   value: TValue
@@ -11,7 +12,6 @@ type PostingFilterSectionProps<TValue extends string> = {
   title: string
   allLabel: string
   options: readonly PostingFilterOption<TValue>[]
-  // 빈 배열은 전체(필터 없음)
   values: readonly TValue[]
   onValuesChange: (values: TValue[]) => void
 }
@@ -23,15 +23,13 @@ function PostingFilterSection<TValue extends string>({
   values,
   onValuesChange,
 }: PostingFilterSectionProps<TValue>) {
-  const isAllSelected = values.length === 0
+  const isAllSelected = isAllFilterSelected(
+    values,
+    options.map((option) => option.value),
+  )
 
-  // 이미 전체면 조건이 같아 페이지 이동·기록 추가 없음
-  function handleAllChange() {
-    if (isAllSelected) {
-      return
-    }
-
-    onValuesChange([])
+  function handleAllChange(isChecked: boolean) {
+    onValuesChange(isChecked ? options.map((option) => option.value) : [])
   }
 
   function handleOptionChange(value: TValue, isChecked: boolean) {
@@ -46,7 +44,10 @@ function PostingFilterSection<TValue extends string>({
     <fieldset>
       <legend className="mb-gap-m text-label1 font-bold text-neutral">{title}</legend>
       <div className="flex flex-col items-start gap-gap-m">
-        <Checkbox checked={isAllSelected} onCheckedChange={handleAllChange}>
+        <Checkbox
+          checked={isAllSelected}
+          onCheckedChange={(checked) => handleAllChange(checked === true)}
+        >
           {allLabel}
         </Checkbox>
         {options.map((option) => (

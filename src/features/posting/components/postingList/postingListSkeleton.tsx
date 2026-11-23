@@ -9,10 +9,7 @@ function PostingListSkeleton({ cardCount }: PostingListSkeletonProps) {
   return (
     <div role="status" className="flex flex-col gap-gap-l">
       <span className="sr-only">공고 목록 불러오는 중</span>
-      <div aria-hidden className="flex animate-skeleton-delayed-show flex-col gap-gap-l">
-        <div className="flex h-9 items-center">
-          <span className="skeleton-bar h-4 w-16 rounded-full" />
-        </div>
+      <div aria-hidden className="animate-skeleton-delayed-show">
         <ul className="grid grid-cols-3 gap-gap-xl">
           {cardKeys.map((key) => (
             <li key={key} className="flex min-h-68 flex-col">

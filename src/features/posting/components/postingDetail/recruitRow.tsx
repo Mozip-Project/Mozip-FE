@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
 import { Badge } from '@/components/ui/Badge/badge'
-import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import type { PostingRecruitmentPhase } from '@/features/posting/types'
 import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 import type { Route } from 'next'
 

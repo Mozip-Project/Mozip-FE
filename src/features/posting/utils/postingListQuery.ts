@@ -24,6 +24,14 @@ function pickAllowedValues<TValue extends string>(
   return allowedValues.filter((value) => values.includes(value))
 }
 
+// 모두 고르면 고르지 않은 것과 같은 결과
+function isAllFilterSelected<TValue extends string>(
+  values: readonly TValue[],
+  allValues: readonly TValue[],
+) {
+  return allValues.every((value) => values.includes(value))
+}
+
 function parsePostingListQuery(searchParams: SearchParamsSource): PostingListQuery {
   const [keyword = ''] = getParamValues(searchParams, 'q')
   const [sort] = getParamValues(searchParams, 'sort')
@@ -61,4 +69,4 @@ function getPostingListHref(pathname: string, query: PostingListQuery): Route {
   return getHrefWithSearchParams(pathname, searchParams)
 }
 
-export { getPostingListHref, parsePostingListQuery }
+export { getPostingListHref, isAllFilterSelected, parsePostingListQuery }

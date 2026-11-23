@@ -178,4 +178,29 @@ describe('toPostingsVariables', () => {
 
     expect(filter).not.toHaveProperty('schoolId')
   })
+
+  it('활동 유형·분야를 모두 고르면 보내지 않음(분야 없는 공고가 빠지지 않게)', () => {
+    const { filter } = toPostingsVariables(
+      {
+        ...BASE_QUERY,
+        activityTypes: ['club', 'society', 'studentCouncil'],
+        activityFields: [
+          'academic',
+          'it',
+          'design',
+          'performance',
+          'sports',
+          'culture',
+          'volunteer',
+          'language',
+          'business',
+          'religion',
+          'etc',
+        ],
+      },
+      9,
+    )
+
+    expect(filter).toEqual({ keyword: undefined, organizationType: undefined, fields: undefined })
+  })
 })
