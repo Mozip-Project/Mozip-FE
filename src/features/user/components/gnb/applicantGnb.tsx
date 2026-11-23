@@ -15,6 +15,7 @@ function ApplicantGnb() {
               name="김모집"
               mode="applicant"
               myPageHref="/manage/mypage"
+              applicationsHref="/applications"
               switchModeHref="/manage"
               logoutHref="/"
             />

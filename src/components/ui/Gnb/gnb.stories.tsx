@@ -68,7 +68,11 @@ export const Applicant: Story = {
       actions={
         <>
           {NOTIFICATION_TRIGGER}
-          <ProfileMenu mode="applicant" {...PROFILE_MENU_PROPS} />
+          <ProfileMenu
+            mode="applicant"
+            applicationsHref={toStoryRoute('/applications')}
+            {...PROFILE_MENU_PROPS}
+          />
         </>
       }
     />
