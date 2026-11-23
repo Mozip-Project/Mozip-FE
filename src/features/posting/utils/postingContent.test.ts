@@ -114,4 +114,10 @@ describe('parsePostingContentHtml', () => {
       { type: 'paragraph', runs: [{ text: '뒤' }] },
     ])
   })
+
+  it('숨김 태그 안의 다른 태그 글자가 뒤 본문을 숨기지 않음', () => {
+    expect(
+      parsePostingContentHtml('<script>const x = "<style>";</script><p>모집 안내</p>'),
+    ).toEqual([{ type: 'paragraph', runs: [{ text: '모집 안내' }] }])
+  })
 })

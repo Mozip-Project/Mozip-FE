@@ -58,7 +58,8 @@ function parsePostingContentHtml(html: string | null): PostingContentBlock[] {
   let listDepth = 0
   let boldDepth = 0
   let italicDepth = 0
-  let hiddenDepth = 0
+  // 열린 숨김 태그, 같은 이름의 닫는 태그까지 안의 태그·글자 무시
+  let hiddenTag: string | null = null
 
   function closeTarget() {
     if (target?.type === 'heading' && target.text.trim() !== '') {
@@ -176,7 +177,7 @@ function parsePostingContentHtml(html: string | null): PostingContentBlock[] {
     }
 
     if (tagName === undefined) {
-      if (hiddenDepth === 0) {
+      if (hiddenTag === null) {
         handleText(token)
       }
       continue
@@ -185,11 +186,16 @@ function parsePostingContentHtml(html: string | null): PostingContentBlock[] {
     const tag = tagName.toLowerCase()
     const isClosing = closingSlash === '/'
 
-    if (HIDDEN_CONTENT_TAGS.has(tag)) {
-      hiddenDepth = Math.max(0, hiddenDepth + (isClosing ? -1 : 1))
+    if (hiddenTag !== null) {
+      if (isClosing && tag === hiddenTag) {
+        hiddenTag = null
+      }
       continue
     }
-    if (hiddenDepth > 0) {
+    if (HIDDEN_CONTENT_TAGS.has(tag)) {
+      if (!isClosing) {
+        hiddenTag = tag
+      }
       continue
     }
 
