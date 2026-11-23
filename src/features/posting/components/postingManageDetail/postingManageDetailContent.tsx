@@ -7,10 +7,12 @@ import { Callout } from '@/components/ui/Callout/callout'
 import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { OrganizationLoadError } from '@/features/organization/components/organizationLoadError/organizationLoadError'
+import { COMING_SOON_TOAST } from '@/features/organization/constants'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { useManagedPostingQuery } from '@/features/posting/api/organizer/queries'
 import { getPostingRecruitmentPhase, toPostingDetail } from '@/features/posting/utils/postingDetail'
 import { ApiError } from '@/lib/apiError'
+import { useToast } from '@/providers/toastProvider'
 import { PostingDetailCard } from './postingDetailCard'
 import { PostingManageDetailSkeleton } from './postingManageDetailSkeleton'
 import { PostingNoticeDialog } from './postingNoticeDialog'
@@ -31,6 +33,7 @@ function PostingManageDetailContent({
   const postingQuery = useManagedPostingQuery(postingId)
   // D-day 기준 시각, 다시 그릴 때마다 바뀌지 않도록 처음 한 번만
   const [now] = useState(() => new Date())
+  const { showToast } = useToast()
 
   if (meQuery.isError) {
     return (
@@ -80,8 +83,8 @@ function PostingManageDetailContent({
         title={detail.title}
         actions={
           <div className="flex items-center gap-gap-m">
-            {/* TODO: 공고 수정 경로 확정 후 연결 */}
-            <Button variant="secondary" size="m">
+            {/* TODO: 공고 작성 연결(savePostingDraft) 후 작성 단계 화면으로 이동, 그 전까지 준비 중 안내 */}
+            <Button variant="secondary" size="m" onClick={() => showToast(COMING_SOON_TOAST)}>
               공고 수정하기
             </Button>
             <PostingNoticeDialog

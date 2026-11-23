@@ -93,6 +93,15 @@ describe('PostingManageDetailContent', () => {
     ).toBeInTheDocument()
   })
 
+  it('공고 수정하기는 준비 중 안내', async () => {
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.open)
+
+    await user.click(await screen.findByRole('button', { name: '공고 수정하기' }))
+
+    expect(await screen.findByText('준비 중인 기능이에요')).toBeInTheDocument()
+  })
+
   it('공지를 보내면 팝업을 닫고 완료 안내', async () => {
     const user = userEvent.setup()
     renderDetail(POSTING_SAMPLE_ID.open)
