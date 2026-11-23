@@ -12,12 +12,15 @@ import type { Route } from 'next'
 
 type PostingListQueryChange = Partial<Omit<PostingListQuery, 'page'>>
 
+type QueryNavigation = 'push' | 'replace'
+
 type PostingListQueryContextValue = {
   query: PostingListQuery
   // URL 반영 전 입력 중인 글자 포함
   keyword: string
   changeQuery: (change: PostingListQueryChange) => void
   changeKeyword: (keyword: string) => void
+  submitKeyword: () => void
   getPageHref: (page: number) => Route
   navigateToPage: (href: Route) => void
 }
@@ -36,17 +39,30 @@ function PostingListQueryProvider({ children }: PostingListQueryProviderProps) {
 
   const [, startTransition] = useTransition()
   const [optimisticQuery, setOptimisticQuery] = useOptimistic(query)
-  const search = useDebouncedSearch(query.keyword, (keyword) => changeQuery({ keyword }))
+  const search = useDebouncedSearch(query.keyword, searchKeyword)
 
-  function changeQuery(change: PostingListQueryChange) {
+  function changeQuery(change: PostingListQueryChange, navigation: QueryNavigation = 'push') {
     search.cancelPendingSearch()
+    const mergedQuery = { ...optimisticQuery, keyword: search.keyword, ...change }
     // 조건이 바뀌면 이전 페이지 번호가 의미 없어 1페이지로 이동
-    const nextQuery = { ...optimisticQuery, keyword: search.keyword, ...change, page: 1 }
+    const nextQuery = { ...mergedQuery, keyword: mergedQuery.keyword.trim(), page: 1 }
 
     startTransition(() => {
       setOptimisticQuery(nextQuery)
-      router.push(getPostingListHref(pathname, nextQuery), { scroll: false })
+      router[navigation](getPostingListHref(pathname, nextQuery), { scroll: false })
     })
+  }
+
+  // 검색 시작·종료만 기록에 남기고, 이어서 고치는 검색어는 현재 기록 교체
+  function searchKeyword(keyword: string) {
+    const nextKeyword = keyword.trim()
+
+    if (nextKeyword === optimisticQuery.keyword) {
+      return
+    }
+
+    const isEditingSearch = optimisticQuery.keyword !== '' && nextKeyword !== ''
+    changeQuery({ keyword }, isEditingSearch ? 'replace' : 'push')
   }
 
   function getPageHref(page: number) {
@@ -65,6 +81,7 @@ function PostingListQueryProvider({ children }: PostingListQueryProviderProps) {
         keyword: search.keyword,
         changeQuery,
         changeKeyword: search.changeKeyword,
+        submitKeyword: search.flushPendingSearch,
         getPageHref,
         navigateToPage,
       }}
