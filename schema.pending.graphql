@@ -19,6 +19,14 @@ extend type Query {
     page: Int = 0
     size: Int = 20
   ): PostingPage! @public
+  posting(id: ID!): Posting! @public
+}
+
+extend type Posting {
+  "같은 단체의 RECRUITING 공고, 현재 공고 제외"
+  otherActivePostings: [Posting!]!
+  "비로그인·운영진이면 빈 배열, 포지션 없는 모집은 최대 1개"
+  myApplications: [Application!]!
 }
 
 type Me {

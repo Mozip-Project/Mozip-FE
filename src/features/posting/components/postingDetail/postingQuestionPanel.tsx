@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { Chip } from '@/components/ui/Chip/chip'
-import type { PostingPosition, PostingQuestion } from '@/features/posting/types'
+import type { PostingPositionPreview, PostingQuestionPreview } from '@/features/posting/types'
 import { cn } from '@/lib/utils'
 
 type PostingQuestionPanelProps = {
   // 비어 있으면 포지션 없는 모집, questions를 바로 표시
-  positions: readonly PostingPosition[]
-  questions: readonly PostingQuestion[]
+  positions: readonly PostingPositionPreview[]
+  questions: readonly PostingQuestionPreview[]
 }
 
 // 포지션 없는 모집은 목록 하나로 같은 마크업 사용

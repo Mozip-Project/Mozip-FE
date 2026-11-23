@@ -22,3 +22,61 @@ query Postings($filter: PostingFilter, $sort: PostingSort, $page: Int, $size: In
     }
   }
 }
+
+query Posting($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    content
+    noPosition
+    hasInterview
+    allowEnrolled
+    allowOnLeave
+    eligibilityNote
+    region
+    fee
+    recruitStartAt
+    recruitEndAt
+    docResultAt
+    finalResultAt
+    images {
+      url
+      isRepresentative
+      sortOrder
+    }
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      title
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+    }
+    organization {
+      name
+      type
+      logoUrl
+      tagline
+      keywords
+      fields
+      links {
+        id
+        url
+      }
+    }
+    otherActivePostings {
+      id
+      title
+      recruitStartAt
+      recruitEndAt
+    }
+  }
+}

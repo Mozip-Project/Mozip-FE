@@ -187,6 +187,13 @@ export type PostingsQueryVariables = Exact<{
 
 export type PostingsQuery = { postings: { totalCount: number, items: Array<{ id: string, title: string, thumbnailUrl: string | null, recruitEndAt: string, organization: { name: string, type: OrganizationType }, positions: Array<{ id: string, name: string, sortOrder: number } | null> }> } };
 
+export type PostingQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PostingQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -439,6 +446,65 @@ export const PostingsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<PostingsQuery, PostingsQueryVariables>;
+export const PostingDocument = new TypedDocumentString(`
+    query Posting($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    content
+    noPosition
+    hasInterview
+    allowEnrolled
+    allowOnLeave
+    eligibilityNote
+    region
+    fee
+    recruitStartAt
+    recruitEndAt
+    docResultAt
+    finalResultAt
+    images {
+      url
+      isRepresentative
+      sortOrder
+    }
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      title
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+    }
+    organization {
+      name
+      type
+      logoUrl
+      tagline
+      keywords
+      fields
+      links {
+        id
+        url
+      }
+    }
+    otherActivePostings {
+      id
+      title
+      recruitStartAt
+      recruitEndAt
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {
