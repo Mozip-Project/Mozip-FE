@@ -4,24 +4,41 @@ import type {
   BumpPostingMutationVariables,
   DeletePostingMutation,
   DeletePostingMutationVariables,
+  ManagedPostingDetailQuery,
+  ManagedPostingDetailQueryVariables,
   ManagedPostingFieldsFragment,
   ManagedPostingSummaryQuery,
   ManagedPostingSummaryQueryVariables,
   OrganizationPostingsQuery,
   OrganizationPostingsQueryVariables,
+  SendNoticeMutation,
+  SendNoticeMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
+import { getSeoulIsoDate } from '@/utils/date'
+import { createPostingSample, POSTING_SAMPLE_ID } from './postingDetailHandlers'
 
 // 명세상 UP하면 최신순 맨 위
 const BUMPED_RANK = 1
+// 명세의 공지 제목·본문 길이 제한
+const NOTICE_SUBJECT_MAX_LENGTH = 100
+const NOTICE_BODY_MAX_LENGTH = 1000
+// 운영진 홈 공고가 아닌 상세 샘플은 다른 단체 공고로 응답
+const OTHER_ORGANIZATION_ID = 'other-organization'
+
+// 제출 지원자 수, 운영진 모집은 0명이라 공지 발송 시 MESSAGE_422
+const APPLICATION_COUNT: Record<string, number> = {
+  [POSTING_SAMPLE_ID.open]: 24,
+  [POSTING_SAMPLE_ID.staff]: 0,
+}
 
 type OrganizationPostingState = {
   upCredits: number
   postings: ManagedPostingFieldsFragment[]
 }
 
-// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 공고 ID는 공고 관리 상세 샘플과 같음
+// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 진행 중 공고 ID는 공고 상세 MSW와 같음
 // 단체 1은 Figma 홈(진행 중 2·작성 중 1·종료 1), 단체 2는 공고 없는 상태
 function createInitialState(): Record<string, OrganizationPostingState> {
   return {
@@ -29,7 +46,7 @@ function createInitialState(): Record<string, OrganizationPostingState> {
       upCredits: 1,
       postings: [
         {
-          id: '2',
+          id: POSTING_SAMPLE_ID.staff,
           title: 'UXUX 14기 운영진 모집',
           status: 'RECRUITING',
           hasInterview: false,
@@ -41,7 +58,7 @@ function createInitialState(): Record<string, OrganizationPostingState> {
           bumpRank: 18,
         },
         {
-          id: '1',
+          id: POSTING_SAMPLE_ID.open,
           title: 'UXUX 14기 신입 부원 모집',
           status: 'DOC_REVIEW',
           hasInterview: true,
@@ -91,13 +108,27 @@ function resetManagedPostings() {
 }
 
 function findPosting(postingId: string) {
-  for (const state of Object.values(organizationStates)) {
+  for (const [organizationId, state] of Object.entries(organizationStates)) {
     const posting = state.postings.find(({ id }) => id === postingId)
     if (posting) {
-      return { state, posting }
+      return { organizationId, state, posting }
     }
   }
   return null
+}
+
+function getNoticeFieldErrors({ subject, body }: SendNoticeMutationVariables) {
+  const fieldErrors = []
+  const trimmedSubject = subject.trim()
+  const trimmedBody = body.trim()
+
+  if (!trimmedSubject || subject.length > NOTICE_SUBJECT_MAX_LENGTH) {
+    fieldErrors.push({ field: 'subject', message: '제목은 1~100자로 입력해 주세요' })
+  }
+  if (!trimmedBody || body.length > NOTICE_BODY_MAX_LENGTH) {
+    fieldErrors.push({ field: 'body', message: '본문은 1~1,000자로 입력해 주세요' })
+  }
+  return fieldErrors
 }
 
 function errorBody(code: string, message: string) {
@@ -199,6 +230,64 @@ const managedPostingHandlers = [
 
       found.state.postings = found.state.postings.filter(({ id }) => id !== found.posting.id)
       return HttpResponse.json({ data: { deletePosting: true } })
+    },
+  ),
+
+  // 공고 내용은 지원자 공고 상세 MSW와 같은 데이터
+  graphqlApi.query<ManagedPostingDetailQuery, ManagedPostingDetailQueryVariables>(
+    'ManagedPostingDetail',
+    async ({ variables }) => {
+      await delay(MOCK_RESPONSE_DELAY_MS)
+      const postingId = String(variables.id)
+      const posting = createPostingSample(postingId, getSeoulIsoDate(new Date()))
+
+      if (!posting) {
+        return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
+      }
+
+      const organizationId = findPosting(postingId)?.organizationId ?? OTHER_ORGANIZATION_ID
+      return HttpResponse.json({
+        data: {
+          posting: {
+            ...posting,
+            applicationCount: APPLICATION_COUNT[postingId] ?? 0,
+            organization: { ...posting.organization, id: organizationId },
+          },
+        },
+      })
+    },
+  ),
+
+  graphqlApi.mutation<SendNoticeMutation, SendNoticeMutationVariables>(
+    'SendNotice',
+    async ({ variables }) => {
+      await delay(MOCK_RESPONSE_DELAY_MS)
+      const postingId = String(variables.postingId)
+      const found = findPosting(postingId)
+
+      if (!found) {
+        return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
+      }
+      if (found.posting.status === 'DRAFT') {
+        return HttpResponse.json(
+          errorBody('MESSAGE_409', '게시 전 공고에는 공지를 보낼 수 없습니다.'),
+        )
+      }
+
+      const fieldErrors = getNoticeFieldErrors(variables)
+      if (fieldErrors.length > 0) {
+        return HttpResponse.json({
+          errors: [
+            { message: '입력값을 확인해 주세요.', extensions: { code: 'COMMON_400', fieldErrors } },
+          ],
+          data: null,
+        })
+      }
+      if (!APPLICATION_COUNT[postingId]) {
+        return HttpResponse.json(errorBody('MESSAGE_422', '공지를 받을 지원자가 없습니다.'))
+      }
+
+      return HttpResponse.json({ data: { sendNotice: { id: `notice-${postingId}` } } })
     },
   ),
 ]
