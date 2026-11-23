@@ -97,6 +97,33 @@ describe('PostingManageHomeContent', () => {
     expect(await screen.findByRole('tab', { name: '작성 중 0' })).toBeInTheDocument()
   })
 
+  it('탭의 공고를 처음 불러오는 동안 목록 로딩 상태를 알리고, 받으면 카드로 교체', async () => {
+    const user = userEvent.setup()
+    renderHome()
+    // 진행 중 탭을 받은 뒤 처음 여는 탭이어야 조회 중 상태가 생김
+    await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' })
+
+    await user.click(screen.getByRole('tab', { name: /종료된 공고/ }))
+
+    expect(screen.getByRole('status', { name: '공고 목록 불러오는 중' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'UXUX 13기 신입 부원 모집' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: '공고 목록 불러오는 중' })).not.toBeInTheDocument()
+  })
+
+  it('탭 숫자와 첫 탭 목록까지 받기 전에는 홈 로딩 상태 하나만 표시', async () => {
+    renderHome()
+
+    expect(screen.getByRole('status', { name: '운영진 홈 불러오는 중' })).toBeInTheDocument()
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+
+    // 탭은 숫자와 함께 처음 나타남
+    expect(await screen.findByRole('tab', { name: '진행 중 2' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
+    expect(screen.queryByRole('status', { name: '운영진 홈 불러오는 중' })).not.toBeInTheDocument()
+  })
+
   it('공고가 없는 단체는 빈 상태 표시', async () => {
     renderHome('2')
 
@@ -106,22 +133,21 @@ describe('PostingManageHomeContent', () => {
     expect(await screen.findByText('진행 중인 공고가 없어요')).toBeInTheDocument()
   })
 
-  it('목록 조회에 실패하면 다시 시도로 복구', async () => {
+  it('목록 조회에 계속 실패하면 오류 안내, 서버가 회복되면 다시 시도로 복구', async () => {
     server.use(
-      graphqlApi.query(
-        'OrganizationPostings',
-        () =>
-          HttpResponse.json({
-            errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
-            data: null,
-          }),
-        { once: true },
+      graphqlApi.query('OrganizationPostings', () =>
+        HttpResponse.json({
+          errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
+          data: null,
+        }),
       ),
     )
     const user = userEvent.setup()
     renderHome()
 
-    await user.click(await screen.findByRole('button', { name: '다시 시도' }))
+    const retryButton = await screen.findByRole('button', { name: '다시 시도' })
+    server.resetHandlers()
+    await user.click(retryButton)
 
     expect(
       await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' }),

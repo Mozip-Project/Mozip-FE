@@ -17,6 +17,7 @@ import {
   toManagedPosting,
 } from '@/features/posting/utils/managedPosting'
 import type { ManagedPostingSummaryQuery } from '@/gql/graphql'
+import { ManagedPostingListSkeleton } from './managedPostingListSkeleton'
 import { ManagedPostingPanel } from './managedPostingPanel'
 
 type PostingCounts = ManagedPostingSummaryQuery['organization']['postingCounts']
@@ -31,7 +32,6 @@ type PostingManageBoardProps = {
   organizationId: string
 }
 
-// TODO: 목록 로딩 디자인 확정 후 추가
 function PostingManageBoard({ organizationId }: PostingManageBoardProps) {
   const [status, setStatus] = useState<ManagedPostingStatus>('published')
   const summaryQuery = useManagedPostingSummaryQuery(organizationId)
@@ -65,7 +65,7 @@ function PostingManageBoard({ organizationId }: PostingManageBoardProps) {
         />
       )
     }
-    return null
+    return <ManagedPostingListSkeleton />
   }
 
   return (
