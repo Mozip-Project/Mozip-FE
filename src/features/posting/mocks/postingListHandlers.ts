@@ -8,7 +8,7 @@ import type {
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
-import { POSTING_DETAIL_SAMPLE_ID } from './postingDetailSample'
+import { POSTING_SAMPLE_ID } from './postingDetailHandlers'
 
 type PostingCard = PostingsQuery['postings']['items'][number]
 
@@ -25,7 +25,7 @@ type PostingCardSample = Omit<PostingCard, 'recruitEndAt' | 'thumbnailUrl'> & {
 const DEFAULT_PAGE = 0
 const DEFAULT_PAGE_SIZE = 20
 
-const ID = POSTING_DETAIL_SAMPLE_ID
+const ID = POSTING_SAMPLE_ID
 
 // 카드를 누르면 상세 목데이터로 이동하도록 id만 맞춤, UXUX·학생회 외 카드는 상세 내용과 다름
 const POSTING_CARD_SAMPLES = [

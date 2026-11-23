@@ -1,6 +1,7 @@
 import { notificationHandlers } from '@/features/notification/mocks/notificationHandlers'
 import { organizationMemberHandlers } from '@/features/organization/mocks/organizationMemberHandlers'
 import { organizationProfileHandlers } from '@/features/organization/mocks/organizationProfileHandlers'
+import { postingDetailHandlers } from '@/features/posting/mocks/postingDetailHandlers'
 import { postingListHandlers } from '@/features/posting/mocks/postingListHandlers'
 import { postingReportHandlers } from '@/features/posting/mocks/postingReportHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
@@ -10,6 +11,7 @@ import type { AnyHandler } from 'msw'
 const handlers: AnyHandler[] = [
   ...notificationHandlers,
   ...postingListHandlers,
+  ...postingDetailHandlers,
   ...postingReportHandlers,
   ...userHandlers,
   ...accountEditHandlers,

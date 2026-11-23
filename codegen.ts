@@ -18,6 +18,7 @@ const config: CodegenConfig = {
         // 미지정 scalar는 any로 생성되어 명시
         scalars: {
           DateTime: 'string',
+          Date: 'string',
         },
       },
     },

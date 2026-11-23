@@ -1,4 +1,5 @@
 import {
+  PostingDocument,
   PostingsDocument,
   ReportPostingDocument,
   type PostingsQueryVariables,
@@ -11,9 +12,14 @@ async function getPostings(variables: PostingsQueryVariables) {
   return data.postings
 }
 
+async function getPostingDetail(id: string) {
+  const data = await requestGraphQL(PostingDocument, { id })
+  return data.posting
+}
+
 async function reportPosting(variables: ReportPostingMutationVariables) {
   const data = await requestGraphQL(ReportPostingDocument, variables)
   return data.reportPosting
 }
 
-export { getPostings, reportPosting }
+export { getPostingDetail, getPostings, reportPosting }
