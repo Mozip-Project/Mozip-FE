@@ -14,6 +14,7 @@ function PostingListPagination({ totalPages }: PostingListPaginationProps) {
     <Pagination
       currentPage={query.page}
       totalPages={totalPages}
+      shouldShowSinglePage
       getPageHref={getPageHref}
       onPageNavigate={navigateToPage}
     />
