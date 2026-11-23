@@ -5,7 +5,7 @@ import type {
   PostingRichTextRun,
 } from '@/features/posting/types'
 
-type PostingNoticePanelProps = Pick<PostingDetail, 'title' | 'coverImage' | 'content'>
+type PostingNoticePanelProps = Pick<PostingDetail, 'title' | 'coverImageUrl' | 'content'>
 
 // 서버가 준 순서 그대로 그리는 정적 본문이라 index key 사용
 function renderRuns(runs: readonly PostingRichTextRun[]) {
@@ -44,26 +44,21 @@ function renderBlock(block: PostingContentBlock, index: number) {
   }
 }
 
-function PostingNoticePanel({ title, coverImage, content }: PostingNoticePanelProps) {
+function PostingNoticePanel({ title, coverImageUrl, content }: PostingNoticePanelProps) {
   return (
     <div className="flex flex-col gap-gap-xxl">
-      {coverImage ? (
-        <Image
-          src={coverImage.src}
-          width={coverImage.width}
-          height={coverImage.height}
-          alt={`${title} 대표 이미지`}
-          sizes="(min-width: 1280px) 780px, 100vw"
-          className="h-auto w-full rounded-l border border-neutral-subtle"
-        />
-      ) : (
-        // TODO: 대표 이미지 API 연결 후 삭제, 현재는 이미지 비어있는 목데이터라 추가해둠
-        <div
-          aria-hidden
-          className="h-97.5 rounded-l border border-neutral-subtle bg-neutral-weak"
-        />
+      {coverImageUrl && (
+        <div className="relative aspect-2/1 overflow-hidden rounded-l border border-neutral-subtle">
+          <Image
+            src={coverImageUrl}
+            alt={`${title} 대표 이미지`}
+            fill
+            sizes="(min-width: 1280px) 780px, 100vw"
+            className="object-cover"
+          />
+        </div>
       )}
-      <div className="flex flex-col gap-gap-s text-body2 font-normal break-words break-keep text-neutral-muted">
+      <div className="flex flex-col gap-gap-s text-body2 font-normal break-words break-keep whitespace-pre-line text-neutral-muted">
         {content.map(renderBlock)}
       </div>
     </div>

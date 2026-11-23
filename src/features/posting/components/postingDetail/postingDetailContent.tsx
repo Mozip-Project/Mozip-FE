@@ -1,20 +1,23 @@
-import { notFound } from 'next/navigation'
+import { notFound, unstable_rethrow } from 'next/navigation'
 import { connection } from 'next/server'
-import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
-import type { BackLink } from '@/components/ui/BackLink/backLink'
+import FileTextIcon from '@/assets/icons/fileText.svg'
+import { BackLink } from '@/components/ui/BackLink/backLink'
 import { Badge } from '@/components/ui/Badge/badge'
 import { Button } from '@/components/ui/Button/button'
+import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
-import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
-import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
+import { getPostingDetail } from '@/features/posting/api/applicant/api'
+import { getPostingRecruitmentPhase, toPostingDetail } from '@/features/posting/utils/postingDetail'
 import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
-import { getSeoulIsoDate } from '@/utils/date'
+import { ApiError } from '@/lib/apiError'
 import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
 import { PostingApplyButton } from './postingApplyButton'
 import { PostingDetailTabs } from './postingDetailTabs'
-import { PostingReportDialog } from './postingReportDialog'
+import { PostingReportPrompt } from './postingReportPrompt'
 import { PostingSummary } from './postingSummary'
 import type { ComponentProps } from 'react'
+
+const POSTING_NOT_FOUND_CODE = 'POSTING_404'
 
 type PostingDetailContentProps = {
   params: Promise<{ postingId: string }>
@@ -23,16 +26,28 @@ type PostingDetailContentProps = {
 
 async function PostingDetailContent({ params, backLink }: PostingDetailContentProps) {
   const { postingId } = await params
-  // TODO: 공고 상세 API 확정 후 connection 대신 조회로 교체
   // D-day를 prerender 시점이 아닌 요청 시점 기준으로 계산
   await connection()
   const now = new Date()
-  const detail = getPostingDetailSample(postingId, getSeoulIsoDate(now))
+  const posting = await getPostingDetailOrNull(postingId)
 
-  if (!detail) {
-    notFound()
+  if (!posting) {
+    return (
+      <div className="mx-auto flex max-w-195 flex-col gap-gap-xl">
+        <BackLink {...backLink} />
+        <h1 className="sr-only">공고 상세</h1>
+        <div role="alert">
+          <EmptyState
+            icon={<FileTextIcon className="size-7" />}
+            title="공고 상세 정보 조회에 실패했어요"
+            className="min-h-162.5 justify-center border-0"
+          />
+        </div>
+      </div>
+    )
   }
 
+  const detail = toPostingDetail(posting)
   const phase = getPostingRecruitmentPhase(
     detail.recruitmentStartsAt,
     detail.recruitmentEndsAt,
@@ -47,38 +62,32 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
         <PageHeader
           backLink={backLink}
           title={detail.title}
+          badge={<Badge {...getRecruitmentStatusBadgeProps(phase)} />}
           actions={
-            <div className="flex items-center gap-gap-m">
-              <Badge {...getRecruitmentStatusBadgeProps(phase)} />
-              <div id={HEADER_APPLY_CTA_ID}>
-                {phase.status === 'open' ? (
-                  <PostingApplyButton postingId={postingId} />
-                ) : (
-                  <Button size="m" disabled>
-                    {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}
-                  </Button>
-                )}
-              </div>
+            <div id={HEADER_APPLY_CTA_ID}>
+              {phase.status === 'open' ? (
+                <PostingApplyButton postingId={postingId} />
+              ) : (
+                <Button size="m" disabled>
+                  {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}
+                </Button>
+              )}
             </div>
           }
         />
 
         <PostingSummary detail={detail} />
 
-        <PostingDetailTabs detail={detail} now={now} />
-
-        {canReport && (
-          <div className="flex items-center gap-gap-s border-t border-neutral-subtle pt-padding-xl">
-            <AlertCircleIcon aria-hidden className="size-4 shrink-0 text-neutral-subtle" />
-            <p className="text-label2 font-medium text-neutral-subtle">
-              공고 내용에 문제가 있나요?
-            </p>
-            <PostingReportDialog postingId={postingId} postingTitle={detail.title} />
-          </div>
-        )}
+        <PostingDetailTabs
+          detail={detail}
+          now={now}
+          footer={
+            canReport && <PostingReportPrompt postingId={postingId} postingTitle={detail.title} />
+          }
+        />
       </div>
 
-      {phase.status === 'open' && (
+      {phase.status === 'open' && detail.recruitmentEndsAt && (
         <PostingApplyBar
           postingId={postingId}
           title={detail.title}
@@ -88,6 +97,19 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
       )}
     </div>
   )
+}
+
+async function getPostingDetailOrNull(postingId: string) {
+  try {
+    return await getPostingDetail(postingId)
+  } catch (error) {
+    unstable_rethrow(error)
+    if (error instanceof ApiError && error.code === POSTING_NOT_FOUND_CODE) {
+      notFound()
+    }
+    console.error(error)
+    return null
+  }
 }
 
 export { PostingDetailContent }

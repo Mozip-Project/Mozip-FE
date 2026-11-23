@@ -47,6 +47,14 @@
   );
 }
 
+/* 고정 바 아래 내용이 화면을 채우는 높이 */
+@utility sticky-content-max-height {
+  max-height: calc(
+    100dvh - var(--sticky-top) - var(--page-padding-bottom) - var(--sticky-top-bar-height) -
+      var(--spacing-gap-xl)
+  );
+}
+
 /* 화면 아래 고정 바, page-min-height 세로 flex의 마지막에 배치 */
 @utility page-bottom-bar {
   position: sticky;

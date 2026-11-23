@@ -3,6 +3,7 @@ import type {
   PostingFileType,
 } from '@/features/posting/schemas/postingFormSchema'
 import type { RecruitmentProgress } from '@/features/recruitment/types'
+import type { OrganizationField, OrganizationType } from '@/gql/graphql'
 import type { Route } from 'next'
 
 // TODO: 공고 목록 API 명세 확정 후 필터 값을 서버 enum으로 교체
@@ -126,14 +127,13 @@ type ManagedPostingDetail = {
   preview: ManagedPostingPreview
 }
 
-// TODO: 공고 상세 API 명세 확정 후 아래 타입을 서버 응답 기준으로 교체
+// 줄바꿈(br)은 text 안의 \n
 type PostingRichTextRun = {
   text: string
   isBold?: boolean
   isItalic?: boolean
 }
 
-// TODO: 공고 작성 편집기 저장 형식 확정 후 교체, 지금은 Figma 서식(H2·굵게·기울임·목록) 기준
 type PostingContentBlock =
   | { type: 'heading'; text: string }
   | { type: 'paragraph'; runs: PostingRichTextRun[] }
@@ -177,47 +177,54 @@ type PostingApplication =
   | { type: 'byPosition'; positions: PostingPosition[] }
   | { type: 'direct'; appliedAt: string | null }
 
+type PostingQuestionPreview = {
+  id: string
+  title: string
+}
+
+type PostingPositionPreview = {
+  id: string
+  name: string
+  questions: PostingQuestionPreview[]
+}
+
 type OrganizationOngoingPosting = {
   postingId: string
   title: string
-  recruitmentStartsAt: string
-  recruitmentEndsAt: string
+  recruitmentStartsAt: string | null
+  recruitmentEndsAt: string | null
 }
 
 type PostingOrganization = {
   name: string
   logoUrl: string | null
-  activityType: PostingActivityType
-  scope: PostingScope
-  introduction: string
-  activityFields: PostingActivityField[]
+  type: OrganizationType
+  tagline: string | null
+  fields: OrganizationField[]
   keywords: string[]
   links: string[]
   ongoingPostings: OrganizationOngoingPosting[]
 }
 
-// 날짜·시각은 한국 시간(+09:00) ISO 문자열
+// 날짜는 한국 날짜(YYYY-MM-DD), null은 미입력
 type PostingDetail = {
   id: string
   title: string
   organization: PostingOrganization
-  // null은 면접 없는 모집
-  interview: { method: string; startDate: string; endDate: string } | null
-  eligibility: string
-  // null은 운영진이 입력하지 않은 항목
+  hasInterview: boolean
+  interviewPeriod: { startDate: string; endDate: string } | null
+  eligibility: string | null
   activityArea: string | null
   membershipFee: string | null
-  recruitmentStartsAt: string
-  recruitmentEndsAt: string
+  recruitmentStartsAt: string | null
+  recruitmentEndsAt: string | null
   documentResultDate: string | null
   finalResultDate: string | null
-  // TODO: 이미지 호스트 확정 후 next.config remotePatterns 추가
-  coverImage: { src: string; width: number; height: number } | null
+  coverImageUrl: string | null
   content: PostingContentBlock[]
-  questions: PostingQuestion[]
-  application: PostingApplication
-  // 운영진 공고 작성의 "프로필 사진 필수" 설정
-  requiresProfilePhoto: boolean
+  // 빈 배열은 포지션 없는 모집
+  positions: PostingPositionPreview[]
+  questions: PostingQuestionPreview[]
 }
 
 type PostingRecruitmentPhase =
@@ -265,7 +272,9 @@ export type {
   PostingListQuery,
   PostingOrganization,
   PostingPosition,
+  PostingPositionPreview,
   PostingQuestion,
+  PostingQuestionPreview,
   PostingRecruitmentPhase,
   PostingRichTextRun,
   PostingScope,

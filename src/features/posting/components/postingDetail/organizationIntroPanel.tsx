@@ -5,7 +5,8 @@ import {
   getOrganizationLinkLabel,
   isHttpUrl,
 } from '@/features/organization/utils/organizationLink'
-import { POSTING_ACTIVITY_FIELD_LABEL, type PostingOrganization } from '@/features/posting/types'
+import { ACTIVITY_CATEGORY_BY_FIELD } from '@/features/organization/utils/organizationProfile'
+import type { PostingOrganization } from '@/features/posting/types'
 import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
 import { getPostingDetailPath } from '@/features/posting/utils/postingRoutes'
 import { PostingInfoRow } from './postingInfoRow'
@@ -13,21 +14,12 @@ import { RecruitRow } from './recruitRow'
 
 type OrganizationIntroPanelProps = {
   organization: PostingOrganization
-  currentPostingId: string
   now: Date
 }
 
-function OrganizationIntroPanel({
-  organization,
-  currentPostingId,
-  now,
-}: OrganizationIntroPanelProps) {
-  const { name, logoUrl, introduction, activityFields, keywords, links, ongoingPostings } =
-    organization
-  const activityFieldLabels = activityFields
-    .map((field) => POSTING_ACTIVITY_FIELD_LABEL[field])
-    .join(', ')
-  const otherPostings = ongoingPostings.filter(({ postingId }) => postingId !== currentPostingId)
+function OrganizationIntroPanel({ organization, now }: OrganizationIntroPanelProps) {
+  const { name, logoUrl, tagline, fields, keywords, links, ongoingPostings } = organization
+  const activityFieldLabels = fields.map((field) => ACTIVITY_CATEGORY_BY_FIELD[field]).join(', ')
 
   return (
     <div className="flex flex-col gap-gap-xl">
@@ -39,7 +31,7 @@ function OrganizationIntroPanel({
       </div>
       <div className="flex flex-col gap-gap-xxl">
         <dl className="flex flex-col gap-gap-m">
-          {introduction && <PostingInfoRow label="한 줄 소개">{introduction}</PostingInfoRow>}
+          {tagline && <PostingInfoRow label="한 줄 소개">{tagline}</PostingInfoRow>}
           {activityFieldLabels && (
             <PostingInfoRow label="활동 분야">{activityFieldLabels}</PostingInfoRow>
           )}
@@ -80,19 +72,25 @@ function OrganizationIntroPanel({
             </PostingInfoRow>
           )}
         </dl>
-        {otherPostings.length > 0 && (
+        {ongoingPostings.length > 0 && (
           <section className="flex flex-col gap-gap-l">
             <SectionHeader title="진행 중인 다른 모집" />
             <ul className="flex flex-col gap-gap-s">
-              {otherPostings.map(({ postingId, title, recruitmentStartsAt, recruitmentEndsAt }) => (
-                <li key={postingId}>
-                  <RecruitRow
-                    href={getPostingDetailPath(postingId)}
-                    title={title}
-                    phase={getPostingRecruitmentPhase(recruitmentStartsAt, recruitmentEndsAt, now)}
-                  />
-                </li>
-              ))}
+              {ongoingPostings.map(
+                ({ postingId, title, recruitmentStartsAt, recruitmentEndsAt }) => (
+                  <li key={postingId}>
+                    <RecruitRow
+                      href={getPostingDetailPath(postingId)}
+                      title={title}
+                      phase={getPostingRecruitmentPhase(
+                        recruitmentStartsAt,
+                        recruitmentEndsAt,
+                        now,
+                      )}
+                    />
+                  </li>
+                ),
+              )}
             </ul>
           </section>
         )}
