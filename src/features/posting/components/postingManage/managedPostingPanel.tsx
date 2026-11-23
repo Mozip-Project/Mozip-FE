@@ -19,11 +19,12 @@ const EMPTY_STATE_COPY = {
 } satisfies Record<ManagedPostingStatus, { title: string; description: string }>
 
 type ManagedPostingPanelProps = {
+  organizationId: string
   status: ManagedPostingStatus
   postings: readonly ManagedPosting[]
 }
 
-function ManagedPostingPanel({ status, postings }: ManagedPostingPanelProps) {
+function ManagedPostingPanel({ organizationId, status, postings }: ManagedPostingPanelProps) {
   if (postings.length === 0) {
     return (
       <EmptyState
@@ -38,7 +39,7 @@ function ManagedPostingPanel({ status, postings }: ManagedPostingPanelProps) {
     <ul className="flex flex-col gap-gap-m">
       {postings.map((posting) => (
         <li key={posting.id}>
-          <ManagedPostingCard posting={posting} />
+          <ManagedPostingCard organizationId={organizationId} posting={posting} />
         </li>
       ))}
     </ul>

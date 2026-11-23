@@ -23,8 +23,15 @@ const STAGE_LABEL = {
   finalResult: '최종 결과',
 } satisfies Record<RecruitmentStage, string>
 
+// 작성 중 공고 spec 문구, 모집 일정 입력 전이라 날짜 없음
+const UNSCHEDULED_LABEL = '일정 미정'
+
 function formatDone(date: string | null) {
   return date ? `${formatMonthDayWithWeekday(date)} 완료` : null
+}
+
+function formatScheduled(date: string | null, suffix: '마감' | '발표') {
+  return date ? `${formatMonthDayWithWeekday(date)} ${suffix}` : UNSCHEDULED_LABEL
 }
 
 // 마감·발표일은 지나면 완료로, 서류 평가는 진행 중이어도 결과 확정일 표시
@@ -41,17 +48,17 @@ function getStepDateLabel(
     case 'application':
       return isDone
         ? formatDone(schedule.applicationDeadline)
-        : `${formatMonthDayWithWeekday(schedule.applicationDeadline)} 마감`
+        : formatScheduled(schedule.applicationDeadline, '마감')
     case 'documentReview':
       return status === 'upcoming' ? null : formatDone(schedule.documentReviewCompletedAt)
     case 'documentResult':
       return isDone
         ? formatDone(schedule.documentResultDate)
-        : `${formatMonthDayWithWeekday(schedule.documentResultDate)} 발표`
+        : formatScheduled(schedule.documentResultDate, '발표')
     case 'finalResult':
       return isDone
         ? formatDone(schedule.finalResultDate)
-        : `${formatMonthDayWithWeekday(schedule.finalResultDate)} 발표`
+        : formatScheduled(schedule.finalResultDate, '발표')
   }
 }
 

@@ -7,6 +7,7 @@ const MANAGED_POSTING_SAMPLE: ManagedPosting[] = [
     title: 'UXUX 14기 운영진 모집',
     status: 'published',
     latestRank: 18,
+    canUp: true,
     progress: {
       stage: 'application',
       hasInterview: false,
@@ -24,6 +25,7 @@ const MANAGED_POSTING_SAMPLE: ManagedPosting[] = [
     title: 'UXUX 14기 신입 부원 모집',
     status: 'published',
     latestRank: 18,
+    canUp: false,
     progress: {
       stage: 'documentReview',
       hasInterview: false,

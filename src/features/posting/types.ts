@@ -95,9 +95,9 @@ type ManagedPostingBase = {
   progress: RecruitmentProgress
 }
 
-// 최신순 순위는 진행 중 공고만 존재
+// 최신순 순위는 진행 중 공고만 존재, UP은 지원 접수 중인 공고만 가능
 type ManagedPosting =
-  | (ManagedPostingBase & { status: 'published'; latestRank: number })
+  | (ManagedPostingBase & { status: 'published'; latestRank: number | null; canUp: boolean })
   | (ManagedPostingBase & { status: Exclude<ManagedPostingStatus, 'published'> })
 
 type ManagedPostingPreview = {

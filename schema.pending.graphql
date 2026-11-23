@@ -20,6 +20,20 @@ extend type Query {
     size: Int = 20
   ): PostingPage! @public
   posting(id: ID!): Posting! @public
+  "공고 관리 탭: 진행 중 [RECRUITING, DOC_REVIEW, DOC_RESULT_NOTICE, INTERVIEW, FINAL_RESULT] / 작성 중 [DRAFT] / 종료 [ENDED]"
+  organizationPostings(organizationId: ID!, status: [PostingStatus!]): [Posting!]!
+}
+
+extend type Organization {
+  "공고 관리 탭 숫자"
+  postingCounts: PostingCounts!
+}
+
+type PostingCounts {
+  "RECRUITING ~ FINAL_RESULT"
+  published: Int!
+  draft: Int!
+  ended: Int!
 }
 
 extend type Posting {
@@ -27,6 +41,10 @@ extend type Posting {
   otherActivePostings: [Posting!]!
   "비로그인·운영진이면 빈 배열, 포지션 없는 모집은 최대 1개"
   myApplications: [Application!]!
+  "제출된 지원서 수"
+  applicationCount: Int!
+  "전체 공고 최신순(bumpedAt 내림차순) 순위, DRAFT·ENDED는 null"
+  bumpRank: Int
 }
 
 type Me {
@@ -85,6 +103,10 @@ type Mutation {
   verifyPhoneChange(phone: String!, code: String!): Boolean!
   "현재 비밀번호 불일치는 AUTH_001, 성공하면 다른 기기 로그인 끊김"
   changePassword(input: ChangePasswordInput!): Boolean!
+  "잔여권 1 차감 후 최신순 맨 위로, 잔여권 없으면 PAYMENT_402, RECRUITING이 아니면 POSTING_409"
+  bumpPosting(id: ID!): Posting!
+  "DRAFT만 삭제 가능, 아니면 POSTING_409"
+  deletePosting(id: ID!): Boolean!
 }
 
 input UpdateProfileInput {
