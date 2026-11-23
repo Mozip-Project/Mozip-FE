@@ -1,16 +1,17 @@
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
 import { Badge } from '@/components/ui/Badge/badge'
 import { JobCard } from '@/components/ui/JobCard/jobCard'
-import type { ManagedPostingPreview } from '@/features/posting/types'
+import { ORGANIZATION_TYPE_LABEL } from '@/features/organization/utils/organizationProfile'
+import type { PostingDetail, PostingRecruitmentPhase } from '@/features/posting/types'
 import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 
 type PostingPreviewCardProps = {
-  preview: ManagedPostingPreview
+  detail: PostingDetail
+  phase: PostingRecruitmentPhase
 }
 
-function PostingPreviewCard({ preview }: PostingPreviewCardProps) {
-  const { daysLeft, ...card } = preview
-
+// 전체 공고 카드와 같은 구성, 태그는 포지션
+function PostingPreviewCard({ detail, phase }: PostingPreviewCardProps) {
   return (
     <section className="flex shrink-0 flex-col gap-gap-m self-start rounded-l border border-neutral-muted bg-layer-default p-padding-l">
       <div className="flex items-start justify-between">
@@ -29,8 +30,12 @@ function PostingPreviewCard({ preview }: PostingPreviewCardProps) {
       <div inert className="w-70.5">
         <JobCard
           href="/"
-          {...card}
-          badge={<Badge {...getRecruitmentStatusBadgeProps({ status: 'open', daysLeft })} />}
+          title={detail.title}
+          organizationType={ORGANIZATION_TYPE_LABEL[detail.organization.type]}
+          organizationName={detail.organization.name}
+          tags={detail.positions.map(({ name }) => name)}
+          thumbnailSrc={detail.coverImageUrl ?? undefined}
+          badge={<Badge {...getRecruitmentStatusBadgeProps(phase)} />}
         />
       </div>
     </section>

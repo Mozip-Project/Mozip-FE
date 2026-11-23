@@ -3,10 +3,18 @@ import type { ManagedPostingFieldsFragment, PostingStatus } from '@/gql/graphql'
 import {
   bumpPosting,
   deletePosting,
+  getManagedPosting,
   getManagedPostingSummary,
   getOrganizationPostings,
 } from './api'
 import { managedPostingKeys } from './keys'
+
+function useManagedPostingQuery(postingId: string) {
+  return useQuery({
+    queryKey: managedPostingKeys.detail(postingId),
+    queryFn: () => getManagedPosting(postingId),
+  })
+}
 
 // 현재 단체를 아직 모르면(null) 요청 보류
 function useOrganizationPostingsQuery(
@@ -68,6 +76,7 @@ function useBumpPostingMutation() {
 export {
   useBumpPostingMutation,
   useDeletePostingMutation,
+  useManagedPostingQuery,
   useManagedPostingSummaryQuery,
   useOrganizationPostingsQuery,
 }
