@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { InlineNotice, InlineNoticeAction } from '@/components/ui/InlineNotice/inlineNotice'
 import { ListToolBar } from '@/components/ui/ListToolBar/listToolBar'
 import { OrganizationLoadError } from '@/features/organization/components/organizationLoadError/organizationLoadError'
 import {
@@ -70,7 +71,23 @@ function PostingManageBoard({ organizationId }: PostingManageBoardProps) {
 
   return (
     <ListToolBar tabs={tabs} tabsLabel="공고 상태" value={status} onValueChange={setStatus}>
-      <div className="pt-gap-xl">{renderPanel()}</div>
+      <div className="flex flex-col gap-gap-m pt-gap-xl">
+        {/* TODO: 오류 상태 디자인 확인 필요, 받은 목록은 유지하고 요약만 다시 조회 */}
+        {summaryQuery.isError && (
+          <InlineNotice
+            tone="critical"
+            role="alert"
+            action={
+              <InlineNoticeAction onClick={() => void summaryQuery.refetch()}>
+                다시 시도
+              </InlineNoticeAction>
+            }
+          >
+            탭 숫자와 UP 잔여 횟수를 불러오지 못했어요
+          </InlineNotice>
+        )}
+        {renderPanel()}
+      </div>
     </ListToolBar>
   )
 }

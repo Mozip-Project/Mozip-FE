@@ -139,6 +139,30 @@ describe('PostingManageHomeContent', () => {
     expect(await screen.findByText('진행 중인 공고가 없어요')).toBeInTheDocument()
   })
 
+  it('요약 조회만 실패하면 목록은 유지하고 안내, 다시 시도로 탭 숫자 복구', async () => {
+    server.use(
+      graphqlApi.query('ManagedPostingSummary', () =>
+        HttpResponse.json({
+          errors: [{ message: '서버 오류', extensions: { code: 'COMMON_500' } }],
+          data: null,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderHome()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('탭 숫자와 UP 잔여 횟수를 불러오지 못했어요')
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
+
+    server.resetHandlers()
+    await user.click(within(alert).getByRole('button', { name: '다시 시도' }))
+
+    expect(await screen.findByRole('tab', { name: '진행 중 2' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
+  })
+
   it('목록 조회에 계속 실패하면 오류 안내, 서버가 회복되면 다시 시도로 복구', async () => {
     server.use(
       graphqlApi.query('OrganizationPostings', () =>
