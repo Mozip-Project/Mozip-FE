@@ -44,8 +44,9 @@ function StickyTopBar({ children, className }: StickyTopBarProps) {
       className={cn(
         'sticky-below-gnb z-10 bg-layer-default',
         'after:pointer-events-none after:absolute after:inset-x-0 after:bottom-full after:h-(--sticky-top) after:bg-layer-default after:opacity-0 after:transition-opacity after:duration-100 motion-reduce:after:transition-none',
-        'data-stuck:after:pointer-events-auto data-stuck:after:opacity-100',
-        'gnb-revealed:data-stuck-revealed:after:pointer-events-auto gnb-revealed:data-stuck-revealed:after:opacity-100',
+        // 켜질 때만 전환 없이 표시, 위 내용 비침 방지
+        'data-stuck:after:pointer-events-auto data-stuck:after:opacity-100 data-stuck:after:transition-none',
+        'gnb-revealed:data-stuck-revealed:after:pointer-events-auto gnb-revealed:data-stuck-revealed:after:opacity-100 gnb-revealed:data-stuck-revealed:after:transition-none',
         className,
       )}
     >
