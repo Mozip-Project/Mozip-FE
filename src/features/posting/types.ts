@@ -100,33 +100,6 @@ type ManagedPosting =
   | (ManagedPostingBase & { status: 'published'; latestRank: number | null; canUp: boolean })
   | (ManagedPostingBase & { status: Exclude<ManagedPostingStatus, 'published'> })
 
-type ManagedPostingPreview = {
-  title: string
-  organizationType: string
-  organizationName: string
-  // 모집 마감까지 남은 날
-  daysLeft: number
-  tags: string[]
-}
-
-type ManagedPostingDetail = {
-  id: string
-  title: string
-  // TODO: D-day 계산 기준 확정 후 날짜 필드로 교체
-  postingDaysLeft: number
-  recruitmentStartsAt: string
-  recruitmentEndsAt: string
-  documentResultDate: string
-  // null은 면접 없는 모집
-  interview: { method: string; startDate: string; endDate: string } | null
-  finalResultDate: string
-  activityArea: string
-  membershipFee: string
-  eligibility: string
-  applicantCount: number
-  preview: ManagedPostingPreview
-}
-
 // 줄바꿈(br)은 text 안의 \n
 type PostingRichTextRun = {
   text: string
@@ -258,8 +231,6 @@ export {
 }
 export type {
   ManagedPosting,
-  ManagedPostingDetail,
-  ManagedPostingPreview,
   ManagedPostingStatus,
   OrganizationOngoingPosting,
   PostingActivityField,
