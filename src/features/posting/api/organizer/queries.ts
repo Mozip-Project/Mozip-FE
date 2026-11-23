@@ -27,9 +27,9 @@ function useManagedPostingSummaryQuery(organizationId: string | null) {
 }
 
 // 목록에서 먼저 빼고 실패하면 되돌림, 끝나면 탭 숫자까지 다시 조회
-function useDeletePostingMutation(organizationId: string) {
+function useDeletePostingMutation() {
   const queryClient = useQueryClient()
-  const listsKey = managedPostingKeys.lists(organizationId)
+  const listsKey = managedPostingKeys.lists
 
   return useMutation({
     mutationFn: deletePosting,
@@ -51,19 +51,17 @@ function useDeletePostingMutation(organizationId: string) {
         queryClient.setQueryData(queryKey, postings)
       })
     },
-    onSettled: () =>
-      queryClient.invalidateQueries({ queryKey: managedPostingKeys.organization(organizationId) }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: managedPostingKeys.all }),
   })
 }
 
 // 순위·잔여 횟수 재조회까지 기다려 팝업이 닫힐 때 바뀐 값 표시
-function useBumpPostingMutation(organizationId: string) {
+function useBumpPostingMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: bumpPosting,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: managedPostingKeys.organization(organizationId) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: managedPostingKeys.all }),
   })
 }
 

@@ -1,9 +1,6 @@
-'use client'
-
 import { Banner } from '@/components/ui/Banner/banner'
 import { Button } from '@/components/ui/Button/button'
 import type { OrganizationPlan } from '@/features/organization/types'
-import { useUpRemainingCount } from '@/features/posting/hooks/useManagedPostings'
 import type { ComponentProps } from 'react'
 
 type PlanBannerContent = Pick<
@@ -35,13 +32,11 @@ function getPlanBannerContent(plan: OrganizationPlan): PlanBannerContent {
 
 type OrganizationPlanBannerProps = {
   plan: OrganizationPlan
-  initialUpRemainingCount: number
+  // Organization.upCredits
+  upRemainingCount: number
 }
 
-// 같은 화면의 UP 결과를 반영하도록 서버 값은 첫 표시에만 사용
-function OrganizationPlanBanner({ plan, initialUpRemainingCount }: OrganizationPlanBannerProps) {
-  const upRemainingCount = useUpRemainingCount() ?? initialUpRemainingCount
-
+function OrganizationPlanBanner({ plan, upRemainingCount }: OrganizationPlanBannerProps) {
   return (
     <Banner
       {...getPlanBannerContent(plan)}

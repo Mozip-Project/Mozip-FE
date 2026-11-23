@@ -8,10 +8,12 @@ import { DraftPostingMenu } from './draftPostingMenu'
 import { PostingUpDialog } from './postingUpDialog'
 
 type ManagedPostingCardProps = {
+  // UP 팝업의 잔여 횟수 조회용
+  organizationId: string
   posting: ManagedPosting
 }
 
-function ManagedPostingCard({ posting }: ManagedPostingCardProps) {
+function ManagedPostingCard({ organizationId, posting }: ManagedPostingCardProps) {
   const { id, title, progress } = posting
   // 종료된 공고는 다음 할 일이 없어 안내 바 제외
   const hasNextAction = posting.status !== 'closed'
@@ -22,7 +24,7 @@ function ManagedPostingCard({ posting }: ManagedPostingCardProps) {
         <h2 className="min-w-0 flex-1 text-heading2 font-bold break-words break-keep text-neutral">
           {title}
         </h2>
-        <ManagedPostingActions posting={posting} />
+        <ManagedPostingActions organizationId={organizationId} posting={posting} />
       </header>
       <RecruitmentStepper progress={progress} />
       {hasNextAction && <RecruitmentStageGuide postingId={id} title={title} progress={progress} />}
@@ -30,23 +32,29 @@ function ManagedPostingCard({ posting }: ManagedPostingCardProps) {
   )
 }
 
-function ManagedPostingActions({ posting }: ManagedPostingCardProps) {
+function ManagedPostingActions({ organizationId, posting }: ManagedPostingCardProps) {
   const { id, title } = posting
 
   switch (posting.status) {
     case 'published': {
-      const { latestRank, canUp } = posting
+      // 최신순 순위와 UP은 지원 접수 중인 공고에만 표시
+      const upRank = posting.canUp ? posting.latestRank : null
 
       return (
         <>
-          {latestRank !== null && (
+          {upRank !== null && (
             <p className="shrink-0 text-label2 font-medium text-neutral-subtle">
-              최신순 {latestRank}위
+              최신순 {upRank}위
             </p>
           )}
           <div className="flex shrink-0 items-center gap-gap-xs">
-            {canUp && latestRank !== null && (
-              <PostingUpDialog postingId={id} title={title} latestRank={latestRank} />
+            {upRank !== null && (
+              <PostingUpDialog
+                organizationId={organizationId}
+                postingId={id}
+                title={title}
+                latestRank={upRank}
+              />
             )}
             <Button asChild variant="secondary" size="s">
               <Link href={getPostingManageDetailPath(id)} aria-label={`${title} 관리하기`}>

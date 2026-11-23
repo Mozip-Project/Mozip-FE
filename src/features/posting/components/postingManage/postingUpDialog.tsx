@@ -14,22 +14,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/Dialog/dialog'
 import {
-  useUpPostingMutation,
-  useUpRemainingCount,
-} from '@/features/posting/hooks/useManagedPostings'
+  useBumpPostingMutation,
+  useManagedPostingSummaryQuery,
+} from '@/features/posting/api/organizer/queries'
 import { POSTING_UP_RANK } from '@/features/posting/types'
 import { useToast } from '@/providers/toastProvider'
 
 type PostingUpDialogProps = {
+  organizationId: string
   postingId: string
   title: string
   latestRank: number
 }
 
-function PostingUpDialog({ postingId, title, latestRank }: PostingUpDialogProps) {
+function PostingUpDialog({ organizationId, postingId, title, latestRank }: PostingUpDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const remainingCount = useUpRemainingCount()
-  const { mutate: upPosting, isPending } = useUpPostingMutation()
+  // 단체 단위 잔여 횟수라 탭 숫자와 같은 요약 조회 캐시 사용
+  const remainingCount = useManagedPostingSummaryQuery(organizationId).data?.upCredits
+  const { mutate: upPosting, isPending } = useBumpPostingMutation()
   const { showToast } = useToast()
   // TODO: 남은 횟수가 없을 때의 이용권 안내 디자인 확정 후 반영
   const canUp = remainingCount !== undefined && remainingCount > 0
@@ -51,7 +53,7 @@ function PostingUpDialog({ postingId, title, latestRank }: PostingUpDialogProps)
         setIsOpen(false)
         showToast({
           title: '공고 UP을 완료했어요',
-          description: `최신순 ${result.latestRank}위로 변경되었어요`,
+          description: `최신순 ${result.bumpRank ?? POSTING_UP_RANK}위로 변경되었어요`,
         })
       },
     })
