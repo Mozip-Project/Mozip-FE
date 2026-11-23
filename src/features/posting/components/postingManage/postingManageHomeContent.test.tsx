@@ -80,9 +80,10 @@ describe('PostingManageHomeContent', () => {
     // 잔여가 0회면 팝업은 열리되 사용 버튼만 비활성
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }))
-    expect(
-      within(await screen.findByRole('dialog')).getByRole('button', { name: '1회 사용하기' }),
-    ).toBeDisabled()
+    const zeroDialog = await screen.findByRole('dialog')
+    expect(within(zeroDialog).getByRole('button', { name: '1회 사용하기' })).toBeDisabled()
+    // 정확히 '0회'인 요소만 찾아 '0회 -> 0회'가 아님을 확인
+    expect(within(zeroDialog).getByText('0회')).toBeInTheDocument()
   })
 
   it('작성 중 공고는 일정 미정으로 표시하고 삭제하면 빈 상태와 탭 숫자 반영', async () => {

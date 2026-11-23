@@ -77,14 +77,7 @@ function PostingUpDialog({ organizationId, postingId, title, latestRank }: Posti
             <ValueChange from={`${latestRank}위`} to={`${POSTING_UP_RANK}위`} />
           </DialogSummaryRow>
           <DialogSummaryRow label="UP하기 잔여" tone="subtle">
-            {remainingCount === undefined ? (
-              <span aria-hidden>-</span>
-            ) : (
-              <ValueChange
-                from={`${remainingCount}회`}
-                to={`${Math.max(remainingCount - 1, 0)}회`}
-              />
-            )}
+            <RemainingCount remainingCount={remainingCount} />
           </DialogSummaryRow>
         </DialogSummary>
         <DialogFooter>
@@ -99,6 +92,17 @@ function PostingUpDialog({ organizationId, postingId, title, latestRank }: Posti
       </DialogContent>
     </Dialog>
   )
+}
+
+// 쓸 수 있을 때만 사용 후 값으로 바뀌는 모습 표시
+function RemainingCount({ remainingCount }: { remainingCount: number | undefined }) {
+  if (remainingCount === undefined) {
+    return <span aria-hidden>-</span>
+  }
+  if (remainingCount === 0) {
+    return <>0회</>
+  }
+  return <ValueChange from={`${remainingCount}회`} to={`${remainingCount - 1}회`} />
 }
 
 // 화살표는 화면 리더에 '에서'로 읽히도록 대체
