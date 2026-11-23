@@ -28,7 +28,6 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
   const { postingId } = await params
   // D-day를 prerender 시점이 아닌 요청 시점 기준으로 계산
   await connection()
-  const now = new Date()
   const posting = await getPostingDetailOrNull(postingId)
 
   if (!posting) {
@@ -47,6 +46,7 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
     )
   }
 
+  const now = new Date()
   const detail = toPostingDetail(posting)
   const phase = getPostingRecruitmentPhase(
     detail.recruitmentStartsAt,
