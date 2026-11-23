@@ -19,6 +19,15 @@ const SAMPLE_POSTING_ID = {
   directClosed: 'sw-council-staff-closed',
 } as const
 
+// 공고 상세 MSW와 같은 마감 일수, 면접 칸 날짜 계산용
+const SAMPLE_END_IN_DAYS = {
+  partiallyApplied: 2,
+  fullyApplied: 5,
+  missingInfo: 9,
+  photoRequired: 10,
+  supporters: 12,
+} as const
+
 type ApplicationFormSample = {
   title: string
   questions: PostingQuestion[]
@@ -185,35 +194,38 @@ function getApplicationFormSample(
   today: string,
 ): ApplicationFormSample | undefined {
   const openEndDate = addDaysToIsoDate(today, 1)
+  const getEndDate = (key: keyof typeof SAMPLE_END_IN_DAYS) =>
+    addDaysToIsoDate(today, SAMPLE_END_IN_DAYS[key])
   const appliedAt = addDaysToIsoDate(today, -12)
   const ID = SAMPLE_POSTING_ID
 
   switch (postingId) {
     case ID.open:
-    case ID.missingInfo:
       return createUxuxSample(openEndDate)
+    case ID.missingInfo:
+      return createUxuxSample(getEndDate('missingInfo'))
     case ID.upcoming:
       return createUxuxSample(addDaysToIsoDate(today, 17))
     case ID.closed:
       return createUxuxSample(addDaysToIsoDate(today, -1))
     case ID.partiallyApplied:
-      return createUxuxSample(openEndDate, {
+      return createUxuxSample(getEndDate('partiallyApplied'), {
         application: {
           type: 'byPosition',
-          positions: getUxuxPositions(openEndDate, ['디자인'], appliedAt),
+          positions: getUxuxPositions(getEndDate('partiallyApplied'), ['디자인'], appliedAt),
         },
       })
     case ID.fullyApplied:
-      return createUxuxSample(openEndDate, {
+      return createUxuxSample(getEndDate('fullyApplied'), {
         application: {
           type: 'byPosition',
-          positions: getUxuxPositions(openEndDate, UXUX_POSITION_NAMES, appliedAt),
+          positions: getUxuxPositions(getEndDate('fullyApplied'), UXUX_POSITION_NAMES, appliedAt),
         },
       })
     case ID.photoRequired:
-      return createUxuxSample(openEndDate, { requiresProfilePhoto: true })
+      return createUxuxSample(getEndDate('photoRequired'), { requiresProfilePhoto: true })
     case ID.supporters:
-      return createUxuxSample(openEndDate, {
+      return createUxuxSample(getEndDate('supporters'), {
         title: '홍보 서포터즈 모집',
         questions: [
           {
