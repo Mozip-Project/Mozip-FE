@@ -18,6 +18,7 @@ export const Default: Story = {
         name="김모집"
         mode="applicant"
         myPageHref="/"
+        applicationsHref="/"
         switchModeHref="/"
         logoutHref="/"
       />

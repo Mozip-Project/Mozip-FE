@@ -1,6 +1,7 @@
 'use client'
 
 import CheckIcon from '@/assets/icons/check.svg'
+import { Badge } from '@/components/ui/Badge/badge'
 import { Button } from '@/components/ui/Button/button'
 import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
 import { JobCard } from '@/components/ui/JobCard/jobCard'
@@ -12,6 +13,7 @@ import {
   getPreviewTags,
   getScheduleItems,
 } from '@/features/posting/utils/postingReview'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 import { getDaysBetween, getTodayIsoDate } from '@/utils/calendar'
 import {
@@ -73,11 +75,20 @@ function PostingPreview({ values, hasInterview }: Omit<PostingReviewStepProps, '
       {/* TODO: 단체 정보·모집 상태 문구 API 연결 후 교체 */}
       <div inert>
         <JobCard
-          href="/postings"
+          href="/"
           title={values.title.trim()}
           organizationType="동아리"
           organizationName="UXUX"
-          deadlineLabel={daysLeft === null ? '모집중' : `모집중 D-${Math.max(daysLeft, 0)}`}
+          badge={
+            daysLeft !== null && (
+              <Badge
+                {...getRecruitmentStatusBadgeProps({
+                  status: 'open',
+                  daysLeft: Math.max(daysLeft, 0),
+                })}
+              />
+            )
+          }
           tags={getPreviewTags(values, hasInterview)}
           thumbnailSrc={thumbnailSrc}
         />

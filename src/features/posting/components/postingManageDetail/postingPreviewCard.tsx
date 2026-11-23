@@ -1,12 +1,16 @@
 import ChevronRightIcon from '@/assets/icons/chevronRight.svg'
+import { Badge } from '@/components/ui/Badge/badge'
 import { JobCard } from '@/components/ui/JobCard/jobCard'
 import type { ManagedPostingPreview } from '@/features/posting/types'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 
 type PostingPreviewCardProps = {
   preview: ManagedPostingPreview
 }
 
 function PostingPreviewCard({ preview }: PostingPreviewCardProps) {
+  const { daysLeft, ...card } = preview
+
   return (
     <section className="flex shrink-0 flex-col gap-gap-m self-start rounded-l border border-neutral-muted bg-layer-default p-padding-l">
       <div className="flex items-start justify-between">
@@ -23,7 +27,11 @@ function PostingPreviewCard({ preview }: PostingPreviewCardProps) {
       {/* 지원자에게 보이는 모습만 확인, 카드 안 링크·스크랩 조작 차단 */}
       {/* TODO: 지원자 공고 상세 경로가 생기면 href 교체 */}
       <div inert className="w-70.5">
-        <JobCard href="/postings" {...preview} />
+        <JobCard
+          href="/"
+          {...card}
+          badge={<Badge {...getRecruitmentStatusBadgeProps({ status: 'open', daysLeft })} />}
+        />
       </div>
     </section>
   )

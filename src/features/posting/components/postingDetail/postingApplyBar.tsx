@@ -1,10 +1,9 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/Button/button'
-import type { PostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
-import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
+import { Badge } from '@/components/ui/Badge/badge'
+import type { PostingRecruitmentPhase } from '@/features/posting/types'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 import { formatMonthDayTimeWithWeekday } from '@/utils/date'
 import { PostingApplyBarReveal } from './postingApplyBarReveal'
-import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
+import { PostingApplyButton } from './postingApplyButton'
 
 // 헤더의 지원 버튼 감싸는 요소 id, 화면 밖으로 나가면 하단 바 표시
 const HEADER_APPLY_CTA_ID = 'posting-header-apply-cta'
@@ -23,7 +22,7 @@ function PostingApplyBar({ postingId, title, recruitmentEndsAt, phase }: Posting
         <div className="flex min-w-0 flex-1 flex-col gap-gap-xxs">
           <div className="flex items-center gap-gap-s">
             <p className="truncate text-body1 font-semibold text-neutral">{title}</p>
-            <RecruitmentStatusBadge phase={phase} />
+            <Badge {...getRecruitmentStatusBadgeProps(phase)} />
           </div>
 
           <p className="text-label2 font-medium text-neutral-subtle">
@@ -31,9 +30,7 @@ function PostingApplyBar({ postingId, title, recruitmentEndsAt, phase }: Posting
           </p>
         </div>
 
-        <Button asChild size="m">
-          <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
-        </Button>
+        <PostingApplyButton postingId={postingId} />
       </div>
     </PostingApplyBarReveal>
   )

@@ -23,13 +23,13 @@ const SWITCH_MODE_LABEL = {
 // TODO: 실제 모드 전환·로그아웃 연결 (인증·계정 구분 방식 결정 후), 현재는 화면 이동만 처리
 type ProfileMenuProps = {
   name: string
-  mode: ProfileMenuMode
   myPageHref: Route
   switchModeHref: Route
   logoutHref: Route
-}
+} & ({ mode: 'applicant'; applicationsHref: Route } | { mode: 'organizer' })
 
-function ProfileMenu({ name, mode, myPageHref, switchModeHref, logoutHref }: ProfileMenuProps) {
+function ProfileMenu(props: ProfileMenuProps) {
+  const { name, mode, myPageHref, switchModeHref, logoutHref } = props
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
 
   return (
@@ -53,6 +53,14 @@ function ProfileMenu({ name, mode, myPageHref, switchModeHref, logoutHref }: Pro
             <Link href={myPageHref}>마이페이지</Link>
           </DropdownMenuItem>
         </div>
+
+        {props.mode === 'applicant' && (
+          <div className="p-padding-xs">
+            <DropdownMenuItem asChild>
+              <Link href={props.applicationsHref}>내 지원</Link>
+            </DropdownMenuItem>
+          </div>
+        )}
 
         <DropdownMenuSeparator />
 

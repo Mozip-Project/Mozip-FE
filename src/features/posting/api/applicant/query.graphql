@@ -1,3 +1,24 @@
 mutation ReportPosting($postingId: ID!, $reason: ReportReason!, $detail: String) {
   reportPosting(postingId: $postingId, reason: $reason, detail: $detail)
 }
+
+query Postings($filter: PostingFilter, $sort: PostingSort, $page: Int, $size: Int) {
+  postings(filter: $filter, sort: $sort, page: $page, size: $size) {
+    totalCount
+    items {
+      id
+      title
+      organization {
+        name
+        type
+      }
+      thumbnailUrl
+      recruitEndAt
+      positions {
+        id
+        name
+        sortOrder
+      }
+    }
+  }
+}

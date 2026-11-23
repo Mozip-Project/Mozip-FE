@@ -3,6 +3,7 @@ import type {
   PostingFileType,
 } from '@/features/posting/schemas/postingFormSchema'
 import type { RecruitmentProgress } from '@/features/recruitment/types'
+import type { Route } from 'next'
 
 // TODO: 공고 목록 API 명세 확정 후 필터 값을 서버 enum으로 교체
 const POSTING_SCOPES = ['campus', 'union'] as const
@@ -102,7 +103,8 @@ type ManagedPostingPreview = {
   title: string
   organizationType: string
   organizationName: string
-  deadlineLabel: string
+  // 모집 마감까지 남은 날
+  daysLeft: number
   tags: string[]
 }
 
@@ -110,7 +112,7 @@ type ManagedPostingDetail = {
   id: string
   title: string
   // TODO: D-day 계산 기준 확정 후 날짜 필드로 교체
-  postingDeadlineLabel: string
+  postingDaysLeft: number
   recruitmentStartsAt: string
   recruitmentEndsAt: string
   documentResultDate: string
@@ -218,6 +220,22 @@ type PostingDetail = {
   requiresProfilePhoto: boolean
 }
 
+type PostingRecruitmentPhase =
+  | { status: 'upcoming'; daysLeft: number }
+  | { status: 'open'; daysLeft: number }
+  | { status: 'closed' }
+
+type PostingListItem = {
+  id: string
+  href: Route
+  title: string
+  organizationType: string
+  organizationName: string
+  phase: PostingRecruitmentPhase
+  tags: string[]
+  thumbnailSrc?: string
+}
+
 export {
   MANAGED_POSTING_STATUS_LABEL,
   MANAGED_POSTING_STATUSES,
@@ -243,10 +261,12 @@ export type {
   PostingContentBlock,
   PostingDetail,
   PostingFilterValues,
+  PostingListItem,
   PostingListQuery,
   PostingOrganization,
   PostingPosition,
   PostingQuestion,
+  PostingRecruitmentPhase,
   PostingRichTextRun,
   PostingScope,
   PostingSort,

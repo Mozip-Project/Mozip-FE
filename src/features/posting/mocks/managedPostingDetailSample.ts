@@ -3,7 +3,7 @@ import { MANAGED_POSTING_SAMPLE } from './managedPostingSample'
 
 // Figma 공고 관리 상세 기준, 요일이 2025년 달력이라 날짜도 2025년 사용
 const SAMPLE_DETAIL = {
-  postingDeadlineLabel: '게시 마감 D-5',
+  postingDaysLeft: 5,
   recruitmentStartsAt: '2025-10-01T00:00',
   recruitmentEndsAt: '2025-10-15T23:59',
   documentResultDate: '2025-10-18',
@@ -17,7 +17,7 @@ const SAMPLE_DETAIL = {
     title: 'UI/UX 디자인 동아리 14기 모집',
     organizationType: '동아리',
     organizationName: 'UXUX',
-    deadlineLabel: '모집 D-5',
+    daysLeft: 5,
     tags: ['면접 있음', '회비 3만원/학기', '신촌/온라인 병행'],
   },
 }

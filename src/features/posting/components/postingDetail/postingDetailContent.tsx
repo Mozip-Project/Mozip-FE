@@ -1,19 +1,19 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { connection } from 'next/server'
 import AlertCircleIcon from '@/assets/icons/alertCircle.svg'
 import type { BackLink } from '@/components/ui/BackLink/backLink'
+import { Badge } from '@/components/ui/Badge/badge'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { getPostingDetailSample } from '@/features/posting/mocks/postingDetailSample'
 import { getPostingRecruitmentPhase } from '@/features/posting/utils/postingDetail'
-import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
 import { getSeoulIsoDate } from '@/utils/date'
 import { HEADER_APPLY_CTA_ID, PostingApplyBar } from './postingApplyBar'
+import { PostingApplyButton } from './postingApplyButton'
 import { PostingDetailTabs } from './postingDetailTabs'
 import { PostingReportDialog } from './postingReportDialog'
 import { PostingSummary } from './postingSummary'
-import { RecruitmentStatusBadge } from './recruitmentStatusBadge'
 import type { ComponentProps } from 'react'
 
 type PostingDetailContentProps = {
@@ -49,12 +49,10 @@ async function PostingDetailContent({ params, backLink }: PostingDetailContentPr
           title={detail.title}
           actions={
             <div className="flex items-center gap-gap-m">
-              <RecruitmentStatusBadge phase={phase} />
+              <Badge {...getRecruitmentStatusBadgeProps(phase)} />
               <div id={HEADER_APPLY_CTA_ID}>
                 {phase.status === 'open' ? (
-                  <Button asChild size="m">
-                    <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
-                  </Button>
+                  <PostingApplyButton postingId={postingId} />
                 ) : (
                   <Button size="m" disabled>
                     {phase.status === 'upcoming' ? '모집 예정' : '지원하기'}

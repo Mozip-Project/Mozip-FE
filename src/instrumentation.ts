@@ -6,6 +6,22 @@ async function register() {
     server.listen({
       onUnhandledFrame: 'warn',
     })
+
+    // Next dev가 HMR 때 fetch를 되돌려 MSW가 풀리는 문제 방지
+    if (process.env.NODE_ENV === 'development') {
+      const mockedFetch = globalThis.fetch
+      let currentFetch = mockedFetch
+
+      Object.defineProperty(globalThis, 'fetch', {
+        configurable: true,
+        enumerable: true,
+        get: () => currentFetch,
+        set: (nextFetch: typeof fetch) => {
+          const isNextPatched = Reflect.get(nextFetch, '__nextPatched') === true
+          currentFetch = isNextPatched ? nextFetch : mockedFetch
+        },
+      })
+    }
   }
 }
 

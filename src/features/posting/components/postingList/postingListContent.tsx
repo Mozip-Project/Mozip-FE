@@ -1,51 +1,40 @@
+import FileTextIcon from '@/assets/icons/fileText.svg'
+import { Badge } from '@/components/ui/Badge/badge'
+import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { JobCard } from '@/components/ui/JobCard/jobCard'
-import type { ComponentProps, ReactNode } from 'react'
-
-type PostingListItem = ComponentProps<typeof JobCard> & {
-  id: string
-}
+import type { PostingListItem } from '@/features/posting/types'
+import { getRecruitmentStatusBadgeProps } from '@/features/posting/utils/scheduleBadge'
+import type { ReactNode } from 'react'
 
 type PostingListContentProps = {
-  // 필터가 반영된 공고 수
   totalCount: number
   postings: readonly PostingListItem[]
-  // 개수 오른쪽 정렬, 개수 아래 적용된 필터, 목록 아래 페이지 이동
-  sortControl?: ReactNode
-  appliedFilters?: ReactNode
-  pagination?: ReactNode
+  pagination: ReactNode
 }
 
-function PostingListContent({
-  totalCount,
-  postings,
-  sortControl,
-  appliedFilters,
-  pagination,
-}: PostingListContentProps) {
+function PostingListContent({ totalCount, postings, pagination }: PostingListContentProps) {
   return (
     <div className="flex flex-col gap-gap-xl">
-      <section className="flex flex-col gap-gap-l">
-        <h2 className="sr-only">공고 목록</h2>
-        <div className="flex items-center justify-between gap-gap-l">
-          {/* 화면 이동 없이 조건이 바뀌어 결과 수를 화면 리더에 안내 */}
-          <p role="status" className="text-body2 font-medium text-neutral">
-            총 {totalCount.toLocaleString('ko-KR')}건
-          </p>
-          {sortControl}
-        </div>
-        {appliedFilters}
+      {postings.length > 0 ? (
         <ul className="grid grid-cols-3 gap-gap-xl">
-          {postings.map(({ id, ...posting }) => (
+          {postings.map(({ id, phase, ...posting }) => (
             <li key={id}>
-              <JobCard {...posting} />
+              <JobCard {...posting} badge={<Badge {...getRecruitmentStatusBadgeProps(phase)} />} />
             </li>
           ))}
         </ul>
-      </section>
-      {pagination}
+      ) : (
+        <EmptyState
+          icon={<FileTextIcon className="size-7" />}
+          title="조건에 맞는 결과가 없어요"
+          description="검색 조건을 변경하거나 필터를 초기화해 보세요"
+          className="min-h-162.5 justify-center border-0"
+        />
+      )}
+      {/* 없는 페이지 번호로 들어와도 다른 페이지로 이동할 수 있게 결과가 있으면 표시 */}
+      {totalCount > 0 && pagination}
     </div>
   )
 }
 
 export { PostingListContent }
-export type { PostingListItem }

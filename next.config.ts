@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   typedRoutes: true,
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+    // TODO: 백엔드 이미지 호스트가 정해지면 추가, picsum은 MSW 목데이터 썸네일용
+    remotePatterns: [
+      { protocol: 'https', hostname: 'picsum.photos', pathname: '/seed/**', search: '' },
+    ],
+  },
   turbopack: {
     rules: {
       '*.css': {

@@ -28,7 +28,7 @@ export default function ManageLayout({ children }: LayoutProps<'/manage'>) {
               name="김모집"
               mode="organizer"
               myPageHref="/manage/mypage"
-              switchModeHref="/postings"
+              switchModeHref="/"
               logoutHref="/"
             />
           </>

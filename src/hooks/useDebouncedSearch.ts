@@ -54,10 +54,21 @@ function useDebouncedSearch(appliedKeyword: string, onSearch: (keyword: string) 
     })
   }
 
+  // Enter처럼 바로 검색할 때 대기 중인 검색만 즉시 실행
+  function flushPendingSearch() {
+    if (!isSearchPending || draftKeyword === null) {
+      return
+    }
+
+    cancelPendingSearch()
+    onSearch(draftKeyword)
+  }
+
   return {
     // 검색창에 보여 줄 값, URL 반영 전 입력 중인 글자 포함
     keyword: draftKeyword ?? appliedKeyword,
     changeKeyword,
+    flushPendingSearch,
     // 필터, 정렬 등 다른 조건을 바꿀 때 입력 중인 검색어를 함께 적용하므로 대기 중인 검색 취소
     cancelPendingSearch,
     // 페이지 이동처럼 지금 보이는 결과를 기준으로 이동할 때 사용

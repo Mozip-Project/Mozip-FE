@@ -1,4 +1,5 @@
 import sampleThumbnail from '@/assets/images/sampleThumbnail.png'
+import { Badge } from '@/components/ui/Badge/badge'
 import { JobCard } from './jobCard'
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
 
@@ -16,7 +17,11 @@ const SAMPLE_JOB = {
   title: 'UI/UX 디자인 동아리 14기 모집',
   organizationType: '동아리',
   organizationName: 'UXUX',
-  deadlineLabel: '모집 D-1',
+  badge: (
+    <Badge tone="critical" variant="weak">
+      마감 D-1
+    </Badge>
+  ),
   tags: ['면접 있음', '회비 3만원/학기', '신촌'],
 } as const
 
