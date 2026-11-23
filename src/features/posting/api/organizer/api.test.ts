@@ -12,6 +12,8 @@ import {
 } from './api'
 
 const { open: DOC_REVIEW_ID, staff: RECRUITING_ID } = POSTING_SAMPLE_ID
+// 지원자 0명인 종료 공고
+const CLOSED_ID = '4'
 const NOTICE = { subject: '모집 일정 변경 안내', body: '{이름}님, 일정이 바뀌었어요.' }
 
 beforeAll(() => {
@@ -112,7 +114,7 @@ describe('sendNotice', () => {
   })
 
   it('제출 지원자가 없으면 MESSAGE_422', async () => {
-    await expect(sendNotice({ postingId: RECRUITING_ID, ...NOTICE })).rejects.toMatchObject({
+    await expect(sendNotice({ postingId: CLOSED_ID, ...NOTICE })).rejects.toMatchObject({
       code: 'MESSAGE_422',
     })
   })

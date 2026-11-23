@@ -6,50 +6,97 @@ import { useForm, useWatch } from 'react-hook-form'
 import CloseIcon from '@/assets/icons/close.svg'
 import { Button } from '@/components/ui/Button/button'
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/Dialog/dialog'
+import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
+import { useSendNoticeMutation } from '@/features/posting/api/organizer/queries'
 import { POSTING_NOTICE_SAMPLE_MESSAGE } from '@/features/posting/mocks/postingNoticeSample'
+import {
+  postingNoticeSchema,
+  type PostingNoticeValues,
+} from '@/features/posting/schemas/postingNoticeSchema'
+import { getNoticeSendErrorMessage } from '@/features/posting/utils/postingNotice'
 import { MessageEditor } from '@/features/recruitment/components/organizer/resultNotice/messageEditor'
 import { MessagePreview } from '@/features/recruitment/components/organizer/resultNotice/messagePreview'
-import {
-  resultNoticeMessageSchema,
-  type ResultNoticeMessageValues,
-} from '@/features/recruitment/schemas/resultNoticeMessageSchema'
 import type { ResultNoticeVariable } from '@/features/recruitment/types'
+import { ApiError } from '@/lib/apiError'
+import { useToast } from '@/providers/toastProvider'
 
 const NOTICE_VARIABLES = ['이름', '공고명'] as const satisfies readonly ResultNoticeVariable[]
 // 사람마다 다른 이름은 예시 값으로 미리보기
 const PREVIEW_APPLICANT_NAME = '김모집'
 
+const NOTICE_FIELDS = ['subject', 'body'] as const satisfies readonly (keyof PostingNoticeValues)[]
+
 type PostingNoticeFormProps = {
+  postingId: string
   postingTitle: string
   organizationName: string
   applicantCount: number
+  onSent: () => void
+}
+
+function isNoticeField(field: string): field is keyof PostingNoticeValues {
+  return NOTICE_FIELDS.some((name) => name === field)
 }
 
 function PostingNoticeForm({
+  postingId,
   postingTitle,
   organizationName,
   applicantCount,
+  onSent,
 }: PostingNoticeFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
   const {
     control,
     setValue,
+    setError,
     reset,
     handleSubmit,
     formState: { errors, isSubmitted },
-  } = useForm<ResultNoticeMessageValues>({
-    resolver: zodResolver(resultNoticeMessageSchema),
+  } = useForm<PostingNoticeValues>({
+    resolver: zodResolver(postingNoticeSchema),
     defaultValues: POSTING_NOTICE_SAMPLE_MESSAGE,
   })
   const [subject, body] = useWatch({ control, name: ['subject', 'body'] })
+  const { mutate: sendNotice, isPending, error: sendError } = useSendNoticeMutation()
+  const { showToast } = useToast()
+  // 입력별 서버 오류는 입력 칸에 표시하고 나머지만 아래 안내
+  const hasFieldErrors = sendError instanceof ApiError && sendError.fieldErrors.length > 0
+  const sendErrorMessage =
+    sendError && !hasFieldErrors ? getNoticeSendErrorMessage(sendError) : null
 
-  function changeField(name: keyof ResultNoticeMessageValues, value: string) {
+  function changeField(name: keyof PostingNoticeValues, value: string) {
     setValue(name, value, { shouldDirty: true, shouldValidate: isSubmitted })
   }
 
-  function handleSend() {
-    // TODO: 공지 발송 API 연결
+  function showServerFieldErrors(error: Error) {
+    if (!(error instanceof ApiError)) {
+      return
+    }
+    const noticeFieldErrors = error.fieldErrors.flatMap(({ field, message }) =>
+      isNoticeField(field) ? [{ field, message }] : [],
+    )
+    noticeFieldErrors.forEach(({ field, message }, index) => {
+      setError(field, { type: 'server', message }, { shouldFocus: index === 0 })
+    })
+  }
+
+  // TODO: 발송 완료 안내 디자인 확인 필요, 지금은 팝업 닫고 토스트
+  function handleSend(values: PostingNoticeValues) {
+    if (isPending) {
+      return
+    }
+    sendNotice(
+      { postingId, ...values },
+      {
+        onSuccess: () => {
+          onSent()
+          showToast({ title: '공지를 보냈어요' })
+        },
+        onError: showServerFieldErrors,
+      },
+    )
   }
 
   // 오류 표시가 반영된 뒤 첫 오류 입력으로 이동
@@ -123,12 +170,19 @@ function PostingNoticeForm({
         </div>
       </div>
 
+      {sendErrorMessage && (
+        <InlineNotice tone="critical" role="alert">
+          {sendErrorMessage}
+        </InlineNotice>
+      )}
+
       <SummaryBar
         status="ready"
         shouldAnnounce={false}
         actions={
-          <Button type="submit" size="m">
-            {applicantCount}명에게 보내기
+          // 요청 중은 focus 유지를 위해 aria-disabled, 진행 상태는 버튼 문구로 알림
+          <Button type="submit" size="m" aria-disabled={isPending}>
+            {isPending ? '보내는 중' : `${applicantCount}명에게 보내기`}
           </Button>
         }
       >

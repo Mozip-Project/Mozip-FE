@@ -27,10 +27,10 @@ const NOTICE_BODY_MAX_LENGTH = 1000
 // 운영진 홈 공고가 아닌 상세 샘플은 다른 단체 공고로 응답
 const OTHER_ORGANIZATION_ID = 'other-organization'
 
-// 제출 지원자 수, 운영진 모집은 0명이라 공지 발송 시 MESSAGE_422
+// 제출 지원자 수, 여기 없는 공고(종료 공고 등)는 0명이라 공지 발송 시 MESSAGE_422
 const APPLICATION_COUNT: Record<string, number> = {
   [POSTING_SAMPLE_ID.open]: 24,
-  [POSTING_SAMPLE_ID.staff]: 0,
+  [POSTING_SAMPLE_ID.staff]: 12,
 }
 
 type OrganizationPostingState = {

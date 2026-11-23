@@ -85,6 +85,7 @@ function PostingManageDetailContent({
               공고 수정하기
             </Button>
             <PostingNoticeDialog
+              postingId={posting.id}
               postingTitle={detail.title}
               organizationName={detail.organization.name}
               applicantCount={posting.applicationCount}

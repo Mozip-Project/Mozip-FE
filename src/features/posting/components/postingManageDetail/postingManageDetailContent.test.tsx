@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
+import { ToastProvider } from '@/providers/toastProvider'
 import { PostingManageDetailContent } from './postingManageDetailContent'
 
 vi.mock('next/navigation', () => ({
@@ -17,7 +18,9 @@ function renderDetail(postingId: string) {
 
   render(
     <QueryClientProvider client={queryClient}>
-      <PostingManageDetailContent postingId={postingId} savedOrganizationId={undefined} />
+      <ToastProvider>
+        <PostingManageDetailContent postingId={postingId} savedOrganizationId={undefined} />
+      </ToastProvider>
     </QueryClientProvider>,
   )
 }
@@ -88,5 +91,66 @@ describe('PostingManageDetailContent', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'UXUX 14기 신입 부원 모집' }),
     ).toBeInTheDocument()
+  })
+
+  it('공지를 보내면 팝업을 닫고 완료 안내', async () => {
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.open)
+
+    await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+
+    expect(await screen.findByText('공지를 보냈어요')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('받을 지원자가 없으면 팝업 안에 오류 안내', async () => {
+    server.use(
+      graphqlApi.mutation('SendNotice', () =>
+        HttpResponse.json({
+          errors: [{ message: '받는 사람 없음', extensions: { code: 'MESSAGE_422' } }],
+          data: null,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.staff)
+
+    await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '12명에게 보내기' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      '공지를 받을 수 있는 지원자가 없어요',
+    )
+  })
+
+  it('서버가 제목 오류를 주면 제목 입력 아래 표시', async () => {
+    server.use(
+      graphqlApi.mutation('SendNotice', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: '입력값을 확인해 주세요.',
+              extensions: {
+                code: 'COMMON_400',
+                fieldErrors: [{ field: 'subject', message: '제목은 1~100자로 입력해 주세요' }],
+              },
+            },
+          ],
+          data: null,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.open)
+
+    await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+
+    expect(await screen.findByRole('textbox', { name: /메일 제목/ })).toHaveAccessibleDescription(
+      '제목은 1~100자로 입력해 주세요',
+    )
+    expect(within(screen.getByRole('dialog')).queryByRole('alert')).not.toBeInTheDocument()
   })
 })
