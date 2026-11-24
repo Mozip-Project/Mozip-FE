@@ -35,6 +35,9 @@ describe('getOrganizationPostings', () => {
     expect(postings.map(({ id, status }) => [id, status])).toEqual([
       [RECRUITING_ID, 'RECRUITING'],
       [DOC_REVIEW_ID, 'DOC_REVIEW'],
+      [POSTING_SAMPLE_ID.interview, 'INTERVIEW'],
+      [POSTING_SAMPLE_ID.finalResult, 'FINAL_RESULT'],
+      [POSTING_SAMPLE_ID.noInterviewResult, 'DOC_RESULT_NOTICE'],
     ])
   })
 
@@ -65,12 +68,12 @@ describe('bumpPosting', () => {
 describe('deletePosting', () => {
   it('작성 중 공고를 지우면 탭 숫자에서도 빠짐', async () => {
     await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
-      postingCounts: { published: 2, draft: 1, ended: 1 },
+      postingCounts: { published: 5, draft: 1, ended: 1 },
     })
 
     await expect(deletePosting('3')).resolves.toBe(true)
     await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
-      postingCounts: { published: 2, draft: 0, ended: 1 },
+      postingCounts: { published: 5, draft: 0, ended: 1 },
     })
   })
 
@@ -83,7 +86,7 @@ describe('getManagedPosting', () => {
   it('운영진 홈 공고는 현재 단체 id와 지원자 수를 함께 응답', async () => {
     await expect(getManagedPosting(DOC_REVIEW_ID)).resolves.toMatchObject({
       id: DOC_REVIEW_ID,
-      title: 'UXUX 14기 신입 부원 모집',
+      title: '서류 평가 진행 중이래',
       applicationCount: 24,
       organization: { id: '1', name: 'UXUX' },
     })
