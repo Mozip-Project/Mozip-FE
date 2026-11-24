@@ -206,7 +206,9 @@ describe('PostingManageDetailContent', () => {
     await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
 
     const subjectInput = await screen.findByRole('textbox', { name: /메일 제목/ })
-    expect(subjectInput).toHaveAccessibleDescription('제목은 1~100자로 입력해 주세요')
+    await waitFor(() =>
+      expect(subjectInput).toHaveAccessibleDescription('제목은 1~100자로 입력해 주세요'),
+    )
     await waitFor(() => expect(subjectInput).toHaveFocus())
     expect(within(screen.getByRole('dialog')).queryByRole('alert')).not.toBeInTheDocument()
   })
