@@ -4,11 +4,49 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type ActivityField =
+  | 'ACHIEVEMENT'
+  /** 활동명. 끄면 접힌 제목이 '활동 경험 1, 2...'로 고정 */
+  | 'NAME'
+  /** 활동 기간 YYYY.MM ~ YYYY.MM */
+  | 'PERIOD'
+  | 'ROLE';
+
+export type AnswerInput = {
+  attachments?: Array<AttachmentInput> | null | undefined;
+  /** TEXT는 입력 그대로, ACTIVITY는 JSON 문자열 */
+  content?: string | null | undefined;
+  questionId: string | number;
+};
+
+export type ApplicationInput = {
+  answers: Array<AnswerInput>;
+  /** 면접 있는 공고만 */
+  availableTimes?: Array<string> | null | undefined;
+  positionId?: string | number | null | undefined;
+};
+
+/** 명세에 정의 없이 'fileKey 또는 url'만 있어 두 필드로 둠, 백엔드 확인 필요 */
+export type AttachmentInput = {
+  fileKey?: string | null | undefined;
+  url?: string | null | undefined;
+};
+
+export type AttachmentType =
+  | 'FILE'
+  | 'LINK';
+
 export type ChangePasswordInput = {
   currentPassword: string;
   /** 회원가입과 같은 규칙 (8~64자, 영문+숫자) */
   newPassword: string;
 };
+
+export type FileType =
+  | 'IMAGE'
+  | 'MP4'
+  | 'PDF'
+  | 'PPT';
 
 export type MemberRole =
   | 'OPERATOR'
@@ -84,6 +122,14 @@ export type PostingSort =
   | 'CLOSING_SOON'
   | 'LATEST'
   | 'POPULAR';
+
+export type QuestionType =
+  | 'ACTIVITY'
+  | 'FILE_LINK'
+  | 'MULTI_CHOICE'
+  | 'SINGLE_CHOICE'
+  | 'TABLE'
+  | 'TEXT';
 
 export type ReportReason =
   | 'ETC'
@@ -193,6 +239,40 @@ export type PostingQueryVariables = Exact<{
 
 
 export type PostingQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> } };
+
+export type PostingApplicationFormQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PostingApplicationFormQuery = { posting: { id: string, title: string, noPosition: boolean, hasInterview: boolean, profilePhotoRequired: boolean, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null, options: { activityFields: Array<ActivityField> | null, maxEntries: number | null, acceptFile: boolean | null, acceptLink: boolean | null, fileTypes: Array<FileType> | null } | null }>, interviewTimeRanges: Array<{ date: string, startTime: string, endTime: string, closedSlots: Array<string>, position: { id: string } | null }> } };
+
+export type SaveApplicationDraftMutationVariables = Exact<{
+  postingId: string | number;
+  input: ApplicationInput;
+}>;
+
+
+export type SaveApplicationDraftMutation = { saveApplicationDraft: { id: string, updatedAt: string } };
+
+export type SubmitApplicationMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type SubmitApplicationMutation = { submitApplication: { id: string } };
+
+export type PostingMyApplicationsQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PostingMyApplicationsQuery = { posting: { id: string, myApplications: Array<{ id: string, submittedAt: string | null, updatedAt: string, availableTimes: Array<string>, position: { id: string } | null, answers: Array<{ content: string | null, question: { id: string }, attachments: Array<{ type: AttachmentType, url: string }> }> }> } };
+
+export type ApplicantProfileQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ApplicantProfileQuery = { me: { id: string, name: string, phone: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -505,6 +585,111 @@ export const PostingDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
+export const PostingApplicationFormDocument = new TypedDocumentString(`
+    query PostingApplicationForm($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    noPosition
+    hasInterview
+    profilePhotoRequired
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      type
+      title
+      description
+      required
+      maxLength
+      sortOrder
+      position {
+        id
+      }
+      options {
+        activityFields
+        maxEntries
+        acceptFile
+        acceptLink
+        fileTypes
+      }
+    }
+    interviewTimeRanges {
+      date
+      startTime
+      endTime
+      closedSlots
+      position {
+        id
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PostingApplicationFormQuery, PostingApplicationFormQueryVariables>;
+export const SaveApplicationDraftDocument = new TypedDocumentString(`
+    mutation SaveApplicationDraft($postingId: ID!, $input: ApplicationInput!) {
+  saveApplicationDraft(postingId: $postingId, input: $input) {
+    id
+    updatedAt
+  }
+}
+    `) as unknown as TypedDocumentString<SaveApplicationDraftMutation, SaveApplicationDraftMutationVariables>;
+export const SubmitApplicationDocument = new TypedDocumentString(`
+    mutation SubmitApplication($id: ID!) {
+  submitApplication(id: $id) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<SubmitApplicationMutation, SubmitApplicationMutationVariables>;
+export const PostingMyApplicationsDocument = new TypedDocumentString(`
+    query PostingMyApplications($id: ID!) {
+  posting(id: $id) {
+    id
+    myApplications {
+      id
+      submittedAt
+      updatedAt
+      position {
+        id
+      }
+      availableTimes
+      answers {
+        question {
+          id
+        }
+        content
+        attachments {
+          type
+          url
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PostingMyApplicationsQuery, PostingMyApplicationsQueryVariables>;
+export const ApplicantProfileDocument = new TypedDocumentString(`
+    query ApplicantProfile {
+  me {
+    id
+    name
+    phone
+    profileImageUrl
+    school {
+      name
+    }
+    schoolVerification {
+      schoolName
+      email
+      school {
+        name
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ApplicantProfileQuery, ApplicantProfileQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

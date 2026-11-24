@@ -315,4 +315,4 @@ const postingDetailHandlers = [
   }),
 ]
 
-export { POSTING_SAMPLE_ID, postingDetailHandlers }
+export { createPostingSample, POSTING_SAMPLE_ID, postingDetailHandlers }
