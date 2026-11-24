@@ -2,7 +2,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
 import type { RecruitmentProgress, RecruitmentStage } from '@/features/recruitment/types'
-import { getDocumentReviewPath } from '@/features/recruitment/utils/recruitmentRoutes'
+import {
+  getApplicantManagementPath,
+  getDocumentReviewPath,
+  getResultNoticePath,
+} from '@/features/recruitment/utils/recruitmentRoutes'
 import { getRecruitmentStageGuideMessage } from '@/features/recruitment/utils/recruitmentStageGuide'
 import type { Route } from 'next'
 
@@ -14,9 +18,20 @@ const STAGE_ACTION_LABEL = {
   finalResult: '최종 결과 안내하기',
 } satisfies Record<RecruitmentStage, string>
 
-// TODO: 공고 작성·지원자 관리·서류 결과 안내 경로가 생기면 연결, 최종 결과는 MVP 이동 없음
 function getStageActionHref(stage: RecruitmentStage, postingId: string): Route | undefined {
-  return stage === 'documentReview' ? getDocumentReviewPath(postingId) : undefined
+  switch (stage) {
+    // TODO: 작성 중 공고 이어서 작성 경로(공고 id 전달)가 생기면 연결
+    case 'posting':
+      return undefined
+    case 'application':
+      return getApplicantManagementPath(postingId)
+    case 'documentReview':
+      return getDocumentReviewPath(postingId)
+    // 면접 없는 모집은 서류 결과가 곧 최종 결과라 같은 안내 화면
+    case 'documentResult':
+    case 'finalResult':
+      return getResultNoticePath(postingId)
+  }
 }
 
 type RecruitmentStageGuideProps = {
