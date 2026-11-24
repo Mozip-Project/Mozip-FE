@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -111,6 +111,26 @@ describe('PostingManageDetailContent', () => {
 
     expect(await screen.findByText('공지를 보냈어요')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('보내기를 연달아 제출해도 공지는 한 번만 발송', async () => {
+    let sendCount = 0
+    server.use(
+      graphqlApi.mutation('SendNotice', () => {
+        sendCount += 1
+      }),
+    )
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.open)
+
+    await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
+    const sendButton = await screen.findByRole('button', { name: '24명에게 보내기' })
+    // 다시 그리기 전에 두 번 제출
+    fireEvent.click(sendButton)
+    fireEvent.click(sendButton)
+
+    expect(await screen.findByText('공지를 보냈어요')).toBeInTheDocument()
+    expect(sendCount).toBe(1)
   })
 
   it('받을 지원자가 없으면 팝업 안에 오류 안내', async () => {

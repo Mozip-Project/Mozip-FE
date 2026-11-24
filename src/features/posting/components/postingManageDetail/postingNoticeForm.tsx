@@ -47,6 +47,8 @@ function PostingNoticeForm({
   onSent,
 }: PostingNoticeFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
+  // isPending은 다시 그린 뒤 반영돼 연속 제출을 놓칠 수 있어 바로 바뀌는 잠금 추가
+  const isSendingRef = useRef(false)
   const {
     control,
     setValue,
@@ -95,9 +97,10 @@ function PostingNoticeForm({
 
   // TODO: 발송 완료 안내 디자인 확인 필요, 지금은 팝업 닫고 토스트
   function handleSend(values: PostingNoticeValues) {
-    if (isPending) {
+    if (isPending || isSendingRef.current) {
       return
     }
+    isSendingRef.current = true
     sendNotice(
       { postingId, ...values },
       {
@@ -106,6 +109,10 @@ function PostingNoticeForm({
           showToast({ title: '공지를 보냈어요' })
         },
         onError: showServerFieldErrors,
+        // 실패 뒤 다시 보낼 수 있도록 성공·실패 모두 해제
+        onSettled: () => {
+          isSendingRef.current = false
+        },
       },
     )
   }
