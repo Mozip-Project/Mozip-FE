@@ -119,6 +119,30 @@ describe('useAutoSave', () => {
     await expect(waiting).resolves.toBeUndefined()
   })
 
+  it('저장 중 언마운트하면 대기 중인 저장은 실행하지 않음', async () => {
+    let finishSave = () => {}
+    const onSave = vi
+      .fn<(trigger: SaveTrigger) => Promise<void>>()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            finishSave = resolve
+          }),
+      )
+      .mockResolvedValue(undefined)
+    const { result, unmount } = renderAutoSave(onSave)
+
+    act(() => void result.current.saveNow())
+    act(() => void result.current.saveNow())
+    unmount()
+
+    await act(async () => {
+      finishSave()
+      await Promise.resolve()
+    })
+    expect(onSave).toHaveBeenCalledTimes(1)
+  })
+
   it('예약을 취소하면 자동 저장하지 않음', async () => {
     const onSave = vi.fn(() => Promise.resolve())
     const { result } = renderAutoSave(onSave)

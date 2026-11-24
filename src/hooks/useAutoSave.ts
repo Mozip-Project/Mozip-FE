@@ -16,6 +16,14 @@ function useAutoSave(delayMs: number, onSave: (trigger: SaveTrigger) => Promise<
     onSaveRef.current = onSave
   })
 
+  // 화면을 떠난 뒤 이전 화면 값으로 저장하지 않도록 대기 중인 저장 취소
+  useEffect(
+    () => () => {
+      queuedTriggerRef.current = null
+    },
+    [],
+  )
+
   async function saveUntilQueueEmpty(trigger: SaveTrigger) {
     let nextTrigger: SaveTrigger | null = trigger
     while (nextTrigger) {
