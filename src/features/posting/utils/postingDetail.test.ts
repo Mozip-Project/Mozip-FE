@@ -332,9 +332,9 @@ describe('getPostingFactRows', () => {
 })
 
 describe('getPostingScheduleRows', () => {
-  it('면접 있는 모집은 지원 기간·서류 결과·면접 기간·최종 결과 표시', () => {
+  it('면접 있는 모집은 모집 기간·서류 결과·면접 기간·최종 결과 표시', () => {
     expect(getPostingScheduleRows(BASE_DETAIL)).toEqual([
-      { label: '지원 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
+      { label: '모집 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
       { label: '서류 결과', value: '10/18 (일)' },
       { label: '면접 기간', value: '10/21 (수) ~ 10/23 (금)' },
       { label: '최종 결과', value: '10/27 (화)' },
@@ -350,16 +350,16 @@ describe('getPostingScheduleRows', () => {
     } satisfies PostingDetail
 
     expect(getPostingScheduleRows(detail)).toEqual([
-      { label: '지원 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
+      { label: '모집 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
       { label: '최종 결과', value: '추후 안내' },
     ])
   })
 
-  it('면접 없는 모집은 지원 기간과 서류 결과일을 결과 발표로 표시', () => {
+  it('면접 없는 모집은 모집 기간과 서류 결과일을 결과 발표로 표시', () => {
     expect(
       getPostingScheduleRows({ ...BASE_DETAIL, hasInterview: false, interviewPeriod: null }),
     ).toEqual([
-      { label: '지원 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
+      { label: '모집 기간', value: '10/1 (목) 00:00 ~ 10/15 (목) 23:59' },
       { label: '결과 발표', value: '10/18 (일)' },
     ])
   })
@@ -370,11 +370,11 @@ describe('getPostingScheduleRows', () => {
     ).toEqual({ label: '결과 발표', value: '추후 안내' })
   })
 
-  it('모집 시작·마감 시각이 없으면 지원 기간 생략', () => {
+  it('모집 시작·마감 시각이 없으면 모집 기간 생략', () => {
     expect(
       getPostingScheduleRows({ ...BASE_DETAIL, recruitmentStartsAt: null }).map(
         ({ label }) => label,
       ),
-    ).not.toContain('지원 기간')
+    ).not.toContain('모집 기간')
   })
 })

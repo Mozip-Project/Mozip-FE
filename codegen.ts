@@ -19,6 +19,7 @@ const config: CodegenConfig = {
         scalars: {
           DateTime: 'string',
           Date: 'string',
+          LocalTime: 'string',
         },
       },
     },

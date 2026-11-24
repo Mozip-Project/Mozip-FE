@@ -14,19 +14,36 @@ import {
 type ApplicationSubmitDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  isSubmitting: boolean
+  onSubmit: () => void
 }
 
-function ApplicationSubmitDialog({ open, onOpenChange }: ApplicationSubmitDialogProps) {
+function ApplicationSubmitDialog({
+  open,
+  onOpenChange,
+  isSubmitting,
+  onSubmit,
+}: ApplicationSubmitDialogProps) {
+  // 닫아도 요청은 취소되지 않아 응답 전까지 닫기 차단
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen && isSubmitting) {
+      return
+    }
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
-        <SubmitConfirmForm />
+        <SubmitConfirmForm isSubmitting={isSubmitting} onSubmit={onSubmit} />
       </DialogContent>
     </Dialog>
   )
 }
 
-function SubmitConfirmForm() {
+type SubmitConfirmFormProps = Pick<ApplicationSubmitDialogProps, 'isSubmitting' | 'onSubmit'>
+
+function SubmitConfirmForm({ isSubmitting, onSubmit }: SubmitConfirmFormProps) {
   const [hasAgreed, setHasAgreed] = useState(false)
 
   return (
@@ -45,10 +62,13 @@ function SubmitConfirmForm() {
       </Checkbox>
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="secondary">취소</Button>
+          <Button variant="secondary" disabled={isSubmitting}>
+            취소
+          </Button>
         </DialogClose>
-        {/* TODO: 지원서 제출 API 연결 후 요청·완료 후 이동 처리(이동처 미정) */}
-        <Button disabled={!hasAgreed}>제출하기</Button>
+        <Button disabled={!hasAgreed || isSubmitting} onClick={onSubmit}>
+          {isSubmitting ? '제출 중…' : '제출하기'}
+        </Button>
       </DialogFooter>
     </>
   )
