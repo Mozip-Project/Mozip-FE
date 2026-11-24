@@ -70,7 +70,13 @@ function PostingManageBoard({ organizationId }: PostingManageBoardProps) {
   }
 
   return (
-    <ListToolBar tabs={tabs} tabsLabel="공고 상태" value={status} onValueChange={setStatus}>
+    <ListToolBar
+      tabs={tabs}
+      tabsLabel="공고 상태"
+      value={status}
+      onValueChange={setStatus}
+      hasBottomGap
+    >
       <div className="flex flex-col gap-gap-m pt-gap-xl">
         {/* TODO: 오류 상태 디자인 확인 필요, 받은 목록은 유지하고 요약만 다시 조회 */}
         {summaryQuery.isError && (
