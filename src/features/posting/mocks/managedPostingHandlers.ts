@@ -17,7 +17,13 @@ import type {
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
-import { createPostingSample, POSTING_SAMPLE_ID } from './postingDetailHandlers'
+import {
+  findOrganizationPostingSample,
+  isDocumentResultConfirmed,
+  ORGANIZATION_POSTING_SAMPLES,
+  type OrganizationPostingSample,
+} from './organizationPostingSamples'
+import { createPostingSample } from './postingDetailHandlers'
 
 // 명세상 UP하면 최신순 맨 위
 const BUMPED_RANK = 1
@@ -27,33 +33,16 @@ const NOTICE_BODY_MAX_LENGTH = 1000
 // 운영진 홈 공고가 아닌 상세 샘플은 다른 단체 공고로 응답
 const OTHER_ORGANIZATION_ID = 'other-organization'
 
-// 제출 지원자 수, 여기 없는 공고(종료 공고 등)는 0명이라 공지 발송 시 MESSAGE_422
-const APPLICATION_COUNT: Record<string, number> = {
-  [POSTING_SAMPLE_ID.open]: 24,
-  [POSTING_SAMPLE_ID.staff]: 12,
-  [POSTING_SAMPLE_ID.interview]: 30,
-  [POSTING_SAMPLE_ID.finalResult]: 24,
-  [POSTING_SAMPLE_ID.noInterviewResult]: 18,
-}
-
 const RECRUITMENT_PERIOD_DAYS = 14
-// 오늘 기준 모집 마감까지 남은 날, 지원 접수 중 공고만 마감 전이고 나머지는 단계에 맞게 지남
-const RECRUITMENT_END_IN_DAYS: Record<string, number> = {
-  [POSTING_SAMPLE_ID.staff]: 7,
-  [POSTING_SAMPLE_ID.open]: -2,
-  [POSTING_SAMPLE_ID.interview]: -6,
-  [POSTING_SAMPLE_ID.finalResult]: -14,
-  [POSTING_SAMPLE_ID.noInterviewResult]: -5,
-}
 
 function toSeoulDateTime(isoDate: string, time: string) {
   return `${isoDate}T${time}+09:00`
 }
 
-// 홈 카드와 관리 상세가 같은 일정을 쓰도록 진행 중 공고의 일정을 한곳에서 생성
+// 홈 카드와 관리 상세가 같은 일정을 쓰도록 단체 공고 샘플의 마감일로 생성
 function getPublishedSchedule(postingId: string, today: string) {
-  const endInDays = RECRUITMENT_END_IN_DAYS[postingId]
-  if (endInDays === undefined) {
+  const endInDays = findOrganizationPostingSample(postingId)?.endInDays
+  if (endInDays === undefined || endInDays === null) {
     return null
   }
 
@@ -69,23 +58,26 @@ function getPublishedSchedule(postingId: string, today: string) {
   }
 }
 
-function getListSchedule(postingId: string, today: string) {
-  const schedule = getPublishedSchedule(postingId, today)
-  if (!schedule) {
-    throw new Error(`일정 없는 진행 중 공고: ${postingId}`)
-  }
-  const { publishedAt, recruitEndAt, docResultAt, finalResultAt } = schedule
-  return { publishedAt, recruitEndAt, docResultAt, finalResultAt }
-}
-
-// 서류 결과는 발표일에 확정한 것으로 처리
-function createConfirmedPosting(
-  id: string,
+// 작성 중 공고는 일정 입력 전, 서류 결과는 발표일에 확정한 것으로 처리
+function toManagedPostingFields(
+  { id, title, status, hasInterview, bumpRank }: OrganizationPostingSample,
   today: string,
-  fields: Pick<ManagedPostingFieldsFragment, 'title' | 'status' | 'hasInterview' | 'bumpRank'>,
 ): ManagedPostingFieldsFragment {
-  const schedule = getListSchedule(id, today)
-  return { id, ...fields, ...schedule, docResultConfirmedAt: schedule.docResultAt }
+  const schedule = getPublishedSchedule(id, today)
+  const docResultAt = schedule?.docResultAt ?? null
+
+  return {
+    id,
+    title,
+    status,
+    hasInterview,
+    bumpRank,
+    publishedAt: schedule?.publishedAt ?? null,
+    recruitEndAt: schedule?.recruitEndAt ?? null,
+    docResultAt,
+    finalResultAt: schedule?.finalResultAt ?? null,
+    docResultConfirmedAt: isDocumentResultConfirmed(status) ? docResultAt : null,
+  }
 }
 
 type OrganizationPostingState = {
@@ -93,80 +85,14 @@ type OrganizationPostingState = {
   postings: ManagedPostingFieldsFragment[]
 }
 
-// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 진행 중 공고 ID는 공고 상세 MSW와 같음
-// 단체 1은 진행 중 5(지원 접수·서류 평가·면접·전체 완료·면접 없는 결과 확정)·작성 중 1·종료 1, 단체 2는 공고 없는 상태
+// 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 단체 1 공고는 organizationPostingSamples, 단체 2는 공고 없는 상태
 function createInitialState(): Record<string, OrganizationPostingState> {
   const today = getSeoulIsoDate(new Date())
 
   return {
     '1': {
       upCredits: 1,
-      postings: [
-        {
-          id: POSTING_SAMPLE_ID.staff,
-          title: '서류 모집 중 확인하자...',
-          status: 'RECRUITING',
-          hasInterview: false,
-          ...getListSchedule(POSTING_SAMPLE_ID.staff, today),
-          docResultConfirmedAt: null,
-          bumpRank: 18,
-        },
-        {
-          id: POSTING_SAMPLE_ID.open,
-          title: '서류 평가 진행 중이래',
-          status: 'DOC_REVIEW',
-          hasInterview: true,
-          ...getListSchedule(POSTING_SAMPLE_ID.open, today),
-          docResultConfirmedAt: null,
-          bumpRank: 24,
-        },
-        // 서류 결과 확정 뒤 면접 진행 중
-        createConfirmedPosting(POSTING_SAMPLE_ID.interview, today, {
-          title: '면접 진행하고 있는 거래...',
-          status: 'INTERVIEW',
-          hasInterview: true,
-          bumpRank: 30,
-        }),
-        // 면접 결과까지 확정
-        createConfirmedPosting(POSTING_SAMPLE_ID.finalResult, today, {
-          title: '면접 결과까지 확정!!!!',
-          status: 'FINAL_RESULT',
-          hasInterview: true,
-          bumpRank: 35,
-        }),
-        // 면접 없는 모집의 서류 결과(최종 결과) 확정
-        createConfirmedPosting(POSTING_SAMPLE_ID.noInterviewResult, today, {
-          title: '얘는 면접 없는 거...',
-          status: 'DOC_RESULT_NOTICE',
-          hasInterview: false,
-          bumpRank: 40,
-        }),
-        // 모집 일정 입력 전에 임시 저장한 공고
-        {
-          id: '3',
-          title: 'UXUX 15기 운영진 추가 모집',
-          status: 'DRAFT',
-          hasInterview: false,
-          publishedAt: null,
-          recruitEndAt: null,
-          docResultConfirmedAt: null,
-          docResultAt: null,
-          finalResultAt: null,
-          bumpRank: null,
-        },
-        {
-          id: '4',
-          title: 'UXUX 13기 신입 부원 모집',
-          status: 'ENDED',
-          hasInterview: false,
-          publishedAt: '2026-10-01T10:00:00+09:00',
-          recruitEndAt: '2026-10-15T23:59:00+09:00',
-          docResultConfirmedAt: '2026-10-27T10:00:00+09:00',
-          docResultAt: '2026-10-18T10:00:00+09:00',
-          finalResultAt: '2026-10-27T10:00:00+09:00',
-          bumpRank: null,
-        },
-      ],
+      postings: ORGANIZATION_POSTING_SAMPLES.map((sample) => toManagedPostingFields(sample, today)),
     },
     '2': { upCredits: 0, postings: [] },
   }
@@ -187,6 +113,11 @@ function findPosting(postingId: string) {
     }
   }
   return null
+}
+
+// 공지 받는 사람 수, 지원자 관리 MSW와 같은 인원
+function getApplicantCount(postingId: string) {
+  return findOrganizationPostingSample(postingId)?.applicantCount ?? 0
 }
 
 // 지원자 관리 MSW가 운영진 홈과 같은 공고 상태를 쓰도록 공개
@@ -323,8 +254,7 @@ const managedPostingHandlers = [
         return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
       }
 
-      const managed = findPosting(postingId)
-      const organizationId = managed?.organizationId ?? OTHER_ORGANIZATION_ID
+      const organizationId = findPosting(postingId)?.organizationId ?? OTHER_ORGANIZATION_ID
       const schedule = getPublishedSchedule(postingId, today)
       const homeSchedule = schedule
         ? {
@@ -341,10 +271,8 @@ const managedPostingHandlers = [
         data: {
           posting: {
             ...posting,
-            // 지원자용 상세와 같은 공고도 운영진 화면에서는 홈 카드 제목으로 구분
-            title: managed?.posting.title ?? posting.title,
             ...homeSchedule,
-            applicationCount: APPLICATION_COUNT[postingId] ?? 0,
+            applicationCount: getApplicantCount(postingId),
             organization: { ...posting.organization, id: organizationId },
           },
         },
@@ -377,7 +305,7 @@ const managedPostingHandlers = [
           data: null,
         })
       }
-      if (!APPLICATION_COUNT[postingId]) {
+      if (getApplicantCount(postingId) === 0) {
         return HttpResponse.json(errorBody('MESSAGE_422', '공지를 받을 지원자가 없습니다.'))
       }
 

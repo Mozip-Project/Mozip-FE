@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
+import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
 import { MANAGED_POSTING_TAB_STATUSES } from '@/features/posting/utils/managedPosting'
 import {
@@ -11,9 +12,9 @@ import {
   sendNotice,
 } from './api'
 
-const { open: DOC_REVIEW_ID, staff: RECRUITING_ID } = POSTING_SAMPLE_ID
+const { docReview: DOC_REVIEW_ID, recruiting: RECRUITING_ID } = ORGANIZATION_POSTING_ID
 // 지원자 0명인 종료 공고
-const CLOSED_ID = '4'
+const CLOSED_ID = ORGANIZATION_POSTING_ID.ended
 const NOTICE = { subject: '모집 일정 변경 안내', body: '{이름}님, 일정이 바뀌었어요.' }
 
 beforeAll(() => {
@@ -35,9 +36,9 @@ describe('getOrganizationPostings', () => {
     expect(postings.map(({ id, status }) => [id, status])).toEqual([
       [RECRUITING_ID, 'RECRUITING'],
       [DOC_REVIEW_ID, 'DOC_REVIEW'],
-      [POSTING_SAMPLE_ID.interview, 'INTERVIEW'],
-      [POSTING_SAMPLE_ID.finalResult, 'FINAL_RESULT'],
-      [POSTING_SAMPLE_ID.noInterviewResult, 'DOC_RESULT_NOTICE'],
+      [ORGANIZATION_POSTING_ID.interview, 'INTERVIEW'],
+      [ORGANIZATION_POSTING_ID.finalResult, 'FINAL_RESULT'],
+      [ORGANIZATION_POSTING_ID.noInterviewResult, 'DOC_RESULT_NOTICE'],
     ])
   })
 
@@ -87,7 +88,7 @@ describe('getManagedPosting', () => {
     await expect(getManagedPosting(DOC_REVIEW_ID)).resolves.toMatchObject({
       id: DOC_REVIEW_ID,
       title: '서류 평가 진행 중이래',
-      applicationCount: 24,
+      applicationCount: 48,
       organization: { id: '1', name: 'UXUX' },
     })
   })

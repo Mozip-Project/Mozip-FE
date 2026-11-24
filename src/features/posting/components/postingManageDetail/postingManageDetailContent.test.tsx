@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
@@ -36,7 +37,7 @@ afterAll(() => {
 describe('PostingManageDetailContent', () => {
   it('현재 단체 공고의 상세 표와 미리보기, 공지 받는 사람 수 표시', async () => {
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     expect(
       await screen.findByRole('heading', { level: 1, name: '서류 평가 진행 중이래' }),
@@ -48,11 +49,11 @@ describe('PostingManageDetailContent', () => {
     expect(screen.getByRole('link', { name: '서류 평가 진행 중이래' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '공지 보내기' }))
-    expect(await screen.findByRole('button', { name: '24명에게 보내기' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: '48명에게 보내기' })).toBeInTheDocument()
   })
 
   it('비면접 공고는 면접 없음, 면접 기간 행 없음', async () => {
-    renderDetail(POSTING_SAMPLE_ID.staff)
+    renderDetail(ORGANIZATION_POSTING_ID.recruiting)
 
     const detailCard = await screen.findByRole('region', { name: '공고 상세 내용' })
     expect(within(detailCard).getByText('없음')).toBeInTheDocument()
@@ -82,7 +83,7 @@ describe('PostingManageDetailContent', () => {
       ),
     )
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     const retryButton = await screen.findByRole('button', { name: '다시 시도' })
     server.resetHandlers()
@@ -95,7 +96,7 @@ describe('PostingManageDetailContent', () => {
 
   it('공고 수정하기는 준비 중 안내', async () => {
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공고 수정하기' }))
 
@@ -104,10 +105,10 @@ describe('PostingManageDetailContent', () => {
 
   it('공지를 보내면 팝업을 닫고 완료 안내', async () => {
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
-    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '48명에게 보내기' }))
 
     expect(await screen.findByText('공지를 보냈어요')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -121,10 +122,10 @@ describe('PostingManageDetailContent', () => {
       }),
     )
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
-    const sendButton = await screen.findByRole('button', { name: '24명에게 보내기' })
+    const sendButton = await screen.findByRole('button', { name: '48명에게 보내기' })
     // 다시 그리기 전에 두 번 제출
     fireEvent.click(sendButton)
     fireEvent.click(sendButton)
@@ -143,7 +144,7 @@ describe('PostingManageDetailContent', () => {
       ),
     )
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.staff)
+    renderDetail(ORGANIZATION_POSTING_ID.recruiting)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
     await user.click(await screen.findByRole('button', { name: '12명에게 보내기' }))
@@ -172,10 +173,10 @@ describe('PostingManageDetailContent', () => {
       ),
     )
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
-    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '48명에게 보내기' }))
 
     expect(await within(screen.getByRole('dialog')).findByRole('alert')).toHaveTextContent(
       '공지를 보내지 못했어요. 잠시 후 다시 시도해 주세요',
@@ -200,10 +201,10 @@ describe('PostingManageDetailContent', () => {
       ),
     )
     const user = userEvent.setup()
-    renderDetail(POSTING_SAMPLE_ID.open)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
-    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '48명에게 보내기' }))
 
     const subjectInput = await screen.findByRole('textbox', { name: /메일 제목/ })
     await waitFor(() =>

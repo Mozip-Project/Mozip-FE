@@ -1,5 +1,10 @@
 import { delay, HttpResponse } from 'msw'
 import { getManagedPostingSample } from '@/features/posting/mocks/managedPostingHandlers'
+import {
+  findOrganizationPostingSample,
+  type OrganizationPostingSample,
+} from '@/features/posting/mocks/organizationPostingSamples'
+import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_RESULT_SAMPLE } from '@/features/recruitment/mocks/documentResultSample'
 import { APPLICANT_MANAGEMENT_PAGE_SIZE } from '@/features/recruitment/types'
 import type {
@@ -15,26 +20,8 @@ import type {
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
-// 공고 상세 MSW의 UXUX 포지션과 같은 ID
-const UXUX_POSITIONS = [
-  { id: 'design', name: '디자인' },
-  { id: 'development', name: '개발' },
-  { id: 'planning', name: '기획' },
-]
-
 const SAMPLE_FIRST_SUBMITTED_AT = Date.UTC(2026, 9, 15, 12)
 const SAMPLE_SUBMIT_INTERVAL_MS = 60 * 60 * 1000
-
-// 운영진 홈 공고 상태별 제출 지원자 수
-const APPLICANT_COUNT = {
-  DRAFT: 0,
-  RECRUITING: 12,
-  DOC_REVIEW: 48,
-  DOC_RESULT_NOTICE: 18,
-  INTERVIEW: 30,
-  FINAL_RESULT: 24,
-  ENDED: 20,
-} satisfies Record<PostingStatus, number>
 
 // 면접 결과 확정 공고에서 서류 합격자 3명 중 1명은 면접 불합격
 const INTERVIEW_FAIL_EVERY = 3
@@ -42,7 +29,7 @@ const INTERVIEW_FAIL_EVERY = 3
 type SampleApplication = {
   id: string
   name: string
-  position: (typeof UXUX_POSITIONS)[number] | null
+  position: { id: string; name: string } | null
   docResult: DocResult
   finalResult: FinalResult
   submittedAt: string
@@ -86,11 +73,15 @@ function getResults(
   }
 }
 
-// 이름은 서류 평가 취합 샘플의 가상 인물, 목록 순서대로 1시간씩 앞선 제출 시각
-// 종료 공고는 포지션 없는 모집으로 확인
-function getApplicationCase(status: PostingStatus): ApplicationCase {
-  const hasPositions = status !== 'ENDED'
-  const applications = DOCUMENT_RESULT_SAMPLE.slice(0, APPLICANT_COUNT[status]).map(
+// 지원자 수·파트 유무는 단체 공고 샘플 기준, 이름은 서류 평가 취합 샘플의 가상 인물
+// 목록 순서대로 1시간씩 앞선 제출 시각
+function getApplicationCase({
+  status,
+  noPosition,
+  applicantCount,
+}: OrganizationPostingSample): ApplicationCase {
+  const hasPositions = !noPosition
+  const applications = DOCUMENT_RESULT_SAMPLE.slice(0, applicantCount).map(
     ({ id, name, position, result }, index) => ({
       id: `application-${id}`,
       name,
@@ -129,12 +120,13 @@ const applicantManagementHandlers = [
     'ApplicantManagementPosting',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      const posting = getManagedPostingSample(String(variables.id))
+      const postingId = String(variables.id)
+      const posting = getManagedPostingSample(postingId)
+      const sample = findOrganizationPostingSample(postingId)
 
-      if (!posting) {
+      if (!posting || !sample) {
         return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
       }
-      // 운영진 홈 샘플에 파트 유무가 없어 지원자 샘플 기준으로 채움
       const { id, status, hasInterview, docResultConfirmedAt } = posting
       return HttpResponse.json({
         data: {
@@ -142,7 +134,7 @@ const applicantManagementHandlers = [
             id,
             status,
             hasInterview,
-            noPosition: !getApplicationCase(status).hasPositions,
+            noPosition: sample.noPosition,
             docResultConfirmedAt,
           },
         },
@@ -155,8 +147,10 @@ const applicantManagementHandlers = [
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
       const { positionId, keyword, sort = 'SUBMITTED_DESC', page = 1 } = variables
-      const posting = getManagedPostingSample(String(variables.postingId))
-      const found = posting && getApplicationCase(posting.status)
+      // 삭제된 작성 중 공고는 운영진 홈 상태에 없어 공고 없음
+      const postingId = String(variables.postingId)
+      const sample = getManagedPostingSample(postingId) && findOrganizationPostingSample(postingId)
+      const found = sample && getApplicationCase(sample)
 
       if (!found) {
         return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
