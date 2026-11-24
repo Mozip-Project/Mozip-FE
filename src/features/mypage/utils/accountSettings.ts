@@ -1,12 +1,10 @@
 import type { AffiliatedOrganization } from '@/features/mypage/components/accountSettings/organizationSection'
+import {
+  type SchoolVerificationView,
+  toSchoolVerification,
+} from '@/features/user/utils/schoolVerification'
 import type { MemberRole, MyAccountFieldsFragment } from '@/gql/graphql'
 import { maskPhoneNumber } from '@/utils/phone'
-
-type SchoolVerificationView = {
-  schoolName: string
-  /** 재학증명서로 승인되면 null */
-  email: string | null
-}
 
 type AccountSettings = {
   profile: { name: string; maskedPhone: string }
@@ -20,19 +18,6 @@ function getMemberRoleLabel(role: MemberRole) {
       return '대표자'
     case 'OPERATOR':
       return '운영진'
-  }
-}
-
-// 회원가입에서 인증 승인까지 끝나 항상 있는 값, 스키마상 nullable이라 학교 이름은 빈칸으로 대체
-// 목록에 있는 학교면 school.name, 직접 입력한 학교면 schoolName 사용
-function toSchoolVerification({
-  school,
-  schoolVerification,
-}: MyAccountFieldsFragment): SchoolVerificationView {
-  return {
-    schoolName:
-      schoolVerification?.school?.name ?? schoolVerification?.schoolName ?? school?.name ?? '',
-    email: schoolVerification?.email ?? null,
   }
 }
 
@@ -51,4 +36,4 @@ function toAccountSettings(account: MyAccountFieldsFragment): AccountSettings {
 }
 
 export { toAccountSettings }
-export type { AccountSettings, SchoolVerificationView }
+export type { AccountSettings }
