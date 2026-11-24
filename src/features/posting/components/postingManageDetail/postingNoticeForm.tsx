@@ -71,6 +71,13 @@ function PostingNoticeForm({
     setValue(name, value, { shouldDirty: true, shouldValidate: isSubmitted })
   }
 
+  // 입력 칸을 register하지 않아 shouldFocus 대신, 오류 표시가 반영된 뒤 첫 오류 입력으로 이동
+  function focusFirstInvalidField() {
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid=true]')?.focus()
+    })
+  }
+
   function showServerFieldErrors(error: Error) {
     if (!(error instanceof ApiError)) {
       return
@@ -78,9 +85,12 @@ function PostingNoticeForm({
     const noticeFieldErrors = error.fieldErrors.flatMap(({ field, message }) =>
       isNoticeField(field) ? [{ field, message }] : [],
     )
-    noticeFieldErrors.forEach(({ field, message }, index) => {
-      setError(field, { type: 'server', message }, { shouldFocus: index === 0 })
+    noticeFieldErrors.forEach(({ field, message }) => {
+      setError(field, { type: 'server', message })
     })
+    if (noticeFieldErrors.length > 0) {
+      focusFirstInvalidField()
+    }
   }
 
   // TODO: 발송 완료 안내 디자인 확인 필요, 지금은 팝업 닫고 토스트
@@ -100,18 +110,11 @@ function PostingNoticeForm({
     )
   }
 
-  // 오류 표시가 반영된 뒤 첫 오류 입력으로 이동
-  function handleInvalid() {
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid=true]')?.focus()
-    })
-  }
-
   return (
     <form
       ref={formRef}
       noValidate
-      onSubmit={(event) => void handleSubmit(handleSend, handleInvalid)(event)}
+      onSubmit={(event) => void handleSubmit(handleSend, focusFirstInvalidField)(event)}
       className="flex flex-col gap-5"
     >
       <div className="flex items-center justify-between gap-gap-l">

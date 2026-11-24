@@ -162,7 +162,7 @@ describe('PostingManageDetailContent', () => {
     )
   })
 
-  it('서버가 제목 오류를 주면 제목 입력 아래 표시', async () => {
+  it('서버가 제목 오류를 주면 제목 입력 아래 표시하고 제목으로 포커스', async () => {
     server.use(
       graphqlApi.mutation('SendNotice', () =>
         HttpResponse.json({
@@ -185,9 +185,9 @@ describe('PostingManageDetailContent', () => {
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
     await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
 
-    expect(await screen.findByRole('textbox', { name: /메일 제목/ })).toHaveAccessibleDescription(
-      '제목은 1~100자로 입력해 주세요',
-    )
+    const subjectInput = await screen.findByRole('textbox', { name: /메일 제목/ })
+    expect(subjectInput).toHaveAccessibleDescription('제목은 1~100자로 입력해 주세요')
+    await waitFor(() => expect(subjectInput).toHaveFocus())
     expect(within(screen.getByRole('dialog')).queryByRole('alert')).not.toBeInTheDocument()
   })
 })
