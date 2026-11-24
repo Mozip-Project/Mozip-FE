@@ -134,6 +134,34 @@ describe('PostingManageDetailContent', () => {
     )
   })
 
+  it('입력 칸이 없는 필드 오류만 오면 팝업 안에 오류 안내', async () => {
+    server.use(
+      graphqlApi.mutation('SendNotice', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: '입력값을 확인해 주세요.',
+              extensions: {
+                code: 'COMMON_400',
+                fieldErrors: [{ field: 'postingId', message: '공고 ID가 올바르지 않습니다' }],
+              },
+            },
+          ],
+          data: null,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderDetail(POSTING_SAMPLE_ID.open)
+
+    await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '24명에게 보내기' }))
+
+    expect(await within(screen.getByRole('dialog')).findByRole('alert')).toHaveTextContent(
+      '공지를 보내지 못했어요. 잠시 후 다시 시도해 주세요',
+    )
+  })
+
   it('서버가 제목 오류를 주면 제목 입력 아래 표시', async () => {
     server.use(
       graphqlApi.mutation('SendNotice', () =>

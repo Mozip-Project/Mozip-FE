@@ -61,10 +61,11 @@ function PostingNoticeForm({
   const [subject, body] = useWatch({ control, name: ['subject', 'body'] })
   const { mutate: sendNotice, isPending, error: sendError } = useSendNoticeMutation()
   const { showToast } = useToast()
-  // 입력별 서버 오류는 입력 칸에 표시하고 나머지만 아래 안내
-  const hasFieldErrors = sendError instanceof ApiError && sendError.fieldErrors.length > 0
+  // 제목·본문 오류는 입력 칸에 표시, 입력 칸이 없는 필드 오류만 오면 아래 안내
+  const hasInputErrors =
+    sendError instanceof ApiError && sendError.fieldErrors.some(({ field }) => isNoticeField(field))
   const sendErrorMessage =
-    sendError && !hasFieldErrors ? getNoticeSendErrorMessage(sendError) : null
+    sendError && !hasInputErrors ? getNoticeSendErrorMessage(sendError) : null
 
   function changeField(name: keyof PostingNoticeValues, value: string) {
     setValue(name, value, { shouldDirty: true, shouldValidate: isSubmitted })
