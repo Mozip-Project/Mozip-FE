@@ -1,7 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
-import type { PostingApplicationsQueryVariables } from '@/gql/graphql'
-import { getApplicantManagementPosting, getPostingApplications } from './api'
-import { applicantManagementKeys } from './keys'
+import type {
+  DocEvaluationApplicationsQueryVariables,
+  PostingApplicationsQueryVariables,
+} from '@/gql/graphql'
+import {
+  getApplicantManagementPosting,
+  getDocEvaluationApplications,
+  getDocumentReviewPosting,
+  getPostingApplications,
+} from './api'
+import { applicantManagementKeys, documentReviewKeys } from './keys'
 
 function useApplicantManagementPostingQuery(postingId: string) {
   return useQuery({
@@ -21,4 +29,37 @@ function usePostingApplicationsQuery(variables: PostingApplicationsQueryVariable
   })
 }
 
-export { useApplicantManagementPostingQuery, usePostingApplicationsQuery }
+function useDocumentReviewPostingQuery(postingId: string) {
+  return useQuery({
+    queryKey: documentReviewKeys.posting(postingId),
+    queryFn: () => getDocumentReviewPosting(postingId),
+  })
+}
+
+type DocEvaluationApplicationsQueryOptions = {
+  enabled?: boolean
+  // 조건 변경 중 이전 공고의 목록은 남기지 않음
+  shouldKeepPreviousData?: boolean
+}
+
+function useDocEvaluationApplicationsQuery(
+  variables: DocEvaluationApplicationsQueryVariables,
+  { enabled = true, shouldKeepPreviousData = false }: DocEvaluationApplicationsQueryOptions = {},
+) {
+  const postingId = String(variables.postingId)
+
+  return useQuery({
+    queryKey: documentReviewKeys.list(variables),
+    queryFn: () => getDocEvaluationApplications(variables),
+    enabled,
+    placeholderData: (previousData, previousQuery) =>
+      shouldKeepPreviousData && previousQuery?.queryKey[1] === postingId ? previousData : undefined,
+  })
+}
+
+export {
+  useApplicantManagementPostingQuery,
+  useDocEvaluationApplicationsQuery,
+  useDocumentReviewPostingQuery,
+  usePostingApplicationsQuery,
+}
