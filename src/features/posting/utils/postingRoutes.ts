@@ -9,4 +9,9 @@ function getPostingApplyPath(postingId: string) {
   return `/postings/${postingId}/apply` as Route
 }
 
-export { getPostingApplyPath, getPostingDetailPath }
+// 내 지원에서 여는 공고 상세
+function getApplicationPostingDetailPath(postingId: string) {
+  return `/applications/postings/${postingId}` as Route
+}
+
+export { getApplicationPostingDetailPath, getPostingApplyPath, getPostingDetailPath }

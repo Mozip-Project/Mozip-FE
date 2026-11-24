@@ -276,7 +276,8 @@ type ApplicantProfile = {
   savedPhotoUrl: string | null
   maskedPhone: string
   university: string
-  email: string
+  // 스키마상 nullable, 없으면 프로필 카드에서 줄 숨김
+  email: string | null
 }
 
 export {
