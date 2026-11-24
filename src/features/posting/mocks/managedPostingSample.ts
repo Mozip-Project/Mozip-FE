@@ -1,12 +1,14 @@
 import type { ManagedPosting } from '@/features/posting/types'
 
 // Figma 공고 관리 게시 중 2건·작성 중 1건·종료 1건 기준, 모두 면접 없는 모집
+// 게시 중 ID는 공고 상세 MSW와 같음 (/manage/postings 기본 이동용)
 const MANAGED_POSTING_SAMPLE: ManagedPosting[] = [
   {
-    id: '2',
+    id: 'uxux-14-staff',
     title: 'UXUX 14기 운영진 모집',
     status: 'published',
     latestRank: 18,
+    canUp: true,
     progress: {
       stage: 'application',
       hasInterview: false,
@@ -20,10 +22,11 @@ const MANAGED_POSTING_SAMPLE: ManagedPosting[] = [
     },
   },
   {
-    id: '1',
+    id: 'uxux-14',
     title: 'UXUX 14기 신입 부원 모집',
     status: 'published',
     latestRank: 18,
+    canUp: false,
     progress: {
       stage: 'documentReview',
       hasInterview: false,

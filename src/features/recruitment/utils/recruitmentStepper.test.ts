@@ -30,6 +30,27 @@ describe('getRecruitmentSteps', () => {
     ])
   })
 
+  it('모집 일정 입력 전인 작성 중 공고는 마감·발표일 대신 일정 미정 표시', () => {
+    const steps = getRecruitmentSteps({
+      stage: 'posting',
+      hasInterview: true,
+      schedule: {
+        postingCompletedAt: null,
+        applicationDeadline: null,
+        documentReviewCompletedAt: null,
+        documentResultDate: null,
+        finalResultDate: null,
+      },
+    })
+
+    expect(summarize(steps)).toEqual([
+      ['공고 작성', 'current', null],
+      ['지원 접수', 'upcoming', '일정 미정'],
+      ['서류 평가', 'upcoming', null],
+      ['서류 결과', 'upcoming', '일정 미정'],
+    ])
+  })
+
   it('지난 단계는 완료일, 현재 지원 접수는 마감일 표시', () => {
     const steps = getRecruitmentSteps({
       stage: 'application',

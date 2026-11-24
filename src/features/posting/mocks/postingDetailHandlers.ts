@@ -22,6 +22,8 @@ const POSTING_SAMPLE_ID = {
   missingInfo: 'uxux-14-missing-info',
   photoRequired: 'uxux-14-photo-required',
   supporters: 'uxux-supporters',
+  // 운영진 홈 진행 중 공고, 전체 공고 목록에는 없음
+  staff: 'uxux-14-staff',
   direct: 'sw-council-staff',
   directApplied: 'sw-council-staff-applied',
   directUpcoming: 'sw-council-staff-upcoming',
@@ -42,6 +44,7 @@ const RECRUITMENT_OFFSET = {
   photoRequired: { endInDays: 10 },
   supporters: { endInDays: 12 },
   directApplied: { endInDays: 14 },
+  staff: { endInDays: 7 },
   upcoming: { startInDays: 3, endInDays: 17 },
   closed: { endInDays: -1 },
 } satisfies Record<string, RecruitmentOffset>
@@ -283,6 +286,12 @@ function createPostingSample(postingId: string, today: string): PostingResponse 
             position: null,
           },
         ],
+        interviewTimeRanges: [],
+      })
+    case ID.staff:
+      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.staff, {
+        title: 'UXUX 14기 운영진 모집',
+        hasInterview: false,
         interviewTimeRanges: [],
       })
     case ID.direct:

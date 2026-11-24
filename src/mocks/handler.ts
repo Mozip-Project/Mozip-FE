@@ -1,6 +1,7 @@
 import { notificationHandlers } from '@/features/notification/mocks/notificationHandlers'
 import { organizationMemberHandlers } from '@/features/organization/mocks/organizationMemberHandlers'
 import { organizationProfileHandlers } from '@/features/organization/mocks/organizationProfileHandlers'
+import { managedPostingHandlers } from '@/features/posting/mocks/managedPostingHandlers'
 import { postingDetailHandlers } from '@/features/posting/mocks/postingDetailHandlers'
 import { postingListHandlers } from '@/features/posting/mocks/postingListHandlers'
 import { postingReportHandlers } from '@/features/posting/mocks/postingReportHandlers'
@@ -19,6 +20,7 @@ const handlers: AnyHandler[] = [
   ...accountEditHandlers,
   ...organizationMemberHandlers,
   ...organizationProfileHandlers,
+  ...managedPostingHandlers,
 ]
 
 export { handlers }

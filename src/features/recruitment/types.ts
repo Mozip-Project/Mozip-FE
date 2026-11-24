@@ -256,14 +256,14 @@ type ApplicantManagementPage = {
 }
 type RecruitmentStage = InterviewRecruitmentStage | NoInterviewRecruitmentStage
 
-// 완료일은 해당 단계를 마친 뒤에만 존재
+// 완료일은 해당 단계를 마친 뒤에만 존재, 마감·발표일 null은 모집 일정 입력 전인 작성 중 공고
 type RecruitmentSchedule = {
   postingCompletedAt: string | null
-  applicationDeadline: string
+  applicationDeadline: string | null
   documentReviewCompletedAt: string | null
-  documentResultDate: string
+  documentResultDate: string | null
   // 면접 모집은 MVP 단계에 없지만 최종 결과 단계 확장용으로 유지
-  finalResultDate: string
+  finalResultDate: string | null
 }
 
 type RecruitmentProgress =

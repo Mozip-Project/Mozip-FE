@@ -20,6 +20,20 @@ extend type Query {
     size: Int = 20
   ): PostingPage! @public
   posting(id: ID!): Posting! @public
+  "공고 관리 탭: 진행 중 [RECRUITING, DOC_REVIEW, DOC_RESULT_NOTICE, INTERVIEW, FINAL_RESULT] / 작성 중 [DRAFT] / 종료 [ENDED]"
+  organizationPostings(organizationId: ID!, status: [PostingStatus!]): [Posting!]!
+}
+
+extend type Organization {
+  "공고 관리 탭 숫자"
+  postingCounts: PostingCounts!
+}
+
+type PostingCounts {
+  "RECRUITING ~ FINAL_RESULT"
+  published: Int!
+  draft: Int!
+  ended: Int!
 }
 
 # 공고 작성(savePostingDraft) 명세의 문항 설정, 서버 스키마는 아직 이전 유형(SINGLE_CHOICE·TABLE 등)
@@ -59,6 +73,10 @@ extend type Posting {
   "비로그인·운영진이면 빈 배열, 포지션 없는 모집은 최대 1개"
   myApplications: [Application!]!
   profilePhotoRequired: Boolean!
+  "제출된 지원서 수"
+  applicationCount: Int!
+  "전체 공고 최신순(bumpedAt 내림차순) 순위, DRAFT·ENDED는 null"
+  bumpRank: Int
 }
 
 type Me {
@@ -121,6 +139,12 @@ type Mutation {
   saveApplicationDraft(postingId: ID!, input: ApplicationInput!): Application!
   "필수 문항 검증 후 SUBMITTED, 제출 시점 프로필 복사. 미작성 APPLICATION_400(fieldErrors는 questionId별), 마감 POSTING_409, 이미 제출 APPLICATION_409, 자격 불충족 USER_403"
   submitApplication(id: ID!): Application!
+  "잔여권 1 차감 후 최신순 맨 위로, 잔여권 없으면 PAYMENT_402, RECRUITING이 아니면 POSTING_409"
+  bumpPosting(id: ID!): Posting!
+  "DRAFT만 삭제 가능, 아니면 POSTING_409"
+  deletePosting(id: ID!): Boolean!
+  "제출 지원자 전원에게 바로 발송, 제목 1~100자·본문 1~1,000자, DRAFT면 MESSAGE_409, 받는 사람 없으면 MESSAGE_422"
+  sendNotice(postingId: ID!, subject: String!, body: String!): Message!
 }
 
 input ApplicationInput {
