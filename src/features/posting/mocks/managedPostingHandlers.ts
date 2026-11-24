@@ -16,7 +16,7 @@ import type {
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
-import { getSeoulIsoDate } from '@/utils/date'
+import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import { createPostingSample, POSTING_SAMPLE_ID } from './postingDetailHandlers'
 
 // 명세상 UP하면 최신순 맨 위
@@ -33,6 +33,45 @@ const APPLICATION_COUNT: Record<string, number> = {
   [POSTING_SAMPLE_ID.staff]: 12,
 }
 
+const RECRUITMENT_PERIOD_DAYS = 14
+// 오늘 기준 모집 마감까지 남은 날, 운영진 모집은 지원 접수 중·신입 부원 모집은 마감 뒤 서류 평가 중
+const RECRUITMENT_END_IN_DAYS: Record<string, number> = {
+  [POSTING_SAMPLE_ID.staff]: 7,
+  [POSTING_SAMPLE_ID.open]: -2,
+}
+
+function toSeoulDateTime(isoDate: string, time: string) {
+  return `${isoDate}T${time}+09:00`
+}
+
+// 홈 카드와 관리 상세가 같은 일정을 쓰도록 진행 중 공고의 일정을 한곳에서 생성
+function getPublishedSchedule(postingId: string, today: string) {
+  const endInDays = RECRUITMENT_END_IN_DAYS[postingId]
+  if (endInDays === undefined) {
+    return null
+  }
+
+  const endDate = addDaysToIsoDate(today, endInDays)
+  const startAt = toSeoulDateTime(addDaysToIsoDate(endDate, -RECRUITMENT_PERIOD_DAYS), '00:00:00')
+  return {
+    publishedAt: startAt,
+    recruitStartAt: startAt,
+    recruitEndAt: toSeoulDateTime(endDate, '23:59:59'),
+    docResultAt: toSeoulDateTime(addDaysToIsoDate(endDate, 3), '18:00:00'),
+    interviewDates: [6, 7, 8].map((days) => addDaysToIsoDate(endDate, days)),
+    finalResultAt: toSeoulDateTime(addDaysToIsoDate(endDate, 12), '18:00:00'),
+  }
+}
+
+function getListSchedule(postingId: string, today: string) {
+  const schedule = getPublishedSchedule(postingId, today)
+  if (!schedule) {
+    throw new Error(`일정 없는 진행 중 공고: ${postingId}`)
+  }
+  const { publishedAt, recruitEndAt, docResultAt, finalResultAt } = schedule
+  return { publishedAt, recruitEndAt, docResultAt, finalResultAt }
+}
+
 type OrganizationPostingState = {
   upCredits: number
   postings: ManagedPostingFieldsFragment[]
@@ -41,6 +80,8 @@ type OrganizationPostingState = {
 // 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 진행 중 공고 ID는 공고 상세 MSW와 같음
 // 단체 1은 Figma 홈(진행 중 2·작성 중 1·종료 1), 단체 2는 공고 없는 상태
 function createInitialState(): Record<string, OrganizationPostingState> {
+  const today = getSeoulIsoDate(new Date())
+
   return {
     '1': {
       upCredits: 1,
@@ -50,11 +91,8 @@ function createInitialState(): Record<string, OrganizationPostingState> {
           title: 'UXUX 14기 운영진 모집',
           status: 'RECRUITING',
           hasInterview: false,
-          publishedAt: '2026-10-01T10:00:00+09:00',
-          recruitEndAt: '2026-10-15T23:59:00+09:00',
+          ...getListSchedule(POSTING_SAMPLE_ID.staff, today),
           docResultConfirmedAt: null,
-          docResultAt: '2026-10-18T10:00:00+09:00',
-          finalResultAt: '2026-10-27T10:00:00+09:00',
           bumpRank: 18,
         },
         {
@@ -62,11 +100,8 @@ function createInitialState(): Record<string, OrganizationPostingState> {
           title: 'UXUX 14기 신입 부원 모집',
           status: 'DOC_REVIEW',
           hasInterview: true,
-          publishedAt: '2026-09-27T10:00:00+09:00',
-          recruitEndAt: '2026-09-30T23:59:00+09:00',
+          ...getListSchedule(POSTING_SAMPLE_ID.open, today),
           docResultConfirmedAt: null,
-          docResultAt: '2026-10-18T10:00:00+09:00',
-          finalResultAt: '2026-10-27T10:00:00+09:00',
           bumpRank: 24,
         },
         // 모집 일정 입력 전에 임시 저장한 공고
@@ -233,23 +268,37 @@ const managedPostingHandlers = [
     },
   ),
 
-  // 공고 내용은 지원자 공고 상세 MSW와 같은 데이터
+  // 공고 내용은 지원자 공고 상세 MSW와 같은 데이터, 일정만 홈 카드와 맞춤
   graphqlApi.query<ManagedPostingDetailQuery, ManagedPostingDetailQueryVariables>(
     'ManagedPostingDetail',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
       const postingId = String(variables.id)
-      const posting = createPostingSample(postingId, getSeoulIsoDate(new Date()))
+      const today = getSeoulIsoDate(new Date())
+      const posting = createPostingSample(postingId, today)
 
       if (!posting) {
         return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
       }
 
       const organizationId = findPosting(postingId)?.organizationId ?? OTHER_ORGANIZATION_ID
+      const schedule = getPublishedSchedule(postingId, today)
+      const homeSchedule = schedule
+        ? {
+            recruitStartAt: schedule.recruitStartAt,
+            recruitEndAt: schedule.recruitEndAt,
+            docResultAt: schedule.docResultAt,
+            finalResultAt: schedule.finalResultAt,
+            interviewTimeRanges: posting.hasInterview
+              ? schedule.interviewDates.map((date) => ({ date }))
+              : [],
+          }
+        : {}
       return HttpResponse.json({
         data: {
           posting: {
             ...posting,
+            ...homeSchedule,
             applicationCount: APPLICATION_COUNT[postingId] ?? 0,
             organization: { ...posting.organization, id: organizationId },
           },

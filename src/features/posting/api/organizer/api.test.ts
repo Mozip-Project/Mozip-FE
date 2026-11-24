@@ -89,6 +89,19 @@ describe('getManagedPosting', () => {
     })
   })
 
+  it('홈 카드와 같은 일정으로 응답, 서류 평가 중 공고는 모집 마감이 지남', async () => {
+    const postings = await getOrganizationPostings('1', MANAGED_POSTING_TAB_STATUSES.published)
+    const card = postings.find(({ id }) => id === DOC_REVIEW_ID)
+    const posting = await getManagedPosting(DOC_REVIEW_ID)
+
+    expect(posting).toMatchObject({
+      recruitEndAt: card?.recruitEndAt,
+      docResultAt: card?.docResultAt,
+      finalResultAt: card?.finalResultAt,
+    })
+    expect(Date.parse(posting.recruitEndAt ?? '')).toBeLessThan(Date.now())
+  })
+
   it('운영진 홈에 없는 공고는 다른 단체 공고로 응답', async () => {
     const posting = await getManagedPosting(POSTING_SAMPLE_ID.direct)
 
