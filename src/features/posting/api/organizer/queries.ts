@@ -3,10 +3,27 @@ import type { ManagedPostingFieldsFragment, PostingStatus } from '@/gql/graphql'
 import {
   bumpPosting,
   deletePosting,
+  getManagedPosting,
   getManagedPostingSummary,
   getOrganizationPostings,
+  sendNotice,
 } from './api'
 import { managedPostingKeys } from './keys'
+
+// 팝업이 발송 중 닫히지 않도록 진행 여부를 키로 확인
+const SEND_NOTICE_MUTATION_KEY = ['sendNotice'] as const
+
+// 발송 결과가 바꾸는 조회 데이터가 없어 갱신 없음
+function useSendNoticeMutation() {
+  return useMutation({ mutationKey: SEND_NOTICE_MUTATION_KEY, mutationFn: sendNotice })
+}
+
+function useManagedPostingQuery(postingId: string) {
+  return useQuery({
+    queryKey: managedPostingKeys.detail(postingId),
+    queryFn: () => getManagedPosting(postingId),
+  })
+}
 
 // 현재 단체를 아직 모르면(null) 요청 보류
 function useOrganizationPostingsQuery(
@@ -66,8 +83,11 @@ function useBumpPostingMutation() {
 }
 
 export {
+  SEND_NOTICE_MUTATION_KEY,
   useBumpPostingMutation,
   useDeletePostingMutation,
+  useManagedPostingQuery,
   useManagedPostingSummaryQuery,
   useOrganizationPostingsQuery,
+  useSendNoticeMutation,
 }

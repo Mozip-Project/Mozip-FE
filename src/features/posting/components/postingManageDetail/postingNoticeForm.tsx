@@ -6,64 +6,122 @@ import { useForm, useWatch } from 'react-hook-form'
 import CloseIcon from '@/assets/icons/close.svg'
 import { Button } from '@/components/ui/Button/button'
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/Dialog/dialog'
+import { InlineNotice } from '@/components/ui/InlineNotice/inlineNotice'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
+import { useSendNoticeMutation } from '@/features/posting/api/organizer/queries'
 import { POSTING_NOTICE_SAMPLE_MESSAGE } from '@/features/posting/mocks/postingNoticeSample'
+import {
+  postingNoticeSchema,
+  type PostingNoticeValues,
+} from '@/features/posting/schemas/postingNoticeSchema'
+import { getNoticeSendErrorMessage } from '@/features/posting/utils/postingNotice'
 import { MessageEditor } from '@/features/recruitment/components/organizer/resultNotice/messageEditor'
 import { MessagePreview } from '@/features/recruitment/components/organizer/resultNotice/messagePreview'
-import {
-  resultNoticeMessageSchema,
-  type ResultNoticeMessageValues,
-} from '@/features/recruitment/schemas/resultNoticeMessageSchema'
 import type { ResultNoticeVariable } from '@/features/recruitment/types'
+import { ApiError } from '@/lib/apiError'
+import { useToast } from '@/providers/toastProvider'
 
 const NOTICE_VARIABLES = ['이름', '공고명'] as const satisfies readonly ResultNoticeVariable[]
 // 사람마다 다른 이름은 예시 값으로 미리보기
 const PREVIEW_APPLICANT_NAME = '김모집'
 
+const NOTICE_FIELDS = ['subject', 'body'] as const satisfies readonly (keyof PostingNoticeValues)[]
+
 type PostingNoticeFormProps = {
+  postingId: string
   postingTitle: string
   organizationName: string
   applicantCount: number
+  onSent: () => void
+}
+
+function isNoticeField(field: string): field is keyof PostingNoticeValues {
+  return NOTICE_FIELDS.some((name) => name === field)
 }
 
 function PostingNoticeForm({
+  postingId,
   postingTitle,
   organizationName,
   applicantCount,
+  onSent,
 }: PostingNoticeFormProps) {
   const formRef = useRef<HTMLFormElement>(null)
+  // isPending은 다시 그린 뒤 반영돼 연속 제출을 놓칠 수 있어 바로 바뀌는 잠금 추가
+  const isSendingRef = useRef(false)
   const {
     control,
     setValue,
+    setError,
     reset,
     handleSubmit,
     formState: { errors, isSubmitted },
-  } = useForm<ResultNoticeMessageValues>({
-    resolver: zodResolver(resultNoticeMessageSchema),
+  } = useForm<PostingNoticeValues>({
+    resolver: zodResolver(postingNoticeSchema),
     defaultValues: POSTING_NOTICE_SAMPLE_MESSAGE,
   })
   const [subject, body] = useWatch({ control, name: ['subject', 'body'] })
+  const { mutate: sendNotice, isPending, error: sendError } = useSendNoticeMutation()
+  const { showToast } = useToast()
+  // 제목·본문 오류는 입력 칸에 표시, 입력 칸이 없는 필드 오류만 오면 아래 안내
+  const hasInputErrors =
+    sendError instanceof ApiError && sendError.fieldErrors.some(({ field }) => isNoticeField(field))
+  const sendErrorMessage =
+    sendError && !hasInputErrors ? getNoticeSendErrorMessage(sendError) : null
 
-  function changeField(name: keyof ResultNoticeMessageValues, value: string) {
+  function changeField(name: keyof PostingNoticeValues, value: string) {
     setValue(name, value, { shouldDirty: true, shouldValidate: isSubmitted })
   }
 
-  function handleSend() {
-    // TODO: 공지 발송 API 연결
-  }
-
-  // 오류 표시가 반영된 뒤 첫 오류 입력으로 이동
-  function handleInvalid() {
+  // 입력 칸을 register하지 않아 shouldFocus 대신, 오류 표시가 반영된 뒤 첫 오류 입력으로 이동
+  function focusFirstInvalidField() {
     requestAnimationFrame(() => {
       formRef.current?.querySelector<HTMLElement>('[aria-invalid=true]')?.focus()
     })
+  }
+
+  function showServerFieldErrors(error: Error) {
+    if (!(error instanceof ApiError)) {
+      return
+    }
+    const noticeFieldErrors = error.fieldErrors.flatMap(({ field, message }) =>
+      isNoticeField(field) ? [{ field, message }] : [],
+    )
+    noticeFieldErrors.forEach(({ field, message }) => {
+      setError(field, { type: 'server', message })
+    })
+    if (noticeFieldErrors.length > 0) {
+      focusFirstInvalidField()
+    }
+  }
+
+  // TODO: 발송 완료 안내 디자인 확인 필요, 지금은 팝업 닫고 토스트
+  function handleSend(values: PostingNoticeValues) {
+    if (isPending || isSendingRef.current) {
+      return
+    }
+    isSendingRef.current = true
+    sendNotice(
+      { postingId, ...values },
+      {
+        onSuccess: () => {
+          onSent()
+          showToast({ title: '공지를 보냈어요' })
+        },
+        onError: showServerFieldErrors,
+        // 실패 뒤 다시 보낼 수 있도록 성공·실패 모두 해제
+        onSettled: () => {
+          isSendingRef.current = false
+        },
+      },
+    )
   }
 
   return (
     <form
       ref={formRef}
       noValidate
-      onSubmit={(event) => void handleSubmit(handleSend, handleInvalid)(event)}
+      onSubmit={(event) => void handleSubmit(handleSend, focusFirstInvalidField)(event)}
       className="flex flex-col gap-5"
     >
       <div className="flex items-center justify-between gap-gap-l">
@@ -123,12 +181,19 @@ function PostingNoticeForm({
         </div>
       </div>
 
+      {sendErrorMessage && (
+        <InlineNotice tone="critical" role="alert">
+          {sendErrorMessage}
+        </InlineNotice>
+      )}
+
       <SummaryBar
         status="ready"
         shouldAnnounce={false}
         actions={
-          <Button type="submit" size="m">
-            {applicantCount}명에게 보내기
+          // 요청 중은 focus 유지를 위해 aria-disabled, 진행 상태는 버튼 문구로 알림
+          <Button type="submit" size="m" aria-disabled={isPending}>
+            {isPending ? '보내는 중' : `${applicantCount}명에게 보내기`}
           </Button>
         }
       >

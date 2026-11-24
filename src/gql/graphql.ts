@@ -204,6 +204,8 @@ export type PostingQueryVariables = Exact<{
 
 export type PostingQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> } };
 
+export type PostingDetailFieldsFragment = { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> };
+
 export type ManagedPostingFieldsFragment = { id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null, bumpRank: number | null };
 
 export type OrganizationPostingsQueryVariables = Exact<{
@@ -220,6 +222,22 @@ export type ManagedPostingSummaryQueryVariables = Exact<{
 
 
 export type ManagedPostingSummaryQuery = { organization: { id: string, upCredits: number, postingCounts: { published: number, draft: number, ended: number } } };
+
+export type ManagedPostingDetailQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type ManagedPostingDetailQuery = { posting: { applicationCount: number, id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> } };
+
+export type SendNoticeMutationVariables = Exact<{
+  postingId: string | number;
+  subject: string;
+  body: string;
+}>;
+
+
+export type SendNoticeMutation = { sendNotice: { id: string } };
 
 export type BumpPostingMutationVariables = Exact<{
   id: string | number;
@@ -325,6 +343,63 @@ export const OrganizationProfileFieldsFragmentDoc = new TypedDocumentString(`
   }
 }
     `, {"fragmentName":"OrganizationProfileFields"}) as unknown as TypedDocumentString<OrganizationProfileFieldsFragment, unknown>;
+export const PostingDetailFieldsFragmentDoc = new TypedDocumentString(`
+    fragment PostingDetailFields on Posting {
+  id
+  title
+  content
+  noPosition
+  hasInterview
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  region
+  fee
+  recruitStartAt
+  recruitEndAt
+  docResultAt
+  finalResultAt
+  images {
+    url
+    isRepresentative
+    sortOrder
+  }
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    title
+    sortOrder
+    position {
+      id
+    }
+  }
+  interviewTimeRanges {
+    date
+  }
+  organization {
+    name
+    type
+    logoUrl
+    tagline
+    keywords
+    fields
+    links {
+      id
+      url
+    }
+  }
+  otherActivePostings {
+    id
+    title
+    recruitStartAt
+    recruitEndAt
+  }
+}
+    `, {"fragmentName":"PostingDetailFields"}) as unknown as TypedDocumentString<PostingDetailFieldsFragment, unknown>;
 export const ManagedPostingFieldsFragmentDoc = new TypedDocumentString(`
     fragment ManagedPostingFields on Posting {
   id
@@ -504,62 +579,64 @@ export const PostingsDocument = new TypedDocumentString(`
 export const PostingDocument = new TypedDocumentString(`
     query Posting($id: ID!) {
   posting(id: $id) {
-    id
-    title
-    content
-    noPosition
-    hasInterview
-    allowEnrolled
-    allowOnLeave
-    eligibilityNote
-    region
-    fee
-    recruitStartAt
-    recruitEndAt
-    docResultAt
-    finalResultAt
-    images {
-      url
-      isRepresentative
-      sortOrder
-    }
-    positions {
-      id
-      name
-      sortOrder
-    }
-    questions {
-      id
-      title
-      sortOrder
-      position {
-        id
-      }
-    }
-    interviewTimeRanges {
-      date
-    }
-    organization {
-      name
-      type
-      logoUrl
-      tagline
-      keywords
-      fields
-      links {
-        id
-        url
-      }
-    }
-    otherActivePostings {
-      id
-      title
-      recruitStartAt
-      recruitEndAt
-    }
+    ...PostingDetailFields
   }
 }
-    `) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
+    fragment PostingDetailFields on Posting {
+  id
+  title
+  content
+  noPosition
+  hasInterview
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  region
+  fee
+  recruitStartAt
+  recruitEndAt
+  docResultAt
+  finalResultAt
+  images {
+    url
+    isRepresentative
+    sortOrder
+  }
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    title
+    sortOrder
+    position {
+      id
+    }
+  }
+  interviewTimeRanges {
+    date
+  }
+  organization {
+    name
+    type
+    logoUrl
+    tagline
+    keywords
+    fields
+    links {
+      id
+      url
+    }
+  }
+  otherActivePostings {
+    id
+    title
+    recruitStartAt
+    recruitEndAt
+  }
+}`) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
 export const OrganizationPostingsDocument = new TypedDocumentString(`
     query OrganizationPostings($organizationId: ID!, $status: [PostingStatus!]) {
   organizationPostings(organizationId: $organizationId, status: $status) {
@@ -591,6 +668,78 @@ export const ManagedPostingSummaryDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ManagedPostingSummaryQuery, ManagedPostingSummaryQueryVariables>;
+export const ManagedPostingDetailDocument = new TypedDocumentString(`
+    query ManagedPostingDetail($id: ID!) {
+  posting(id: $id) {
+    ...PostingDetailFields
+    applicationCount
+    organization {
+      id
+    }
+  }
+}
+    fragment PostingDetailFields on Posting {
+  id
+  title
+  content
+  noPosition
+  hasInterview
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  region
+  fee
+  recruitStartAt
+  recruitEndAt
+  docResultAt
+  finalResultAt
+  images {
+    url
+    isRepresentative
+    sortOrder
+  }
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    title
+    sortOrder
+    position {
+      id
+    }
+  }
+  interviewTimeRanges {
+    date
+  }
+  organization {
+    name
+    type
+    logoUrl
+    tagline
+    keywords
+    fields
+    links {
+      id
+      url
+    }
+  }
+  otherActivePostings {
+    id
+    title
+    recruitStartAt
+    recruitEndAt
+  }
+}`) as unknown as TypedDocumentString<ManagedPostingDetailQuery, ManagedPostingDetailQueryVariables>;
+export const SendNoticeDocument = new TypedDocumentString(`
+    mutation SendNotice($postingId: ID!, $subject: String!, $body: String!) {
+  sendNotice(postingId: $postingId, subject: $subject, body: $body) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<SendNoticeMutation, SendNoticeMutationVariables>;
 export const BumpPostingDocument = new TypedDocumentString(`
     mutation BumpPosting($id: ID!) {
   bumpPosting(id: $id) {

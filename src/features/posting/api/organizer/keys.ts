@@ -8,6 +8,8 @@ const managedPostingKeys = {
     ['managedPostings', 'list', organizationId, status] as const,
   // 탭 숫자와 UP 잔여 횟수
   summary: (organizationId: string) => ['managedPostings', 'summary', organizationId] as const,
+  // 공고 관리 상세, 공지 받는 사람 수 포함
+  detail: (postingId: string) => ['managedPostings', 'detail', postingId] as const,
 }
 
 export { managedPostingKeys }
