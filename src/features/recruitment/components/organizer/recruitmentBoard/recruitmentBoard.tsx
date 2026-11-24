@@ -48,8 +48,8 @@ type RecruitmentBoardQueryChange<TStatus extends string, TSort extends string> =
 type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
   // 헤더의 검색창이 목록 조건과 상태를 공유해 함께 렌더링
   header: RecruitmentBoardHeader
-  // 헤더와 목록 사이 요약 영역
-  summary?: ReactNode
+  // 탭바와 함께 헤더도 화면 위에 고정
+  isHeaderSticky?: boolean
   query: RecruitmentBoardQuery<TStatus, TSort>
   statusTabs: readonly RecruitmentBoardTab<TStatus>[]
   tabsLabel: string
@@ -77,7 +77,7 @@ type RecruitmentBoardProps<TStatus extends string, TSort extends string> = {
 
 function RecruitmentBoard<TStatus extends string, TSort extends string>({
   header,
-  summary,
+  isHeaderSticky = false,
   query,
   statusTabs,
   tabsLabel,
@@ -155,31 +155,38 @@ function RecruitmentBoard<TStatus extends string, TSort extends string>({
     }
   }
 
+  const pageHeader = (
+    <PageHeader
+      title={header.title}
+      description={header.description}
+      className="min-h-10"
+      actions={
+        <>
+          <div ref={searchFieldRef} inert={isPlaceholder} className="contents">
+            <SearchField
+              size="s"
+              className="w-55"
+              aria-label="지원자 이름 검색"
+              placeholder="이름 검색"
+              value={search.keyword}
+              onValueChange={search.changeKeyword}
+            />
+          </div>
+          {header.actions}
+        </>
+      }
+    />
+  )
+
   return (
     <>
-      <PageHeader
-        title={header.title}
-        description={header.description}
-        className="min-h-10"
-        actions={
-          <>
-            <div ref={searchFieldRef} inert={isPlaceholder} className="contents">
-              <SearchField
-                size="s"
-                className="w-55"
-                aria-label="지원자 이름 검색"
-                placeholder="이름 검색"
-                value={search.keyword}
-                onValueChange={search.changeKeyword}
-              />
-            </div>
-            {header.actions}
-          </>
-        }
-      />
-      {summary}
-      <section ref={sectionRef} inert={isPlaceholder} aria-label="지원자 목록">
+      {!isHeaderSticky && pageHeader}
+      {/* 헤더 고정 모드는 제목이 이 안에 들어가 영역 이름 생략, 표 자체 이름(지원자 목록)으로 구분 */}
+      <section ref={sectionRef} aria-label={isHeaderSticky ? undefined : '지원자 목록'}>
         <ListToolBar
+          header={isHeaderSticky && pageHeader}
+          hasBottomGap={isHeaderSticky}
+          isInert={isPlaceholder}
           tabs={statusTabs}
           tabsLabel={tabsLabel}
           value={query.status}

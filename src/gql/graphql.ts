@@ -4,11 +4,30 @@ type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+export type ApplicationSort =
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'SUBMITTED_ASC'
+  | 'SUBMITTED_DESC';
+
 export type ChangePasswordInput = {
   currentPassword: string;
   /** 회원가입과 같은 규칙 (8~64자, 영문+숫자) */
   newPassword: string;
 };
+
+export type DocResult =
+  | 'FAIL'
+  /** 보류 (남아 있으면 결과 확정 불가) */
+  | 'HOLD'
+  | 'PASS'
+  /** 평가가 다 끝나지 않아 선택 불가 */
+  | 'PENDING';
+
+export type FinalResult =
+  | 'FAIL'
+  | 'PASS'
+  | 'PENDING';
 
 export type MemberRole =
   | 'OPERATOR'
@@ -252,6 +271,24 @@ export type DeletePostingMutationVariables = Exact<{
 
 
 export type DeletePostingMutation = { deletePosting: boolean };
+
+export type ApplicantManagementPostingQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type ApplicantManagementPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
+
+export type PostingApplicationsQueryVariables = Exact<{
+  postingId: string | number;
+  positionId?: string | number | null | undefined;
+  keyword?: string | null | undefined;
+  sort?: ApplicationSort | null | undefined;
+  page?: number | null | undefined;
+}>;
+
+
+export type PostingApplicationsQuery = { postingApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ id: string, docResult: DocResult, finalResult: FinalResult, user: { name: string }, position: { name: string } | null }>, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -753,6 +790,50 @@ export const DeletePostingDocument = new TypedDocumentString(`
   deletePosting(id: $id)
 }
     `) as unknown as TypedDocumentString<DeletePostingMutation, DeletePostingMutationVariables>;
+export const ApplicantManagementPostingDocument = new TypedDocumentString(`
+    query ApplicantManagementPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    status
+    hasInterview
+    noPosition
+    docResultConfirmedAt
+  }
+}
+    `) as unknown as TypedDocumentString<ApplicantManagementPostingQuery, ApplicantManagementPostingQueryVariables>;
+export const PostingApplicationsDocument = new TypedDocumentString(`
+    query PostingApplications($postingId: ID!, $positionId: ID, $keyword: String, $sort: ApplicationSort, $page: Int) {
+  postingApplications(
+    postingId: $postingId
+    positionId: $positionId
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      id
+      user {
+        name
+      }
+      position {
+        name
+      }
+      docResult
+      finalResult
+    }
+    totalCount
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+  }
+}
+    `) as unknown as TypedDocumentString<PostingApplicationsQuery, PostingApplicationsQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

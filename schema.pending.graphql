@@ -22,6 +22,37 @@ extend type Query {
   posting(id: ID!): Posting! @public
   "공고 관리 탭: 진행 중 [RECRUITING, DOC_REVIEW, DOC_RESULT_NOTICE, INTERVIEW, FINAL_RESULT] / 작성 중 [DRAFT] / 종료 [ENDED]"
   organizationPostings(organizationId: ID!, status: [PostingStatus!]): [Posting!]!
+  "지원자 관리: 제출된 지원서만 10행씩. positionId null = 전체, keyword는 이름 부분 일치"
+  postingApplications(
+    postingId: ID!
+    positionId: ID
+    keyword: String
+    sort: ApplicationSort = SUBMITTED_DESC
+    page: Int = 1
+  ): PostingApplicationPage!
+}
+
+enum ApplicationSort {
+  SUBMITTED_DESC
+  SUBMITTED_ASC
+  NAME_ASC
+  NAME_DESC
+}
+
+type PostingApplicationPage {
+  rows: [Application!]!
+  "전체 탭 숫자, 검색어 적용·포지션 탭 무시"
+  totalCount: Int!
+  "포지션 탭 숫자, 검색어 적용. 포지션 없는 모집은 빈 배열"
+  positionCounts: [PositionCount!]!
+  page: Int!
+  "0이면 빈 화면, 페이지 번호 숨김"
+  totalPages: Int!
+}
+
+type PositionCount {
+  position: Position!
+  count: Int!
 }
 
 extend type Organization {
