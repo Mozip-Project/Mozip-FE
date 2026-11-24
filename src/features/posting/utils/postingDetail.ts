@@ -176,7 +176,7 @@ function getPostingFactRows(detail: PostingDetail): PostingSummaryRow[] {
 function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
   const { recruitmentStartsAt, recruitmentEndsAt, interviewPeriod } = detail
   const recruitmentPeriod = {
-    label: '지원 기간',
+    label: '모집 기간',
     value:
       recruitmentStartsAt && recruitmentEndsAt
         ? `${formatMonthDayTimeWithWeekday(recruitmentStartsAt)} ~ ${formatMonthDayTimeWithWeekday(recruitmentEndsAt)}`
