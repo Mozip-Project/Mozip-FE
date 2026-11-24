@@ -101,20 +101,27 @@ const ORGANIZATION_POSTING_SAMPLES = [
   },
 ] satisfies OrganizationPostingSample[]
 
-// 서류 결과를 확정한 뒤의 단계
-const DOCUMENT_RESULT_CONFIRMED_STATUSES: readonly PostingStatus[] = [
-  'DOC_RESULT_NOTICE',
-  'INTERVIEW',
-  'FINAL_RESULT',
-  'ENDED',
-]
-
 function findOrganizationPostingSample(postingId: string): OrganizationPostingSample | undefined {
   return ORGANIZATION_POSTING_SAMPLES.find(({ id }) => id === postingId)
 }
 
-function isDocumentResultConfirmed(status: PostingStatus) {
-  return DOCUMENT_RESULT_CONFIRMED_STATUSES.includes(status)
+// 서류 결과를 확정한 뒤의 단계인지, 상태 추가 시 누락을 타입 오류로 확인
+function isDocumentResultConfirmed(status: PostingStatus): boolean {
+  switch (status) {
+    case 'DRAFT':
+    case 'RECRUITING':
+    case 'DOC_REVIEW':
+      return false
+    case 'DOC_RESULT_NOTICE':
+    case 'INTERVIEW':
+    case 'FINAL_RESULT':
+    case 'ENDED':
+      return true
+    default: {
+      const unhandledStatus: never = status
+      return unhandledStatus
+    }
+  }
 }
 
 export {
