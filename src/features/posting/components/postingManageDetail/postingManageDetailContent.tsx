@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import FileTextIcon from '@/assets/icons/fileText.svg'
 import { Button } from '@/components/ui/Button/button'
 import { Callout } from '@/components/ui/Callout/callout'
@@ -31,8 +30,6 @@ function PostingManageDetailContent({
 }: PostingManageDetailContentProps) {
   const { meQuery, currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
   const postingQuery = useManagedPostingQuery(postingId)
-  // D-day 기준 시각, 다시 그릴 때마다 바뀌지 않도록 처음 한 번만
-  const [now] = useState(() => new Date())
   const { showToast } = useToast()
 
   if (meQuery.isError) {
@@ -71,10 +68,11 @@ function PostingManageDetailContent({
   }
 
   const detail = toPostingDetail(posting)
+  // D-day는 마지막 조회 시각 기준, 다시 조회(창 복귀 등)할 때마다 갱신
   const phase = getPostingRecruitmentPhase(
     detail.recruitmentStartsAt,
     detail.recruitmentEndsAt,
-    now,
+    new Date(postingQuery.dataUpdatedAt),
   )
 
   return (
