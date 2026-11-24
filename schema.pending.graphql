@@ -67,11 +67,43 @@ type PostingCounts {
   ended: Int!
 }
 
+# 공고 작성(savePostingDraft) 명세의 문항 설정, 서버 스키마는 아직 이전 유형(SINGLE_CHOICE·TABLE 등)
+extend enum QuestionType {
+  ACTIVITY
+}
+
+enum ActivityField {
+  "활동명. 끄면 접힌 제목이 '활동 경험 1, 2...'로 고정"
+  NAME
+  "활동 기간 YYYY.MM ~ YYYY.MM"
+  PERIOD
+  ROLE
+  ACHIEVEMENT
+}
+
+enum FileType {
+  PDF
+  IMAGE
+  PPT
+  MP4
+}
+
+extend type QuestionOptions {
+  activityFields: [ActivityField!]
+  "ACTIVITY 최대 개수 (기본 3)"
+  maxEntries: Int
+  acceptFile: Boolean
+  acceptLink: Boolean
+  "acceptFile일 때 1개 이상"
+  fileTypes: [FileType!]
+}
+
 extend type Posting {
   "같은 단체의 RECRUITING 공고, 현재 공고 제외"
   otherActivePostings: [Posting!]!
   "비로그인·운영진이면 빈 배열, 포지션 없는 모집은 최대 1개"
   myApplications: [Application!]!
+  profilePhotoRequired: Boolean!
   "제출된 지원서 수"
   applicationCount: Int!
   "전체 공고 최신순(bumpedAt 내림차순) 순위, DRAFT·ENDED는 null"
@@ -134,12 +166,36 @@ type Mutation {
   verifyPhoneChange(phone: String!, code: String!): Boolean!
   "현재 비밀번호 불일치는 AUTH_001, 성공하면 다른 기기 로그인 끊김"
   changePassword(input: ChangePasswordInput!): Boolean!
+  "공고 하나에 한 사람당 1개, 첫 호출에 DRAFT로 생성하고 이후 덮어씀. 모집 기간 밖 POSTING_409, 제출 뒤 APPLICATION_409"
+  saveApplicationDraft(postingId: ID!, input: ApplicationInput!): Application!
+  "필수 문항 검증 후 SUBMITTED, 제출 시점 프로필 복사. 미작성 APPLICATION_400(fieldErrors는 questionId별), 마감 POSTING_409, 이미 제출 APPLICATION_409, 자격 불충족 USER_403"
+  submitApplication(id: ID!): Application!
   "잔여권 1 차감 후 최신순 맨 위로, 잔여권 없으면 PAYMENT_402, RECRUITING이 아니면 POSTING_409"
   bumpPosting(id: ID!): Posting!
   "DRAFT만 삭제 가능, 아니면 POSTING_409"
   deletePosting(id: ID!): Boolean!
   "제출 지원자 전원에게 바로 발송, 제목 1~100자·본문 1~1,000자, DRAFT면 MESSAGE_409, 받는 사람 없으면 MESSAGE_422"
   sendNotice(postingId: ID!, subject: String!, body: String!): Message!
+}
+
+input ApplicationInput {
+  positionId: ID
+  answers: [AnswerInput!]!
+  "면접 있는 공고만"
+  availableTimes: [DateTime!]
+}
+
+input AnswerInput {
+  questionId: ID!
+  "TEXT는 입력 그대로, ACTIVITY는 JSON 문자열"
+  content: String
+  attachments: [AttachmentInput!]
+}
+
+"명세에 정의 없이 'fileKey 또는 url'만 있어 두 필드로 둠, 백엔드 확인 필요"
+input AttachmentInput {
+  fileKey: String
+  url: String
 }
 
 input UpdateProfileInput {

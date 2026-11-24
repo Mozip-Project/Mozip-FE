@@ -20,7 +20,8 @@ type ProfileCardProps = {
   onPhotoChange: (file: File) => void
   maskedPhone: string
   university: string
-  email: string
+  // 없으면 이메일 줄 숨김
+  email: string | null
   isPhotoRequired?: boolean
   // 학과·학년 입력 줄
   children: ReactNode
@@ -132,10 +133,12 @@ function ProfileCard({
           <dt className="text-label1 font-normal text-neutral-muted">인증 학교</dt>
           <dd className="text-body2 font-medium break-words text-neutral">{university}</dd>
         </div>
-        <div className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-x-gap-l">
-          <dt className="text-label1 font-normal text-neutral-muted">인증 이메일</dt>
-          <dd className="text-body2 font-medium break-words text-neutral">{email}</dd>
-        </div>
+        {email && (
+          <div className="grid grid-cols-[120px_minmax(0,1fr)] items-center gap-x-gap-l">
+            <dt className="text-label1 font-normal text-neutral-muted">인증 이메일</dt>
+            <dd className="text-body2 font-medium break-words text-neutral">{email}</dd>
+          </div>
+        )}
       </dl>
       <hr className="border-neutral-subtle" />
       {children}

@@ -1,0 +1,101 @@
+query PostingApplicationForm($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    noPosition
+    hasInterview
+    profilePhotoRequired
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      type
+      title
+      description
+      required
+      maxLength
+      sortOrder
+      position {
+        id
+      }
+      options {
+        activityFields
+        maxEntries
+        acceptFile
+        acceptLink
+        fileTypes
+      }
+    }
+    interviewTimeRanges {
+      date
+      startTime
+      endTime
+      closedSlots
+      position {
+        id
+      }
+    }
+  }
+}
+
+mutation SaveApplicationDraft($postingId: ID!, $input: ApplicationInput!) {
+  saveApplicationDraft(postingId: $postingId, input: $input) {
+    id
+    updatedAt
+  }
+}
+
+mutation SubmitApplication($id: ID!) {
+  submitApplication(id: $id) {
+    id
+  }
+}
+
+# 로그인 쿠키가 필요해 브라우저에서 조회, 임시 저장 답변은 이어 쓰기에 사용
+query PostingMyApplications($id: ID!) {
+  posting(id: $id) {
+    id
+    myApplications {
+      id
+      submittedAt
+      updatedAt
+      position {
+        id
+      }
+      availableTimes
+      answers {
+        question {
+          id
+        }
+        content
+        attachments {
+          type
+          url
+        }
+      }
+    }
+  }
+}
+
+# 지원서 1단계 프로필 카드, 로그인 쿠키가 필요해 브라우저에서 조회
+query ApplicantProfile {
+  me {
+    id
+    name
+    phone
+    profileImageUrl
+    school {
+      name
+    }
+    schoolVerification {
+      schoolName
+      email
+      school {
+        name
+      }
+    }
+  }
+}
