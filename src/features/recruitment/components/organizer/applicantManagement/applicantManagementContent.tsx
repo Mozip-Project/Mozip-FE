@@ -27,6 +27,8 @@ function ApplicantManagementContent() {
   const query = parseApplicantManagementQuery(useSearchParams())
   const { data, isError, isPlaceholderData } = useApplicantManagement(postingId, query)
   const columns = data && { hasInterview: data.hasInterview, hasPositions: data.hasPositions }
+  // 첫 조회 중에는 조작 차단, 실패 화면에서는 다시 조작 가능
+  const isFirstLoading = !data && !isError
 
   return (
     <ApplicantManagementBoard
@@ -37,6 +39,7 @@ function ApplicantManagementContent() {
       totalPages={data?.totalPages ?? 0}
       isPending={isPlaceholderData}
       columns={columns}
+      isPlaceholder={isFirstLoading}
     >
       <ApplicantManagementList data={data} isError={isError} query={query} />
     </ApplicantManagementBoard>
