@@ -14,8 +14,12 @@ import {
   DialogSummaryRow,
 } from '@/components/ui/Dialog/dialog'
 import { Toast, ToastProvider, ToastViewport } from '@/components/ui/Toast/toast'
-import { useConfirmDocumentResultsMutation } from '@/features/recruitment/hooks/useDocumentResults'
+import { useConfirmDocResultMutation } from '@/features/recruitment/api/organizer/queries'
 import type { DocumentResult } from '@/features/recruitment/types'
+import { ApiError } from '@/lib/apiError'
+
+// 두 번 클릭 하거나 다른 운영진이 먼저 확정한 경우, 재조회로 확정 후 화면이 되므로 실패 안내 없이 닫기
+const ALREADY_CONFIRMED_ERROR_CODE = 'EVALUATION_423'
 
 type DocumentResultConfirmDialogProps = {
   postingId: string
@@ -34,7 +38,7 @@ function DocumentResultConfirmDialog({
   resultCounts,
   onCloseAutoFocus,
 }: DocumentResultConfirmDialogProps) {
-  const { mutate: confirmResults, isPending } = useConfirmDocumentResultsMutation(postingId)
+  const { mutate: confirmResults, isPending } = useConfirmDocResultMutation(postingId)
   const [isFailureToastOpen, setIsFailureToastOpen] = useState(false)
   const followUpMessage = hasInterviewStep
     ? '이후 면접 일정을 등록하고 지원자에게 안내할 수 있어요.'
@@ -54,7 +58,13 @@ function DocumentResultConfirmDialog({
     setIsFailureToastOpen(false)
     confirmResults(undefined, {
       onSuccess: () => onOpenChange(false),
-      onError: () => setIsFailureToastOpen(true),
+      onError: (error) => {
+        if (error instanceof ApiError && error.code === ALREADY_CONFIRMED_ERROR_CODE) {
+          onOpenChange(false)
+          return
+        }
+        setIsFailureToastOpen(true)
+      },
     })
   }
 

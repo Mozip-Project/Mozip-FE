@@ -1,5 +1,4 @@
 import {
-  DOCUMENT_REVIEW_POSITION_LABEL,
   DOCUMENT_REVIEW_POSITIONS,
   type DocumentReviewPosition,
   type DocumentReviewSort,
@@ -58,15 +57,6 @@ function getBoardStatusTabs<TStatus extends string>(
     value: status,
     label: labels[status],
     count: counts ? counts[status] : null,
-  }))
-}
-
-// 고정 포지션 화면용, counts가 null이면 첫 진입 로딩 중이라 숫자 생략
-function getFixedPositionOptions(counts: Record<DocumentReviewPosition, number> | null) {
-  return DOCUMENT_REVIEW_POSITIONS.map((position) => ({
-    value: position,
-    label: DOCUMENT_REVIEW_POSITION_LABEL[position],
-    count: counts?.[position],
   }))
 }
 
@@ -133,8 +123,6 @@ export {
   getBoardHref,
   getBoardSortOptions,
   getBoardStatusTabs,
-  getFixedPositionOptions,
-  hasPositionFilter,
   parseBoardQuery,
   parsePositionIds,
 }

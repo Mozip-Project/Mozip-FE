@@ -6,26 +6,18 @@ import {
   RecruitmentBoard,
   type RecruitmentBoardQueryChange,
 } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
-import {
-  useDocumentResultOverview,
-  useDocumentResultsQuery,
-  useUpdateDocumentResultMutation,
-} from '@/features/recruitment/hooks/useDocumentResults'
+import { RecruitmentBoardLoadError } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardLoadError'
+import { useDocumentResults } from '@/features/recruitment/hooks/useDocumentResults'
 import {
   DOCUMENT_RESULT_SORT_LABEL,
   DOCUMENT_RESULT_SORTS,
   DOCUMENT_RESULT_STATUS_LABEL,
   DOCUMENT_RESULT_STATUSES,
   type DocumentResultApplicantPage,
-  type DocumentResultQuery,
   type DocumentResultSort,
   type DocumentResultStatus,
 } from '@/features/recruitment/types'
-import {
-  getBoardSortOptions,
-  getBoardStatusTabs,
-  getFixedPositionOptions,
-} from '@/features/recruitment/utils/boardQuery'
+import { getBoardSortOptions, getBoardStatusTabs } from '@/features/recruitment/utils/boardQuery'
 import {
   getDocumentResultHref,
   parseDocumentResultQuery,
@@ -42,8 +34,15 @@ const SORT_OPTIONS = getBoardSortOptions(DOCUMENT_RESULT_SORTS, DOCUMENT_RESULT_
 
 const NOOP = () => undefined
 
-function getStatusTabs(statusCounts: DocumentResultApplicantPage['statusCounts'] | null) {
-  return getBoardStatusTabs(DOCUMENT_RESULT_STATUSES, DOCUMENT_RESULT_STATUS_LABEL, statusCounts)
+// 확정 후에는 보류가 남지 않아 보류 탭 숨김
+function getStatusTabs(
+  statusCounts: DocumentResultApplicantPage['statusCounts'] | null,
+  isConfirmed: boolean,
+) {
+  const statuses = isConfirmed
+    ? DOCUMENT_RESULT_STATUSES.filter((status) => status !== 'hold')
+    : DOCUMENT_RESULT_STATUSES
+  return getBoardStatusTabs(statuses, DOCUMENT_RESULT_STATUS_LABEL, statusCounts)
 }
 
 function getHeader(confirmedAt: string | null) {
@@ -53,31 +52,46 @@ function getHeader(confirmedAt: string | null) {
 
   return {
     title: TITLE,
-    description: `${formatDateTimeWithWeekday(new Date(confirmedAt))}에 결과를 확정했어요.`,
-    actions: (
+    badge: (
       <Badge tone="positive" variant="weak">
         확정 완료
       </Badge>
     ),
+    description: `${formatDateTimeWithWeekday(new Date(confirmedAt))}에 결과를 확정했어요.`,
   }
 }
 
 function DocumentResultContent() {
   const { postingId } = useParams<{ postingId: string }>()
-  const query = parseDocumentResultQuery(useSearchParams())
-  const { data, isPlaceholderData } = useDocumentResultsQuery(postingId, query)
-  const overview = useDocumentResultOverview(postingId)
-  const { mutate: updateResult } = useUpdateDocumentResultMutation(postingId, query)
+  const { data, query, isError, isPlaceholderData, changeResult, isSaving } = useDocumentResults(
+    postingId,
+    parseDocumentResultQuery(useSearchParams()),
+  )
 
-  if (!data || !overview) {
-    return <DocumentResultContentFallback />
+  if (!data) {
+    return <DocumentResultContentFallback isError={isError} />
   }
 
-  // 목록 조건은 URL에만 두고 서버 렌더링 없이 갱신
+  const { positionOptions } = data
+  const isConfirmed = data.totals.confirmedAt !== null
+  const selectedPositionLabels = positionOptions
+    .filter((option) => query.positions.includes(option.value))
+    .map((option) => option.label)
+
+  // 목록 조건은 URL에만 두고 서버 렌더링 없이 갱신, 포지션을 모두 고르면 전체로 처리
   function handleQueryChange(
-    change: RecruitmentBoardQueryChange<DocumentResultStatus, DocumentResultSort>,
+    change: RecruitmentBoardQueryChange<DocumentResultStatus, DocumentResultSort, string>,
   ) {
-    const nextQuery: DocumentResultQuery = { ...query, ...change, page: 1 }
+    let positions = query.positions
+    if (change.positions) {
+      const selectedPositions = change.positions
+      const isAllSelected =
+        positionOptions.length > 0 &&
+        positionOptions.every((option) => selectedPositions.includes(option.value))
+      positions = isAllSelected ? [] : selectedPositions
+    }
+
+    const nextQuery = { ...query, ...change, positions, page: 1 }
     window.history.replaceState(null, '', getDocumentResultHref(postingId, nextQuery))
   }
 
@@ -88,14 +102,16 @@ function DocumentResultContent() {
   return (
     <>
       <RecruitmentBoard
-        header={getHeader(overview.confirmedAt)}
+        header={getHeader(data.totals.confirmedAt)}
+        isHeaderSticky
         query={query}
-        statusTabs={getStatusTabs(data.statusCounts)}
+        statusTabs={getStatusTabs(data.statusCounts, isConfirmed)}
         tabsLabel="최종 결과"
         sortOptions={SORT_OPTIONS}
-        positionOptions={getFixedPositionOptions(data.positionCounts)}
+        positionOptions={positionOptions}
+        canFilterPosition={data.hasPositions}
         isPending={isPlaceholderData}
-        skeleton={<DocumentResultSkeletonTable />}
+        skeleton={<DocumentResultSkeletonTable hasPositions={data.hasPositions} />}
         currentPage={data.currentPage}
         totalPages={data.totalPages}
         getPageHref={(page) => getDocumentResultHref(postingId, { ...query, page })}
@@ -103,12 +119,14 @@ function DocumentResultContent() {
         onPageNavigate={handlePageNavigate}
       >
         <DocumentResultTable
-          isConfirmed={overview.confirmedAt !== null}
+          isConfirmed={isConfirmed}
+          hasPositions={data.hasPositions}
           applicants={data.applicants}
-          onResultChange={(applicantId, result) => updateResult({ applicantId, result })}
+          onResultChange={changeResult}
           emptyState={
             <DocumentResultEmptyState
-              query={query}
+              status={query.status}
+              positionLabels={selectedPositionLabels}
               keyword={query.keyword.trim()}
               totalCount={data.statusCounts.all}
             />
@@ -117,24 +135,26 @@ function DocumentResultContent() {
       </RecruitmentBoard>
       <DocumentResultSummaryBar
         postingId={postingId}
-        statusCounts={data.statusCounts}
-        totalResultCounts={data.totalResultCounts}
-        overview={overview}
+        hasInterview={data.hasInterview}
+        totals={data.totals}
+        isSaving={isSaving}
+        visibleHoldCount={data.statusCounts.hold}
       />
     </>
   )
 }
 
-// 첫 진입 로딩용, 조작 차단
-function DocumentResultContentFallback() {
+// 첫 진입 로딩·이전 목록 없는 조회 실패용, 탭·필터 조작 차단
+function DocumentResultContentFallback({ isError = false }: { isError?: boolean }) {
   return (
     <RecruitmentBoard
       header={getHeader(null)}
+      isHeaderSticky
       query={parseDocumentResultQuery({})}
-      statusTabs={getStatusTabs(null)}
+      statusTabs={getStatusTabs(null, false)}
       tabsLabel="최종 결과"
       sortOptions={SORT_OPTIONS}
-      positionOptions={getFixedPositionOptions(null)}
+      positionOptions={[]}
       isPending={false}
       skeleton={null}
       currentPage={1}
@@ -144,9 +164,13 @@ function DocumentResultContentFallback() {
       onPageNavigate={NOOP}
       isPlaceholder
     >
-      <div className="animate-skeleton-delayed-show">
-        <DocumentResultSkeletonTable />
-      </div>
+      {isError ? (
+        <RecruitmentBoardLoadError />
+      ) : (
+        <div className="animate-skeleton-delayed-show">
+          <DocumentResultSkeletonTable />
+        </div>
+      )}
     </RecruitmentBoard>
   )
 }

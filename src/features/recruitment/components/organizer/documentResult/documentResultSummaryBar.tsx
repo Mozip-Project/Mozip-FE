@@ -4,10 +4,7 @@ import Link from 'next/link'
 import { useRef, useState, type Ref } from 'react'
 import { Button } from '@/components/ui/Button/button'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
-import type {
-  DocumentResultApplicantPage,
-  DocumentResultOverview,
-} from '@/features/recruitment/types'
+import type { DocumentResultTotals } from '@/features/recruitment/types'
 import {
   getDocumentResultNextStepMessage,
   getDocumentResultSummary,
@@ -22,29 +19,28 @@ import { DocumentResultConfirmDialog } from './documentResultConfirmDialog'
 // 목록 길이와 관계없이 화면 하단에 고정, 페이지 래퍼의 page-min-height와 함께 사용
 const STICKY_BOTTOM_CLASS = 'page-bottom-bar'
 
-type DocumentResultSummaryBarProps = Pick<
-  DocumentResultApplicantPage,
-  'statusCounts' | 'totalResultCounts'
-> & {
+type DocumentResultSummaryBarProps = {
   postingId: string
-  overview: DocumentResultOverview
+  hasInterview: boolean
+  totals: DocumentResultTotals
+  visibleHoldCount: number
+  // 결과 변경 저장 전·저장 중
+  isSaving: boolean
 }
 
 function DocumentResultSummaryBar({
   postingId,
-  statusCounts,
-  totalResultCounts,
-  overview: { hasInterview, confirmedAt },
+  hasInterview,
+  totals,
+  visibleHoldCount,
+  isSaving,
 }: DocumentResultSummaryBarProps) {
   const primaryActionRef = useRef<HTMLButtonElement>(null)
   const primaryLinkRef = useRef<HTMLAnchorElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const isConfirmed = confirmedAt !== null
-  const { status, message, canConfirm } = getDocumentResultSummary({
-    statusCounts,
-    totalResultCounts,
-  })
-  const hasInterviewStep = hasInterviewStepAfterConfirm(hasInterview, totalResultCounts)
+  const isConfirmed = totals.confirmedAt !== null
+  const { status, message, canConfirm } = getDocumentResultSummary(totals, visibleHoldCount)
+  const hasInterviewStep = hasInterviewStepAfterConfirm(hasInterview, totals.passCount)
 
   return (
     <>
@@ -70,7 +66,8 @@ function DocumentResultSummaryBar({
             <Button
               ref={primaryActionRef}
               size="m"
-              disabled={!canConfirm}
+              // 저장 전 결과로 확정 요청이 먼저 가지 않도록 저장이 끝날 때까지 막음
+              disabled={!canConfirm || isSaving}
               onClick={() => setIsDialogOpen(true)}
             >
               결과 확정하기
@@ -85,7 +82,11 @@ function DocumentResultSummaryBar({
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         hasInterviewStep={hasInterviewStep}
-        resultCounts={totalResultCounts}
+        resultCounts={{
+          pass: totals.passCount,
+          hold: totals.holdCount,
+          fail: totals.failCount,
+        }}
         // 트리거 없이 열고, 확정 후에는 버튼이 바뀌므로 현재 주요 버튼으로 focus 복귀
         onCloseAutoFocus={(event) => {
           event.preventDefault()
