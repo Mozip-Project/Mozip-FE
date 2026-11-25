@@ -15,6 +15,7 @@ import type {
   SendNoticeMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import {
@@ -90,7 +91,7 @@ function createInitialState(): Record<string, OrganizationPostingState> {
   const today = getSeoulIsoDate(new Date())
 
   return {
-    '1': {
+    [MOCK_ORGANIZATION_ID]: {
       upCredits: 1,
       postings: ORGANIZATION_POSTING_SAMPLES.map((sample) => toManagedPostingFields(sample, today)),
     },
@@ -123,6 +124,20 @@ function getApplicantCount(postingId: string) {
 // 지원자 관리 MSW가 운영진 홈과 같은 공고 상태를 쓰도록 공개
 function getManagedPostingSample(postingId: string) {
   return findPosting(postingId)?.posting ?? null
+}
+
+function isManagingOrganization(organizationId: string) {
+  return organizationId in organizationStates
+}
+
+// 공고 작성 MSW의 저장·게시 결과를 운영진 홈 목록에 반영, 새 공고는 맨 앞
+function saveManagedPosting(organizationId: string, posting: ManagedPostingFieldsFragment) {
+  const state = organizationStates[organizationId]
+  if (!state) {
+    return
+  }
+  const index = state.postings.findIndex(({ id }) => id === posting.id)
+  state.postings = index === -1 ? [posting, ...state.postings] : state.postings.with(index, posting)
 }
 
 function getNoticeFieldErrors({ subject, body }: SendNoticeMutationVariables) {
@@ -314,4 +329,10 @@ const managedPostingHandlers = [
   ),
 ]
 
-export { getManagedPostingSample, managedPostingHandlers, resetManagedPostings }
+export {
+  getManagedPostingSample,
+  isManagingOrganization,
+  managedPostingHandlers,
+  resetManagedPostings,
+  saveManagedPosting,
+}

@@ -2,13 +2,18 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
 import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
+import { resetPostingDrafts } from '@/features/posting/mocks/postingDraftHandlers'
 import { MANAGED_POSTING_TAB_STATUSES } from '@/features/posting/utils/managedPosting'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import {
   bumpPosting,
   deletePosting,
   getManagedPosting,
   getManagedPostingSummary,
   getOrganizationPostings,
+  getPostingDraft,
+  publishPosting,
+  savePostingDraft,
   sendNotice,
 } from './api'
 
@@ -23,6 +28,7 @@ beforeAll(() => {
 
 afterEach(() => {
   resetManagedPostings()
+  resetPostingDrafts()
 })
 
 afterAll(() => {
@@ -31,7 +37,10 @@ afterAll(() => {
 
 describe('getOrganizationPostings', () => {
   it('탭의 상태에 해당하는 공고만 조회', async () => {
-    const postings = await getOrganizationPostings('1', MANAGED_POSTING_TAB_STATUSES.published)
+    const postings = await getOrganizationPostings(
+      MOCK_ORGANIZATION_ID,
+      MANAGED_POSTING_TAB_STATUSES.published,
+    )
 
     expect(postings.map(({ id, status }) => [id, status])).toEqual([
       [RECRUITING_ID, 'RECRUITING'],
@@ -52,7 +61,9 @@ describe('getOrganizationPostings', () => {
 describe('bumpPosting', () => {
   it('지원 접수 중인 공고는 1위로 올리고 잔여권 1 차감', async () => {
     await expect(bumpPosting(RECRUITING_ID)).resolves.toEqual({ id: RECRUITING_ID, bumpRank: 1 })
-    await expect(getManagedPostingSummary('1')).resolves.toMatchObject({ upCredits: 0 })
+    await expect(getManagedPostingSummary(MOCK_ORGANIZATION_ID)).resolves.toMatchObject({
+      upCredits: 0,
+    })
   })
 
   it('잔여권이 없으면 PAYMENT_402', async () => {
@@ -68,12 +79,12 @@ describe('bumpPosting', () => {
 
 describe('deletePosting', () => {
   it('작성 중 공고를 지우면 탭 숫자에서도 빠짐', async () => {
-    await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
+    await expect(getManagedPostingSummary(MOCK_ORGANIZATION_ID)).resolves.toMatchObject({
       postingCounts: { published: 5, draft: 1, ended: 1 },
     })
 
     await expect(deletePosting('3')).resolves.toBe(true)
-    await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
+    await expect(getManagedPostingSummary(MOCK_ORGANIZATION_ID)).resolves.toMatchObject({
       postingCounts: { published: 5, draft: 0, ended: 1 },
     })
   })
@@ -89,12 +100,15 @@ describe('getManagedPosting', () => {
       id: DOC_REVIEW_ID,
       title: '서류 평가 진행 중이래',
       applicationCount: 48,
-      organization: { id: '1', name: 'UXUX' },
+      organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' },
     })
   })
 
   it('홈 카드와 같은 일정으로 응답, 서류 평가 중 공고는 모집 마감이 지남', async () => {
-    const postings = await getOrganizationPostings('1', MANAGED_POSTING_TAB_STATUSES.published)
+    const postings = await getOrganizationPostings(
+      MOCK_ORGANIZATION_ID,
+      MANAGED_POSTING_TAB_STATUSES.published,
+    )
     const card = postings.find(({ id }) => id === DOC_REVIEW_ID)
     const posting = await getManagedPosting(DOC_REVIEW_ID)
 
@@ -109,7 +123,7 @@ describe('getManagedPosting', () => {
   it('운영진 홈에 없는 공고는 다른 단체 공고로 응답', async () => {
     const posting = await getManagedPosting(POSTING_SAMPLE_ID.direct)
 
-    expect(posting.organization.id).not.toBe('1')
+    expect(posting.organization.id).not.toBe(MOCK_ORGANIZATION_ID)
   })
 
   it('없는 공고는 POSTING_404', async () => {
@@ -140,5 +154,152 @@ describe('sendNotice', () => {
     await expect(sendNotice({ postingId: '3', ...NOTICE })).rejects.toMatchObject({
       code: 'MESSAGE_409',
     })
+  })
+})
+
+const DAY_MS = 24 * 60 * 60 * 1000
+const RECRUIT_PERIOD = {
+  recruitStartAt: new Date(Date.now() - DAY_MS).toISOString(),
+  recruitEndAt: new Date(Date.now() + 7 * DAY_MS).toISOString(),
+}
+
+// 게시 검사를 통과하는 통합 모집 공고
+async function saveReadyPosting() {
+  const { id } = await savePostingDraft({
+    organizationId: MOCK_ORGANIZATION_ID,
+    input: { title: 'UXUX 15기 신입 부원 모집', content: '<p>함께해요</p>', hasInterview: true },
+  })
+  await savePostingDraft({ organizationId: MOCK_ORGANIZATION_ID, id, input: RECRUIT_PERIOD })
+  await savePostingDraft({ organizationId: MOCK_ORGANIZATION_ID, id, input: { noPosition: true } })
+  await savePostingDraft({
+    organizationId: MOCK_ORGANIZATION_ID,
+    id,
+    input: {
+      questions: [
+        { type: 'TEXT', title: '자기소개', required: true, maxLength: 500, sortOrder: 0 },
+      ],
+    },
+  })
+  return id
+}
+
+describe('savePostingDraft', () => {
+  it('id 없이 저장하면 새 작성 중 공고를 만들고 작성 중 탭에도 추가', async () => {
+    const posting = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: 'UXUX 15기 신입 부원 모집', hasInterview: true },
+    })
+
+    expect(posting).toMatchObject({
+      status: 'DRAFT',
+      hasInterview: true,
+      title: 'UXUX 15기 신입 부원 모집',
+    })
+    const drafts = await getOrganizationPostings(
+      MOCK_ORGANIZATION_ID,
+      MANAGED_POSTING_TAB_STATUSES.draft,
+    )
+    expect(drafts.map(({ id }) => id)).toEqual([posting.id, '3'])
+  })
+
+  it('새 공고는 제목이 없으면 COMMON_400', async () => {
+    await expect(
+      savePostingDraft({ organizationId: MOCK_ORGANIZATION_ID, input: { title: '  ' } }),
+    ).rejects.toMatchObject({ code: 'COMMON_400' })
+  })
+
+  it('보내지 않은 값은 유지, 지울 수 있는 값은 null이면 지움', async () => {
+    const { id } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: '공고', region: '서울', fee: '30000' },
+    })
+    const posting = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: { region: null },
+    })
+
+    expect(posting).toMatchObject({ title: '공고', region: null, fee: '30000' })
+  })
+
+  it('포지션을 저장하면 새 id가 생기고, 문항은 그 id로 포지션에 연결', async () => {
+    const { id } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: '공고' },
+    })
+    const { positions } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: { noPosition: false, positions: [{ name: '디자인팀', sortOrder: 0 }] },
+    })
+    const positionId = positions[0]?.id
+    const { questions } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: {
+        questions: [{ positionId, type: 'TEXT', title: '자기소개', required: true, sortOrder: 0 }],
+      },
+    })
+
+    expect(questions).toMatchObject([{ position: { id: positionId }, title: '자기소개' }])
+    await expect(
+      savePostingDraft({
+        organizationId: MOCK_ORGANIZATION_ID,
+        id,
+        input: {
+          questions: [
+            { positionId: 'gone', type: 'TEXT', title: 'Q', required: true, sortOrder: 0 },
+          ],
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'COMMON_400' })
+  })
+
+  it('운영진 홈의 작성 중 샘플을 이어서 조회', async () => {
+    await expect(getPostingDraft('3')).resolves.toMatchObject({
+      id: '3',
+      status: 'DRAFT',
+      title: 'UXUX 15기 운영진 추가 모집',
+    })
+  })
+
+  it('소속이 아닌 단체는 COMMON_403', async () => {
+    await expect(
+      savePostingDraft({ organizationId: '999', input: { title: '공고' } }),
+    ).rejects.toMatchObject({ code: 'COMMON_403' })
+  })
+})
+
+describe('publishPosting', () => {
+  it('필수 값이 비어 있으면 POSTING_400과 단계별 안내', async () => {
+    const { id } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: '공고' },
+    })
+
+    await expect(publishPosting(id)).rejects.toMatchObject({
+      code: 'POSTING_400',
+      fieldErrors: [
+        { field: 'basicStep', message: '기본 정보(제목, 본문)를 입력해주세요.' },
+        { field: 'basicStep', message: '모집 기간을 입력해주세요.' },
+        { field: 'positionsStep', message: '모집 포지션을 1개 이상 추가해주세요.' },
+        { field: 'questionsStep', message: '지원서 문항을 1개 이상 추가해주세요.' },
+      ],
+    })
+  })
+
+  it('게시하면 진행 중 탭 맨 위, 이후 저장은 POSTING_409', async () => {
+    const id = await saveReadyPosting()
+
+    await expect(publishPosting(id)).resolves.toEqual({ id, status: 'RECRUITING' })
+    const published = await getOrganizationPostings(
+      MOCK_ORGANIZATION_ID,
+      MANAGED_POSTING_TAB_STATUSES.published,
+    )
+    expect(published[0]).toMatchObject({ id, status: 'RECRUITING', bumpRank: 1 })
+    await expect(
+      savePostingDraft({ organizationId: MOCK_ORGANIZATION_ID, id, input: { title: '수정' } }),
+    ).rejects.toMatchObject({ code: 'POSTING_409' })
+    await expect(publishPosting(id)).rejects.toMatchObject({ code: 'POSTING_409' })
   })
 })

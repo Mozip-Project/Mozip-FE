@@ -3,6 +3,7 @@ import { organizationMemberHandlers } from '@/features/organization/mocks/organi
 import { organizationProfileHandlers } from '@/features/organization/mocks/organizationProfileHandlers'
 import { managedPostingHandlers } from '@/features/posting/mocks/managedPostingHandlers'
 import { postingDetailHandlers } from '@/features/posting/mocks/postingDetailHandlers'
+import { postingDraftHandlers } from '@/features/posting/mocks/postingDraftHandlers'
 import { postingListHandlers } from '@/features/posting/mocks/postingListHandlers'
 import { postingReportHandlers } from '@/features/posting/mocks/postingReportHandlers'
 import { applicantManagementHandlers } from '@/features/recruitment/mocks/applicantManagementHandlers'
@@ -11,6 +12,9 @@ import { documentReviewHandlers } from '@/features/recruitment/mocks/documentRev
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
 import type { AnyHandler } from 'msw'
+
+// 전시회 시연 모드는 공고 작성 저장·조회·게시를 실제 서버로 보냄 (전시회 후 삭제)
+const isPostingDemoMode = process.env.NEXT_PUBLIC_POSTING_DEMO_MODE === 'enabled'
 
 const handlers: AnyHandler[] = [
   ...notificationHandlers,
@@ -23,6 +27,7 @@ const handlers: AnyHandler[] = [
   ...organizationMemberHandlers,
   ...organizationProfileHandlers,
   ...managedPostingHandlers,
+  ...(isPostingDemoMode ? [] : postingDraftHandlers),
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
 ]
