@@ -88,15 +88,21 @@ describe('applyDocResultChange', () => {
     const page = applyDocResultChange(
       {
         ...SUMMARY_PAGE,
-        rows: [createRow('a', 'PENDING')],
-        summary: { ...SUMMARY_PAGE.summary, holdCount: 0 },
+        rows: [createRow('a', 'PENDING'), createRow('b', 'PASS'), createRow('c', 'FAIL')],
+        tabCounts: { all: 3, pass: 1, hold: 0, fail: 1 },
+        summary: { ...SUMMARY_PAGE.summary, holdCount: 0, failCount: 1 },
       },
       'a',
       { from: 'PENDING', to: 'FAIL', isCounted: true },
     )
 
-    expect(page.tabCounts).toEqual({ all: 3, pass: 1, hold: 1, fail: 1 })
-    expect(page.summary).toMatchObject({ pendingCount: 0, failCount: 1, canConfirm: true })
+    expect(page.tabCounts).toEqual({ all: 3, pass: 1, hold: 0, fail: 2 })
+    expect(page.summary).toMatchObject({
+      holdCount: 0,
+      pendingCount: 0,
+      failCount: 2,
+      canConfirm: true,
+    })
   })
 
   it('보류로 바꾸면 확정 불가', () => {
