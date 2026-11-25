@@ -5,9 +5,14 @@ import {
   type ApplicantPositionTab,
   type DocumentReviewSort,
 } from '@/features/recruitment/types'
-import type { ApplicationSort, PostingApplicationsQueryVariables } from '@/gql/graphql'
+import type { PostingApplicationsQueryVariables } from '@/gql/graphql'
 import { getParamValues, type SearchParamsSource } from '@/utils/searchParams'
-import { getBoardHref, parseBoardQuery, type BoardQueryConfig } from './boardQuery'
+import {
+  APPLICATION_SORT,
+  getBoardHref,
+  parseBoardQuery,
+  type BoardQueryConfig,
+} from './boardQuery'
 import { getApplicantManagementPath } from './recruitmentRoutes'
 
 const POSITION_PARAM = 'part'
@@ -20,13 +25,6 @@ const APPLICANT_MANAGEMENT_QUERY_CONFIG = {
   defaultSort: 'submittedDesc',
   statusParam: POSITION_PARAM,
 } satisfies BoardQueryConfig<ApplicantPositionTab, DocumentReviewSort>
-
-const APPLICATION_SORT = {
-  submittedDesc: 'SUBMITTED_DESC',
-  submittedAsc: 'SUBMITTED_ASC',
-  nameAsc: 'NAME_ASC',
-  nameDesc: 'NAME_DESC',
-} satisfies Record<DocumentReviewSort, ApplicationSort>
 
 // 없는 포지션 ID는 서버 응답의 탭과 맞지 않아 선택된 탭 없이 표시
 function parseApplicantManagementQuery(searchParams: SearchParamsSource): ApplicantManagementQuery {

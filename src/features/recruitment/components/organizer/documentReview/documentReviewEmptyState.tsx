@@ -7,6 +7,7 @@ import FilterIcon from '@/assets/icons/filter.svg'
 import LinkIcon from '@/assets/icons/link.svg'
 import UsersIcon from '@/assets/icons/users.svg'
 import { Button } from '@/components/ui/Button/button'
+import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { RecruitmentBoardEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardEmptyState'
 import { RecruitmentBoardFilterEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardFilterEmptyState'
 import { RecruitmentBoardSearchEmptyState } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardSearchEmptyState'
@@ -105,4 +106,17 @@ function DocumentReviewEmptyState({
   )
 }
 
-export { DocumentReviewEmptyState }
+// TODO: 조회 실패 디자인 확정 후 교체, 지금은 빈 화면과 같은 모양
+function DocumentReviewLoadError() {
+  return (
+    <div role="alert">
+      <EmptyState
+        icon={<FileTextIcon className="size-7" />}
+        title="조회에 실패했어요"
+        className="rounded-none border-0"
+      />
+    </div>
+  )
+}
+
+export { DocumentReviewEmptyState, DocumentReviewLoadError }

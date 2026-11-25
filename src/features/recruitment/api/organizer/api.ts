@@ -1,6 +1,9 @@
 import {
   ApplicantManagementPostingDocument,
+  DocEvaluationApplicationsDocument,
+  DocumentReviewPostingDocument,
   PostingApplicationsDocument,
+  type DocEvaluationApplicationsQueryVariables,
   type PostingApplicationsQueryVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
@@ -15,4 +18,19 @@ async function getPostingApplications(variables: PostingApplicationsQueryVariabl
   return data.postingApplications
 }
 
-export { getApplicantManagementPosting, getPostingApplications }
+async function getDocumentReviewPosting(postingId: string) {
+  const data = await requestGraphQL(DocumentReviewPostingDocument, { id: postingId })
+  return data.posting
+}
+
+async function getDocEvaluationApplications(variables: DocEvaluationApplicationsQueryVariables) {
+  const data = await requestGraphQL(DocEvaluationApplicationsDocument, variables)
+  return data.docEvaluationApplications
+}
+
+export {
+  getApplicantManagementPosting,
+  getDocEvaluationApplications,
+  getDocumentReviewPosting,
+  getPostingApplications,
+}

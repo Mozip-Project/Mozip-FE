@@ -1,78 +1,169 @@
-import { getDocumentReviewApplicants } from '@/features/recruitment/api/organizer'
-import { hasPositionFilter } from '@/features/recruitment/utils/boardQuery'
-import { parseDocumentReviewQuery } from '@/features/recruitment/utils/documentReviewQuery'
-import { getApplicantReviewPath } from '@/features/recruitment/utils/recruitmentRoutes'
-import { DocumentReviewApplicantTable } from './documentReviewApplicantTable'
-import { DocumentReviewBoard, DocumentReviewBoardPlaceholder } from './documentReviewBoard'
-import { DocumentReviewEmptyState } from './documentReviewEmptyState'
-import { DocumentReviewSkeletonTable } from './documentReviewSkeletonTable'
+'use client'
 
-type DocumentReviewContentProps = Pick<
-  PageProps<'/manage/postings/[postingId]/documents'>,
-  'params' | 'searchParams'
->
+import { useParams, useSearchParams } from 'next/navigation'
+import {
+  RecruitmentBoard,
+  type RecruitmentBoardQueryChange,
+} from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
+import { useDocumentReview } from '@/features/recruitment/hooks/useDocumentReview'
+import {
+  DOCUMENT_REVIEW_SORT_LABEL,
+  DOCUMENT_REVIEW_SORTS,
+  DOCUMENT_REVIEW_STATUS_LABEL,
+  DOCUMENT_REVIEW_STATUSES,
+  type DocumentReviewApplicantPage,
+  type DocumentReviewQuery,
+  type DocumentReviewSort,
+  type DocumentReviewStatus,
+} from '@/features/recruitment/types'
+import { getBoardSortOptions, getBoardStatusTabs } from '@/features/recruitment/utils/boardQuery'
+import {
+  getDocumentReviewHref,
+  parseDocumentReviewQuery,
+} from '@/features/recruitment/utils/documentReviewQuery'
+import {
+  DocumentReviewApplicantTable,
+  DocumentReviewSkeletonTable,
+} from './documentReviewApplicantTable'
+import { DocumentReviewEmptyState, DocumentReviewLoadError } from './documentReviewEmptyState'
+import type { Route } from 'next'
 
-async function DocumentReviewContent({ params, searchParams }: DocumentReviewContentProps) {
-  const { postingId } = await params
-  const query = parseDocumentReviewQuery(await searchParams)
-  const { applicants, statusCounts, positionCounts, currentPage, totalPages } =
-    await getDocumentReviewApplicants(postingId, query)
-  const startReviewHref = await getStartReviewHref()
+const HEADER = { title: '서류 평가' }
+const SORT_OPTIONS = getBoardSortOptions(DOCUMENT_REVIEW_SORTS, DOCUMENT_REVIEW_SORT_LABEL)
 
-  // 평가 완료 탭이 비었을 때만 같은 조건·정렬의 평가 전 목록에서 첫 지원자 조회
-  async function getStartReviewHref() {
-    if (query.status !== 'done' || applicants.length > 0 || statusCounts.all === 0) {
-      return undefined
+function DocumentReviewContent() {
+  const { postingId } = useParams<{ postingId: string }>()
+  const query = parseDocumentReviewQuery(useSearchParams())
+  const { data, isError, isPlaceholderData, startReviewHref } = useDocumentReview(postingId, query)
+  const positionOptions = data?.positionOptions ?? []
+  const hasPositions = data?.hasPositions ?? true
+
+  function handlePageNavigate(href: Route) {
+    window.history.pushState(null, '', href)
+  }
+
+  // 목록 조건은 URL에만 두고 서버 렌더링 없이 갱신, 조건 변경 시 1페이지로
+  function handleQueryChange(
+    change: RecruitmentBoardQueryChange<DocumentReviewStatus, DocumentReviewSort, string>,
+  ) {
+    let positions = query.positions
+    if (change.positions) {
+      const selectedPositions = change.positions
+      const isAllSelected =
+        positionOptions.length > 0 &&
+        positionOptions.every((option) => selectedPositions.includes(option.value))
+      positions = isAllSelected ? [] : selectedPositions
     }
 
-    const { applicants: pendingApplicants } = await getDocumentReviewApplicants(postingId, {
-      ...query,
-      status: 'pending',
-      page: 1,
-    })
-    const firstApplicant = pendingApplicants.at(0)
-
-    if (!firstApplicant) {
-      return undefined
-    }
-
-    return getApplicantReviewPath(postingId, firstApplicant.id)
+    const nextQuery = { ...query, ...change, positions, page: 1 }
+    window.history.replaceState(null, '', getDocumentReviewHref(postingId, nextQuery))
   }
 
   return (
-    <DocumentReviewBoard
-      postingId={postingId}
+    <RecruitmentBoard
+      header={HEADER}
+      isHeaderSticky
       query={query}
-      statusCounts={statusCounts}
-      positionCounts={positionCounts}
-      currentPage={currentPage}
-      totalPages={totalPages}
+      statusTabs={getBoardStatusTabs(
+        DOCUMENT_REVIEW_STATUSES,
+        DOCUMENT_REVIEW_STATUS_LABEL,
+        data?.statusCounts ?? null,
+      )}
+      tabsLabel="평가 상태"
+      sortOptions={SORT_OPTIONS}
+      positionOptions={positionOptions}
+      canFilterPosition={hasPositions}
+      currentPage={data?.currentPage ?? query.page}
+      totalPages={data?.totalPages ?? 0}
+      isPending={isPlaceholderData}
+      skeleton={<DocumentReviewSkeletonTable hasPositions={hasPositions} />}
+      getPageHref={(page) => getDocumentReviewHref(postingId, { ...query, page })}
+      onQueryChange={handleQueryChange}
+      onPageNavigate={handlePageNavigate}
     >
-      <DocumentReviewApplicantTable
+      <DocumentReviewList
         postingId={postingId}
-        applicants={applicants}
-        emptyState={
-          <DocumentReviewEmptyState
-            postingId={postingId}
-            status={query.status}
-            totalCount={statusCounts.all}
-            keyword={query.keyword.trim()}
-            isPositionFiltered={hasPositionFilter(query.positions)}
-            startReviewHref={startReviewHref}
-          />
-        }
+        data={data}
+        isError={isError}
+        query={query}
+        startReviewHref={startReviewHref}
       />
-    </DocumentReviewBoard>
+    </RecruitmentBoard>
+  )
+}
+
+type DocumentReviewListProps = {
+  postingId: string
+  data: DocumentReviewApplicantPage | undefined
+  isError: boolean
+  query: DocumentReviewQuery
+  startReviewHref?: Route
+}
+
+// 이전 목록이 없는 실패만 실패 화면, 조회 중은 스켈레톤
+function DocumentReviewList({
+  postingId,
+  data,
+  isError,
+  query,
+  startReviewHref,
+}: DocumentReviewListProps) {
+  if (isError) {
+    return <DocumentReviewLoadError />
+  }
+
+  if (!data) {
+    return (
+      <div className="animate-skeleton-delayed-show">
+        <DocumentReviewSkeletonTable />
+      </div>
+    )
+  }
+
+  return (
+    <DocumentReviewApplicantTable
+      postingId={postingId}
+      applicants={data.applicants}
+      hasPositions={data.hasPositions}
+      emptyState={
+        <DocumentReviewEmptyState
+          postingId={postingId}
+          status={query.status}
+          totalCount={data.statusCounts.all}
+          keyword={query.keyword.trim()}
+          isPositionFiltered={query.positions.length > 0}
+          startReviewHref={startReviewHref}
+        />
+      }
+    />
   )
 }
 
 function DocumentReviewContentFallback() {
+  const query = parseDocumentReviewQuery({})
+
   return (
-    <DocumentReviewBoardPlaceholder>
+    <RecruitmentBoard
+      header={HEADER}
+      isHeaderSticky
+      query={query}
+      statusTabs={getBoardStatusTabs(DOCUMENT_REVIEW_STATUSES, DOCUMENT_REVIEW_STATUS_LABEL, null)}
+      tabsLabel="평가 상태"
+      sortOptions={SORT_OPTIONS}
+      positionOptions={[]}
+      currentPage={1}
+      totalPages={0}
+      isPending={false}
+      skeleton={null}
+      getPageHref={(page) => getDocumentReviewHref('', { ...query, page })}
+      onQueryChange={() => {}}
+      onPageNavigate={() => {}}
+      isPlaceholder
+    >
       <div className="animate-skeleton-delayed-show">
         <DocumentReviewSkeletonTable />
       </div>
-    </DocumentReviewBoardPlaceholder>
+    </RecruitmentBoard>
   )
 }
 

@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { DOCUMENT_REVIEW_POSITIONS } from '@/features/recruitment/types'
 import { getDocumentReviewHref, parseDocumentReviewQuery } from './documentReviewQuery'
 
 describe('parseDocumentReviewQuery', () => {
   it('쿼리가 없으면 전체 탭·전체 포지션·최신순·1페이지', () => {
     expect(parseDocumentReviewQuery({})).toEqual({
       status: 'all',
-      positions: DOCUMENT_REVIEW_POSITIONS,
+      positions: [],
       sort: 'submittedDesc',
       keyword: '',
       page: 1,
@@ -24,19 +23,19 @@ describe('parseDocumentReviewQuery', () => {
       }),
     ).toEqual({
       status: 'done',
-      positions: ['design', 'planning'],
+      positions: ['planning', 'design'],
       sort: 'nameAsc',
       keyword: '김',
       page: 3,
     })
   })
 
-  it('알 수 없는 값은 기본값으로 처리', () => {
+  it('알 수 없는 탭·정렬·페이지는 기본값으로, 포지션 ID는 서버로 전달', () => {
     expect(
       parseDocumentReviewQuery({ status: 'x', position: 'x', sort: 'x', page: 'abc' }),
     ).toMatchObject({
       status: 'all',
-      positions: DOCUMENT_REVIEW_POSITIONS,
+      positions: ['x'],
       sort: 'submittedDesc',
       page: 1,
     })

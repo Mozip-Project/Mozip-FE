@@ -29,31 +29,48 @@ const DOCUMENT_REVIEW_SORT_LABEL = {
   nameDesc: '이름 역순',
 } satisfies Record<DocumentReviewSort, string>
 
+// 평가 버튼, 결과 확정 뒤에는 평가 보기만 가능
+type DocumentReviewAction = 'evaluate' | 'edit' | 'view'
+
 type DocumentReviewApplicant = {
   id: string
   name: string
-  position: DocumentReviewPosition
-  submittedAt: string
-  isEvaluated: boolean
+  // 포지션 없는 모집은 null
+  positionName: string | null
+  submittedAt: string | null
+  action: DocumentReviewAction
 }
 
 // 탭·포지션·정렬·검색·페이지를 URL로 관리하는 모집 관리 목록 공통 조건
-type RecruitmentBoardQuery<TStatus extends string, TSort extends string> = {
+type RecruitmentBoardQuery<
+  TStatus extends string,
+  TSort extends string,
+  TPosition extends string = DocumentReviewPosition,
+> = {
   status: TStatus
-  positions: readonly DocumentReviewPosition[]
+  positions: readonly TPosition[]
   sort: TSort
   keyword: string
   page: number
 }
 
-type DocumentReviewQuery = RecruitmentBoardQuery<DocumentReviewStatus, DocumentReviewSort>
+// 포지션은 서버 포지션 ID, 빈 목록은 전체 포지션
+type DocumentReviewQuery = RecruitmentBoardQuery<DocumentReviewStatus, DocumentReviewSort, string>
+
+type DocumentReviewPositionOption = {
+  value: string
+  label: string
+  count: number
+}
 
 type DocumentReviewApplicantPage = {
   applicants: DocumentReviewApplicant[]
   statusCounts: Record<DocumentReviewStatus, number>
-  positionCounts: Record<DocumentReviewPosition, number>
+  // 포지션 없는 모집은 빈 목록
+  positionOptions: DocumentReviewPositionOption[]
   currentPage: number
   totalPages: number
+  hasPositions: boolean
 }
 
 const DOCUMENT_RESULT_PAGE_SIZE = 10
@@ -319,8 +336,10 @@ export type {
   DocumentResultPhase,
   DocumentResultStatus,
   DocumentReviewApplicant,
+  DocumentReviewAction,
   DocumentReviewApplicantPage,
   DocumentReviewPosition,
+  DocumentReviewPositionOption,
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,

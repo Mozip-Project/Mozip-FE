@@ -6,7 +6,12 @@ import {
   type DocumentReviewStatus,
 } from '@/features/recruitment/types'
 import type { SearchParamsSource } from '@/utils/searchParams'
-import { getBoardHref, parseBoardQuery, type BoardQueryConfig } from './boardQuery'
+import {
+  getBoardHref,
+  parseBoardQuery,
+  parsePositionIds,
+  type BoardQueryConfig,
+} from './boardQuery'
 import { getDocumentReviewPath } from './recruitmentRoutes'
 
 const DOCUMENT_REVIEW_QUERY_CONFIG = {
@@ -14,10 +19,14 @@ const DOCUMENT_REVIEW_QUERY_CONFIG = {
   sorts: DOCUMENT_REVIEW_SORTS,
   defaultStatus: 'all',
   defaultSort: 'submittedDesc',
-} satisfies BoardQueryConfig<DocumentReviewStatus, DocumentReviewSort>
+  isPositionFiltered: (positions) => positions.length > 0,
+} satisfies BoardQueryConfig<DocumentReviewStatus, DocumentReviewSort, string>
 
 function parseDocumentReviewQuery(searchParams: SearchParamsSource): DocumentReviewQuery {
-  return parseBoardQuery(searchParams, DOCUMENT_REVIEW_QUERY_CONFIG)
+  return {
+    ...parseBoardQuery(searchParams, DOCUMENT_REVIEW_QUERY_CONFIG),
+    positions: parsePositionIds(searchParams),
+  }
 }
 
 function getDocumentReviewHref(postingId: string, query: DocumentReviewQuery) {

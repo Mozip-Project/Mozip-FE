@@ -21,7 +21,11 @@ import {
   type DocumentResultSort,
   type DocumentResultStatus,
 } from '@/features/recruitment/types'
-import { getBoardSortOptions, getBoardStatusTabs } from '@/features/recruitment/utils/boardQuery'
+import {
+  getBoardSortOptions,
+  getBoardStatusTabs,
+  getFixedPositionOptions,
+} from '@/features/recruitment/utils/boardQuery'
 import {
   getDocumentResultHref,
   parseDocumentResultQuery,
@@ -58,7 +62,6 @@ function getHeader(confirmedAt: string | null) {
   }
 }
 
-// TODO: 조회 실패 상태는 디자인 확정 후 추가
 function DocumentResultContent() {
   const { postingId } = useParams<{ postingId: string }>()
   const query = parseDocumentResultQuery(useSearchParams())
@@ -90,7 +93,7 @@ function DocumentResultContent() {
         statusTabs={getStatusTabs(data.statusCounts)}
         tabsLabel="최종 결과"
         sortOptions={SORT_OPTIONS}
-        positionCounts={data.positionCounts}
+        positionOptions={getFixedPositionOptions(data.positionCounts)}
         isPending={isPlaceholderData}
         skeleton={<DocumentResultSkeletonTable />}
         currentPage={data.currentPage}
@@ -131,7 +134,7 @@ function DocumentResultContentFallback() {
       statusTabs={getStatusTabs(null)}
       tabsLabel="최종 결과"
       sortOptions={SORT_OPTIONS}
-      positionCounts={null}
+      positionOptions={getFixedPositionOptions(null)}
       isPending={false}
       skeleton={null}
       currentPage={1}

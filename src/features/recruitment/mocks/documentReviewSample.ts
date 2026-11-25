@@ -1,6 +1,15 @@
-import type { DocumentReviewApplicant } from '@/features/recruitment/types'
+import type { DocumentReviewPosition } from '@/features/recruitment/types'
 
-// TODO: 서류 평가 지원자 목록 API 확정 후 삭제, 이름은 모두 가상 인물
+type DocumentReviewSampleApplicant = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  submittedAt: string
+  isEvaluated: boolean
+}
+
+// 서류 평가 목록 MSW와 평가하기 화면 샘플이 같이 사용, 이름은 모두 가상 인물
+// TODO: 서류 평가하기 API 연결 후 MSW 전용으로 정리
 const DOCUMENT_REVIEW_SAMPLE = [
   {
     id: '1',
@@ -338,6 +347,6 @@ const DOCUMENT_REVIEW_SAMPLE = [
     submittedAt: '2026-10-04T13:19',
     isEvaluated: false,
   },
-] satisfies DocumentReviewApplicant[]
+] satisfies DocumentReviewSampleApplicant[]
 
 export { DOCUMENT_REVIEW_SAMPLE }

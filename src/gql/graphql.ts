@@ -48,6 +48,13 @@ export type ChangePasswordInput = {
   newPassword: string;
 };
 
+export type DocEvaluationTab =
+  | 'ALL'
+  /** 내 평가가 SAVED */
+  | 'EVALUATED'
+  /** 내 평가가 NONE 또는 DRAFT */
+  | 'NOT_EVALUATED';
+
 export type DocResult =
   | 'FAIL'
   /** 보류 (남아 있으면 결과 확정 불가) */
@@ -70,6 +77,12 @@ export type FinalResult =
 export type MemberRole =
   | 'OPERATOR'
   | 'REPRESENTATIVE';
+
+export type MyDocEvaluationStatus =
+  /** 자동 저장만 됨, 목록에서는 평가 전 */
+  | 'DRAFT'
+  | 'NONE'
+  | 'SAVED';
 
 /** 보내지 않은 필드는 그대로 유지 */
 export type NotificationSettingsInput = {
@@ -369,6 +382,25 @@ export type PostingApplicationsQueryVariables = Exact<{
 
 
 export type PostingApplicationsQuery = { postingApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ id: string, docResult: DocResult, finalResult: FinalResult, user: { name: string }, position: { name: string } | null }>, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
+
+export type DocumentReviewPostingQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DocumentReviewPostingQuery = { posting: { id: string, noPosition: boolean, docResultConfirmedAt: string | null } };
+
+export type DocEvaluationApplicationsQueryVariables = Exact<{
+  postingId: string | number;
+  tab?: DocEvaluationTab | null | undefined;
+  positionIds?: Array<string | number> | string | number | null | undefined;
+  keyword?: string | null | undefined;
+  sort?: ApplicationSort | null | undefined;
+  page?: number | null | undefined;
+}>;
+
+
+export type DocEvaluationApplicationsQuery = { docEvaluationApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ myEvaluationStatus: MyDocEvaluationStatus, application: { id: string, submittedAt: string | null, user: { name: string }, position: { name: string } | null } }>, tabCounts: { all: number, notEvaluated: number, evaluated: number }, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1019,6 +1051,56 @@ export const PostingApplicationsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<PostingApplicationsQuery, PostingApplicationsQueryVariables>;
+export const DocumentReviewPostingDocument = new TypedDocumentString(`
+    query DocumentReviewPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    noPosition
+    docResultConfirmedAt
+  }
+}
+    `) as unknown as TypedDocumentString<DocumentReviewPostingQuery, DocumentReviewPostingQueryVariables>;
+export const DocEvaluationApplicationsDocument = new TypedDocumentString(`
+    query DocEvaluationApplications($postingId: ID!, $tab: DocEvaluationTab, $positionIds: [ID!], $keyword: String, $sort: ApplicationSort, $page: Int) {
+  docEvaluationApplications(
+    postingId: $postingId
+    tab: $tab
+    positionIds: $positionIds
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      application {
+        id
+        user {
+          name
+        }
+        position {
+          name
+        }
+        submittedAt
+      }
+      myEvaluationStatus
+    }
+    totalCount
+    tabCounts {
+      all
+      notEvaluated
+      evaluated
+    }
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+  }
+}
+    `) as unknown as TypedDocumentString<DocEvaluationApplicationsQuery, DocEvaluationApplicationsQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

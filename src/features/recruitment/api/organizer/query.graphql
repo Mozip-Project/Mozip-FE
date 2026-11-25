@@ -46,3 +46,59 @@ query PostingApplications(
     totalPages
   }
 }
+
+# 파트 열과 평가 버튼(확정 후 평가 보기) 구성용
+query DocumentReviewPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    noPosition
+    docResultConfirmedAt
+  }
+}
+
+query DocEvaluationApplications(
+  $postingId: ID!
+  $tab: DocEvaluationTab
+  $positionIds: [ID!]
+  $keyword: String
+  $sort: ApplicationSort
+  $page: Int
+) {
+  docEvaluationApplications(
+    postingId: $postingId
+    tab: $tab
+    positionIds: $positionIds
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      application {
+        id
+        user {
+          name
+        }
+        position {
+          name
+        }
+        submittedAt
+      }
+      myEvaluationStatus
+    }
+    totalCount
+    tabCounts {
+      all
+      notEvaluated
+      evaluated
+    }
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+  }
+}

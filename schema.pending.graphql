@@ -30,6 +30,54 @@ extend type Query {
     sort: ApplicationSort = SUBMITTED_DESC
     page: Int = 1
   ): PostingApplicationPage!
+  "서류 평가 목록: 제출된 지원서만 10행씩, 탭은 로그인한 운영진의 평가 상태 기준. positionIds null·빈 배열 = 전체"
+  docEvaluationApplications(
+    postingId: ID!
+    tab: DocEvaluationTab = ALL
+    positionIds: [ID!]
+    keyword: String
+    sort: ApplicationSort = SUBMITTED_DESC
+    page: Int = 1
+  ): DocEvaluationApplicationPage!
+}
+
+enum DocEvaluationTab {
+  ALL
+  "내 평가가 NONE 또는 DRAFT"
+  NOT_EVALUATED
+  "내 평가가 SAVED"
+  EVALUATED
+}
+
+enum MyDocEvaluationStatus {
+  NONE
+  "자동 저장만 됨, 목록에서는 평가 전"
+  DRAFT
+  SAVED
+}
+
+type DocEvaluationApplicationPage {
+  rows: [DocEvaluationApplicationRow!]!
+  "탭 + 포지션 필터 + 검색어 적용"
+  totalCount: Int!
+  "포지션 필터 + 검색어 적용, 탭 조건 제외"
+  tabCounts: DocEvaluationTabCounts!
+  "검색어만 적용. 포지션 없는 모집은 빈 배열"
+  positionCounts: [PositionCount!]!
+  page: Int!
+  "0이면 빈 화면, 페이지 번호 숨김"
+  totalPages: Int!
+}
+
+type DocEvaluationApplicationRow {
+  application: Application!
+  myEvaluationStatus: MyDocEvaluationStatus!
+}
+
+type DocEvaluationTabCounts {
+  all: Int!
+  notEvaluated: Int!
+  evaluated: Int!
 }
 
 enum ApplicationSort {
