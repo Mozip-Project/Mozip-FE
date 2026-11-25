@@ -1,13 +1,19 @@
 import {
   ConfirmDocResultDocument,
+  DocEvaluationApplicationChipsDocument,
+  DocEvaluationApplicationDetailDocument,
   DocEvaluationApplicationsDocument,
   DocEvaluationSummaryDocument,
+  MyDocEvaluationDocument,
   PostingApplicationsDocument,
+  PostingQuestionsDocument,
   RecruitmentPostingDocument,
+  SaveDocEvaluationDocument,
   SetDocResultDocument,
   type DocEvaluationApplicationsQueryVariables,
   type DocEvaluationSummaryQueryVariables,
   type PostingApplicationsQueryVariables,
+  type SaveDocEvaluationMutationVariables,
   type SetDocResultMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
@@ -27,6 +33,31 @@ async function getDocEvaluationApplications(variables: DocEvaluationApplications
   return data.docEvaluationApplications
 }
 
+async function getDocEvaluationApplicationChips(postingId: string) {
+  const data = await requestGraphQL(DocEvaluationApplicationChipsDocument, { postingId })
+  return data.docEvaluationApplicationChips
+}
+
+async function getDocEvaluationApplicationDetail(applicationId: string) {
+  const data = await requestGraphQL(DocEvaluationApplicationDetailDocument, { id: applicationId })
+  return data.application
+}
+
+async function getPostingQuestions(postingId: string) {
+  const data = await requestGraphQL(PostingQuestionsDocument, { id: postingId })
+  return data.posting.questions
+}
+
+async function getMyDocEvaluation(applicationId: string) {
+  const data = await requestGraphQL(MyDocEvaluationDocument, { applicationId })
+  return data.myDocEvaluation
+}
+
+async function saveDocEvaluation(variables: SaveDocEvaluationMutationVariables) {
+  const data = await requestGraphQL(SaveDocEvaluationDocument, variables)
+  return data.saveDocEvaluation
+}
+
 async function getDocEvaluationSummary(variables: DocEvaluationSummaryQueryVariables) {
   const data = await requestGraphQL(DocEvaluationSummaryDocument, variables)
   return data.docEvaluationSummary
@@ -44,9 +75,14 @@ async function confirmDocResult(postingId: string) {
 
 export {
   confirmDocResult,
+  getDocEvaluationApplicationChips,
+  getDocEvaluationApplicationDetail,
   getDocEvaluationApplications,
   getDocEvaluationSummary,
+  getMyDocEvaluation,
   getPostingApplications,
+  getPostingQuestions,
   getRecruitmentPosting,
+  saveDocEvaluation,
   setDocResult,
 }

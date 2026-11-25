@@ -1,25 +1,31 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
-import { useEffect, useId, type FormEvent } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useId, useState } from 'react'
+import { Controller } from 'react-hook-form'
 import { SegmentGroup } from '@/components/ui/SegmentGroup/segmentGroup'
 import { SegmentOption } from '@/components/ui/SegmentGroup/segmentOption'
 import { TextArea } from '@/components/ui/TextArea/textArea'
 import {
-  createSubmitSchema,
-  OPINIONS,
-  type DocumentEvaluationValues,
-  type Opinion,
-} from '@/features/recruitment/schemas/documentEvaluationSchema'
-import { useToast } from '@/providers/toastProvider'
+  useMyDocEvaluationQuery,
+  useRecruitmentPostingQuery,
+} from '@/features/recruitment/api/organizer/queries'
+import { useDocumentEvaluationApplication } from '@/features/recruitment/hooks/useDocumentEvaluationApplication'
+import { useDocumentEvaluationChips } from '@/features/recruitment/hooks/useDocumentEvaluationChips'
+import { useDocumentEvaluationForm } from '@/features/recruitment/hooks/useDocumentEvaluationForm'
+import { OPINIONS, type Opinion } from '@/features/recruitment/schemas/documentEvaluationSchema'
+import type { MyDocEvaluationFieldsFragment } from '@/gql/graphql'
+import { DocumentEvaluationDoneDialog } from './documentEvaluationDoneDialog'
+import {
+  DocumentEvaluationPanelSkeleton,
+  EVALUATION_PANEL_CLASS,
+} from './documentEvaluationSkeleton'
 import { EvaluationPanelFooter } from './evaluationPanelFooter'
 import { EvaluationPanelHeader } from './evaluationPanelHeader'
 import { ScoreField, type ScoreQuestion } from './scoreField'
-import type { Route } from 'next'
 
 const MEMO_MAX_LENGTH = 300
+const MEMO_PLACEHOLDER =
+  '지원자에 대해 남길 메모를 적어 주세요. 다른 운영진의 평가는 서류 평가 취합에서 볼 수 있어요.'
 
 const OPINION_OPTION = {
   pass: { label: '합격', tone: 'brand' },
@@ -27,70 +33,91 @@ const OPINION_OPTION = {
   fail: { label: '불합격', tone: 'critical' },
 } as const satisfies Record<Opinion, { label: string; tone: string }>
 
-const EMPTY_EVALUATION: DocumentEvaluationValues = { opinion: '', scores: {}, memo: '' }
-
-type NextApplicant = {
-  href: Route
-  isWrapped: boolean
-}
-
 type DocumentEvaluationPanelProps = {
-  applicantName: string
-  scoreQuestions: readonly ScoreQuestion[]
-  // TODO: 평가 API 연결 후 서버에 임시저장된 평가로 교체, 처음 보는 지원자는 null
-  savedEvaluation: DocumentEvaluationValues | null
-  nextApplicant: NextApplicant | null
+  postingId: string
+  applicantId: string
 }
 
-function getSavedToastTitle(applicantName: string, isWrapped: boolean) {
-  const savedMessage = `${applicantName}님 평가를 저장했어요`
-  return isWrapped ? `${savedMessage}. 남은 지원자로 이동했어요` : savedMessage
-}
+function DocumentEvaluationPanel({ postingId, applicantId }: DocumentEvaluationPanelProps) {
+  const postingQuery = useRecruitmentPostingQuery(postingId)
+  const evaluationQuery = useMyDocEvaluationQuery(postingId, applicantId)
+  const { application, isError: isApplicationError } = useDocumentEvaluationApplication(
+    postingId,
+    applicantId,
+  )
 
-function DocumentEvaluationPanel({
-  applicantName,
-  scoreQuestions,
-  savedEvaluation,
-  nextApplicant,
-}: DocumentEvaluationPanelProps) {
-  const router = useRouter()
-  const { showToast } = useToast()
-  const opinionLabelId = useId()
-  const memoId = useId()
-  const { control, trigger } = useForm<DocumentEvaluationValues>({
-    mode: 'onChange',
-    resolver: zodResolver(createSubmitSchema(scoreQuestions.map(({ id }) => id))),
-    defaultValues: savedEvaluation ?? EMPTY_EVALUATION,
-  })
+  // 지원서가 없으면 평가할 수 없어 패널 숨김, 오류 안내는 지원서 영역에서 표시
+  if (isApplicationError) {
+    return null
+  }
 
-  // 임시저장된 평가로 다시 들어오면 빠진 필수 항목 표시
-  useEffect(() => {
-    if (savedEvaluation) {
-      void trigger()
-    }
-  }, [savedEvaluation, trigger])
+  if (postingQuery.isError || evaluationQuery.isError) {
+    return (
+      <section className={EVALUATION_PANEL_CLASS}>
+        <p role="alert" className="p-padding-xl text-body2 font-semibold text-neutral-muted">
+          내 평가를 불러오지 못했어요
+        </p>
+      </section>
+    )
+  }
 
-  function handleSaveAndMoveNext(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    // TODO: 평가 저장 API 연결
-
-    // TODO: 전체 평가 완료 모달 연결
-    if (!nextApplicant) {
-      return
-    }
-
-    showToast({ title: getSavedToastTitle(applicantName, nextApplicant.isWrapped) })
-    router.push(nextApplicant.href)
+  if (!postingQuery.data || evaluationQuery.isPending || !application) {
+    return <DocumentEvaluationPanelSkeleton />
   }
 
   return (
-    // 칩 줄 아래 고정(--sticky-offset: 칩 줄 높이 + 간격), 길면 입력 영역만 패널 안 스크롤
-    <section className="sticky-below-gnb flex max-h-[calc(100dvh-var(--sticky-top)-var(--sticky-offset)-var(--page-padding-bottom))] w-100 shrink-0 flex-col rounded-l border border-neutral-muted bg-layer-default [--sticky-offset:calc(var(--sticky-top-bar-height)+var(--spacing-gap-xl))]">
+    <DocumentEvaluationForm
+      postingId={postingId}
+      applicantId={applicantId}
+      applicantName={application.name}
+      scoreQuestions={postingQuery.data.docScorePerQuestion ? application.scoreQuestions : []}
+      evaluation={evaluationQuery.data}
+      isConfirmed={Boolean(postingQuery.data.docResultConfirmedAt)}
+    />
+  )
+}
+
+type DocumentEvaluationFormProps = {
+  postingId: string
+  applicantId: string
+  applicantName: string
+  // 점수 안 쓰는 공고는 빈 목록
+  scoreQuestions: readonly ScoreQuestion[]
+  // 평가 전이면 null, 저장할 때마다 캐시로 갱신
+  evaluation: MyDocEvaluationFieldsFragment | null
+  isConfirmed: boolean
+}
+
+function DocumentEvaluationForm({
+  postingId,
+  applicantId,
+  applicantName,
+  scoreQuestions,
+  evaluation,
+  isConfirmed,
+}: DocumentEvaluationFormProps) {
+  const opinionLabelId = useId()
+  const memoId = useId()
+  const [isDoneDialogOpen, setIsDoneDialogOpen] = useState(false)
+  const { applicants } = useDocumentEvaluationChips(postingId)
+  // TODO: 결과 확정 후 평가 전 지원자 안내 화면 디자인 확인 필요, 지금은 빈 읽기 전용 패널
+  const { form, saveState, isSaved, canSubmit, submitAndMove } = useDocumentEvaluationForm({
+    postingId,
+    applicantId,
+    applicantName,
+    scoreQuestions,
+    evaluation,
+    isConfirmed,
+    onAllEvaluated: () => setIsDoneDialogOpen(true),
+  })
+  const { control, formState } = form
+
+  return (
+    <section className={EVALUATION_PANEL_CLASS}>
       <div className="shrink-0 px-padding-xl pt-padding-xl">
-        <EvaluationPanelHeader saveState={{ status: 'idle' }} />
+        <EvaluationPanelHeader saveState={saveState} />
       </div>
-      <form onSubmit={handleSaveAndMoveNext} className="flex min-h-0 flex-1 flex-col">
+      <form onSubmit={submitAndMove} className="flex min-h-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-col gap-gap-xl overflow-y-auto p-padding-xl">
           <div className="flex flex-col gap-gap-s">
             <p id={opinionLabelId} className="text-label1 font-semibold text-neutral-muted">
@@ -99,11 +126,13 @@ function DocumentEvaluationPanel({
             <Controller
               name="opinion"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <SegmentGroup
                   aria-labelledby={opinionLabelId}
                   value={field.value}
                   onValueChange={field.onChange}
+                  disabled={isConfirmed}
+                  errorMessage={fieldState.error?.message}
                 >
                   {OPINIONS.map((opinion) => (
                     <SegmentOption
@@ -118,10 +147,12 @@ function DocumentEvaluationPanel({
               )}
             />
           </div>
-          <ScoreField questions={scoreQuestions} control={control} />
+          {scoreQuestions.length > 0 && (
+            <ScoreField questions={scoreQuestions} control={control} disabled={isConfirmed} />
+          )}
           <div className="flex flex-col gap-gap-s">
             <label htmlFor={memoId} className="text-label1 font-semibold text-neutral-muted">
-              메모 (선택)
+              {isConfirmed ? '메모' : '메모 (선택)'}
             </label>
             <Controller
               name="memo"
@@ -130,17 +161,30 @@ function DocumentEvaluationPanel({
                 <TextArea
                   {...field}
                   id={memoId}
-                  placeholder="지원자에 대해 남길 메모를 적어 주세요. 다른 운영진의 평가는 서류 평가 취합에서 볼 수 있어요."
+                  readOnly={isConfirmed}
+                  placeholder={isConfirmed ? undefined : MEMO_PLACEHOLDER}
                   maxLength={MEMO_MAX_LENGTH}
                 />
               )}
             />
           </div>
         </div>
-        <div className="shrink-0 px-padding-xl pt-padding-s pb-padding-xl">
-          <EvaluationPanelFooter mode="next" type="submit" />
-        </div>
+        {!isConfirmed && (
+          <div className="shrink-0 px-padding-xl pt-padding-s pb-padding-xl">
+            <EvaluationPanelFooter
+              mode={isSaved ? 'revisit' : 'next'}
+              type="submit"
+              disabled={!canSubmit || formState.isSubmitting}
+            />
+          </div>
+        )}
       </form>
+      <DocumentEvaluationDoneDialog
+        postingId={postingId}
+        applicantCount={applicants?.length}
+        open={isDoneDialogOpen}
+        onOpenChange={setIsDoneDialogOpen}
+      />
     </section>
   )
 }

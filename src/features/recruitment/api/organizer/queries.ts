@@ -5,15 +5,23 @@ import type {
   DocResult,
   PostingApplicationsQueryVariables,
 } from '@/gql/graphql'
+import { ApiError } from '@/lib/apiError'
 import {
   confirmDocResult,
+  getDocEvaluationApplicationChips,
+  getDocEvaluationApplicationDetail,
   getDocEvaluationApplications,
   getDocEvaluationSummary,
+  getMyDocEvaluation,
   getPostingApplications,
+  getPostingQuestions,
   getRecruitmentPosting,
+  saveDocEvaluation,
   setDocResult,
 } from './api'
 import { recruitmentKeys } from './keys'
+
+const DOC_RESULT_CONFIRMED_CODE = 'EVALUATION_423'
 
 // 모집 관리 화면과 LNB가 같은 캐시 사용
 function useRecruitmentPostingQuery(postingId: string) {
@@ -52,6 +60,75 @@ function useDocEvaluationApplicationsQuery(
     enabled,
     placeholderData: (previousData, previousQuery) =>
       shouldKeepPreviousData && previousQuery?.queryKey[1] === postingId ? previousData : undefined,
+  })
+}
+
+// 명세상 화면 진입 때 한 번만 받고 지원자 전환에는 다시 받지 않음
+function useDocEvaluationApplicationChipsQuery(postingId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.docEvaluationChips(postingId),
+    queryFn: () => getDocEvaluationApplicationChips(postingId),
+    staleTime: Infinity,
+  })
+}
+
+function useDocEvaluationApplicationDetailQuery(postingId: string, applicationId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.docEvaluationApplication(postingId, applicationId),
+    queryFn: () => getDocEvaluationApplicationDetail(applicationId),
+  })
+}
+
+// 공고 문항은 지원자마다 같아 화면 진입 때 한 번만 받음
+function usePostingQuestionsQuery(postingId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.postingQuestions(postingId),
+    queryFn: () => getPostingQuestions(postingId),
+    staleTime: Infinity,
+  })
+}
+
+function useMyDocEvaluationQuery(postingId: string, applicationId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.myDocEvaluation(postingId, applicationId),
+    queryFn: () => getMyDocEvaluation(applicationId),
+  })
+}
+
+type DocEvaluationChips = Awaited<ReturnType<typeof getDocEvaluationApplicationChips>>
+
+function useSaveDocEvaluationMutation(postingId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: saveDocEvaluation,
+    onSuccess: ({ evaluation }, { input, submit }) => {
+      const applicationId = String(input.applicationId)
+      queryClient.setQueryData(
+        recruitmentKeys.myDocEvaluation(postingId, applicationId),
+        evaluation,
+      )
+      queryClient.setQueryData<DocEvaluationChips>(
+        recruitmentKeys.docEvaluationChips(postingId),
+        (chips) =>
+          chips?.map((chip) =>
+            chip.application.id === applicationId
+              ? { ...chip, myEvaluationStatus: evaluation.status }
+              : chip,
+          ),
+      )
+
+      if (submit) {
+        void queryClient.invalidateQueries({ queryKey: recruitmentKeys.docEvaluations(postingId) })
+        void queryClient.invalidateQueries({ queryKey: recruitmentKeys.docSummaries(postingId) })
+      }
+    },
+    // 다른 운영진이 결과를 확정했으면 공고를 다시 받아 읽기 전용으로 전환
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === DOC_RESULT_CONFIRMED_CODE) {
+        void queryClient.invalidateQueries({ queryKey: recruitmentKeys.posting(postingId) })
+      }
+    },
   })
 }
 
@@ -124,9 +201,14 @@ function useConfirmDocResultMutation(postingId: string) {
 
 export {
   useConfirmDocResultMutation,
+  useDocEvaluationApplicationChipsQuery,
+  useDocEvaluationApplicationDetailQuery,
   useDocEvaluationApplicationsQuery,
   useDocEvaluationSummaryQuery,
+  useMyDocEvaluationQuery,
   usePostingApplicationsQuery,
+  usePostingQuestionsQuery,
   useRecruitmentPostingQuery,
+  useSaveDocEvaluationMutation,
   useSetDocResultsMutation,
 }
