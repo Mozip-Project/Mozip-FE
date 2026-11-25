@@ -21,6 +21,12 @@ describe('postingInfoSchema', () => {
     expect(isValid(EMPTY_POSTING_INFO)).toBe(false)
   })
 
+  it('새 파일 없이 저장된 대표 이미지만 있어도 통과', () => {
+    expect(
+      isValid({ ...FILLED_VALUES, mainImage: null, savedMainImageUrl: 'https://cdn/main.png' }),
+    ).toBe(true)
+  })
+
   it('공백뿐인 제목, 대표 이미지나 지원 자격이 없으면 실패', () => {
     expect(isValid({ ...FILLED_VALUES, title: '   ' })).toBe(false)
     expect(isValid({ ...FILLED_VALUES, mainImage: null })).toBe(false)
@@ -34,5 +40,17 @@ describe('postingInfoSchema', () => {
     expect(isValid({ ...custom, customQualification: '   ' })).toBe(false)
     expect(isValid({ ...custom, customQualification: '1~3학년' })).toBe(true)
     expect(isValid({ ...FILLED_VALUES, customQualification: '' })).toBe(true)
+  })
+
+  it('체크한 공개 항목은 내용이 있어야 통과, 체크하지 않은 항목은 비어 있어도 통과', () => {
+    const withRegion = { ...FILLED_VALUES, publicItems: ['region'] } satisfies PostingInfoValues
+    const withFee = { ...FILLED_VALUES, publicItems: ['fee'] } satisfies PostingInfoValues
+
+    expect(isValid(withRegion)).toBe(false)
+    expect(isValid({ ...withRegion, region: '   ' })).toBe(false)
+    expect(isValid({ ...withRegion, region: '서울 마포구' })).toBe(true)
+    expect(isValid(withFee)).toBe(false)
+    expect(isValid({ ...withFee, fee: '30000' })).toBe(true)
+    expect(isValid({ ...FILLED_VALUES, region: '', fee: '' })).toBe(true)
   })
 })

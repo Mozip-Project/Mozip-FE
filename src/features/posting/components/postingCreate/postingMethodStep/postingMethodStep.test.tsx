@@ -67,6 +67,22 @@ describe('PostingMethodStep', () => {
     expect(addButton).toBeEnabled()
   })
 
+  it('이미 추가한 포지션 이름을 입력하면 추가하기 비활성, 입력칸 아래 안내', async () => {
+    const user = userEvent.setup()
+    render(<MethodStepHarness />)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+
+    await user.click(screen.getByRole('button', { name: '포지션 추가' }))
+    const dialog = await screen.findByRole('dialog', { name: '추가할 포지션을 입력해 주세요' })
+    const input = within(dialog).getByRole('textbox', { name: '포지션' })
+    await user.type(input, ' 디자인팀')
+
+    expect(within(dialog).getByRole('button', { name: '추가하기' })).toBeDisabled()
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAccessibleDescription('이미 추가한 포지션이에요')
+  })
+
   it('추가한 포지션이 목록에 쌓이고 삭제하면 빈 상태로 돌아감', async () => {
     const user = userEvent.setup()
     render(<MethodStepHarness />)

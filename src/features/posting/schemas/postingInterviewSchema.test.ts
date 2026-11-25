@@ -53,4 +53,13 @@ describe('postingInterviewSchema', () => {
       }),
     ).toBe(true)
   })
+
+  it('다른 묶음으로 면접을 잡을 수 있어도 면접 1회 시간보다 짧은 묶음이 있으면 실패', () => {
+    const oneHour = ['2026-10-23T09:00', '2026-10-23T09:30']
+
+    expect(isValid({ interviewDuration: '40', interviewSlots: oneHour })).toBe(true)
+    expect(
+      isValid({ interviewDuration: '40', interviewSlots: [...oneHour, '2026-10-23T13:00'] }),
+    ).toBe(false)
+  })
 })

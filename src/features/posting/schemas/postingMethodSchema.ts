@@ -2,6 +2,9 @@ import { z } from 'zod'
 
 const RECRUIT_TYPES = ['position', 'integrated'] as const
 
+// 서버 저장 제한과 같은 글자 수
+const POSITION_NAME_MAX_LENGTH = 50
+
 const postingMethodSchema = z.object({
   recruitType: z.enum(RECRUIT_TYPES).nullable(),
   positions: z.array(z.object({ name: z.string() })),
@@ -15,10 +18,18 @@ const EMPTY_POSTING_METHOD = {
   positions: [],
 } satisfies PostingMethodValues
 
-// 앞뒤 공백을 지운 뒤 비어 있으면 추가 불가
-const positionNameSchema = z.object({ name: z.string().trim().min(1) })
+// 앞뒤 공백을 지운 뒤 비었거나 이미 추가한 이름이면 추가 불가
+function createPositionNameSchema(existingNames: readonly string[]) {
+  return z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, '포지션을 입력해 주세요')
+      .refine((name) => !existingNames.includes(name), '이미 추가한 포지션이에요'),
+  })
+}
 
-type PositionNameValues = z.infer<typeof positionNameSchema>
+type PositionNameValues = z.infer<ReturnType<typeof createPositionNameSchema>>
 
 const requiredPostingMethodSchema = postingMethodSchema.superRefine(
   ({ recruitType, positions }, context) => {
@@ -37,7 +48,8 @@ const requiredPostingMethodSchema = postingMethodSchema.superRefine(
 
 export {
   EMPTY_POSTING_METHOD,
-  positionNameSchema,
+  createPositionNameSchema,
+  POSITION_NAME_MAX_LENGTH,
   RECRUIT_TYPES,
   requiredPostingMethodSchema as postingMethodSchema,
 }

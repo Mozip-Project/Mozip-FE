@@ -4,6 +4,7 @@ import { useId } from 'react'
 import { Controller, type Control, type UseFormRegister } from 'react-hook-form'
 import { TextField } from '@/components/ui/TextField/textField'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
+import { POSTING_INFO_MAX_LENGTH } from '@/features/posting/schemas/postingInfoSchema'
 import { PostingContentEditor } from './postingContentEditor'
 import { PostingImageField } from './postingImageField'
 import { PostingPublicItemFields } from './postingPublicItemFields'
@@ -29,6 +30,7 @@ function PostingInfoStep({ control, register }: PostingInfoStepProps) {
           label="공고 제목"
           required
           placeholder="공고 제목을 입력해 주세요"
+          maxLength={POSTING_INFO_MAX_LENGTH.title}
           {...register('title')}
         />
         <Controller

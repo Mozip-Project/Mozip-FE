@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  createPositionNameSchema,
   EMPTY_POSTING_METHOD,
-  positionNameSchema,
   postingMethodSchema,
   type PostingMethodValues,
 } from './postingMethodSchema'
@@ -25,9 +25,18 @@ describe('postingMethodSchema', () => {
   })
 })
 
-describe('positionNameSchema', () => {
+describe('createPositionNameSchema', () => {
   it('앞뒤 공백을 지운 이름만 통과', () => {
-    expect(positionNameSchema.safeParse({ name: '  디자인팀 ' }).data).toEqual({ name: '디자인팀' })
-    expect(positionNameSchema.safeParse({ name: '   ' }).success).toBe(false)
+    const schema = createPositionNameSchema([])
+
+    expect(schema.safeParse({ name: '  디자인팀 ' }).data).toEqual({ name: '디자인팀' })
+    expect(schema.safeParse({ name: '   ' }).success).toBe(false)
+  })
+
+  it('이미 추가한 이름은 앞뒤 공백을 지운 뒤 비교해 실패', () => {
+    const schema = createPositionNameSchema(['디자인팀'])
+
+    expect(schema.safeParse({ name: ' 디자인팀 ' }).success).toBe(false)
+    expect(schema.safeParse({ name: '개발팀' }).success).toBe(true)
   })
 })

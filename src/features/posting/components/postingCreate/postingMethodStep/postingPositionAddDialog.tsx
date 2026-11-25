@@ -14,26 +14,32 @@ import {
 } from '@/components/ui/Dialog/dialog'
 import { TextField } from '@/components/ui/TextField/textField'
 import {
-  positionNameSchema,
+  createPositionNameSchema,
+  POSITION_NAME_MAX_LENGTH,
   type PositionNameValues,
 } from '@/features/posting/schemas/postingMethodSchema'
 
 const EMPTY_POSITION_NAME = { name: '' } satisfies PositionNameValues
 
 type PostingPositionAddDialogProps = {
+  existingNames: string[]
   onAdd: (name: string) => void
   children: ReactNode
 }
 
-function PostingPositionAddDialog({ onAdd, children }: PostingPositionAddDialogProps) {
+function PostingPositionAddDialog({
+  existingNames,
+  onAdd,
+  children,
+}: PostingPositionAddDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const {
     register,
     handleSubmit,
     reset,
-    formState: { isValid },
+    formState: { isValid, errors },
   } = useForm<PositionNameValues>({
-    resolver: zodResolver(positionNameSchema),
+    resolver: zodResolver(createPositionNameSchema(existingNames)),
     defaultValues: EMPTY_POSITION_NAME,
     mode: 'onChange',
   })
@@ -67,6 +73,9 @@ function PostingPositionAddDialog({ onAdd, children }: PostingPositionAddDialogP
           <TextField
             aria-label="포지션"
             placeholder="포지션을 입력해 주세요"
+            maxLength={POSITION_NAME_MAX_LENGTH}
+            aria-invalid={errors.name !== undefined}
+            helper={errors.name?.message}
             {...register('name')}
           />
           <DialogFooter>

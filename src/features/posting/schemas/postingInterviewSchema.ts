@@ -1,12 +1,14 @@
 import { z } from 'zod'
 import { filterDatesInInterviewPeriod } from '@/features/posting/utils/interviewPeriod'
-import { countInterviews } from '@/features/posting/utils/interviewTimetable'
+import { countInterviews, hasShortSlotBlock } from '@/features/posting/utils/interviewTimetable'
 
 const INTERVIEW_DURATIONS = ['15', '20', '30', '40', '60'] as const
 const INTERVIEW_BREAKS = ['0', '5', '10', '15'] as const
 const INTERVIEW_APPLICANT_COUNTS = ['1', '2', '3', '4', '5'] as const
 const INTERVIEW_ROOM_COUNTS = ['1', '2', '3', '4', '5'] as const
 const MAX_INTERVIEW_DAYS = 5
+const SHORT_SLOT_BLOCK_MESSAGE =
+  '면접 1회 시간보다 짧게 고른 시간이 있어요. 칸을 이어서 선택하거나 해제해 주세요'
 
 const postingInterviewSchema = z.object({
   interviewDuration: z.enum(INTERVIEW_DURATIONS).nullable(),
@@ -77,6 +79,13 @@ const requiredPostingInterviewSchema = postingInterviewSchema
         message: '면접을 볼 수 있는 시간을 선택해 주세요',
       })
     }
+    if (hasShortSlotBlock(values.interviewSlots, Number(values.interviewDuration))) {
+      context.addIssue({
+        code: 'custom',
+        path: ['interviewSlots'],
+        message: SHORT_SLOT_BLOCK_MESSAGE,
+      })
+    }
   })
 
 export {
@@ -87,5 +96,6 @@ export {
   INTERVIEW_ROOM_COUNTS,
   MAX_INTERVIEW_DAYS,
   requiredPostingInterviewSchema as postingInterviewSchema,
+  SHORT_SLOT_BLOCK_MESSAGE,
 }
 export type { PostingInterviewValues }
