@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from 'next/navigation'
 import { Suspense } from 'react'
-import { useDocumentResultOverview } from '@/features/recruitment/hooks/useDocumentResults'
+import { useRecruitmentPostingQuery } from '@/features/recruitment/api/organizer/queries'
 import { POSTING_CREATE_PATH } from '@/features/recruitment/utils/recruitmentRoutes'
 import { useIsHydrated } from '@/hooks/useIsHydrated'
 import { RecruitmentNavView } from './recruitmentNavView'
@@ -40,10 +40,14 @@ function RecruitmentNavByPosting() {
   return <RecruitmentNavWithOverview postingId={postingId} />
 }
 
+// 부모가 hydration 뒤에만 그려 서버 HTML과 어긋나지 않음
 function RecruitmentNavWithOverview({ postingId }: { postingId: string }) {
-  const overview = useDocumentResultOverview(postingId)
+  const { data: posting } = useRecruitmentPostingQuery(postingId)
+  const overview = posting
+    ? { hasInterview: posting.hasInterview, confirmedAt: posting.docResultConfirmedAt ?? null }
+    : null
 
-  return <RecruitmentNavView overview={overview ?? null} />
+  return <RecruitmentNavView overview={overview} />
 }
 
 export { RecruitmentNav }

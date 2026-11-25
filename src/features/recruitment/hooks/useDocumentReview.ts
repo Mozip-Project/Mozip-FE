@@ -1,6 +1,6 @@
 import {
   useDocEvaluationApplicationsQuery,
-  useDocumentReviewPostingQuery,
+  useRecruitmentPostingQuery,
 } from '@/features/recruitment/api/organizer/queries'
 import type {
   DocumentReviewAction,
@@ -79,7 +79,7 @@ function toPositionOptions({ positionCounts }: DocEvaluationApplicationPage) {
 
 function useDocumentReview(postingId: string, query: DocumentReviewQuery) {
   const variables = toDocEvaluationApplicationsVariables(postingId, query)
-  const postingQuery = useDocumentReviewPostingQuery(postingId)
+  const postingQuery = useRecruitmentPostingQuery(postingId)
   const applicationsQuery = useDocEvaluationApplicationsQuery(variables, {
     shouldKeepPreviousData: true,
   })

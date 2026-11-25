@@ -7,7 +7,9 @@ import { postingListHandlers } from '@/features/posting/mocks/postingListHandler
 import { postingReportHandlers } from '@/features/posting/mocks/postingReportHandlers'
 import { applicantManagementHandlers } from '@/features/recruitment/mocks/applicantManagementHandlers'
 import { applicationFormHandlers } from '@/features/recruitment/mocks/applicationFormHandlers'
+import { documentResultHandlers } from '@/features/recruitment/mocks/documentResultHandlers'
 import { documentReviewHandlers } from '@/features/recruitment/mocks/documentReviewHandlers'
+import { recruitmentPostingHandlers } from '@/features/recruitment/mocks/recruitmentPostingHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
 import type { AnyHandler } from 'msw'
@@ -23,8 +25,10 @@ const handlers: AnyHandler[] = [
   ...organizationMemberHandlers,
   ...organizationProfileHandlers,
   ...managedPostingHandlers,
+  ...recruitmentPostingHandlers,
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
+  ...documentResultHandlers,
 ]
 
 export { handlers }

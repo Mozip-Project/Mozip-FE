@@ -2,14 +2,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { confirmDocumentResults } from '@/features/recruitment/api/organizer'
+import { confirmDocResult } from '@/features/recruitment/api/organizer/api'
+import { ApiError } from '@/lib/apiError'
 import { DocumentResultConfirmDialog } from './documentResultConfirmDialog'
 
-vi.mock('@/features/recruitment/api/organizer', () => ({
-  confirmDocumentResults: vi.fn(),
+vi.mock('@/features/recruitment/api/organizer/api', () => ({
+  confirmDocResult: vi.fn(),
 }))
 
-const confirmMock = vi.mocked(confirmDocumentResults)
+const confirmMock = vi.mocked(confirmDocResult)
+
+const CONFIRMED_PAYLOAD = {
+  posting: { id: '1', docResultConfirmedAt: '2026-11-25T10:00:00+09:00' },
+}
 
 function renderDialog(hasInterviewStep = true) {
   const onOpenChange = vi.fn()
@@ -46,7 +51,7 @@ describe('DocumentResultConfirmDialog', () => {
   })
 
   it('확정에 성공하면 팝업 닫기', async () => {
-    confirmMock.mockResolvedValue()
+    confirmMock.mockResolvedValue(CONFIRMED_PAYLOAD)
     const onOpenChange = renderDialog()
 
     await userEvent.click(screen.getByRole('button', { name: '확정하기' }))
@@ -66,8 +71,20 @@ describe('DocumentResultConfirmDialog', () => {
     expect(onOpenChange).not.toHaveBeenCalled()
   })
 
+  it('이미 확정된 공고면 실패 안내 없이 팝업 닫기', async () => {
+    confirmMock.mockRejectedValue(new ApiError({ code: 'EVALUATION_423', message: '이미 확정됨' }))
+    const onOpenChange = renderDialog()
+
+    await userEvent.click(screen.getByRole('button', { name: '확정하기' }))
+
+    await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false))
+    expect(
+      screen.queryByText('결과를 확정하지 못했어요. 다시 시도해 주세요.'),
+    ).not.toBeInTheDocument()
+  })
+
   it('확정에 실패한 뒤 다시 시도 가능', async () => {
-    confirmMock.mockRejectedValueOnce(new Error('failed')).mockResolvedValueOnce()
+    confirmMock.mockRejectedValueOnce(new Error('failed')).mockResolvedValueOnce(CONFIRMED_PAYLOAD)
     const onOpenChange = renderDialog()
     const confirmButton = screen.getByRole('button', { name: '확정하기' })
 

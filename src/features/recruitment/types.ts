@@ -101,23 +101,48 @@ const DOCUMENT_RESULT_SORT_LABEL = {
 type DocumentResultApplicant = {
   id: string
   name: string
-  position: DocumentReviewPosition
-  rank: number
-  opinionCounts: Record<DocumentResult, number>
-  averageScore: number
-  result: DocumentResult
+  // 포지션 없는 모집은 null
+  positionName: string | null
+  // 평가 완료 전에는 null
+  rank: number | null
+  // pending은 아직 평가를 저장하지 않은 운영진 수
+  opinionCounts: Record<DocumentResult | 'pending', number>
+  // 점수 안 쓰는 공고이거나 저장된 평가가 없으면 null
+  averageScore: number | null
+  // 아직 고르지 않았으면 null
+  result: DocumentResult | null
+  // 운영진 전원이 평가를 저장했을 때만 결과 선택 가능
+  isEvaluationComplete: boolean
 }
 
-type DocumentResultQuery = RecruitmentBoardQuery<DocumentResultStatus, DocumentResultSort>
+// 포지션은 서버 포지션 ID, 빈 목록은 전체 포지션
+type DocumentResultQuery = RecruitmentBoardQuery<DocumentResultStatus, DocumentResultSort, string>
+
+// 확정 버튼·확정 팝업·하단 바용, 필터·검색과 무관한 공고 전체 기준
+type DocumentResultTotals = {
+  totalCount: number
+  evaluatedCount: number
+  isAllEvaluated: boolean
+  passCount: number
+  holdCount: number
+  failCount: number
+  // 결과를 아직 고르지 않은 인원
+  pendingCount: number
+  canConfirm: boolean
+}
 
 type DocumentResultApplicantPage = {
   applicants: DocumentResultApplicant[]
   statusCounts: Record<DocumentResultStatus, number>
-  positionCounts: Record<DocumentReviewPosition, number>
+  // 포지션 없는 모집은 빈 목록
+  positionOptions: DocumentReviewPositionOption[]
   currentPage: number
   totalPages: number
-  // 확정 버튼 활성·확정 팝업 요약용, 필터·검색과 무관한 공고 전체 기준
-  totalResultCounts: Record<DocumentResult, number>
+  hasPositions: boolean
+  hasInterview: boolean
+  // 공고의 결과 확정 시각, null은 확정 전
+  confirmedAt: string | null
+  totals: DocumentResultTotals
 }
 
 type DocumentResultOverview = {
@@ -333,26 +358,24 @@ export type {
   DocumentResultOverview,
   DocumentResultQuery,
   DocumentResultSort,
+  DocumentResultTotals,
   DocumentResultPhase,
   DocumentResultStatus,
   DocumentReviewApplicant,
   DocumentReviewAction,
   DocumentReviewApplicantPage,
   DocumentReviewPosition,
-  DocumentReviewPositionOption,
   DocumentReviewQuery,
   DocumentReviewSort,
   DocumentReviewStatus,
   InterviewRecruitmentStage,
   ManagedApplicant,
-  NoInterviewRecruitmentStage,
   RecipientDelivery,
   RecruitmentBoardQuery,
   RecruitmentProgress,
   RecruitmentSchedule,
   RecruitmentStage,
   ResultNoticeDeliverySummary,
-  ResultNoticeInterviewSchedule,
   ResultNoticeKind,
   ResultNoticeMessage,
   ResultNoticeMissingField,

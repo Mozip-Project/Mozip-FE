@@ -63,6 +63,21 @@ export type DocResult =
   /** 평가가 다 끝나지 않아 선택 불가 */
   | 'PENDING';
 
+export type DocResultTab =
+  /** PENDING 포함 */
+  | 'ALL'
+  | 'FAIL'
+  | 'HOLD'
+  | 'PASS';
+
+export type DocSummarySort =
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  /** 점수 안 쓰는 공고 기본 */
+  | 'PASS_OPINION_DESC'
+  | 'SCORE_ASC'
+  | 'SCORE_DESC';
+
 export type FileType =
   | 'IMAGE'
   | 'MP4'
@@ -365,12 +380,12 @@ export type ApplicantProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ApplicantProfileQuery = { me: { id: string, name: string, phone: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null } };
 
-export type ApplicantManagementPostingQueryVariables = Exact<{
+export type RecruitmentPostingQueryVariables = Exact<{
   id: string | number;
 }>;
 
 
-export type ApplicantManagementPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
+export type RecruitmentPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
 
 export type PostingApplicationsQueryVariables = Exact<{
   postingId: string | number;
@@ -383,13 +398,6 @@ export type PostingApplicationsQueryVariables = Exact<{
 
 export type PostingApplicationsQuery = { postingApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ id: string, docResult: DocResult, finalResult: FinalResult, user: { name: string }, position: { name: string } | null }>, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
 
-export type DocumentReviewPostingQueryVariables = Exact<{
-  id: string | number;
-}>;
-
-
-export type DocumentReviewPostingQuery = { posting: { id: string, noPosition: boolean, docResultConfirmedAt: string | null } };
-
 export type DocEvaluationApplicationsQueryVariables = Exact<{
   postingId: string | number;
   tab?: DocEvaluationTab | null | undefined;
@@ -401,6 +409,33 @@ export type DocEvaluationApplicationsQueryVariables = Exact<{
 
 
 export type DocEvaluationApplicationsQuery = { docEvaluationApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ myEvaluationStatus: MyDocEvaluationStatus, application: { id: string, submittedAt: string | null, user: { name: string }, position: { name: string } | null } }>, tabCounts: { all: number, notEvaluated: number, evaluated: number }, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
+
+export type DocEvaluationSummaryQueryVariables = Exact<{
+  postingId: string | number;
+  tab?: DocResultTab | null | undefined;
+  positionIds?: Array<string | number> | string | number | null | undefined;
+  keyword?: string | null | undefined;
+  sort?: DocSummarySort | null | undefined;
+  page?: number | null | undefined;
+}>;
+
+
+export type DocEvaluationSummaryQuery = { docEvaluationSummary: { page: number, totalPages: number, rows: Array<{ rank: number | null, averageScore: number | null, evaluationComplete: boolean, application: { id: string, docResult: DocResult, user: { name: string }, position: { id: string, name: string } | null }, opinionCounts: { pass: number, hold: number, fail: number, notEvaluated: number } }>, tabCounts: { all: number, pass: number, hold: number, fail: number }, positionCounts: Array<{ count: number, position: { id: string, name: string } }>, summary: { totalCount: number, evaluatedCount: number, holdCount: number, passCount: number, failCount: number, allEvaluated: boolean, pendingCount: number, canConfirm: boolean } } };
+
+export type SetDocResultMutationVariables = Exact<{
+  applicationIds: Array<string | number> | string | number;
+  result: DocResult;
+}>;
+
+
+export type SetDocResultMutation = { setDocResult: Array<{ id: string, docResult: DocResult }> };
+
+export type ConfirmDocResultMutationVariables = Exact<{
+  postingId: string | number;
+}>;
+
+
+export type ConfirmDocResultMutation = { confirmDocResult: { posting: { id: string, docResultConfirmedAt: string | null } } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1007,8 +1042,8 @@ export const ApplicantProfileDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ApplicantProfileQuery, ApplicantProfileQueryVariables>;
-export const ApplicantManagementPostingDocument = new TypedDocumentString(`
-    query ApplicantManagementPosting($id: ID!) {
+export const RecruitmentPostingDocument = new TypedDocumentString(`
+    query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
     id
     status
@@ -1017,7 +1052,7 @@ export const ApplicantManagementPostingDocument = new TypedDocumentString(`
     docResultConfirmedAt
   }
 }
-    `) as unknown as TypedDocumentString<ApplicantManagementPostingQuery, ApplicantManagementPostingQueryVariables>;
+    `) as unknown as TypedDocumentString<RecruitmentPostingQuery, RecruitmentPostingQueryVariables>;
 export const PostingApplicationsDocument = new TypedDocumentString(`
     query PostingApplications($postingId: ID!, $positionId: ID, $keyword: String, $sort: ApplicationSort, $page: Int) {
   postingApplications(
@@ -1051,15 +1086,6 @@ export const PostingApplicationsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<PostingApplicationsQuery, PostingApplicationsQueryVariables>;
-export const DocumentReviewPostingDocument = new TypedDocumentString(`
-    query DocumentReviewPosting($id: ID!) {
-  posting(id: $id) {
-    id
-    noPosition
-    docResultConfirmedAt
-  }
-}
-    `) as unknown as TypedDocumentString<DocumentReviewPostingQuery, DocumentReviewPostingQueryVariables>;
 export const DocEvaluationApplicationsDocument = new TypedDocumentString(`
     query DocEvaluationApplications($postingId: ID!, $tab: DocEvaluationTab, $positionIds: [ID!], $keyword: String, $sort: ApplicationSort, $page: Int) {
   docEvaluationApplications(
@@ -1101,6 +1127,84 @@ export const DocEvaluationApplicationsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DocEvaluationApplicationsQuery, DocEvaluationApplicationsQueryVariables>;
+export const DocEvaluationSummaryDocument = new TypedDocumentString(`
+    query DocEvaluationSummary($postingId: ID!, $tab: DocResultTab, $positionIds: [ID!], $keyword: String, $sort: DocSummarySort, $page: Int) {
+  docEvaluationSummary(
+    postingId: $postingId
+    tab: $tab
+    positionIds: $positionIds
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      application {
+        id
+        user {
+          name
+        }
+        position {
+          id
+          name
+        }
+        docResult
+      }
+      rank
+      averageScore
+      opinionCounts {
+        pass
+        hold
+        fail
+        notEvaluated
+      }
+      evaluationComplete
+    }
+    tabCounts {
+      all
+      pass
+      hold
+      fail
+    }
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+    summary {
+      totalCount
+      evaluatedCount
+      holdCount
+      passCount
+      failCount
+      allEvaluated
+      pendingCount
+      canConfirm
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<DocEvaluationSummaryQuery, DocEvaluationSummaryQueryVariables>;
+export const SetDocResultDocument = new TypedDocumentString(`
+    mutation SetDocResult($applicationIds: [ID!]!, $result: DocResult!) {
+  setDocResult(applicationIds: $applicationIds, result: $result) {
+    id
+    docResult
+  }
+}
+    `) as unknown as TypedDocumentString<SetDocResultMutation, SetDocResultMutationVariables>;
+export const ConfirmDocResultDocument = new TypedDocumentString(`
+    mutation ConfirmDocResult($postingId: ID!) {
+  confirmDocResult(postingId: $postingId) {
+    posting {
+      id
+      docResultConfirmedAt
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ConfirmDocResultMutation, ConfirmDocResultMutationVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

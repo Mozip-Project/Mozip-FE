@@ -47,4 +47,4 @@ function Tooltip({
   )
 }
 
-export { Tooltip }
+export { SHOW_DELAY_MS as TOOLTIP_SHOW_DELAY_MS, Tooltip }

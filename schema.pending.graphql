@@ -39,6 +39,91 @@ extend type Query {
     sort: ApplicationSort = SUBMITTED_DESC
     page: Int = 1
   ): DocEvaluationApplicationPage!
+  "서류 평가 취합: 제출된 지원서만 10행씩, 탭은 application.docResult 기준(PENDING은 ALL에만). summary는 필터와 무관한 공고 전체"
+  docEvaluationSummary(
+    postingId: ID!
+    tab: DocResultTab = ALL
+    positionIds: [ID!]
+    keyword: String
+    "null이면 점수 쓰는 공고 SCORE_DESC, 아니면 PASS_OPINION_DESC"
+    sort: DocSummarySort
+    page: Int = 1
+  ): DocEvaluationSummaryPage!
+}
+
+enum DocResultTab {
+  "PENDING 포함"
+  ALL
+  PASS
+  HOLD
+  FAIL
+}
+
+enum DocSummarySort {
+  SCORE_DESC
+  SCORE_ASC
+  NAME_ASC
+  NAME_DESC
+  "점수 안 쓰는 공고 기본"
+  PASS_OPINION_DESC
+}
+
+type DocEvaluationSummaryPage {
+  rows: [DocEvaluationSummaryRow!]!
+  "탭 + 포지션 필터 + 검색어 적용"
+  totalCount: Int!
+  "포지션 필터 + 검색어 적용, 탭 조건 제외. hold가 하단 바 보류 인원"
+  tabCounts: DocResultTabCounts!
+  "검색어만 적용. 포지션 없는 모집은 빈 배열"
+  positionCounts: [PositionCount!]!
+  page: Int!
+  "0이면 빈 화면, 페이지 번호 숨김"
+  totalPages: Int!
+  "공고 전체, 필터 무관"
+  summary: DocResultSummary!
+}
+
+type DocEvaluationSummaryRow {
+  application: Application!
+  "평가 완료된 지원자끼리 평균 내림차순, 미완료면 null"
+  rank: Int
+  "소수 1자리. 점수 안 쓰는 공고면 null, 진행 중이면 저장된 평가만으로"
+  averageScore: Float
+  opinionCounts: OpinionCounts!
+  "운영진 전원 SAVED, false면 결과 토글 비활성"
+  evaluationComplete: Boolean!
+}
+
+type OpinionCounts {
+  pass: Int!
+  hold: Int!
+  fail: Int!
+  "아직 SAVED 안 한 운영진 수"
+  notEvaluated: Int!
+}
+
+type DocResultTabCounts {
+  all: Int!
+  pass: Int!
+  hold: Int!
+  fail: Int!
+}
+
+type DocResultSummary {
+  "제출 지원서 수"
+  totalCount: Int!
+  "전원 평가 완료된 지원서 수"
+  evaluatedCount: Int!
+  allEvaluated: Boolean!
+  passCount: Int!
+  holdCount: Int!
+  failCount: Int!
+  "결과 안 고른 수"
+  pendingCount: Int!
+  "allEvaluated && holdCount == 0 && pendingCount == 0 && totalCount > 0"
+  canConfirm: Boolean!
+  "null이면 확정 전"
+  docResultConfirmedAt: DateTime
 }
 
 enum DocEvaluationTab {
@@ -224,6 +309,16 @@ type Mutation {
   deletePosting(id: ID!): Boolean!
   "제출 지원자 전원에게 바로 발송, 제목 1~100자·본문 1~1,000자, DRAFT면 MESSAGE_409, 받는 사람 없으면 MESSAGE_422"
   sendNotice(postingId: ID!, subject: String!, body: String!): Message!
+  "취합 화면 최종 결과 변경, 여러 명 가능. 평가 미완료 지원자 포함 또는 이미 확정이면 EVALUATION_409"
+  setDocResult(applicationIds: [ID!]!, result: DocResult!): [Application!]!
+  "확정 조건 미충족 EVALUATION_422(extensions.reason: NOT_ALL_EVALUATED / RESULT_NOT_SELECTED / HOLD_REMAINING / NO_APPLICANTS), 이미 확정 EVALUATION_423"
+  confirmDocResult(postingId: ID!): ConfirmDocResultPayload!
+}
+
+type ConfirmDocResultPayload {
+  "docResultConfirmedAt 채워짐"
+  posting: Posting!
+  summary: DocResultSummary!
 }
 
 input ApplicationInput {

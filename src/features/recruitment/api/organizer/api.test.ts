@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
-import { getDocEvaluationApplications, getDocumentReviewPosting } from './api'
+import { getDocEvaluationApplications, getRecruitmentPosting } from './api'
 
 const POSTING_ID = ORGANIZATION_POSTING_ID.docReview
 
@@ -14,7 +14,7 @@ afterAll(() => {
 
 describe('서류 평가 목록 API (MSW)', () => {
   it('공고 정보와 최신순 10명, 내 평가 상태를 조회', async () => {
-    expect(await getDocumentReviewPosting(POSTING_ID)).toMatchObject({
+    expect(await getRecruitmentPosting(POSTING_ID)).toMatchObject({
       id: POSTING_ID,
       noPosition: false,
       docResultConfirmedAt: null,
@@ -106,7 +106,7 @@ describe('서류 평가 목록 API (MSW)', () => {
 
   it('파트 없는 모집은 포지션 숫자 없이 지원자를 반환', async () => {
     const postingId = ORGANIZATION_POSTING_ID.noInterviewResult
-    expect(await getDocumentReviewPosting(postingId)).toMatchObject({ noPosition: true })
+    expect(await getRecruitmentPosting(postingId)).toMatchObject({ noPosition: true })
     const result = await getDocEvaluationApplications({ postingId })
 
     expect(result.totalCount).toBe(18)
@@ -124,7 +124,7 @@ describe('서류 평가 목록 API (MSW)', () => {
     await expect(getDocEvaluationApplications({ postingId: 'missing' })).rejects.toMatchObject({
       code: 'POSTING_404',
     })
-    await expect(getDocumentReviewPosting('missing')).rejects.toMatchObject({ code: 'POSTING_404' })
+    await expect(getRecruitmentPosting('missing')).rejects.toMatchObject({ code: 'POSTING_404' })
     await expect(
       getDocEvaluationApplications({ postingId: POSTING_ID, page: 0 }),
     ).rejects.toMatchObject({ code: 'COMMON_400' })
