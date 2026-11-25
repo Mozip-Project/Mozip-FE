@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from '@/providers/toastProvider'
@@ -200,6 +200,35 @@ describe('PostingCreateForm', () => {
     expect(customField()).not.toBeInTheDocument()
   })
 
+  it('체크하고 비운 채 입력칸을 벗어나면 입력 안내를 칸 아래에 표시', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.click(screen.getByRole('checkbox', { name: '활동 지역' }))
+    await user.click(screen.getByRole('checkbox', { name: '회비' }))
+    await user.click(screen.getByRole('checkbox', { name: '직접 입력' }))
+    const regionInput = screen.getByRole('textbox', { name: '활동 지역' })
+    // 아직 입력칸에 들어가지 않았으면 안내 없음
+    expect(regionInput).not.toHaveAttribute('aria-invalid', 'true')
+
+    for (const name of ['활동 지역', '회비', '직접 입력']) {
+      await user.click(screen.getByRole('textbox', { name }))
+      await user.tab()
+    }
+    expect(regionInput).toHaveAttribute('aria-invalid', 'true')
+    expect(regionInput).toHaveAccessibleDescription('활동 지역을 입력해 주세요')
+    expect(screen.getByRole('textbox', { name: '회비' })).toHaveAccessibleDescription(
+      '회비를 입력해 주세요',
+    )
+    expect(screen.getByRole('textbox', { name: '직접 입력' })).toHaveAccessibleDescription(
+      '지원 자격을 입력해 주세요',
+    )
+
+    await user.type(regionInput, '서울 마포구')
+    expect(regionInput).not.toHaveAttribute('aria-invalid', 'true')
+    expect(regionInput).not.toHaveAccessibleDescription()
+  })
+
   it('회비는 숫자만 받아 세 자리마다 쉼표 표시', async () => {
     const user = userEvent.setup()
     renderForm()
@@ -367,7 +396,7 @@ describe('PostingCreateForm', () => {
     await user.click(within(settings).getByRole('checkbox', { name: '역할' }))
     expect(within(card).queryByRole('textbox', { name: '역할' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    await user.click(screen.getByRole('button', { name: '템플릿으로 추가' }))
     expect((await screen.findAllByRole('menuitem')).map((item) => item.textContent)).toEqual([
       '팀워크형',
       '활동 의지형',
@@ -381,21 +410,25 @@ describe('PostingCreateForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeEnabled()
   })
 
-  it('포트폴리오형 템플릿을 고르면 문항이 바뀌고, 파일 문항 설정이 카드 미리보기에 반영', async () => {
+  it('포트폴리오형 템플릿을 고르면 기존 문항 아래에 추가되고, 파일 문항 설정이 카드 미리보기에 반영', async () => {
     const user = setupWithDate()
     renderForm()
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
-    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    await user.click(screen.getByRole('button', { name: '템플릿으로 추가' }))
     await user.click(await screen.findByRole('menuitem', { name: '포트폴리오형' }))
     expect(getQuestionCards()).toEqual([
-      'Q1 포트폴리오 또는 결과물을 첨부해 주세요. 편집',
-      'Q2 대표 결과물에 대해 설명해 주세요. (기획 의도, 내 역할 등) 편집',
-      'Q3 작업에 사용한 도구나 기술을 알려 주세요. 편집',
+      'Q1 자기소개를 해 주세요 편집',
+      'Q2 지원 동기를 작성해 주세요 편집',
+      'Q3 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q4 포트폴리오 또는 결과물을 첨부해 주세요. 편집',
+      'Q5 대표 결과물에 대해 설명해 주세요. (기획 의도, 내 역할 등) 편집',
+      'Q6 작업에 사용한 도구나 기술을 알려 주세요. 편집',
     ])
-    const settings = screen.getByRole('complementary', { name: 'Q1 문항 설정' })
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Q4 .* 편집$/ })).toHaveFocus())
+    const settings = screen.getByRole('complementary', { name: 'Q4 문항 설정' })
     expect(
       within(settings).getByText('파일이나 링크 중 하나는 꼭 제출해야 해요'),
     ).toBeInTheDocument()
@@ -413,6 +446,75 @@ describe('PostingCreateForm', () => {
     await user.click(within(settings).getByRole('checkbox', { name: 'URL 링크' }))
     expect(screen.queryByText('https:// (노션 · 깃허브 등)')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
+  })
+
+  it('문항 메뉴의 위로·아래로 이동으로 순서를 바꾸고, 끝 문항은 그 방향 이동 비활성', async () => {
+    const user = setupWithDate()
+    renderForm()
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    await user.click(screen.getByRole('button', { name: 'Q1 문항 메뉴' }))
+    expect(await screen.findByRole('menuitem', { name: '위로 이동' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await user.click(screen.getByRole('menuitem', { name: '아래로 이동' }))
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 자기소개를 해 주세요 편집',
+      'Q3 지원 분야와 관련된 경험을 알려 주세요 편집',
+    ])
+    expect(screen.getByText('Q1 문항을 Q2 자리로 옮겼어요')).toHaveAttribute('role', 'status')
+    // 옮긴 문항이 계속 선택된 상태
+    expect(screen.getByRole('complementary', { name: 'Q2 문항 설정' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^Q3 / }))
+    await user.click(screen.getByRole('button', { name: 'Q3 문항 메뉴' }))
+    expect(await screen.findByRole('menuitem', { name: '아래로 이동' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await user.click(screen.getByRole('menuitem', { name: '위로 이동' }))
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q3 자기소개를 해 주세요 편집',
+    ])
+  })
+
+  it('문항 카드를 끌어 다른 문항 아래에 놓으면 그 자리로 이동', async () => {
+    const user = setupWithDate()
+    renderForm()
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    const [firstItem, , thirdItem] = within(
+      screen.getByRole('list', { name: '지원서 문항' }),
+    ).getAllByRole('listitem')
+    const firstCard = firstItem?.querySelector('[draggable="true"]')
+    if (!firstCard || !thirdItem) {
+      throw new Error('문항 카드 없음')
+    }
+    // jsdom은 DragEvent가 없어 전달 데이터·포인터 위치를 직접 지정
+    const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
+    vi.spyOn(thirdItem, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 0, height: 100 }),
+    )
+    const dragOverLowerHalf = createEvent.dragOver(thirdItem, { dataTransfer })
+    Object.defineProperty(dragOverLowerHalf, 'clientY', { value: 80 })
+
+    fireEvent.dragStart(firstCard, { dataTransfer })
+    fireEvent(thirdItem, dragOverLowerHalf)
+    fireEvent.drop(thirdItem, { dataTransfer })
+
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q3 자기소개를 해 주세요 편집',
+    ])
   })
 
   it('면접 공고는 지원서 양식 다음 면접 시간 설정, 발표일 사이 날짜와 면접 가능 기간 표시', async () => {
