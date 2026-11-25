@@ -17,6 +17,8 @@ const NON_RETRYABLE_AUTH_CODES = new Set([
 ])
 // 백엔드 코드 형식이 도메인_HTTP상태라 4xx는 다시 보내도 같은 결과
 const CLIENT_ERROR_CODE_PATTERN = /_4\d{2}$/
+// 개발 서버 인증 우회용 회원 선택 헤더, 쿠키가 있으면 서버가 쿠키 우선
+const MOCK_ROLE_HEADER = 'X-Mock-Role'
 
 type VariablesArgs<TVariables> = TVariables extends Record<string, never> ? [] : [TVariables]
 
@@ -31,6 +33,11 @@ function getGraphQLEndpoint() {
     throw new Error('NEXT_PUBLIC_GRAPHQL_ENDPOINT 환경 변수가 없습니다.')
   }
   return endpoint
+}
+
+function getMockRoleHeaders(): Record<string, string> {
+  const mockRole = process.env.NEXT_PUBLIC_MOCK_ROLE
+  return mockRole ? { [MOCK_ROLE_HEADER]: mockRole } : {}
 }
 
 function redirectOnSessionExpired() {
@@ -90,6 +97,7 @@ async function requestGraphQL<TResult, TVariables extends Variables>(
 ): Promise<TResult> {
   const client = (graphqlClient ??= new GraphQLClient(getGraphQLEndpoint(), {
     credentials: 'include',
+    headers: getMockRoleHeaders(),
   }))
 
   const generationAtRequest = reissueGeneration
