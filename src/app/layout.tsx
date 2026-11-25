@@ -4,9 +4,19 @@ import { pretendard } from '@/styles/fonts'
 import type { Metadata } from 'next'
 import './globals.css'
 
+const SITE_NAME = 'mozip.'
+const SITE_DESCRIPTION = '동아리 모집 플랫폼'
+
 export const metadata: Metadata = {
-  title: 'mozip.',
-  description: '동아리 모집 플랫폼',
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
+    locale: 'ko_KR',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
