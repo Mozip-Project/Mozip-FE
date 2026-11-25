@@ -1,13 +1,12 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import {
   useDocEvaluationSummaryQuery,
-  useDocumentResultPostingQuery,
+  useRecruitmentPostingQuery,
   useSetDocResultsMutation,
 } from '@/features/recruitment/api/organizer/queries'
 import type {
   DocumentResult,
   DocumentResultApplicantPage,
-  DocumentResultOverview,
   DocumentResultQuery,
   DocumentResultSort,
   DocumentResultStatus,
@@ -20,11 +19,10 @@ import type {
   DocResultTab,
   DocSummarySort,
 } from '@/gql/graphql'
-import { useIsHydrated } from '@/hooks/useIsHydrated'
 
 type DocEvaluationSummaryPage = DocEvaluationSummaryQuery['docEvaluationSummary']
 
-// 연달아 바꾼 결과를 모아 한 번에 저장하기까지 기다리는 시간
+// 연달아 바꾼 결과를 모아 저장하기까지 기다리는 시간
 const RESULT_SAVE_DELAY_MS = 500
 
 const DOC_RESULT_TAB = {
@@ -113,27 +111,25 @@ function toTotals({ summary }: DocEvaluationSummaryPage) {
     failCount: summary.failCount,
     pendingCount: summary.pendingCount,
     canConfirm: summary.canConfirm,
-    confirmedAt: summary.docResultConfirmedAt ?? null,
   }
 }
 
 type DocEvaluationSummaryRow = DocEvaluationSummaryPage['rows'][number]
 
 type PendingDocResult = {
-  // 서버에 저장된 결과, 탭 숫자를 옮기는 기준
+  // 서버에 저장된 결과
   savedResult: DocResult
   result: DocResult
-  // 다른 탭·조건 목록에서 탭 숫자 반영 여부 판단용
+  // 탭 숫자 반영 여부 판단용
   name: string
   positionId: string | null
 }
 
-// 결과 변경은 바로 화면에 반영하고, 마지막 변경 뒤 잠시 기다렸다 모아서 저장
-// 저장 전·저장 중 값은 재조회 결과 위에 덮어써서 저장이 끝나 다시 불러올 때까지 유지
-// TODO: 결과 변경 실패(EVALUATION_409) 안내 디자인 확인 필요, 지금은 재조회 값으로 되돌리기만
+// 결과 변경은 바로 화면에 반영하고, 마지막 변경 뒤 모아서 저장
+// TODO: 결과 변경 실패(EVALUATION_409) 안내 디자인 확인 필요
 function useDocResultChanges(postingId: string) {
   const { mutateAsync: saveResults } = useSetDocResultsMutation(postingId)
-  // 화면에 덮어쓸 값, 저장 뒤 재조회까지 끝나면 비움
+  // 저장 뒤 재조회까지 화면에 덮어쓸 값
   const [pendingResults, setPendingResults] = useState<ReadonlyMap<string, PendingDocResult>>(
     new Map(),
   )
@@ -149,7 +145,7 @@ function useDocResultChanges(postingId: string) {
     }
     unsentRef.current = new Map()
 
-    // 저장 중 같은 지원자를 다시 바꿨으면 새 값은 남기고, 성공했으면 저장된 결과를 기준으로 갱신
+    // 저장 중 다시 바꾼 값은 남김
     function settle(isSaved: boolean) {
       setPendingResults((previous) => {
         const next = new Map(previous)
@@ -195,7 +191,7 @@ function useDocResultChanges(postingId: string) {
   return { pendingResults, changeResult, isSaving: pendingResults.size > 0 }
 }
 
-// 탭 숫자는 포지션 필터·검색어 기준이라 조건에 드는 지원자만 반영
+// 탭 숫자는 포지션·검색 조건 기준
 function isInListFilter({ name, positionId }: PendingDocResult, query: DocumentResultQuery) {
   const keyword = query.keyword.trim()
   const isPositionMatched =
@@ -203,9 +199,9 @@ function isInListFilter({ name, positionId }: PendingDocResult, query: DocumentR
   return isPositionMatched && name.includes(keyword)
 }
 
-// 확정 후에는 보류 탭이 없어 보류 탭 주소(보류 탭에서 확정한 직후 포함)는 전체 탭으로 조회
+// 확정 후에는 보류 탭이 없어 보류 탭 주소는 전체 탭으로 조회
 function useDocumentResults(postingId: string, urlQuery: DocumentResultQuery) {
-  const postingQuery = useDocumentResultPostingQuery(postingId)
+  const postingQuery = useRecruitmentPostingQuery(postingId)
   const posting = postingQuery.data
   const isConfirmed = Boolean(posting?.docResultConfirmedAt)
   const query: DocumentResultQuery =
@@ -226,7 +222,7 @@ function useDocumentResults(postingId: string, urlQuery: DocumentResultQuery) {
       summaryQuery.data,
     )
 
-  // 바꾼 행은 지금 목록(서버 값)에서 찾아 원래 결과·포지션 기억
+  // 바꾼 행의 원래 결과·포지션은 서버 목록에서 찾음
   function changeResult(applicationId: string, result: DocumentResult) {
     const row = summaryQuery.data?.rows.find(({ application }) => application.id === applicationId)
     if (row) {
@@ -244,11 +240,12 @@ function useDocumentResults(postingId: string, urlQuery: DocumentResultQuery) {
           totalPages: summary.totalPages,
           hasPositions: !posting.noPosition,
           hasInterview: posting.hasInterview,
+          confirmedAt: posting.docResultConfirmedAt ?? null,
           totals: toTotals(summary),
         }
       : undefined
 
-  // 이전 목록이 남아 있지 않은 조회 실패만 실패 화면으로 표시
+  // 이전 목록이 없는 조회 실패만 실패 화면
   const isError = !data && (postingQuery.isError || summaryQuery.isError)
 
   return {
@@ -262,16 +259,4 @@ function useDocumentResults(postingId: string, urlQuery: DocumentResultQuery) {
   }
 }
 
-// 경계마다 hydration 시점이 달라 먼저 찬 캐시로 서버 HTML과 어긋나지 않도록 hydration 중 데이터 숨김
-function useDocumentResultOverview(postingId: string): DocumentResultOverview | undefined {
-  const isHydrated = useIsHydrated()
-  const { data } = useDocumentResultPostingQuery(postingId)
-
-  if (!isHydrated || !data) {
-    return undefined
-  }
-
-  return { hasInterview: data.hasInterview, confirmedAt: data.docResultConfirmedAt ?? null }
-}
-
-export { useDocumentResultOverview, useDocumentResults }
+export { useDocumentResults }

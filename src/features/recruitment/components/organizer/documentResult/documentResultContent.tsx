@@ -73,7 +73,7 @@ function DocumentResultContent() {
   }
 
   const { positionOptions } = data
-  const isConfirmed = data.totals.confirmedAt !== null
+  const isConfirmed = data.confirmedAt !== null
   const selectedPositionLabels = positionOptions
     .filter((option) => query.positions.includes(option.value))
     .map((option) => option.label)
@@ -102,7 +102,7 @@ function DocumentResultContent() {
   return (
     <>
       <RecruitmentBoard
-        header={getHeader(data.totals.confirmedAt)}
+        header={getHeader(data.confirmedAt)}
         isHeaderSticky
         query={query}
         statusTabs={getStatusTabs(data.statusCounts, isConfirmed)}
@@ -136,6 +136,7 @@ function DocumentResultContent() {
       <DocumentResultSummaryBar
         postingId={postingId}
         hasInterview={data.hasInterview}
+        isConfirmed={isConfirmed}
         totals={data.totals}
         isSaving={isSaving}
         visibleHoldCount={data.statusCounts.hold}

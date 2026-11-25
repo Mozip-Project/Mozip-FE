@@ -18,7 +18,6 @@ const READY_TOTALS = {
   failCount: 28,
   pendingCount: 0,
   canConfirm: true,
-  confirmedAt: null,
 } satisfies DocumentResultTotals
 
 function createRow(id: string, docResult: DocResult) {
@@ -46,7 +45,6 @@ const SUMMARY_PAGE = {
     failCount: 0,
     pendingCount: 1,
     canConfirm: false,
-    docResultConfirmedAt: null,
   },
 } satisfies DocEvaluationSummaryQuery['docEvaluationSummary']
 

@@ -22,6 +22,7 @@ const STICKY_BOTTOM_CLASS = 'page-bottom-bar'
 type DocumentResultSummaryBarProps = {
   postingId: string
   hasInterview: boolean
+  isConfirmed: boolean
   totals: DocumentResultTotals
   visibleHoldCount: number
   // 결과 변경 저장 전·저장 중
@@ -31,6 +32,7 @@ type DocumentResultSummaryBarProps = {
 function DocumentResultSummaryBar({
   postingId,
   hasInterview,
+  isConfirmed,
   totals,
   visibleHoldCount,
   isSaving,
@@ -38,7 +40,6 @@ function DocumentResultSummaryBar({
   const primaryActionRef = useRef<HTMLButtonElement>(null)
   const primaryLinkRef = useRef<HTMLAnchorElement>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const isConfirmed = totals.confirmedAt !== null
   const { status, message, canConfirm } = getDocumentResultSummary(totals, visibleHoldCount)
   const hasInterviewStep = hasInterviewStepAfterConfirm(hasInterview, totals.passCount)
 

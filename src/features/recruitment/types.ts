@@ -129,8 +129,6 @@ type DocumentResultTotals = {
   // 결과를 아직 고르지 않은 인원
   pendingCount: number
   canConfirm: boolean
-  // null은 확정 전
-  confirmedAt: string | null
 }
 
 type DocumentResultApplicantPage = {
@@ -142,6 +140,8 @@ type DocumentResultApplicantPage = {
   totalPages: number
   hasPositions: boolean
   hasInterview: boolean
+  // 공고의 결과 확정 시각, null은 확정 전
+  confirmedAt: string | null
   totals: DocumentResultTotals
 }
 

@@ -1,5 +1,6 @@
-# 결과 열 구성과 결과 칩 계산용
-query ApplicantManagementPosting($id: ID!) {
+# 모집 관리 화면(지원자 관리·서류 평가·서류 평가 취합)과 LNB가 같이 쓰는 공고 정보
+# 포지션 열, 결과 칩·평가 버튼·확정 후 화면, 면접 단계 구성용
+query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
     id
     status
@@ -47,15 +48,6 @@ query PostingApplications(
   }
 }
 
-# 파트 열과 평가 버튼(확정 후 평가 보기) 구성용
-query DocumentReviewPosting($id: ID!) {
-  posting(id: $id) {
-    id
-    noPosition
-    docResultConfirmedAt
-  }
-}
-
 query DocEvaluationApplications(
   $postingId: ID!
   $tab: DocEvaluationTab
@@ -100,16 +92,6 @@ query DocEvaluationApplications(
     }
     page
     totalPages
-  }
-}
-
-# 포지션 열, 확정 후 다음 단계와 LNB 확정 상태 구성용
-query DocumentResultPosting($id: ID!) {
-  posting(id: $id) {
-    id
-    hasInterview
-    noPosition
-    docResultConfirmedAt
   }
 }
 
@@ -175,7 +157,6 @@ query DocEvaluationSummary(
       allEvaluated
       pendingCount
       canConfirm
-      docResultConfirmedAt
     }
   }
 }

@@ -7,20 +7,19 @@ import type {
 } from '@/gql/graphql'
 import {
   confirmDocResult,
-  getApplicantManagementPosting,
   getDocEvaluationApplications,
   getDocEvaluationSummary,
-  getDocumentResultPosting,
-  getDocumentReviewPosting,
   getPostingApplications,
+  getRecruitmentPosting,
   setDocResult,
 } from './api'
-import { applicantManagementKeys, documentResultKeys, documentReviewKeys } from './keys'
+import { recruitmentKeys } from './keys'
 
-function useApplicantManagementPostingQuery(postingId: string) {
+// 모집 관리 화면과 LNB가 같은 캐시 사용
+function useRecruitmentPostingQuery(postingId: string) {
   return useQuery({
-    queryKey: applicantManagementKeys.posting(postingId),
-    queryFn: () => getApplicantManagementPosting(postingId),
+    queryKey: recruitmentKeys.posting(postingId),
+    queryFn: () => getRecruitmentPosting(postingId),
   })
 }
 
@@ -28,17 +27,10 @@ function usePostingApplicationsQuery(variables: PostingApplicationsQueryVariable
   const postingId = String(variables.postingId)
 
   return useQuery({
-    queryKey: applicantManagementKeys.list(variables),
+    queryKey: recruitmentKeys.applicationList(variables),
     queryFn: () => getPostingApplications(variables),
     placeholderData: (previousData, previousQuery) =>
       previousQuery?.queryKey[1] === postingId ? previousData : undefined,
-  })
-}
-
-function useDocumentReviewPostingQuery(postingId: string) {
-  return useQuery({
-    queryKey: documentReviewKeys.posting(postingId),
-    queryFn: () => getDocumentReviewPosting(postingId),
   })
 }
 
@@ -55,18 +47,11 @@ function useDocEvaluationApplicationsQuery(
   const postingId = String(variables.postingId)
 
   return useQuery({
-    queryKey: documentReviewKeys.list(variables),
+    queryKey: recruitmentKeys.docEvaluationList(variables),
     queryFn: () => getDocEvaluationApplications(variables),
     enabled,
     placeholderData: (previousData, previousQuery) =>
       shouldKeepPreviousData && previousQuery?.queryKey[1] === postingId ? previousData : undefined,
-  })
-}
-
-function useDocumentResultPostingQuery(postingId: string) {
-  return useQuery({
-    queryKey: documentResultKeys.posting(postingId),
-    queryFn: () => getDocumentResultPosting(postingId),
   })
 }
 
@@ -75,23 +60,21 @@ function useDocEvaluationSummaryQuery(variables: DocEvaluationSummaryQueryVariab
   const postingId = String(variables.postingId)
 
   return useQuery({
-    queryKey: documentResultKeys.list(variables),
+    queryKey: recruitmentKeys.docSummaryList(variables),
     queryFn: () => getDocEvaluationSummary(variables),
     placeholderData: (previousData, previousQuery) =>
       previousQuery?.queryKey[1] === postingId ? previousData : undefined,
   })
 }
 
-// 다른 탭·조건 목록 캐시에는 바뀌기 전 공고 전체 집계(확정 가능 여부·확정 시각)가 남아 있어 삭제
-// 다음에 열 때는 보고 있던 최신 목록을 잠깐 보여 주고 새로 조회
+// 안 보는 탭 캐시는 바뀌기 전 집계가 남아 있어 삭제
 function refreshDocResultLists(queryClient: QueryClient, postingId: string) {
-  const listsKey = documentResultKeys.lists(postingId)
+  const listsKey = recruitmentKeys.docSummaries(postingId)
   queryClient.removeQueries({ queryKey: listsKey, type: 'inactive' })
   return queryClient.invalidateQueries({ queryKey: listsKey })
 }
 
-// 모아 둔 변경을 결과 값별로 묶어 저장(명세상 한 요청에 결과 하나), 끝나면 취합 목록·지원자 관리 재조회
-// 화면 반영은 호출하는 쪽(useDocumentResults)이 저장 전 값을 덮어씌워 처리
+// 명세상 한 요청에 결과 하나라 결과 값별로 묶어 저장
 function useSetDocResultsMutation(postingId: string) {
   const queryClient = useQueryClient()
 
@@ -111,35 +94,32 @@ function useSetDocResultsMutation(postingId: string) {
     onSettled: () =>
       Promise.all([
         refreshDocResultLists(queryClient, postingId),
-        queryClient.invalidateQueries({ queryKey: applicantManagementKeys.all(postingId) }),
+        queryClient.invalidateQueries({ queryKey: recruitmentKeys.applications(postingId) }),
       ]),
   })
 }
 
-// 재조회까지 기다려 팝업이 닫힐 때 확정 후 화면 표시, 실패해도 바뀐 확정 조건 반영
-// 지원자 관리 결과와 서류 평가 버튼(평가 보기)도 확정 기준으로 갱신
+// 재조회까지 기다려 팝업이 닫힐 때 확정 후 화면 표시
 function useConfirmDocResultMutation(postingId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: () => confirmDocResult(postingId),
-    onSettled: () =>
-      Promise.all([
-        refreshDocResultLists(queryClient, postingId),
-        queryClient.invalidateQueries({ queryKey: documentResultKeys.posting(postingId) }),
-        queryClient.invalidateQueries({ queryKey: applicantManagementKeys.all(postingId) }),
-        queryClient.invalidateQueries({ queryKey: documentReviewKeys.all(postingId) }),
-      ]),
+    onSettled: () => {
+      queryClient.removeQueries({
+        queryKey: recruitmentKeys.docSummaries(postingId),
+        type: 'inactive',
+      })
+      return queryClient.invalidateQueries({ queryKey: recruitmentKeys.all(postingId) })
+    },
   })
 }
 
 export {
-  useApplicantManagementPostingQuery,
   useConfirmDocResultMutation,
   useDocEvaluationApplicationsQuery,
   useDocEvaluationSummaryQuery,
-  useDocumentResultPostingQuery,
-  useDocumentReviewPostingQuery,
   usePostingApplicationsQuery,
+  useRecruitmentPostingQuery,
   useSetDocResultsMutation,
 }

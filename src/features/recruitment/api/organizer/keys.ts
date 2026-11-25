@@ -4,26 +4,26 @@ import type {
   PostingApplicationsQueryVariables,
 } from '@/gql/graphql'
 
-const applicantManagementKeys = {
-  all: (postingId: string) => ['applicantManagement', postingId] as const,
-  posting: (postingId: string) => [...applicantManagementKeys.all(postingId), 'posting'] as const,
-  list: (variables: PostingApplicationsQueryVariables) =>
-    [...applicantManagementKeys.all(String(variables.postingId)), 'list', variables] as const,
+// 모집 관리 화면들이 같은 공고를 다뤄 공고 ID 아래로 묶음
+const recruitmentKeys = {
+  all: (postingId: string) => ['recruitment', postingId] as const,
+  posting: (postingId: string) => [...recruitmentKeys.all(postingId), 'posting'] as const,
+
+  // 지원자 관리
+  applications: (postingId: string) => [...recruitmentKeys.all(postingId), 'applications'] as const,
+  applicationList: (variables: PostingApplicationsQueryVariables) =>
+    [...recruitmentKeys.applications(String(variables.postingId)), variables] as const,
+
+  // 서류 평가
+  docEvaluations: (postingId: string) =>
+    [...recruitmentKeys.all(postingId), 'docEvaluations'] as const,
+  docEvaluationList: (variables: DocEvaluationApplicationsQueryVariables) =>
+    [...recruitmentKeys.docEvaluations(String(variables.postingId)), variables] as const,
+
+  // 서류 평가 취합
+  docSummaries: (postingId: string) => [...recruitmentKeys.all(postingId), 'docSummary'] as const,
+  docSummaryList: (variables: DocEvaluationSummaryQueryVariables) =>
+    [...recruitmentKeys.docSummaries(String(variables.postingId)), variables] as const,
 }
 
-const documentReviewKeys = {
-  all: (postingId: string) => ['documentReview', postingId] as const,
-  posting: (postingId: string) => [...documentReviewKeys.all(postingId), 'posting'] as const,
-  list: (variables: DocEvaluationApplicationsQueryVariables) =>
-    [...documentReviewKeys.all(String(variables.postingId)), 'list', variables] as const,
-}
-
-const documentResultKeys = {
-  all: (postingId: string) => ['documentResult', postingId] as const,
-  posting: (postingId: string) => [...documentResultKeys.all(postingId), 'posting'] as const,
-  lists: (postingId: string) => [...documentResultKeys.all(postingId), 'list'] as const,
-  list: (variables: DocEvaluationSummaryQueryVariables) =>
-    [...documentResultKeys.lists(String(variables.postingId)), variables] as const,
-}
-
-export { applicantManagementKeys, documentResultKeys, documentReviewKeys }
+export { recruitmentKeys }

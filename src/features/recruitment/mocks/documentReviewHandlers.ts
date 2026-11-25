@@ -8,8 +8,6 @@ import type {
   DocEvaluationApplicationsQuery,
   DocEvaluationApplicationsQueryVariables,
   DocEvaluationTab,
-  DocumentReviewPostingQuery,
-  DocumentReviewPostingQueryVariables,
   MyDocEvaluationStatus,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
@@ -58,29 +56,6 @@ function errorBody(code: string, message: string) {
 const POSTING_NOT_FOUND_ERROR = ['POSTING_404', '공고를 찾을 수 없습니다.'] as const
 
 const documentReviewHandlers = [
-  graphqlApi.query<DocumentReviewPostingQuery, DocumentReviewPostingQueryVariables>(
-    'DocumentReviewPosting',
-    async ({ variables }) => {
-      await delay(MOCK_RESPONSE_DELAY_MS)
-      const postingId = String(variables.id)
-      const posting = getManagedPostingSample(postingId)
-      const sample = findOrganizationPostingSample(postingId)
-
-      if (!posting || !sample) {
-        return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
-      }
-
-      return HttpResponse.json({
-        data: {
-          posting: {
-            id: posting.id,
-            noPosition: sample.noPosition,
-            docResultConfirmedAt: posting.docResultConfirmedAt,
-          },
-        },
-      })
-    },
-  ),
   graphqlApi.query<DocEvaluationApplicationsQuery, DocEvaluationApplicationsQueryVariables>(
     'DocEvaluationApplications',
     async ({ variables }) => {

@@ -14,8 +14,6 @@ import type {
   DocResult,
   DocResultTab,
   DocSummarySort,
-  DocumentResultPostingQuery,
-  DocumentResultPostingQueryVariables,
   PostingStatus,
   SetDocResultMutation,
   SetDocResultMutationVariables,
@@ -206,30 +204,6 @@ const RESULT_LOCKED_ERROR = [
 ] as const
 
 const documentResultHandlers = [
-  graphqlApi.query<DocumentResultPostingQuery, DocumentResultPostingQueryVariables>(
-    'DocumentResultPosting',
-    async ({ variables }) => {
-      await delay(MOCK_RESPONSE_DELAY_MS)
-      const postingId = String(variables.id)
-      const posting = getManagedPostingSample(postingId)
-      const sample = findOrganizationPostingSample(postingId)
-
-      if (!posting || !sample) {
-        return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
-      }
-
-      return HttpResponse.json({
-        data: {
-          posting: {
-            id: posting.id,
-            hasInterview: posting.hasInterview,
-            noPosition: sample.noPosition,
-            docResultConfirmedAt: posting.docResultConfirmedAt,
-          },
-        },
-      })
-    },
-  ),
   graphqlApi.query<DocEvaluationSummaryQuery, DocEvaluationSummaryQueryVariables>(
     'DocEvaluationSummary',
     async ({ variables }) => {

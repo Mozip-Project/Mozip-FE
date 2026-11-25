@@ -8,8 +8,6 @@ import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_RESULT_SAMPLE } from '@/features/recruitment/mocks/documentResultSample'
 import { APPLICANT_MANAGEMENT_PAGE_SIZE } from '@/features/recruitment/types'
 import type {
-  ApplicantManagementPostingQuery,
-  ApplicantManagementPostingQueryVariables,
   ApplicationSort,
   DocResult,
   FinalResult,
@@ -116,32 +114,6 @@ function errorBody(code: string, message: string) {
 const POSTING_NOT_FOUND_ERROR = ['POSTING_404', '공고를 찾을 수 없습니다.'] as const
 
 const applicantManagementHandlers = [
-  graphqlApi.query<ApplicantManagementPostingQuery, ApplicantManagementPostingQueryVariables>(
-    'ApplicantManagementPosting',
-    async ({ variables }) => {
-      await delay(MOCK_RESPONSE_DELAY_MS)
-      const postingId = String(variables.id)
-      const posting = getManagedPostingSample(postingId)
-      const sample = findOrganizationPostingSample(postingId)
-
-      if (!posting || !sample) {
-        return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
-      }
-      const { id, status, hasInterview, docResultConfirmedAt } = posting
-      return HttpResponse.json({
-        data: {
-          posting: {
-            id,
-            status,
-            hasInterview,
-            noPosition: sample.noPosition,
-            docResultConfirmedAt,
-          },
-        },
-      })
-    },
-  ),
-
   graphqlApi.query<PostingApplicationsQuery, PostingApplicationsQueryVariables>(
     'PostingApplications',
     async ({ variables }) => {
