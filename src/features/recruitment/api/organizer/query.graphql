@@ -102,3 +102,96 @@ query DocEvaluationApplications(
     totalPages
   }
 }
+
+# 포지션 열, 확정 후 다음 단계와 LNB 확정 상태 구성용
+query DocumentResultPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    hasInterview
+    noPosition
+    docResultConfirmedAt
+  }
+}
+
+query DocEvaluationSummary(
+  $postingId: ID!
+  $tab: DocResultTab
+  $positionIds: [ID!]
+  $keyword: String
+  $sort: DocSummarySort
+  $page: Int
+) {
+  docEvaluationSummary(
+    postingId: $postingId
+    tab: $tab
+    positionIds: $positionIds
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      application {
+        id
+        user {
+          name
+        }
+        position {
+          id
+          name
+        }
+        docResult
+      }
+      rank
+      averageScore
+      opinionCounts {
+        pass
+        hold
+        fail
+        notEvaluated
+      }
+      evaluationComplete
+    }
+    tabCounts {
+      all
+      pass
+      hold
+      fail
+    }
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+    summary {
+      totalCount
+      evaluatedCount
+      holdCount
+      passCount
+      failCount
+      allEvaluated
+      pendingCount
+      canConfirm
+      docResultConfirmedAt
+    }
+  }
+}
+
+mutation SetDocResult($applicationIds: [ID!]!, $result: DocResult!) {
+  setDocResult(applicationIds: $applicationIds, result: $result) {
+    id
+    docResult
+  }
+}
+
+mutation ConfirmDocResult($postingId: ID!) {
+  confirmDocResult(postingId: $postingId) {
+    posting {
+      id
+      docResultConfirmedAt
+    }
+  }
+}
