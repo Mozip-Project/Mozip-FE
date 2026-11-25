@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
-import type { ScoreQuestion } from '@/features/recruitment/components/organizer/documentEvaluation/scoreField'
+import type { ScoreQuestion } from '@/features/recruitment/components/organizer/documentEvaluationPanel/scoreField'
 import {
   useApplicantNavigation,
   useDocumentEvaluationChips,

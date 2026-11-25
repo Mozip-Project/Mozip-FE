@@ -6,10 +6,10 @@ import {
 import type {
   Activity,
   ActivityColumn,
-} from '@/features/recruitment/components/organizer/documentEvaluation/activityTable'
-import type { QuestionHeaderContent } from '@/features/recruitment/components/organizer/documentEvaluation/documentEvaluationApplication'
-import type { FileLinkAttachment } from '@/features/recruitment/components/organizer/documentEvaluation/fileLinkList'
-import type { ScoreQuestion } from '@/features/recruitment/components/organizer/documentEvaluation/scoreField'
+} from '@/features/recruitment/components/organizer/documentEvaluationApplication/activityTable'
+import type { QuestionHeaderContent } from '@/features/recruitment/components/organizer/documentEvaluationApplication/documentEvaluationApplication'
+import type { FileLinkAttachment } from '@/features/recruitment/components/organizer/documentEvaluationApplication/fileLinkList'
+import type { ScoreQuestion } from '@/features/recruitment/components/organizer/documentEvaluationPanel/scoreField'
 import { parseActivityContent } from '@/features/recruitment/utils/applicationDraft'
 import { DEFAULT_TEXT_MAX_LENGTH } from '@/features/recruitment/utils/applicationFormPosting'
 import type {

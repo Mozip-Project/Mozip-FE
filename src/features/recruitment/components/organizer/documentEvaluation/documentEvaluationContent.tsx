@@ -1,5 +1,5 @@
-import { DocumentEvaluationApplication } from './documentEvaluationApplication'
-import { DocumentEvaluationPanel } from './documentEvaluationPanel'
+import { DocumentEvaluationApplication } from '@/features/recruitment/components/organizer/documentEvaluationApplication/documentEvaluationApplication'
+import { DocumentEvaluationPanel } from '@/features/recruitment/components/organizer/documentEvaluationPanel/documentEvaluationPanel'
 
 type DocumentEvaluationContentProps = Pick<
   PageProps<'/manage/postings/[postingId]/documents/[applicantId]'>,

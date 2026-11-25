@@ -3,12 +3,12 @@
 import FileTextIcon from '@/assets/icons/fileText.svg'
 import { Badge } from '@/components/ui/Badge/badge'
 import { EmptyState } from '@/components/ui/EmptyState/emptyState'
+import { DocumentEvaluationApplicationSkeleton } from '@/features/recruitment/components/organizer/documentEvaluation/documentEvaluationSkeleton'
 import { useDocumentEvaluationApplication } from '@/features/recruitment/hooks/useDocumentEvaluationApplication'
 import { ActivityTable } from './activityTable'
 import { AnswerContent } from './answerContent'
 import { ApplicantInfoCard } from './applicantInfoCard'
 import { AvailabilityCard } from './availabilityCard'
-import { DocumentEvaluationApplicationSkeleton } from './documentEvaluationSkeleton'
 import { FileLinkList } from './fileLinkList'
 
 type QuestionHeaderContent = {

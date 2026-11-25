@@ -9,16 +9,16 @@ import {
   useMyDocEvaluationQuery,
   useRecruitmentPostingQuery,
 } from '@/features/recruitment/api/organizer/queries'
+import {
+  DocumentEvaluationPanelSkeleton,
+  EVALUATION_PANEL_CLASS,
+} from '@/features/recruitment/components/organizer/documentEvaluation/documentEvaluationSkeleton'
 import { useDocumentEvaluationApplication } from '@/features/recruitment/hooks/useDocumentEvaluationApplication'
 import { useDocumentEvaluationChips } from '@/features/recruitment/hooks/useDocumentEvaluationChips'
 import { useDocumentEvaluationForm } from '@/features/recruitment/hooks/useDocumentEvaluationForm'
 import { OPINIONS, type Opinion } from '@/features/recruitment/schemas/documentEvaluationSchema'
 import type { MyDocEvaluationFieldsFragment } from '@/gql/graphql'
 import { DocumentEvaluationDoneDialog } from './documentEvaluationDoneDialog'
-import {
-  DocumentEvaluationPanelSkeleton,
-  EVALUATION_PANEL_CLASS,
-} from './documentEvaluationSkeleton'
 import { EvaluationPanelFooter } from './evaluationPanelFooter'
 import { EvaluationPanelHeader } from './evaluationPanelHeader'
 import { ScoreField, type ScoreQuestion } from './scoreField'

@@ -1,5 +1,5 @@
 import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
-import { EvaluationPanelHeader } from './evaluationPanelHeader'
+import { EvaluationPanelHeader } from '@/features/recruitment/components/organizer/documentEvaluationPanel/evaluationPanelHeader'
 import type { ReactNode } from 'react'
 
 // 칩 줄 아래 고정(--sticky-offset: 칩 줄 높이 + 간격), 길면 입력 영역만 패널 안 스크롤
