@@ -3,6 +3,10 @@ import type { PostingQuery, PostingQueryVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
+import {
+  findOrganizationPostingSample,
+  type OrganizationPostingSample,
+} from './organizationPostingSamples'
 
 type PostingResponse = PostingQuery['posting']
 
@@ -22,8 +26,6 @@ const POSTING_SAMPLE_ID = {
   missingInfo: 'uxux-14-missing-info',
   photoRequired: 'uxux-14-photo-required',
   supporters: 'uxux-supporters',
-  // 운영진 홈 진행 중 공고, 전체 공고 목록에는 없음
-  staff: 'uxux-14-staff',
   direct: 'sw-council-staff',
   directApplied: 'sw-council-staff-applied',
   directUpcoming: 'sw-council-staff-upcoming',
@@ -44,7 +46,6 @@ const RECRUITMENT_OFFSET = {
   photoRequired: { endInDays: 10 },
   supporters: { endInDays: 12 },
   directApplied: { endInDays: 14 },
-  staff: { endInDays: 7 },
   upcoming: { startInDays: 3, endInDays: 17 },
   closed: { endInDays: -1 },
 } satisfies Record<string, RecruitmentOffset>
@@ -244,7 +245,39 @@ function createSwCouncilPosting(
 }
 
 // 지원 여부는 상세에 안 보여 같은 응답
+// 작성 중 공고는 공개 전이라 상세 없음
+function createOrganizationPosting(
+  { id, title, hasInterview, noPosition, endInDays }: OrganizationPostingSample,
+  today: string,
+): PostingResponse | undefined {
+  if (endInDays === null) {
+    return undefined
+  }
+
+  return createUxuxPosting(
+    id,
+    today,
+    { endInDays },
+    {
+      title,
+      hasInterview,
+      noPosition,
+      positions: noPosition ? [] : UXUX_POSITIONS,
+      questions: noPosition
+        ? UXUX_QUESTIONS.filter(({ position }) => position === null)
+        : UXUX_QUESTIONS,
+      ...(hasInterview ? {} : { interviewTimeRanges: [] }),
+    },
+  )
+}
+
 function createPostingSample(postingId: string, today: string): PostingResponse | undefined {
+  const organizationSample = findOrganizationPostingSample(postingId)
+
+  if (organizationSample) {
+    return createOrganizationPosting(organizationSample, today)
+  }
+
   switch (postingId) {
     case ID.open:
       return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.open)
@@ -288,12 +321,6 @@ function createPostingSample(postingId: string, today: string): PostingResponse 
         ],
         interviewTimeRanges: [],
       })
-    case ID.staff:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.staff, {
-        title: 'UXUX 14기 운영진 모집',
-        hasInterview: false,
-        interviewTimeRanges: [],
-      })
     case ID.direct:
       return createSwCouncilPosting(postingId, today, RECRUITMENT_OFFSET.direct)
     case ID.directApplied:
@@ -324,4 +351,4 @@ const postingDetailHandlers = [
   }),
 ]
 
-export { createPostingSample, POSTING_SAMPLE_ID, postingDetailHandlers }
+export { createPostingSample, POSTING_SAMPLE_ID, postingDetailHandlers, UXUX_POSITIONS }

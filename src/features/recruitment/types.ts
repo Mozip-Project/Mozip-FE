@@ -1,3 +1,5 @@
+import type { DocResult, FinalResult } from '@/gql/graphql'
+
 const DOCUMENT_REVIEW_PAGE_SIZE = 10
 
 const DOCUMENT_REVIEW_STATUSES = ['all', 'pending', 'done'] as const
@@ -226,33 +228,33 @@ type NoInterviewRecruitmentStage = (typeof NO_INTERVIEW_RECRUITMENT_STAGES)[numb
 
 const APPLICANT_MANAGEMENT_PAGE_SIZE = 10
 
-const APPLICANT_POSITION_TABS = ['all', ...DOCUMENT_REVIEW_POSITIONS] as const
+const APPLICANT_ALL_POSITIONS_TAB = 'all'
 
-type ApplicantPositionTab = (typeof APPLICANT_POSITION_TABS)[number]
+// 전체 탭 또는 공고마다 다른 서버 포지션 ID
+type ApplicantPositionTab = string
 
-const APPLICANT_POSITION_TAB_LABEL = {
-  all: '전체',
-  ...DOCUMENT_REVIEW_POSITION_LABEL,
-} satisfies Record<ApplicantPositionTab, string>
-
-// TODO: postingApplications 명세 확정 후 서버 필드·enum으로 교체
 type ManagedApplicant = {
   id: string
   name: string
-  position: DocumentReviewPosition
-  submittedAt: string
-  // null은 서류 결과 확정 전
-  documentResult: ResultNoticeTarget | null
+  // 포지션 없는 모집은 null
+  positionName: string | null
+  documentResult: DocResult
+  finalResult: FinalResult
 }
+
+// 결과 칩 표시 기준, 확정 전에는 서버 결과가 있어도 숨김
+type DocumentResultPhase = 'beforeReview' | 'inReview' | 'confirmed'
 
 type ApplicantManagementQuery = RecruitmentBoardQuery<ApplicantPositionTab, DocumentReviewSort>
 
 type ApplicantManagementPage = {
   applicants: ManagedApplicant[]
-  tabCounts: Record<ApplicantPositionTab, number>
+  positionTabs: { value: ApplicantPositionTab; label: string; count: number }[]
   currentPage: number
   totalPages: number
-  progress: RecruitmentProgress
+  hasInterview: boolean
+  hasPositions: boolean
+  resultPhase: DocumentResultPhase
 }
 type RecruitmentStage = InterviewRecruitmentStage | NoInterviewRecruitmentStage
 
@@ -281,9 +283,8 @@ type ApplicantProfile = {
 }
 
 export {
+  APPLICANT_ALL_POSITIONS_TAB,
   APPLICANT_MANAGEMENT_PAGE_SIZE,
-  APPLICANT_POSITION_TAB_LABEL,
-  APPLICANT_POSITION_TABS,
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_SORT_LABEL,
   DOCUMENT_RESULT_SORTS,
@@ -315,6 +316,7 @@ export type {
   DocumentResultOverview,
   DocumentResultQuery,
   DocumentResultSort,
+  DocumentResultPhase,
   DocumentResultStatus,
   DocumentReviewApplicant,
   DocumentReviewApplicantPage,

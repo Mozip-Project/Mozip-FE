@@ -26,6 +26,12 @@ export type ApplicationInput = {
   positionId?: string | number | null | undefined;
 };
 
+export type ApplicationSort =
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'SUBMITTED_ASC'
+  | 'SUBMITTED_DESC';
+
 /** 명세에 정의 없이 'fileKey 또는 url'만 있어 두 필드로 둠, 백엔드 확인 필요 */
 export type AttachmentInput = {
   fileKey?: string | null | undefined;
@@ -42,11 +48,24 @@ export type ChangePasswordInput = {
   newPassword: string;
 };
 
+export type DocResult =
+  | 'FAIL'
+  /** 보류 (남아 있으면 결과 확정 불가) */
+  | 'HOLD'
+  | 'PASS'
+  /** 평가가 다 끝나지 않아 선택 불가 */
+  | 'PENDING';
+
 export type FileType =
   | 'IMAGE'
   | 'MP4'
   | 'PDF'
   | 'PPT';
+
+export type FinalResult =
+  | 'FAIL'
+  | 'PASS'
+  | 'PENDING';
 
 export type MemberRole =
   | 'OPERATOR'
@@ -332,6 +351,24 @@ export type ApplicantProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ApplicantProfileQuery = { me: { id: string, name: string, phone: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null } };
+
+export type ApplicantManagementPostingQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type ApplicantManagementPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
+
+export type PostingApplicationsQueryVariables = Exact<{
+  postingId: string | number;
+  positionId?: string | number | null | undefined;
+  keyword?: string | null | undefined;
+  sort?: ApplicationSort | null | undefined;
+  page?: number | null | undefined;
+}>;
+
+
+export type PostingApplicationsQuery = { postingApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ id: string, docResult: DocResult, finalResult: FinalResult, user: { name: string }, position: { name: string } | null }>, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -938,6 +975,50 @@ export const ApplicantProfileDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ApplicantProfileQuery, ApplicantProfileQueryVariables>;
+export const ApplicantManagementPostingDocument = new TypedDocumentString(`
+    query ApplicantManagementPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    status
+    hasInterview
+    noPosition
+    docResultConfirmedAt
+  }
+}
+    `) as unknown as TypedDocumentString<ApplicantManagementPostingQuery, ApplicantManagementPostingQueryVariables>;
+export const PostingApplicationsDocument = new TypedDocumentString(`
+    query PostingApplications($postingId: ID!, $positionId: ID, $keyword: String, $sort: ApplicationSort, $page: Int) {
+  postingApplications(
+    postingId: $postingId
+    positionId: $positionId
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      id
+      user {
+        name
+      }
+      position {
+        name
+      }
+      docResult
+      finalResult
+    }
+    totalCount
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+  }
+}
+    `) as unknown as TypedDocumentString<PostingApplicationsQuery, PostingApplicationsQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

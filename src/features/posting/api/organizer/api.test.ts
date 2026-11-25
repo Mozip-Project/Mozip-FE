@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
+import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
 import { MANAGED_POSTING_TAB_STATUSES } from '@/features/posting/utils/managedPosting'
 import {
@@ -11,9 +12,9 @@ import {
   sendNotice,
 } from './api'
 
-const { open: DOC_REVIEW_ID, staff: RECRUITING_ID } = POSTING_SAMPLE_ID
+const { docReview: DOC_REVIEW_ID, recruiting: RECRUITING_ID } = ORGANIZATION_POSTING_ID
 // 지원자 0명인 종료 공고
-const CLOSED_ID = '4'
+const CLOSED_ID = ORGANIZATION_POSTING_ID.ended
 const NOTICE = { subject: '모집 일정 변경 안내', body: '{이름}님, 일정이 바뀌었어요.' }
 
 beforeAll(() => {
@@ -35,6 +36,9 @@ describe('getOrganizationPostings', () => {
     expect(postings.map(({ id, status }) => [id, status])).toEqual([
       [RECRUITING_ID, 'RECRUITING'],
       [DOC_REVIEW_ID, 'DOC_REVIEW'],
+      [ORGANIZATION_POSTING_ID.interview, 'INTERVIEW'],
+      [ORGANIZATION_POSTING_ID.finalResult, 'FINAL_RESULT'],
+      [ORGANIZATION_POSTING_ID.noInterviewResult, 'DOC_RESULT_NOTICE'],
     ])
   })
 
@@ -65,12 +69,12 @@ describe('bumpPosting', () => {
 describe('deletePosting', () => {
   it('작성 중 공고를 지우면 탭 숫자에서도 빠짐', async () => {
     await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
-      postingCounts: { published: 2, draft: 1, ended: 1 },
+      postingCounts: { published: 5, draft: 1, ended: 1 },
     })
 
     await expect(deletePosting('3')).resolves.toBe(true)
     await expect(getManagedPostingSummary('1')).resolves.toMatchObject({
-      postingCounts: { published: 2, draft: 0, ended: 1 },
+      postingCounts: { published: 5, draft: 0, ended: 1 },
     })
   })
 
@@ -83,8 +87,8 @@ describe('getManagedPosting', () => {
   it('운영진 홈 공고는 현재 단체 id와 지원자 수를 함께 응답', async () => {
     await expect(getManagedPosting(DOC_REVIEW_ID)).resolves.toMatchObject({
       id: DOC_REVIEW_ID,
-      title: 'UXUX 14기 신입 부원 모집',
-      applicationCount: 24,
+      title: '서류 평가 진행 중이래',
+      applicationCount: 48,
       organization: { id: '1', name: 'UXUX' },
     })
   })

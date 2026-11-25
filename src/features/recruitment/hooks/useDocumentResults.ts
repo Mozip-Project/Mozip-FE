@@ -5,13 +5,13 @@ import {
   getDocumentResultOverview,
   updateDocumentResult,
 } from '@/features/recruitment/api/organizer'
+import { applicantManagementKeys } from '@/features/recruitment/api/organizer/keys'
 import type { DocumentResultApplicantPage, DocumentResultQuery } from '@/features/recruitment/types'
 import {
   applyDocumentResultChange,
   type DocumentResultChange,
 } from '@/features/recruitment/utils/documentResult'
 import { useIsHydrated } from '@/hooks/useIsHydrated'
-import { applicantManagementKeys } from './useApplicantManagement'
 
 const documentResultKeys = {
   all: (postingId: string) => ['documentResults', postingId] as const,

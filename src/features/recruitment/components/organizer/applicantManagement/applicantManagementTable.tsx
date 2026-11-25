@@ -1,14 +1,13 @@
-import { Avatar } from '@/components/ui/Avatar/avatar'
 import { Badge } from '@/components/ui/Badge/badge'
+import { TableCell, TableHeadCell } from '@/components/ui/Table/table'
 import {
   ApplicantSkeletonRow,
   ApplicantTable,
 } from '@/features/recruitment/components/organizer/recruitmentBoard/applicantTable'
 import {
   APPLICANT_MANAGEMENT_PAGE_SIZE,
-  DOCUMENT_REVIEW_POSITION_LABEL,
+  type DocumentResultPhase,
   type ManagedApplicant,
-  type RecruitmentProgress,
 } from '@/features/recruitment/types'
 import {
   getDocumentResultChip,
@@ -38,56 +37,56 @@ const SKELETON_ROW_KEYS = Array.from(
   (_, index) => index,
 )
 
-// 비면접 모집은 서류 결과가 곧 최종 결과
-function getColumnLabels(hasInterview: boolean) {
-  return hasInterview
-    ? ['이름', '지원 파트', '서류 결과', '면접 결과']
-    : ['이름', '지원 파트', '최종 결과']
-}
-
-// 비면접 모집도 면접 모집과 같은 열 너비를 쓰도록 빈 열 자리 유지
-function EmptyColumn() {
-  return <span aria-hidden className={CELL_CLASS} />
+type ApplicantTableColumns = {
+  hasInterview: boolean
+  hasPositions: boolean
 }
 
 type ApplicantManagementTableProps = {
   applicants: readonly ManagedApplicant[]
-  progress: RecruitmentProgress
+  columns: ApplicantTableColumns
+  resultPhase: DocumentResultPhase
   emptyState: ReactNode
 }
 
-// 조회 전용이라 행 클릭·수정 없음
+// 조회 전용
 function ApplicantManagementTable({
   applicants,
-  progress: { stage, hasInterview },
+  columns,
+  resultPhase,
   emptyState,
 }: ApplicantManagementTableProps) {
   return (
     <ApplicantTable label={TABLE_LABEL} emptyState={applicants.length === 0 && emptyState}>
-      <TableHead hasInterview={hasInterview} />
-      {applicants.map(({ id, name, position, documentResult }) => {
-        const interviewChip = getInterviewResultChip(stage, documentResult)
+      <TableHead columns={columns} />
+      {applicants.map((applicant) => {
+        const { id, name, positionName, documentResult } = applicant
+        const interviewChip = getInterviewResultChip(resultPhase, applicant)
 
         return (
           <div key={id} role="row" className={cn(ROW_CLASS, 'h-15 border-t border-neutral-subtle')}>
-            <span role="cell" className={cn(CELL_CLASS, 'gap-gap-s')}>
-              <Avatar size={28} />
-              <span className="min-w-0 flex-1 truncate text-body2 font-semibold text-neutral">
-                {name}
-              </span>
-            </span>
-            <span role="cell" className={cn(CELL_CLASS, 'text-body2 text-neutral-muted')}>
-              <span className="truncate">{DOCUMENT_REVIEW_POSITION_LABEL[position]}</span>
-            </span>
-            <span role="cell" className={CELL_CLASS}>
-              <ResultChip chip={getDocumentResultChip(stage, documentResult)} />
-            </span>
-            {hasInterview ? (
-              <span role="cell" className={CELL_CLASS}>
-                {interviewChip && <ResultChip chip={interviewChip} />}
-              </span>
+            <TableCell type="name" className="flex-1">
+              {name}
+            </TableCell>
+
+            {columns.hasPositions ? (
+              <TableCell type="text" className="flex-1">
+                {positionName ?? ''}
+              </TableCell>
             ) : (
-              <EmptyColumn />
+              <span aria-hidden className={CELL_CLASS} />
+            )}
+
+            <div role="cell" className={CELL_CLASS}>
+              <ResultChip chip={getDocumentResultChip(resultPhase, documentResult)} />
+            </div>
+
+            {columns.hasInterview ? (
+              <div role="cell" className={CELL_CLASS}>
+                {interviewChip && <ResultChip chip={interviewChip} />}
+              </div>
+            ) : (
+              <span aria-hidden className={CELL_CLASS} />
             )}
           </div>
         )
@@ -96,21 +95,31 @@ function ApplicantManagementTable({
   )
 }
 
-function TableHead({ hasInterview }: { hasInterview: boolean }) {
+// 비면접 모집은 서류 결과가 곧 최종 결과
+function TableHead({
+  columns: { hasInterview, hasPositions },
+}: {
+  columns: ApplicantTableColumns
+}) {
   return (
-    <div
-      role="row"
-      className={cn(
-        ROW_CLASS,
-        'bg-neutral-weak py-padding-s text-label2 font-medium text-neutral-subtle',
+    <div role="row" className={cn(ROW_CLASS, 'bg-neutral-weak py-padding-s')}>
+      <TableHeadCell className="min-w-0 flex-1">이름</TableHeadCell>
+
+      {hasPositions ? (
+        <TableHeadCell className="min-w-0 flex-1">지원 파트</TableHeadCell>
+      ) : (
+        <span aria-hidden className={CELL_CLASS} />
       )}
-    >
-      {getColumnLabels(hasInterview).map((label) => (
-        <span key={label} role="columnheader" className={CELL_CLASS}>
-          {label}
-        </span>
-      ))}
-      {!hasInterview && <EmptyColumn />}
+
+      <TableHeadCell className="min-w-0 flex-1">
+        {hasInterview ? '서류 결과' : '최종 결과'}
+      </TableHeadCell>
+
+      {hasInterview ? (
+        <TableHeadCell className="min-w-0 flex-1">면접 결과</TableHeadCell>
+      ) : (
+        <span aria-hidden className={CELL_CLASS} />
+      )}
     </div>
   )
 }
@@ -125,11 +134,15 @@ function ResultChip({ chip }: { chip: ApplicantResultChip }) {
   )
 }
 
-// 데이터 요청이 300ms를 넘길 때만 표시
-function ApplicantManagementSkeletonTable({ hasInterview = true }: { hasInterview?: boolean }) {
+// 데이터 요청이 300ms를 넘길 때만 표시, 첫 진입은 파트, 면접이 모두 있는 모집 기준
+function ApplicantManagementSkeletonTable({
+  columns = { hasInterview: true, hasPositions: true },
+}: {
+  columns?: ApplicantTableColumns
+}) {
   return (
     <ApplicantTable label={TABLE_LABEL} isLoading>
-      <TableHead hasInterview={hasInterview} />
+      <TableHead columns={columns} />
       {SKELETON_ROW_KEYS.map((key) => (
         <ApplicantSkeletonRow key={key} hasAction={false} />
       ))}
@@ -138,3 +151,4 @@ function ApplicantManagementSkeletonTable({ hasInterview = true }: { hasIntervie
 }
 
 export { ApplicantManagementSkeletonTable, ApplicantManagementTable }
+export type { ApplicantTableColumns }

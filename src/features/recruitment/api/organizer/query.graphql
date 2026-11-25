@@ -1,0 +1,48 @@
+# 결과 열 구성과 결과 칩 계산용
+query ApplicantManagementPosting($id: ID!) {
+  posting(id: $id) {
+    id
+    status
+    hasInterview
+    noPosition
+    docResultConfirmedAt
+  }
+}
+
+query PostingApplications(
+  $postingId: ID!
+  $positionId: ID
+  $keyword: String
+  $sort: ApplicationSort
+  $page: Int
+) {
+  postingApplications(
+    postingId: $postingId
+    positionId: $positionId
+    keyword: $keyword
+    sort: $sort
+    page: $page
+  ) {
+    rows {
+      id
+      user {
+        name
+      }
+      position {
+        name
+      }
+      docResult
+      finalResult
+    }
+    totalCount
+    positionCounts {
+      position {
+        id
+        name
+      }
+      count
+    }
+    page
+    totalPages
+  }
+}

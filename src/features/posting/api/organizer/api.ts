@@ -1,4 +1,4 @@
-import { MANAGED_POSTING_SAMPLE } from '@/features/posting/mocks/managedPostingSample'
+import { ORGANIZATION_POSTING_SAMPLES } from '@/features/posting/mocks/organizationPostingSamples'
 import {
   BumpPostingDocument,
   DeletePostingDocument,
@@ -11,10 +11,13 @@ import {
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
-// TODO: LNB 모집 선택 작업 때 organizationPostings(진행 중)의 첫 항목으로 교체, 지금은 상세 MSW와 ID를 맞춘 목록 샘플 사용
+// TODO: LNB 모집 선택 작업 때 organizationPostings(진행 중)의 첫 항목으로 교체, 지금은 운영진 홈 MSW와 같은 단체 공고 샘플 사용
 // eslint-disable-next-line @typescript-eslint/require-await -- API 교체 시 호출부 변경 방지
 async function getFirstPublishedPostingId(): Promise<string | null> {
-  return MANAGED_POSTING_SAMPLE.find((posting) => posting.status === 'published')?.id ?? null
+  return (
+    ORGANIZATION_POSTING_SAMPLES.find(({ status }) => status !== 'DRAFT' && status !== 'ENDED')
+      ?.id ?? null
+  )
 }
 
 async function getOrganizationPostings(organizationId: string, status: readonly PostingStatus[]) {
