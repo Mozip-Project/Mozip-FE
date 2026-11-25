@@ -12,6 +12,8 @@ import {
   formatYearMonth,
   getDaysBetween,
   getSeoulIsoDate,
+  getSeoulTime,
+  toSeoulDateTime,
 } from './date'
 
 describe('formatRelativeTime', () => {
@@ -108,6 +110,23 @@ describe('getSeoulIsoDate', () => {
   it('실행 환경 시간대와 무관하게 한국 날짜를 YYYY-MM-DD로 반환', () => {
     expect(getSeoulIsoDate(new Date('2026-11-18T14:59:59Z'))).toBe('2026-11-18')
     expect(getSeoulIsoDate(new Date('2026-11-18T15:00:00Z'))).toBe('2026-11-19')
+  })
+})
+
+describe('getSeoulTime', () => {
+  it('실행 환경 시간대와 무관하게 한국 시각을 HH:mm으로 반환, 자정은 00:00', () => {
+    expect(getSeoulTime(new Date('2026-11-18T05:30:00Z'))).toBe('14:30')
+    expect(getSeoulTime(new Date('2026-11-18T15:00:00Z'))).toBe('00:00')
+  })
+})
+
+describe('toSeoulDateTime', () => {
+  it('한국 날짜·시각에 +09:00을 붙이고, 다시 읽으면 같은 날짜·시각', () => {
+    const dateTime = toSeoulDateTime('2026-10-01', '23:59')
+
+    expect(dateTime).toBe('2026-10-01T23:59:00+09:00')
+    expect(getSeoulIsoDate(new Date(dateTime))).toBe('2026-10-01')
+    expect(getSeoulTime(new Date(dateTime))).toBe('23:59')
   })
 })
 
