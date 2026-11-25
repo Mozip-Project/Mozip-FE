@@ -12,4 +12,9 @@ const managedPostingKeys = {
   detail: (postingId: string) => ['managedPostings', 'detail', postingId] as const,
 }
 
-export { managedPostingKeys }
+// 공고 목록·상세를 다시 불러올 때 작성 중인 화면 값까지 다시 받지 않도록 분리
+const postingDraftKeys = {
+  detail: (postingId: string) => ['postingDraft', postingId] as const,
+}
+
+export { managedPostingKeys, postingDraftKeys }
