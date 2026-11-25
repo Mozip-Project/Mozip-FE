@@ -30,7 +30,7 @@ type SegmentOptionProps = ComponentProps<typeof RadioGroupPrimitive.Item> & {
   size?: SegmentSize
 }
 
-// Dimmed·Error는 SegmentGroup 상태로 결정
+// Error는 SegmentGroup 상태로 결정
 function SegmentOption({ className, tone = 'brand', size = 'l', ...props }: SegmentOptionProps) {
   return (
     <RadioGroupPrimitive.Item
@@ -41,7 +41,6 @@ function SegmentOption({ className, tone = 'brand', size = 'l', ...props }: Segm
         'transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid motion-reduce:transition-none',
         'disabled:pointer-events-none',
         'group-aria-invalid/segment:border-critical-solid',
-        'group-has-aria-checked/segment:not-aria-checked:border-neutral-subtle group-has-aria-checked/segment:not-aria-checked:text-disabled',
         'aria-checked:font-semibold',
         SELECTED_TONE_CLASS[tone],
         SIZE_CLASS[size],
