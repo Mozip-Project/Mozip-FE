@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type MouseEvent, type ReactNode } from 'react'
+import { useRef, useState, type DragEvent, type MouseEvent, type ReactNode } from 'react'
 import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import InfoIcon from '@/assets/icons/info.svg'
@@ -28,6 +28,7 @@ import {
   QUESTION_TEMPLATE_LABEL,
   type QuestionTemplateId,
 } from '@/features/posting/utils/postingQuestionTemplates'
+import { cn } from '@/lib/utils'
 import { ActivityAnswerPreview } from './activityAnswerPreview'
 import { FileAnswerPreview } from './fileAnswerPreview'
 import { PostingQuestionSettings } from './postingQuestionSettings'
@@ -132,10 +133,16 @@ type QuestionBuilderProps = {
 
 function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: QuestionBuilderProps) {
   const name = `questionSets.${setIndex}.questions` as const
-  const { fields, append, remove, replace } = useFieldArray({ control, name, keyName: 'fieldKey' })
+  const { fields, append, remove, move } = useFieldArray({ control, name, keyName: 'fieldKey' })
   const questions = useWatch({ control, name })
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [addedId, setAddedId] = useState<string | null>(null)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  // 끌어다 놓을 자리. 0은 첫 문항 앞, fields.length는 마지막 문항 뒤
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const [moveMessage, setMoveMessage] = useState('')
+  const listRef = useRef<HTMLOListElement>(null)
+  const templateFocusIndexRef = useRef<number | null>(null)
   const selectedIndex = Math.max(
     0,
     fields.findIndex((field) => field.id === selectedId),
@@ -143,8 +150,83 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
 
   function handleApplyTemplate(templateId: QuestionTemplateId) {
     const templateQuestions = createTemplateQuestions(templateId)
-    replace(templateQuestions)
+    templateFocusIndexRef.current = fields.length
+    append(templateQuestions)
     setSelectedId(templateQuestions[0]?.id ?? null)
+  }
+
+  // 아래에 붙은 문항이 화면 밖일 수 있어 메뉴가 닫힐 때 추가된 첫 문항으로 포커스 이동
+  function handleTemplateMenuCloseAutoFocus(event: Event) {
+    const focusIndex = templateFocusIndexRef.current
+    templateFocusIndexRef.current = null
+    const firstAddedCard = focusIndex === null ? null : getCardButton(focusIndex)
+    if (firstAddedCard) {
+      event.preventDefault()
+      firstAddedCard.focus()
+    }
+  }
+
+  function getCardButton(index: number) {
+    return listRef.current?.children.item(index)?.querySelector<HTMLElement>('[aria-pressed]')
+  }
+
+  function moveQuestion(fromIndex: number, toIndex: number) {
+    if (toIndex === fromIndex || toIndex < 0 || toIndex >= fields.length) {
+      return
+    }
+    // 처음엔 선택 ID 없이 첫 문항을 선택으로 보므로, 옮긴 뒤에도 같은 문항이 선택되게 고정
+    setSelectedId(fields[selectedIndex]?.id ?? null)
+    move(fromIndex, toIndex)
+    setMoveMessage(`Q${fromIndex + 1} 문항을 Q${toIndex + 1} 자리로 옮겼어요`)
+  }
+
+  function handleDragStart(event: DragEvent<HTMLDivElement>, index: number) {
+    event.dataTransfer.effectAllowed = 'move'
+    // Firefox는 전달 데이터가 있어야 드래그 시작
+    event.dataTransfer.setData('text/plain', '')
+    setDraggedIndex(index)
+  }
+
+  function handleDragOverItem(event: DragEvent<HTMLLIElement>, index: number) {
+    if (draggedIndex === null) {
+      return
+    }
+    const { top, height } = event.currentTarget.getBoundingClientRect()
+    const isLowerHalf = event.clientY > top + height / 2
+    setDropIndex(isLowerHalf ? index + 1 : index)
+  }
+
+  // 문항 사이 간격에서도 놓을 수 있도록 목록 전체에서 허용
+  function handleDragOverList(event: DragEvent<HTMLOListElement>) {
+    if (draggedIndex === null) {
+      return
+    }
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+
+  function handleDrop(event: DragEvent<HTMLOListElement>) {
+    event.preventDefault()
+    if (draggedIndex !== null && dropIndex !== null) {
+      // 뒤로 옮기면 빠진 자기 자리만큼 한 칸 앞
+      moveQuestion(draggedIndex, dropIndex > draggedIndex ? dropIndex - 1 : dropIndex)
+    }
+    handleDragEnd()
+  }
+
+  function handleDragEnd() {
+    setDraggedIndex(null)
+    setDropIndex(null)
+  }
+
+  // 제자리에 놓는 위치는 표시 안 함
+  function isDropTarget(position: number) {
+    return (
+      draggedIndex !== null &&
+      dropIndex === position &&
+      position !== draggedIndex &&
+      position !== draggedIndex + 1
+    )
   }
 
   function handleAdd(type: PostingQuestion['type']) {
@@ -185,12 +267,13 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
           <span aria-hidden className="h-4 w-px bg-(--border-color-neutral-weak)" />
           <DropdownMenu>
             <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1.5 rounded-m px-2.5 py-padding-xs text-label2 font-semibold text-brand outline-none focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-solid">
-              탬플릿으로 추가
+              템플릿으로 추가
               <ChevronDownIcon aria-hidden className="size-4 shrink-0" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
               sideOffset={TEMPLATE_MENU_OFFSET_PX}
+              onCloseAutoFocus={handleTemplateMenuCloseAutoFocus}
               className="flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted bg-layer-default p-padding-xs"
             >
               {QUESTION_TEMPLATE_IDS.map((templateId) => (
@@ -206,38 +289,68 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
         {profilePhotoField}
         {/* 설정 패널은 선택한 카드 높이에 맞춰 오른쪽 여백에 배치 */}
         <ol
+          ref={listRef}
           aria-label="지원서 문항"
+          onDragOver={handleDragOverList}
+          onDrop={handleDrop}
           className="flex flex-col gap-gap-l pr-[calc(--spacing(100)+var(--spacing-gap-xl))]"
         >
           {fields.map((field, index) => {
             const question = questions[index] ?? field
             const isSelected = index === selectedIndex
+            const isLast = index === fields.length - 1
 
             return (
-              <li key={field.fieldKey} className="relative">
-                <QuestionCard
-                  index={index + 1}
-                  title={question.title.trim() || EMPTY_TITLE_TEXT}
-                  description={question.description.trim() || undefined}
-                  required={question.isRequired}
-                  isSelected={isSelected}
-                  onSelect={() => handleSelect(field.id)}
-                  actions={
-                    isSelected && (
-                      <ActionMenu
-                        label={`Q${index + 1} 문항 메뉴`}
-                        sideOffset={QUESTION_MENU_OFFSET_PX}
-                      >
-                        <DropdownMenuItem onSelect={() => remove(index)}>
-                          <TrashIcon aria-hidden />
-                          질문 삭제
-                        </DropdownMenuItem>
-                      </ActionMenu>
-                    )
-                  }
+              <li
+                key={field.fieldKey}
+                onDragOver={(event) => handleDragOverItem(event, index)}
+                className="relative"
+              >
+                {isDropTarget(index) && <DropIndicator position="before" />}
+                {/* 설정 패널 입력의 글자 선택을 막지 않도록 카드만 드래그 대상 */}
+                <div
+                  draggable
+                  onDragStart={(event) => handleDragStart(event, index)}
+                  onDragEnd={handleDragEnd}
                 >
-                  <QuestionAnswerPreview question={question} />
-                </QuestionCard>
+                  <QuestionCard
+                    index={index + 1}
+                    title={question.title.trim() || EMPTY_TITLE_TEXT}
+                    description={question.description.trim() || undefined}
+                    required={question.isRequired}
+                    isSelected={isSelected}
+                    onSelect={() => handleSelect(field.id)}
+                    actions={
+                      isSelected && (
+                        <ActionMenu
+                          label={`Q${index + 1} 문항 메뉴`}
+                          sideOffset={QUESTION_MENU_OFFSET_PX}
+                        >
+                          {/* 드래그를 못 쓰는 키보드 사용자용 순서 변경 */}
+                          <DropdownMenuItem
+                            disabled={index === 0}
+                            onSelect={() => moveQuestion(index, index - 1)}
+                          >
+                            위로 이동
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isLast}
+                            onSelect={() => moveQuestion(index, index + 1)}
+                          >
+                            아래로 이동
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => remove(index)}>
+                            <TrashIcon aria-hidden />
+                            질문 삭제
+                          </DropdownMenuItem>
+                        </ActionMenu>
+                      )
+                    }
+                  >
+                    <QuestionAnswerPreview question={question} />
+                  </QuestionCard>
+                </div>
+                {isLast && isDropTarget(fields.length) && <DropIndicator position="after" />}
                 {isSelected && (
                   <PostingQuestionSettings
                     key={field.id}
@@ -253,8 +366,26 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
             )
           })}
         </ol>
+        <p role="status" className="sr-only">
+          {moveMessage}
+        </p>
       </div>
     </div>
+  )
+}
+
+// 문항 사이 간격 가운데에 놓일 자리 표시
+function DropIndicator({ position }: { position: 'before' | 'after' }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'absolute inset-x-0 h-0.5 rounded-full bg-brand-solid',
+        position === 'before'
+          ? '-top-[calc(var(--spacing-gap-l)/2+1px)]'
+          : '-bottom-[calc(var(--spacing-gap-l)/2+1px)]',
+      )}
+    />
   )
 }
 
