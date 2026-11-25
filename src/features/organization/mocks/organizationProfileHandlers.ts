@@ -10,6 +10,7 @@ import type {
   UpdateOrganizationMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 // 명세 검증 규칙
@@ -26,8 +27,8 @@ const SAMPLE_LOGO_URL =
 // 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 단체 2는 로고·학교 없는 연합 학생회
 function createInitialOrganizations(): Record<string, OrganizationProfileFieldsFragment> {
   return {
-    '1': {
-      id: '1',
+    [MOCK_ORGANIZATION_ID]: {
+      id: MOCK_ORGANIZATION_ID,
       name: 'UXUX',
       type: 'CLUB',
       scope: 'CAMPUS',
