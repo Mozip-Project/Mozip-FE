@@ -5,6 +5,7 @@ import {
   RecruitmentBoard,
   type RecruitmentBoardQueryChange,
 } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoard'
+import { RecruitmentBoardLoadError } from '@/features/recruitment/components/organizer/recruitmentBoard/recruitmentBoardLoadError'
 import { useDocumentReview } from '@/features/recruitment/hooks/useDocumentReview'
 import {
   DOCUMENT_REVIEW_SORT_LABEL,
@@ -25,7 +26,7 @@ import {
   DocumentReviewApplicantTable,
   DocumentReviewSkeletonTable,
 } from './documentReviewApplicantTable'
-import { DocumentReviewEmptyState, DocumentReviewLoadError } from './documentReviewEmptyState'
+import { DocumentReviewEmptyState } from './documentReviewEmptyState'
 import type { Route } from 'next'
 
 const HEADER = { title: '서류 평가' }
@@ -109,7 +110,7 @@ function DocumentReviewList({
   startReviewHref,
 }: DocumentReviewListProps) {
   if (isError) {
-    return <DocumentReviewLoadError />
+    return <RecruitmentBoardLoadError />
   }
 
   if (!data) {
