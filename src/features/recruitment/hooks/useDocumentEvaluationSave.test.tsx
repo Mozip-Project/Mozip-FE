@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { HttpResponse } from 'msw'
 import { useForm } from 'react-hook-form'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { recruitmentKeys } from '@/features/recruitment/api/organizer/keys'
 import type { DocumentEvaluationValues } from '@/features/recruitment/schemas/documentEvaluationSchema'
 import type {
@@ -15,13 +16,13 @@ import { server } from '@/mocks/server'
 import { useDocumentEvaluationSave } from './useDocumentEvaluationSave'
 import type { PropsWithChildren } from 'react'
 
-const POSTING_ID = 'posting-1'
-// MSW 평가 저장 상태가 테스트 사이에 이어져 테스트마다 다른 평가 전 지원자 사용
-const SUBMIT_APPLICATION_ID = '1'
-const NO_AUTO_SAVE_APPLICATION_ID = '5'
-const LEAVE_APPLICATION_ID = '6'
-const INSTANT_SAVE_APPLICATION_ID = '7'
-const SUBMIT_LOCK_APPLICATION_ID = '8'
+const POSTING_ID = ORGANIZATION_POSTING_ID.docReview
+// MSW 평가 저장 상태가 테스트 사이에 이어져 테스트마다 다른 지원자 사용
+const SUBMIT_APPLICATION_ID = `application-${POSTING_ID}-1`
+const NO_AUTO_SAVE_APPLICATION_ID = `application-${POSTING_ID}-5`
+const LEAVE_APPLICATION_ID = `application-${POSTING_ID}-6`
+const INSTANT_SAVE_APPLICATION_ID = `application-${POSTING_ID}-7`
+const SUBMIT_LOCK_APPLICATION_ID = `application-${POSTING_ID}-8`
 // 자동 저장 대기(3초)보다 짧게 기다려 자동 저장이 아닌 이탈 저장만 확인
 const BEFORE_AUTO_SAVE_MS = 100
 

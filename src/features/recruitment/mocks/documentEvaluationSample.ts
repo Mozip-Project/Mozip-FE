@@ -1,4 +1,4 @@
-import type { DocEvaluationApplicationDetailQuery } from '@/gql/graphql'
+import type { DocEvaluationApplicationDetailQuery, PostingQuestionsQuery } from '@/gql/graphql'
 
 type SampleAttachment =
   DocEvaluationApplicationDetailQuery['application']['answers'][number]['attachments'][number]
@@ -121,4 +121,106 @@ function getApplicationDetailSample(applicantId: string) {
   return DETAIL_SAMPLE_BY_ID[applicantId] ?? EVALUATION_DETAIL_SAMPLE
 }
 
-export { getApplicationDetailSample }
+// 서술형 답변 뒤에 활동 경험, 그 뒤 파일·링크 문항
+const ACTIVITY_SORT_ORDER = 100
+const FILE_LINK_SORT_ORDER = 101
+
+// 공고의 서술형 문항 순서, 샘플마다 답한 서술형 문항 수가 달라 나머지는 비운 문항
+const SAMPLE_TEXT_QUESTION_IDS = ['motivation', 'conflict', 'strength', 'failure', 'tool', 'plan']
+const ACTIVITY_QUESTION_ID = 'activity'
+const FILE_LINK_QUESTION_IDS = ['work-files', 'reference-links'] as const
+
+// 활동 경험(선택)을 비운 지원자, 백엔드처럼 비운 문항은 answers에서 뺌
+const SKIPPED_ANSWER_APPLICANT_ID = '4'
+
+// 모든 샘플 공고가 같은 공통 문항 사용
+const SAMPLE_POSTING_QUESTIONS: PostingQuestionsQuery['posting']['questions'] = [
+  ...SAMPLE_TEXT_QUESTION_IDS.map((id, index) => ({
+    id,
+    type: 'TEXT' as const,
+    sortOrder: index,
+    position: null,
+  })),
+  { id: ACTIVITY_QUESTION_ID, type: 'ACTIVITY', sortOrder: ACTIVITY_SORT_ORDER, position: null },
+  ...FILE_LINK_QUESTION_IDS.map((id, index) => ({
+    id,
+    type: 'FILE_LINK' as const,
+    sortOrder: FILE_LINK_SORT_ORDER + index,
+    position: null,
+  })),
+]
+
+// 문항 ID는 답변 ID와 같게, 서술형 뒤에 활동 경험과 파일·링크 문항, 샘플 지원자 번호 기준
+function getSampleAnswers(applicantId: string) {
+  const detail = getApplicationDetailSample(applicantId)
+  const textAnswers = detail.answers.map(({ id, question, answer, maxLength }) => ({
+    id,
+    question: {
+      id,
+      type: 'TEXT' as const,
+      title: question,
+      description: null,
+      required: true,
+      maxLength,
+      sortOrder: SAMPLE_TEXT_QUESTION_IDS.indexOf(id),
+      options: null,
+    },
+    content: answer,
+    attachments: [],
+  }))
+  const activityAnswer = {
+    id: ACTIVITY_QUESTION_ID,
+    question: {
+      id: ACTIVITY_QUESTION_ID,
+      type: 'ACTIVITY' as const,
+      title: '활동 경험을 입력해 주세요.',
+      description: '최근 활동부터 최대 3개까지 입력해 주세요.',
+      required: false,
+      maxLength: null,
+      sortOrder: ACTIVITY_SORT_ORDER,
+      options: {
+        activityFields: [
+          'NAME' as const,
+          'PERIOD' as const,
+          'ROLE' as const,
+          'ACHIEVEMENT' as const,
+        ],
+      },
+    },
+    content: JSON.stringify(detail.activities),
+    attachments: [],
+  }
+  const fileLinkAnswers = [
+    {
+      id: FILE_LINK_QUESTION_IDS[0],
+      title: '작업물 파일을 첨부해 주세요.',
+      attachments: detail.files,
+    },
+    {
+      id: FILE_LINK_QUESTION_IDS[1],
+      title: '참고할 수 있는 링크를 첨부해 주세요.',
+      attachments: detail.links,
+    },
+  ].map(({ id, title, attachments }, index) => ({
+    id,
+    question: {
+      id,
+      type: 'FILE_LINK' as const,
+      title,
+      description: null,
+      required: true,
+      maxLength: null,
+      sortOrder: FILE_LINK_SORT_ORDER + index,
+      options: null,
+    },
+    content: null,
+    attachments,
+  }))
+
+  const answers = [...textAnswers, activityAnswer, ...fileLinkAnswers]
+  return applicantId === SKIPPED_ANSWER_APPLICANT_ID
+    ? answers.filter(({ question }) => question.id !== ACTIVITY_QUESTION_ID)
+    : answers
+}
+
+export { getApplicationDetailSample, getSampleAnswers, SAMPLE_POSTING_QUESTIONS }
