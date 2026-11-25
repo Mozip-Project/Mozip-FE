@@ -56,6 +56,16 @@ const NOT_EVALUATED_OPINIONS = { pass: 0, hold: 0, fail: 0, notEvaluated: EVALUA
 // 결과 변경이 새로고침 전까지 유지되도록 지원서 ID별로 메모리에 보관
 const docResultOverrides = new Map<string, DocResult>()
 
+// 결과 변경 요청에 공고 ID가 없어 공고별로 다른 지원서 ID 사용
+function getSampleApplicationId(postingId: string, applicantId: string) {
+  return `application-${postingId}-${applicantId}`
+}
+
+// 지원자 관리 MSW도 서류 평가에서 바꾼 결과 표시
+function getDocResultOverride(applicationId: string) {
+  return docResultOverrides.get(applicationId)
+}
+
 // 모집 중은 평가 전(결과 확정까지 확인하도록 서류 평가 중은 전원 평가 완료), 확정 후에는 보류 없이 합격·불합격
 function toSummaryRow(
   postingId: string,
@@ -63,8 +73,7 @@ function toSummaryRow(
   index: number,
   status: PostingStatus,
 ): SummaryRow {
-  // 결과 변경 요청에 공고 ID가 없어 공고별로 다른 지원서 ID 사용
-  const id = `application-${postingId}-${applicant.id}`
+  const id = getSampleApplicationId(postingId, applicant.id)
   const base = { id, name: applicant.name, positionId: applicant.position, submitOrder: index }
 
   if (status === 'DRAFT' || status === 'RECRUITING') {
@@ -348,4 +357,4 @@ const documentResultHandlers = [
   ),
 ]
 
-export { documentResultHandlers }
+export { documentResultHandlers, getDocResultOverride, getSampleApplicationId }
