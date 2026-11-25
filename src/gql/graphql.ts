@@ -70,6 +70,13 @@ export type DocResultTab =
   | 'HOLD'
   | 'PASS';
 
+export type DocScoreInput = {
+  /** 그 지원서 포지션에 적용되는 문항만 */
+  questionId: string | number;
+  /** 1~5 */
+  score: number;
+};
+
 export type DocSummarySort =
   | 'NAME_ASC'
   | 'NAME_DESC'
@@ -124,6 +131,12 @@ export type NotificationType =
   | 'TRANSFER_APPROVED'
   | 'TRANSFER_REJECTED'
   | 'TRANSFER_REQUEST';
+
+/** 평가 의견 (서류, 면접 공통) */
+export type Opinion =
+  | 'FAIL'
+  | 'HOLD'
+  | 'PASS';
 
 export type OrganizationField =
   | 'ACADEMIC_STUDY'
@@ -193,6 +206,16 @@ export type ReportReason =
   | 'EXCESSIVE_PERSONAL_INFO'
   | 'FALSE_INFO'
   | 'INAPPROPRIATE';
+
+export type SaveDocEvaluationInput = {
+  applicationId: string | number;
+  /** 최대 300자 */
+  memo?: string | null | undefined;
+  /** submit true면 필수 */
+  opinion?: Opinion | null | undefined;
+  /** posting.docScorePerQuestion = true일 때만, submit true면 전 문항 필수 */
+  scores?: Array<DocScoreInput> | null | undefined;
+};
 
 export type UpdateOrganizationInput = {
   /** 학생회는 빈 배열 */
@@ -385,7 +408,7 @@ export type RecruitmentPostingQueryVariables = Exact<{
 }>;
 
 
-export type RecruitmentPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
+export type RecruitmentPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null, docScorePerQuestion: boolean | null } };
 
 export type PostingApplicationsQueryVariables = Exact<{
   postingId: string | number;
@@ -409,6 +432,44 @@ export type DocEvaluationApplicationsQueryVariables = Exact<{
 
 
 export type DocEvaluationApplicationsQuery = { docEvaluationApplications: { totalCount: number, page: number, totalPages: number, rows: Array<{ myEvaluationStatus: MyDocEvaluationStatus, application: { id: string, submittedAt: string | null, user: { name: string }, position: { name: string } | null } }>, tabCounts: { all: number, notEvaluated: number, evaluated: number }, positionCounts: Array<{ count: number, position: { id: string, name: string } }> } };
+
+export type DocEvaluationApplicationChipsQueryVariables = Exact<{
+  postingId: string | number;
+}>;
+
+
+export type DocEvaluationApplicationChipsQuery = { docEvaluationApplicationChips: Array<{ myEvaluationStatus: MyDocEvaluationStatus, application: { id: string, user: { name: string } } }> };
+
+export type DocEvaluationApplicationDetailQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DocEvaluationApplicationDetailQuery = { application: { id: string, profileSnapshot: unknown, availableTimes: Array<string>, user: { name: string }, position: { id: string, name: string } | null, answers: Array<{ id: string, content: string | null, question: { id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, options: { activityFields: Array<ActivityField> | null } | null }, attachments: Array<{ id: string, type: AttachmentType, url: string, fileName: string | null }> }> } };
+
+export type PostingQuestionsQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PostingQuestionsQuery = { posting: { id: string, questions: Array<{ id: string, type: QuestionType, sortOrder: number, position: { id: string } | null }> } };
+
+export type MyDocEvaluationQueryVariables = Exact<{
+  applicationId: string | number;
+}>;
+
+
+export type MyDocEvaluationQuery = { myDocEvaluation: { id: string, status: MyDocEvaluationStatus, opinion: Opinion | null, memo: string | null, updatedAt: string, scores: Array<{ score: number, question: { id: string } }> } | null };
+
+export type SaveDocEvaluationMutationVariables = Exact<{
+  input: SaveDocEvaluationInput;
+  submit: boolean;
+}>;
+
+
+export type SaveDocEvaluationMutation = { saveDocEvaluation: { remainingCount: number, nextUnevaluatedApplicationId: string | null, evaluation: { id: string, status: MyDocEvaluationStatus, opinion: Opinion | null, memo: string | null, updatedAt: string, scores: Array<{ score: number, question: { id: string } }> } } };
+
+export type MyDocEvaluationFieldsFragment = { id: string, status: MyDocEvaluationStatus, opinion: Opinion | null, memo: string | null, updatedAt: string, scores: Array<{ score: number, question: { id: string } }> };
 
 export type DocEvaluationSummaryQueryVariables = Exact<{
   postingId: string | number;
@@ -598,6 +659,21 @@ export const ManagedPostingFieldsFragmentDoc = new TypedDocumentString(`
   bumpRank
 }
     `, {"fragmentName":"ManagedPostingFields"}) as unknown as TypedDocumentString<ManagedPostingFieldsFragment, unknown>;
+export const MyDocEvaluationFieldsFragmentDoc = new TypedDocumentString(`
+    fragment MyDocEvaluationFields on DocEvaluation {
+  id
+  status
+  opinion
+  memo
+  scores {
+    question {
+      id
+    }
+    score
+  }
+  updatedAt
+}
+    `, {"fragmentName":"MyDocEvaluationFields"}) as unknown as TypedDocumentString<MyDocEvaluationFieldsFragment, unknown>;
 export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
     fragment MyAccountFields on Me {
   id
@@ -1050,6 +1126,7 @@ export const RecruitmentPostingDocument = new TypedDocumentString(`
     hasInterview
     noPosition
     docResultConfirmedAt
+    docScorePerQuestion
   }
 }
     `) as unknown as TypedDocumentString<RecruitmentPostingQuery, RecruitmentPostingQueryVariables>;
@@ -1127,6 +1204,114 @@ export const DocEvaluationApplicationsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DocEvaluationApplicationsQuery, DocEvaluationApplicationsQueryVariables>;
+export const DocEvaluationApplicationChipsDocument = new TypedDocumentString(`
+    query DocEvaluationApplicationChips($postingId: ID!) {
+  docEvaluationApplicationChips(postingId: $postingId) {
+    application {
+      id
+      user {
+        name
+      }
+    }
+    myEvaluationStatus
+  }
+}
+    `) as unknown as TypedDocumentString<DocEvaluationApplicationChipsQuery, DocEvaluationApplicationChipsQueryVariables>;
+export const DocEvaluationApplicationDetailDocument = new TypedDocumentString(`
+    query DocEvaluationApplicationDetail($id: ID!) {
+  application(id: $id) {
+    id
+    user {
+      name
+    }
+    position {
+      id
+      name
+    }
+    profileSnapshot
+    availableTimes
+    answers {
+      id
+      question {
+        id
+        type
+        title
+        description
+        required
+        maxLength
+        sortOrder
+        options {
+          activityFields
+        }
+      }
+      content
+      attachments {
+        id
+        type
+        url
+        fileName
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<DocEvaluationApplicationDetailQuery, DocEvaluationApplicationDetailQueryVariables>;
+export const PostingQuestionsDocument = new TypedDocumentString(`
+    query PostingQuestions($id: ID!) {
+  posting(id: $id) {
+    id
+    questions {
+      id
+      type
+      sortOrder
+      position {
+        id
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<PostingQuestionsQuery, PostingQuestionsQueryVariables>;
+export const MyDocEvaluationDocument = new TypedDocumentString(`
+    query MyDocEvaluation($applicationId: ID!) {
+  myDocEvaluation(applicationId: $applicationId) {
+    ...MyDocEvaluationFields
+  }
+}
+    fragment MyDocEvaluationFields on DocEvaluation {
+  id
+  status
+  opinion
+  memo
+  scores {
+    question {
+      id
+    }
+    score
+  }
+  updatedAt
+}`) as unknown as TypedDocumentString<MyDocEvaluationQuery, MyDocEvaluationQueryVariables>;
+export const SaveDocEvaluationDocument = new TypedDocumentString(`
+    mutation SaveDocEvaluation($input: SaveDocEvaluationInput!, $submit: Boolean!) {
+  saveDocEvaluation(input: $input, submit: $submit) {
+    evaluation {
+      ...MyDocEvaluationFields
+    }
+    remainingCount
+    nextUnevaluatedApplicationId
+  }
+}
+    fragment MyDocEvaluationFields on DocEvaluation {
+  id
+  status
+  opinion
+  memo
+  scores {
+    question {
+      id
+    }
+    score
+  }
+  updatedAt
+}`) as unknown as TypedDocumentString<SaveDocEvaluationMutation, SaveDocEvaluationMutationVariables>;
 export const DocEvaluationSummaryDocument = new TypedDocumentString(`
     query DocEvaluationSummary($postingId: ID!, $tab: DocResultTab, $positionIds: [ID!], $keyword: String, $sort: DocSummarySort, $page: Int) {
   docEvaluationSummary(
