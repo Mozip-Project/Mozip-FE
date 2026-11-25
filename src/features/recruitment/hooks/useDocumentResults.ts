@@ -136,17 +136,21 @@ function useDocResultChanges(postingId: string) {
   // 아직 보내지 않은 값
   const unsentRef = useRef(new Map<string, DocResult>())
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const isSendingRef = useRef(false)
 
+  // 요청 도착 순서로 마지막 선택이 덮이지 않도록 앞선 저장이 끝난 뒤 이어서 전송
   function save() {
     clearTimeout(timerRef.current)
     const changes = unsentRef.current
-    if (changes.size === 0) {
+    if (changes.size === 0 || isSendingRef.current) {
       return
     }
     unsentRef.current = new Map()
+    isSendingRef.current = true
 
-    // 저장 중 다시 바꾼 값은 남김
+    // 저장 중 다시 바꾼 값과 아직 보내지 않은 값은 남김
     function settle(isSaved: boolean) {
+      const unsentIds = new Set(unsentRef.current.keys())
       setPendingResults((previous) => {
         const next = new Map(previous)
         changes.forEach((sentResult, applicationId) => {
@@ -154,7 +158,7 @@ function useDocResultChanges(postingId: string) {
           if (!pending) {
             return
           }
-          if (pending.result === sentResult) {
+          if (pending.result === sentResult && !unsentIds.has(applicationId)) {
             next.delete(applicationId)
           } else if (isSaved) {
             next.set(applicationId, { ...pending, savedResult: sentResult })
@@ -163,10 +167,15 @@ function useDocResultChanges(postingId: string) {
         return next
       })
     }
-    saveResults(changes).then(
-      () => settle(true),
-      () => settle(false),
-    )
+    saveResults(changes)
+      .then(
+        () => settle(true),
+        () => settle(false),
+      )
+      .finally(() => {
+        isSendingRef.current = false
+        save()
+      })
   }
 
   // 화면을 떠나도 모아 둔 변경은 바로 저장

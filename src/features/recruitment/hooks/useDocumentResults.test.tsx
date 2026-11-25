@@ -15,6 +15,8 @@ const TAB_SWITCH_APPLICATION_ID = `application-${POSTING_ID}-19`
 const LEAVE_APPLICATION_ID = `application-${POSTING_ID}-34`
 // 저장 대기(500ms) + 재조회
 const SAVE_TIMEOUT_MS = 3000
+// 저장 대기(500ms)가 충분히 지난 시점
+const SAVE_DELAY_PASSED_MS = 1000
 
 beforeAll(() => {
   vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
@@ -56,6 +58,17 @@ function countSetDocResultRequests() {
   return requests
 }
 
+// 단언을 마칠 때까지 저장 응답 보류, 풀면 기본 MSW handler로 넘김
+function holdSetDocResultResponse() {
+  const { promise, resolve } = Promise.withResolvers<void>()
+  server.use(
+    graphqlApi.mutation('SetDocResult', async () => {
+      await promise
+    }),
+  )
+  return resolve
+}
+
 describe('useDocumentResults 결과 변경 (MSW)', () => {
   it('바꾼 결과는 바로 보이고, 같은 결과로 연달아 바꾸면 한 번에 저장', async () => {
     const requests = countSetDocResultRequests()
@@ -85,15 +98,49 @@ describe('useDocumentResults 결과 변경 (MSW)', () => {
     const holdCount = result.current.data?.totals.holdCount ?? 0
     const passTabCount = result.current.data?.statusCounts.pass ?? 0
 
-    act(() => result.current.changeResult(TAB_SWITCH_APPLICATION_ID, 'pass'))
-    rerender({ searchParams: { status: 'pass' } })
-    await waitFor(() => expect(result.current.isPlaceholderData).toBe(false))
+    // 새 탭 조회가 늦어 저장·재조회가 먼저 끝나는 경우 방지
+    const releaseSave = holdSetDocResultResponse()
+    try {
+      act(() => result.current.changeResult(TAB_SWITCH_APPLICATION_ID, 'pass'))
+      rerender({ searchParams: { status: 'pass' } })
+      await waitFor(() => expect(result.current.isPlaceholderData).toBe(false))
 
-    expect(result.current.isSaving).toBe(true)
-    expect(result.current.data?.statusCounts.pass).toBe(passTabCount + 1)
-    expect(result.current.data?.totals.holdCount).toBe(holdCount - 1)
+      expect(result.current.isSaving).toBe(true)
+      expect(result.current.data?.statusCounts.pass).toBe(passTabCount + 1)
+      expect(result.current.data?.totals.holdCount).toBe(holdCount - 1)
+    } finally {
+      releaseSave()
+    }
 
     await waitFor(() => expect(result.current.isSaving).toBe(false), { timeout: SAVE_TIMEOUT_MS })
+  })
+
+  it('저장 중에 다시 바꾸면 앞선 저장이 끝난 뒤 마지막 결과 저장', async () => {
+    // 응답 전에 요청 수를 세도록 보류 handler 먼저 등록
+    const releaseSave = holdSetDocResultResponse()
+    const requests = countSetDocResultRequests()
+    const { result } = renderResults({ status: 'fail' })
+    await waitFor(() => expect(result.current.data?.applicants[0]).toBeDefined())
+    const applicationId = result.current.data?.applicants[0]?.id ?? ''
+
+    try {
+      act(() => result.current.changeResult(applicationId, 'pass'))
+      await waitFor(() => expect(requests).toHaveLength(1), { timeout: SAVE_TIMEOUT_MS })
+      act(() => result.current.changeResult(applicationId, 'fail'))
+      await new Promise((resolve) => setTimeout(resolve, SAVE_DELAY_PASSED_MS))
+
+      expect(requests).toHaveLength(1)
+      expect(result.current.isSaving).toBe(true)
+    } finally {
+      releaseSave()
+    }
+
+    await waitFor(() => expect(result.current.isSaving).toBe(false), { timeout: SAVE_TIMEOUT_MS })
+    expect(requests).toEqual([
+      { applicationIds: [applicationId], result: 'PASS' },
+      { applicationIds: [applicationId], result: 'FAIL' },
+    ])
+    expect(findResult(result, applicationId)).toBe('fail')
   })
 
   it('저장 전에 화면을 떠나도 모아 둔 변경을 저장', async () => {

@@ -75,21 +75,28 @@ function refreshDocResultLists(queryClient: QueryClient, postingId: string) {
 }
 
 // 명세상 한 요청에 결과 하나라 결과 값별로 묶어 저장
+// 일부가 실패해도 전부 끝난 뒤 재조회하도록 모든 요청 완료 대기
 function useSetDocResultsMutation(postingId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (changes: ReadonlyMap<string, DocResult>) => {
+    mutationFn: async (changes: ReadonlyMap<string, DocResult>) => {
       const idsByResult = new Map<DocResult, string[]>()
       changes.forEach((result, applicationId) => {
         idsByResult.set(result, [...(idsByResult.get(result) ?? []), applicationId])
       })
 
-      return Promise.all(
+      const outcomes = await Promise.allSettled(
         [...idsByResult].map(([result, applicationIds]) =>
           setDocResult({ applicationIds, result }),
         ),
       )
+      const failed = outcomes.find(
+        (outcome): outcome is PromiseRejectedResult => outcome.status === 'rejected',
+      )
+      if (failed) {
+        throw failed.reason
+      }
     },
     onSettled: () =>
       Promise.all([
