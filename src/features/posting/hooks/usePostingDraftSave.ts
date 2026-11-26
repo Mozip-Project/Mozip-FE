@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { SaveState } from '@/components/ui/SaveStatus/saveStatus'
 import { useSavePostingDraftMutation } from '@/features/posting/api/organizer/queries'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
@@ -10,9 +10,16 @@ import {
   type SavedPosition,
 } from '@/features/posting/utils/postingDraftValues'
 import { ApiError } from '@/lib/apiError'
+import { FileUploadError, uploadFile } from '@/lib/fileUpload'
 import { useToast } from '@/providers/toastProvider'
 
 const SAVE_FAILED_MESSAGE = '잠시 후 다시 시도해 주세요'
+const UPLOAD_FAILED_MESSAGE = '대표 이미지를 올리지 못했어요. 잠시 후 다시 시도해 주세요'
+
+type UploadedImage = {
+  file: File
+  url: string
+}
 
 // 이어서 작성할 때 불러온 공고
 type SavedPostingDraft = {
@@ -29,6 +36,9 @@ type UsePostingDraftSaveParams = {
 
 // 입력별 메시지가 있으면 첫 메시지, 없으면 서버 메시지
 function getSaveErrorMessage(error: unknown) {
+  if (error instanceof FileUploadError) {
+    return UPLOAD_FAILED_MESSAGE
+  }
   if (!(error instanceof ApiError)) {
     return SAVE_FAILED_MESSAGE
   }
@@ -48,6 +58,21 @@ function usePostingDraftSave({
   )
   const { mutateAsync, isPending } = useSavePostingDraftMutation()
   const { showToast } = useToast()
+  // 같은 파일로 다시 저장할 때 또 올리지 않도록 마지막으로 올린 이미지 기억
+  const uploadedImageRef = useRef<UploadedImage | null>(null)
+
+  // 공고 정보 단계에서 새로 고른 대표 이미지만 올림, 없으면 images를 보내지 않아 서버 값 유지
+  async function uploadMainImage(stepId: DraftStepId, mainImage: File | null) {
+    if (stepId !== 'info' || !mainImage) {
+      return undefined
+    }
+    if (uploadedImageRef.current?.file === mainImage) {
+      return uploadedImageRef.current.url
+    }
+    const { fileUrl } = await uploadFile(mainImage, 'POSTING_IMAGE')
+    uploadedImageRef.current = { file: mainImage, url: fileUrl }
+    return fileUrl
+  }
 
   async function saveStep(stepId: DraftStepId, values: PostingCreateValues) {
     if (!organizationId) {
@@ -56,10 +81,11 @@ function usePostingDraftSave({
 
     setSaveState({ status: 'saving' })
     try {
+      const mainImageUrl = await uploadMainImage(stepId, values.mainImage)
       let posting = await mutateAsync({
         organizationId,
         id: postingId,
-        input: toDraftStepInput(stepId, values, hasInterview, { savedPositions }),
+        input: toDraftStepInput(stepId, values, hasInterview, { savedPositions, mainImageUrl }),
       })
       if (!postingId) {
         setPostingId(posting.id)

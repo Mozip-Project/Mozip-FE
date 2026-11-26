@@ -19,19 +19,21 @@ const INFO_POPOVER_OFFSET_PX = 9
 const INFO_POPOVER_ALIGN_OFFSET_PX = 1
 
 const REJECTION_MESSAGE = {
-  invalidType: 'JPG, PNG 이미지만 업로드 가능해요',
+  invalidType: 'JPG, PNG, WEBP 이미지만 업로드 가능해요',
   oversized: '10MB 이하의 이미지만 업로드 가능해요',
 } satisfies Record<FileRejection, string>
 
 type PostingImageFieldProps = {
   value: File | null
+  // 이어서 작성할 때 서버에 저장된 이미지, 새 파일을 고르면 파일이 우선
+  savedImageUrl: string | null
   onChange: (file: File | null) => void
 }
 
-function PostingImageField({ value, onChange }: PostingImageFieldProps) {
+function PostingImageField({ value, savedImageUrl, onChange }: PostingImageFieldProps) {
   const labelId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
-  const previewUrl = useObjectUrl(value)
+  const previewUrl = useObjectUrl(value) ?? savedImageUrl
   const { showToast } = useToast()
 
   function handleRemove() {
@@ -61,7 +63,7 @@ function PostingImageField({ value, onChange }: PostingImageFieldProps) {
             description={
               <>
                 <p>최적 사이즈는 1600 × 800 px이며, 10MB 이하의 이미지만 업로드 가능합니다.</p>
-                <p>PNG, JPG 형식의 이미지를 업로드해 주세요.</p>
+                <p>PNG, JPG, WEBP 형식의 이미지를 업로드해 주세요.</p>
               </>
             }
             side="bottom"
@@ -77,7 +79,7 @@ function PostingImageField({ value, onChange }: PostingImageFieldProps) {
           inputRef={inputRef}
           acceptedTypes={POSTING_IMAGE_TYPES}
           maxSizeBytes={POSTING_IMAGE_MAX_SIZE_BYTES}
-          description="JPG, PNG, 장당 10MB 이하"
+          description="JPG, PNG, WEBP, 장당 10MB 이하"
           onFileSelect={onChange}
           onReject={(rejection) =>
             showToast({ title: REJECTION_MESSAGE[rejection], icon: 'alert' })

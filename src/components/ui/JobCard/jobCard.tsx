@@ -12,6 +12,8 @@ type JobCardProps = {
   badge?: ReactNode
   tags: readonly string[]
   thumbnailSrc?: string
+  // 작성 중 미리보기처럼 허용 호스트가 아닌 주소(MSW 업로드 등)도 그대로 표시
+  isThumbnailUnoptimized?: boolean
 }
 
 function JobCard({
@@ -22,6 +24,7 @@ function JobCard({
   badge,
   tags,
   thumbnailSrc,
+  isThumbnailUnoptimized = false,
 }: JobCardProps) {
   return (
     <article
@@ -36,6 +39,7 @@ function JobCard({
             alt=""
             fill
             sizes="(min-width: 1280px) 322px, 100vw"
+            unoptimized={isThumbnailUnoptimized}
             // 썸네일 영역 안에서만 확대, 카드 크기 유지
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out motion-safe:group-hover/job-card:scale-120"
           />

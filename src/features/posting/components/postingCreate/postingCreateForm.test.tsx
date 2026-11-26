@@ -226,13 +226,13 @@ describe('PostingCreateForm', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('JPG·PNG가 아닌 파일은 올리지 않고 안내', async () => {
+  it('JPG·PNG·WEBP가 아닌 파일은 올리지 않고 안내', async () => {
     const user = userEvent.setup({ applyAccept: false })
     renderForm()
 
     await user.upload(getFileInput(), new File(['pdf'], 'doc.pdf', { type: 'application/pdf' }))
 
-    expect(await screen.findByText('JPG, PNG 이미지만 업로드 가능해요')).toBeInTheDocument()
+    expect(await screen.findByText('JPG, PNG, WEBP 이미지만 업로드 가능해요')).toBeInTheDocument()
     expect(screen.queryByRole('img', { name: '대표 이미지' })).not.toBeInTheDocument()
   })
 
