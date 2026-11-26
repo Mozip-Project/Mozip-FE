@@ -31,6 +31,7 @@ function createInitialAccount(): MyAccountFieldsFragment {
     id: 'user-1',
     phone: '01012345678',
     name: '김모집',
+    profileImageUrl: null,
     school: { name: '모집대학교' },
     schoolVerification: {
       schoolName: null,
@@ -72,7 +73,9 @@ function getMockAccount() {
   return account
 }
 
-function updateMockAccount(patch: Partial<Pick<MyAccountFieldsFragment, 'name' | 'phone'>>) {
+function updateMockAccount(
+  patch: Partial<Pick<MyAccountFieldsFragment, 'name' | 'phone' | 'profileImageUrl'>>,
+) {
   account = { ...account, ...patch }
   return account
 }

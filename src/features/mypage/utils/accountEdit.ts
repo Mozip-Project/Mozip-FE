@@ -9,6 +9,8 @@ type ProfileChangeContext = {
   savedName: string
   /** 인증을 마친 새 번호(화면 형식), 없으면 null */
   verifiedPhone: string | null
+  /** 새로 고른 프로필 이미지를 올리고 받은 주소, 없으면 기존 이미지 유지 */
+  uploadedImageUrl?: string
 }
 
 // TODO: 휴대폰 인증·저장 오류 안내 문구 디자인 확인 필요, 지금은 서버 메시지 표시
@@ -27,22 +29,22 @@ function toChangePasswordInput({
   return { currentPassword, newPassword }
 }
 
-// 바뀐 이름과 인증한 번호만 보내고, 둘 다 그대로면 요청하지 않음
-// TODO: 프로필 이미지는 업로드 API 배포 후 profileImageUrl로 추가
+// 바뀐 이름·인증한 번호·새 프로필 이미지만 보내고, 모두 그대로면 요청하지 않음
 function toUpdateProfileInput(
   { name, newPhone }: AccountEditValues,
-  { savedName, verifiedPhone }: ProfileChangeContext,
+  { savedName, verifiedPhone, uploadedImageUrl }: ProfileChangeContext,
 ): UpdateProfileInput | null {
   const trimmedName = name.trim()
   const isNameChanged = trimmedName !== savedName
   const isPhoneChanged = newPhone !== '' && newPhone === verifiedPhone
 
-  if (!isNameChanged && !isPhoneChanged) {
+  if (!isNameChanged && !isPhoneChanged && !uploadedImageUrl) {
     return null
   }
   return {
     ...(isNameChanged ? { name: trimmedName } : {}),
     ...(isPhoneChanged ? { phone: toPhoneDigits(newPhone) } : {}),
+    ...(uploadedImageUrl ? { profileImageUrl: uploadedImageUrl } : {}),
   }
 }
 

@@ -19,6 +19,7 @@ function AccountEditContent() {
         key={account.phone}
         name={account.name}
         maskedPhone={maskPhoneNumber(account.phone)}
+        profileImageUrl={account.profileImageUrl}
       />
     )
   }

@@ -42,6 +42,14 @@ function toOptionalNumber(value: string | null) {
   return value === null ? null : Number(value)
 }
 
+// 새 이미지는 대표 한 장, 저장된 이미지만 있으면 생략해 서버 값 유지, 둘 다 없으면 빈 배열로 삭제
+function toImagesInput(values: PostingCreateValues, mainImageUrl?: string) {
+  if (mainImageUrl) {
+    return { images: [{ url: mainImageUrl, sortOrder: 0, isRepresentative: true }] }
+  }
+  return values.savedMainImageUrl ? {} : { images: [] }
+}
+
 // 지역·회비·직접 입력 자격은 null이 지움이라 끈 항목도 null로 전송
 // 첫 저장이 공고 생성이라 면접 여부도 함께 전송
 function toInfoInput(
@@ -60,9 +68,7 @@ function toInfoInput(
       ? toNullableText(values.customQualification)
       : null,
     hasInterview,
-    ...(mainImageUrl
-      ? { images: [{ url: mainImageUrl, sortOrder: 0, isRepresentative: true }] }
-      : {}),
+    ...toImagesInput(values, mainImageUrl),
   }
 }
 

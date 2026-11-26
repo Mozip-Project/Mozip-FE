@@ -18,11 +18,12 @@ function values(overrides: Partial<PostingCreateValues>): PostingCreateValues {
 }
 
 describe('toDraftStepInput', () => {
-  it('공고 정보: 끈 공개 항목은 null(지움), 지원 자격 체크를 서버 값으로, 면접 여부 포함, 새 이미지가 없으면 생략', () => {
+  it('공고 정보: 끈 공개 항목은 null(지움), 지원 자격 체크를 서버 값으로, 면접 여부 포함, 저장된 이미지만 있으면 생략', () => {
     const input = toDraftStepInput(
       'info',
       values({
         title: '  UXUX 14기  ',
+        savedMainImageUrl: 'https://cdn/saved.png',
         publicItems: ['fee'],
         region: '서울 마포구',
         fee: '30000',
@@ -55,6 +56,12 @@ describe('toDraftStepInput', () => {
     expect(input.images).toEqual([
       { url: 'https://cdn/main.png', sortOrder: 0, isRepresentative: true },
     ])
+  })
+
+  it('공고 정보: 새 이미지도 저장된 이미지도 없으면 빈 배열로 서버 이미지 삭제', () => {
+    const input = toDraftStepInput('info', values({ savedMainImageUrl: null }), true, EMPTY_CONTEXT)
+
+    expect(input.images).toEqual([])
   })
 
   it('모집 일정: 시간 미선택은 시작 00:00·마감 23:59, 발표일은 보내지 않음', () => {

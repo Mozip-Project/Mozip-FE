@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
-import { delay, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetOrganizationProfiles } from '@/features/organization/mocks/organizationProfileHandlers'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
@@ -119,6 +119,35 @@ describe('OrganizationProfileForm', () => {
     expect(saveButton).toBeDisabled()
   })
 
+  it('로고 업로드가 실패하면 저장하지 않고 업로드 실패 안내', async () => {
+    const user = userEvent.setup()
+    const container = renderForm(true)
+    let updateCount = 0
+    server.use(
+      http.post(
+        '*/api/files/presigned-url',
+        () =>
+          HttpResponse.json(
+            { success: false, code: 'FILE_413', message: '허용 용량을 초과했어요.', data: null },
+            { status: 413 },
+          ),
+        { once: true },
+      ),
+      graphqlApi.mutation('UpdateOrganization', () => {
+        updateCount += 1
+        return undefined
+      }),
+    )
+
+    await fillRequiredWithoutCategories(user, container)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('로고를 업로드하지 못했어요')).toBeInTheDocument()
+    expect(screen.getByText('허용 용량을 초과했어요.')).toBeInTheDocument()
+    expect(updateCount).toBe(0)
+    expect(screen.getByRole('button', { name: '저장' })).toBeEnabled()
+  })
+
   it('저장하면 완료 안내, 링크는 https가 붙은 저장값으로 바뀜', async () => {
     const user = userEvent.setup()
     const container = renderForm(true)
@@ -169,7 +198,8 @@ describe('OrganizationProfileForm', () => {
     const introduction = screen.getByRole('textbox', { name: /한 줄 소개/ })
     expect(await screen.findByText('한 줄 소개를 확인해 주세요.')).toBeInTheDocument()
     expect(introduction).toHaveAttribute('aria-invalid', 'true')
-    expect(introduction).toHaveFocus()
+    // 저장 처리가 끝나 입력 잠금이 풀린 뒤 포커스 이동
+    await waitFor(() => expect(introduction).toHaveFocus())
   })
 
   it('그 밖의 저장 실패는 안내 후 다시 저장 가능', async () => {

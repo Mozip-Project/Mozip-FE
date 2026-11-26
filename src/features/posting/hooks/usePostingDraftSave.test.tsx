@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook } from '@testing-library/react'
-import { HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { getPostingDraft, savePostingDraft } from '@/features/posting/api/organizer/api'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
@@ -11,6 +11,7 @@ import {
 } from '@/features/posting/schemas/postingCreateValues'
 import { createQuestion } from '@/features/posting/utils/postingQuestions'
 import type { SavePostingDraftMutation, SavePostingDraftMutationVariables } from '@/gql/graphql'
+import { resetUploadedFiles } from '@/mocks/fileUploadHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
@@ -69,10 +70,67 @@ beforeAll(() => {
 afterEach(() => {
   resetManagedPostings()
   resetPostingDrafts()
+  resetUploadedFiles()
 })
 
 afterAll(() => {
   vi.unstubAllEnvs()
+})
+
+function renderNewDraftSave() {
+  return renderHook(
+    () => usePostingDraftSave({ organizationId: MOCK_ORGANIZATION_ID, hasInterview: false }),
+    { wrapper: Wrapper },
+  ).result
+}
+
+function infoValues(mainImage: File | null): PostingCreateValues {
+  return { ...EMPTY_POSTING_CREATE, title: '공고', qualifications: ['student'], mainImage }
+}
+
+// 업로드 주소 발급 요청 수 기록, 응답은 기본 MSW
+function countPresignedRequests() {
+  const counter = { count: 0 }
+  server.use(
+    http.post('*/api/files/presigned-url', () => {
+      counter.count += 1
+    }),
+  )
+  return counter
+}
+
+describe('usePostingDraftSave 대표 이미지', () => {
+  it('새로 고른 대표 이미지를 올린 뒤 받은 주소로 저장, 같은 파일은 다시 올리지 않음', async () => {
+    const presigned = countPresignedRequests()
+    const result = renderNewDraftSave()
+    const image = new File(['image'], 'main.webp', { type: 'image/webp' })
+
+    expect(await act(() => result.current.saveStep('info', infoValues(image)))).toBe(true)
+    expect(await act(() => result.current.saveStep('info', infoValues(image)))).toBe(true)
+
+    const postingId = result.current.postingId ?? ''
+    const posting = await getPostingDraft(postingId)
+    expect(posting.images).toMatchObject([{ sortOrder: 0, isRepresentative: true }])
+    expect(posting.images[0]?.url).toContain('posting_image/')
+    expect(presigned.count).toBe(1)
+  })
+
+  it('대표 이미지를 올리지 못하면 공고를 저장하지 않고 실패 안내', async () => {
+    server.use(
+      http.post('*/api/files/presigned-url', () =>
+        HttpResponse.json(
+          { success: false, code: 'FILE_415', message: '형식 오류', data: null },
+          { status: 415 },
+        ),
+      ),
+    )
+    const result = renderNewDraftSave()
+
+    const image = new File(['image'], 'main.png', { type: 'image/png' })
+    expect(await act(() => result.current.saveStep('info', infoValues(image)))).toBe(false)
+    expect(result.current.postingId).toBeNull()
+    expect(result.current.saveState).toEqual({ status: 'failed' })
+  })
 })
 
 describe('usePostingDraftSave', () => {

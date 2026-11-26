@@ -3,13 +3,16 @@
 import InfoIcon from '@/assets/icons/info.svg'
 import { ImageUploadField } from '@/components/ui/ImageUploadField/imageUploadField'
 import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
-import type { ImageFileFormat } from '@/hooks/useImageFilePicker'
+import type { ImageFileRule } from '@/hooks/useImageFilePicker'
 
-// 로고만 webp·svg까지 허용
-const LOGO_FILE_FORMAT = {
+// 백엔드 ORG_LOGO 기준, 로고만 webp·svg까지 허용하고 5MB 제한
+// TODO: Figma는 10MB 안내라 5MB 문구 디자인 확인 필요
+const LOGO_FILE_RULE = {
   acceptedTypes: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
   invalidTypeMessage: '.png, .jpg, .webp, .svg 이미지만 업로드 가능해요',
-} satisfies ImageFileFormat
+  maxSizeBytes: 5 * 1024 * 1024,
+  oversizedMessage: '5MB 이하의 이미지만 업로드 가능해요',
+} satisfies ImageFileRule
 
 type LogoFieldProps = {
   value: File | null
@@ -23,7 +26,7 @@ function LogoField({ value, onChange, savedLogoUrl }: LogoFieldProps) {
       value={value}
       onChange={onChange}
       savedImageUrl={savedLogoUrl}
-      fileFormat={LOGO_FILE_FORMAT}
+      fileRule={LOGO_FILE_RULE}
       label="로고"
       title={
         <div className="flex items-center gap-gap-xs text-label1 font-semibold">
@@ -41,7 +44,7 @@ function LogoField({ value, onChange, savedLogoUrl }: LogoFieldProps) {
             title="로고 등록은 이렇게 해요"
             description={
               <ul className="list-disc pl-5.25">
-                <li>최적 사이즈는 240 × 240 px이며, 10MB 이하의 이미지만 업로드 가능합니다.</li>
+                <li>최적 사이즈는 240 × 240 px이며, 5MB 이하의 이미지만 업로드 가능합니다.</li>
                 <li>.png, .jpg, .webp, .svg 형식의 이미지를 업로드해 주세요.</li>
               </ul>
             }

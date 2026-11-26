@@ -5,7 +5,7 @@ import { useId, useRef, type ReactNode } from 'react'
 import RefreshIcon from '@/assets/icons/refresh.svg'
 import UploadIcon from '@/assets/icons/upload.svg'
 import { Button } from '@/components/ui/Button/button'
-import { useImageFilePicker, type ImageFileFormat } from '@/hooks/useImageFilePicker'
+import { useImageFilePicker, type ImageFileRule } from '@/hooks/useImageFilePicker'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
 
 const PREVIEW_SIZE_PX = 72
@@ -19,8 +19,8 @@ type ImageUploadFieldProps = {
   title: ReactNode
   // 이미 저장된 이미지, 새 파일을 고르기 전과 초기화 후 미리보기에 표시
   savedImageUrl?: string | null
-  // 생략하면 PNG, JPG
-  fileFormat?: ImageFileFormat
+  // 생략하면 PNG, JPG, 10MB
+  fileRule?: ImageFileRule
 }
 
 function ImageUploadField({
@@ -29,13 +29,13 @@ function ImageUploadField({
   label,
   title,
   savedImageUrl = null,
-  fileFormat,
+  fileRule,
 }: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const selectedImageUrl = useObjectUrl(value)
   const previewUrl = selectedImageUrl ?? savedImageUrl
   const previewAlt = selectedImageUrl ? `선택한 ${label}` : `현재 ${label}`
-  const imagePicker = useImageFilePicker(onChange, fileFormat)
+  const imagePicker = useImageFilePicker(onChange, fileRule)
   const errorId = useId()
   const hasError = imagePicker.errorMessage !== null
 

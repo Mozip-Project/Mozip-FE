@@ -20,7 +20,7 @@ function renderAccountEditForm() {
   render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AccountEditForm name="김모집" maskedPhone="010-****-5678" />
+        <AccountEditForm name="김모집" maskedPhone="010-****-5678" profileImageUrl={null} />
       </ToastProvider>
     </QueryClientProvider>,
   )
@@ -321,7 +321,7 @@ describe('AccountEditForm 저장', () => {
       return (
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <AccountEditForm name={name} maskedPhone="010-****-5678" />
+            <AccountEditForm name={name} maskedPhone="010-****-5678" profileImageUrl={null} />
           </ToastProvider>
         </QueryClientProvider>
       )

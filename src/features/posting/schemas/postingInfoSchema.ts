@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const POSTING_IMAGE_TYPES = ['image/jpeg', 'image/png'] as const
+const POSTING_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 const POSTING_IMAGE_MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 const PUBLIC_ITEMS = ['region', 'fee'] as const
