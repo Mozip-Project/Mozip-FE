@@ -128,7 +128,7 @@ async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
   await pickDate(startDate, '2026년 10월 1일 목요일')
   await pickDate(endDate, '2026년 10월 8일 목요일')
   const documentResultDate = screen.queryByRole('button', {
-    name: /^서류 결과 및 면접 일정 발표일/,
+    name: /^서류 결과 발표일/,
   })
   if (documentResultDate) {
     await pickDate(documentResultDate, '2026년 10월 22일 목요일')
@@ -403,7 +403,7 @@ describe('PostingCreateForm', () => {
       expect(screen.getByRole('group', { name: '모집 시작 필수' })).toBeInTheDocument()
       expect(screen.getByRole('group', { name: '모집 마감 필수' })).toBeInTheDocument()
       expect(screen.getByRole('group', { name: '활동 기간' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /서류 결과 및 면접 일정 발표일/ }) !== null).toBe(
+      expect(screen.queryByRole('button', { name: /서류 결과 발표일/ }) !== null).toBe(
         hasDocumentResult,
       )
       expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
@@ -795,7 +795,7 @@ describe('PostingCreateForm', () => {
 
     const pickDocumentResultDate = async (dayLabel: string) => {
       await clickStep(user, screen.getByRole('button', { name: /모집 일정$/ }))
-      await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+      await user.click(screen.getByRole('button', { name: /^서류 결과 발표일/ }))
       await user.click(await screen.findByRole('button', { name: dayLabel }))
       for (let count = 0; count < 3; count += 1) {
         await clickNext(user)
@@ -851,7 +851,7 @@ describe('PostingCreateForm', () => {
 
     await clickStep(user, screen.getByRole('button', { name: /모집 일정$/ }))
     expect(screen.getByRole('button', { name: /검토 및 게시$/ })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+    await user.click(screen.getByRole('button', { name: /^서류 결과 발표일/ }))
     await user.click(await screen.findByRole('button', { name: '2026년 10월 23일 금요일' }))
 
     expect(screen.queryByRole('button', { name: /검토 및 게시$/ })).not.toBeInTheDocument()
