@@ -426,6 +426,27 @@ export type PostingQuery = { posting: { id: string, title: string, content: stri
 
 export type PostingDetailFieldsFragment = { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> };
 
+export type DemoServerOrganizationPostingsQueryVariables = Exact<{
+  organizationId: string | number;
+}>;
+
+
+export type DemoServerOrganizationPostingsQuery = { organizationPostings: Array<{ id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null }> };
+
+export type DemoServerDeletePostingMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DemoServerDeletePostingMutation = { deletePosting: boolean };
+
+export type DemoServerPostingDetailQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DemoServerPostingDetailQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> } } };
+
 export type ManagedPostingFieldsFragment = { id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null, bumpRank: number | null };
 
 export type OrganizationPostingsQueryVariables = Exact<{
@@ -1082,6 +1103,80 @@ export const PostingDocument = new TypedDocumentString(`
     recruitEndAt
   }
 }`) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
+export const DemoServerOrganizationPostingsDocument = new TypedDocumentString(`
+    query DemoServerOrganizationPostings($organizationId: ID!) {
+  organizationPostings(organizationId: $organizationId) {
+    id
+    title
+    status
+    hasInterview
+    publishedAt
+    recruitEndAt
+    docResultConfirmedAt
+    docResultAt
+    finalResultAt
+  }
+}
+    `) as unknown as TypedDocumentString<DemoServerOrganizationPostingsQuery, DemoServerOrganizationPostingsQueryVariables>;
+export const DemoServerDeletePostingDocument = new TypedDocumentString(`
+    mutation DemoServerDeletePosting($id: ID!) {
+  deletePosting(id: $id)
+}
+    `) as unknown as TypedDocumentString<DemoServerDeletePostingMutation, DemoServerDeletePostingMutationVariables>;
+export const DemoServerPostingDetailDocument = new TypedDocumentString(`
+    query DemoServerPostingDetail($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    content
+    noPosition
+    hasInterview
+    allowEnrolled
+    allowOnLeave
+    eligibilityNote
+    region
+    fee
+    recruitStartAt
+    recruitEndAt
+    docResultAt
+    finalResultAt
+    images {
+      url
+      isRepresentative
+      sortOrder
+    }
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      title
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+    }
+    organization {
+      id
+      name
+      type
+      logoUrl
+      tagline
+      keywords
+      fields
+      links {
+        id
+        url
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<DemoServerPostingDetailQuery, DemoServerPostingDetailQueryVariables>;
 export const OrganizationPostingsDocument = new TypedDocumentString(`
     query OrganizationPostings($organizationId: ID!, $status: [PostingStatus!]) {
   organizationPostings(organizationId: $organizationId, status: $status) {

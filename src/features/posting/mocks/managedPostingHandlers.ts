@@ -1,23 +1,29 @@
 import { delay, HttpResponse } from 'msw'
-import type {
-  BumpPostingMutation,
-  BumpPostingMutationVariables,
-  DeletePostingMutation,
-  DeletePostingMutationVariables,
-  ManagedPostingDetailQuery,
-  ManagedPostingDetailQueryVariables,
-  ManagedPostingFieldsFragment,
-  ManagedPostingSummaryQuery,
-  ManagedPostingSummaryQueryVariables,
-  OrganizationPostingsQuery,
-  OrganizationPostingsQueryVariables,
-  SendNoticeMutation,
-  SendNoticeMutationVariables,
+import { isPostingDemoMode, isServerPosting } from '@/features/posting/utils/demoServerPosting'
+import {
+  DemoServerDeletePostingDocument,
+  DemoServerOrganizationPostingsDocument,
+  DemoServerPostingDetailDocument,
+  type BumpPostingMutation,
+  type BumpPostingMutationVariables,
+  type DeletePostingMutation,
+  type DeletePostingMutationVariables,
+  type ManagedPostingDetailQuery,
+  type ManagedPostingDetailQueryVariables,
+  type ManagedPostingFieldsFragment,
+  type ManagedPostingSummaryQuery,
+  type ManagedPostingSummaryQueryVariables,
+  type OrganizationPostingsQuery,
+  type OrganizationPostingsQueryVariables,
+  type SendNoticeMutation,
+  type SendNoticeMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
+import { requestServerGraphQL } from '@/mocks/serverGraphql'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
+import { mergeServerPostings } from './demoServerPostings'
 import {
   findOrganizationPostingSample,
   isDocumentResultConfirmed,
@@ -25,6 +31,7 @@ import {
   type OrganizationPostingSample,
 } from './organizationPostingSamples'
 import { createPostingSample } from './postingDetailHandlers'
+import type { GraphQLResponseBody } from 'msw/graphql'
 
 // 명세상 UP하면 최신순 맨 위
 const BUMPED_RANK = 1
@@ -140,6 +147,40 @@ function saveManagedPosting(organizationId: string, posting: ManagedPostingField
   state.postings = index === -1 ? [posting, ...state.postings] : state.postings.with(index, posting)
 }
 
+// 시연 모드는 실서버 단체 1 공고를 샘플과 함께 보여 줌, 서버 조회가 실패해도 샘플은 표시 (전시회 후 삭제)
+async function getDisplayedPostings(organizationId: string, state: OrganizationPostingState) {
+  if (!isPostingDemoMode() || organizationId !== MOCK_ORGANIZATION_ID) {
+    return state.postings
+  }
+  try {
+    const { organizationPostings } = await requestServerGraphQL(
+      DemoServerOrganizationPostingsDocument,
+      { organizationId },
+    )
+    return mergeServerPostings(state.postings, organizationPostings)
+  } catch {
+    return state.postings
+  }
+}
+
+// 시연 모드의 실서버 공고 상세, 서버에 없는 지원서 수·같은 단체 공고는 0·빈 목록 (전시회 후 삭제)
+async function getServerManagedPostingDetail(postingId: string) {
+  type Body = GraphQLResponseBody<ManagedPostingDetailQuery>
+  try {
+    const { posting } = await requestServerGraphQL(DemoServerPostingDetailDocument, {
+      id: postingId,
+    })
+    if (!posting) {
+      return HttpResponse.json<Body>(errorBody(...POSTING_NOT_FOUND_ERROR))
+    }
+    return HttpResponse.json<Body>({
+      data: { posting: { ...posting, applicationCount: 0, otherActivePostings: [] } },
+    })
+  } catch {
+    return HttpResponse.json<Body>(errorBody('COMMON_500', '공고를 불러오지 못했습니다.'))
+  }
+}
+
 function getNoticeFieldErrors({ subject, body }: SendNoticeMutationVariables) {
   const fieldErrors = []
   const trimmedSubject = subject.trim()
@@ -175,9 +216,10 @@ const managedPostingHandlers = [
 
       const { status } = variables
       const statuses = status ? (Array.isArray(status) ? status : [status]) : null
+      const postings = await getDisplayedPostings(String(variables.organizationId), state)
       const organizationPostings = statuses
-        ? state.postings.filter((posting) => statuses.includes(posting.status))
-        : state.postings
+        ? postings.filter((posting) => statuses.includes(posting.status))
+        : postings
       return HttpResponse.json({ data: { organizationPostings } })
     },
   ),
@@ -193,8 +235,9 @@ const managedPostingHandlers = [
         return HttpResponse.json(errorBody(...NOT_MEMBER_ERROR))
       }
 
+      const postings = await getDisplayedPostings(organizationId, state)
       const countOf = (predicate: (posting: ManagedPostingFieldsFragment) => boolean) =>
-        state.postings.filter(predicate).length
+        postings.filter(predicate).length
 
       return HttpResponse.json({
         data: {
@@ -242,7 +285,19 @@ const managedPostingHandlers = [
     'DeletePosting',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      const found = findPosting(String(variables.id))
+      const postingId = String(variables.id)
+      // 시연 모드의 실서버 공고는 실서버에서 삭제 (전시회 후 삭제)
+      if (isServerPosting(postingId)) {
+        try {
+          const { deletePosting } = await requestServerGraphQL(DemoServerDeletePostingDocument, {
+            id: postingId,
+          })
+          return HttpResponse.json({ data: { deletePosting } })
+        } catch {
+          return HttpResponse.json(errorBody('POSTING_409', '공고를 삭제하지 못했습니다.'))
+        }
+      }
+      const found = findPosting(postingId)
 
       if (!found) {
         return HttpResponse.json(errorBody(...POSTING_NOT_FOUND_ERROR))
@@ -262,6 +317,9 @@ const managedPostingHandlers = [
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
       const postingId = String(variables.id)
+      if (isServerPosting(postingId)) {
+        return getServerManagedPostingDetail(postingId)
+      }
       const today = getSeoulIsoDate(new Date())
       const posting = createPostingSample(postingId, today)
 

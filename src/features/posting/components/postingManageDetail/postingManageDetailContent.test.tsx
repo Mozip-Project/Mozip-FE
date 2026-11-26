@@ -2,10 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
-import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
+import {
+  createPostingSample,
+  POSTING_SAMPLE_ID,
+} from '@/features/posting/mocks/postingDetailHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { PostingManageDetailContent } from './postingManageDetailContent'
@@ -212,5 +216,53 @@ describe('PostingManageDetailContent', () => {
     )
     await waitFor(() => expect(subjectInput).toHaveFocus())
     expect(within(screen.getByRole('dialog')).queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+// 전시회 후 삭제
+describe('PostingManageDetailContent 시연 모드', () => {
+  beforeAll(() => {
+    vi.stubEnv('NEXT_PUBLIC_POSTING_DEMO_MODE', 'enabled')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // 실서버 조회는 MSW를 거치지 않아(bypass) fetch에서 해당 operation만 대체
+  function mockServerPostingDetail(posting: object) {
+    const mswFetch = globalThis.fetch
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const body = input instanceof Request ? await input.clone().text() : ''
+      if (body.includes('DemoServerPostingDetail')) {
+        return Response.json({ data: { posting } })
+      }
+      return mswFetch(input, init)
+    })
+  }
+
+  it('실서버 공고는 실서버 상세를 보여 주고 공지 보내기는 안내만', async () => {
+    const sample = createPostingSample(ORGANIZATION_POSTING_ID.docReview, '2026-11-26')
+    if (!sample) {
+      throw new Error('샘플 공고 없음')
+    }
+    const { otherActivePostings: _, ...posting } = sample
+    const serverPosting = {
+      ...posting,
+      id: '7',
+      title: '실서버 공고',
+      organization: { ...posting.organization, id: MOCK_ORGANIZATION_ID },
+    }
+    mockServerPostingDetail(serverPosting)
+    const user = userEvent.setup()
+    renderDetail('7')
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: '실서버 공고' }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '공지 보내기' }))
+
+    expect(await screen.findByText('시연에서는 샘플 공고로 확인해 주세요')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

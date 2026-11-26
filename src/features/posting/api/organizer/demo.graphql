@@ -1,0 +1,72 @@
+# 전시회 시연 모드에서 MSW가 샘플과 합칠 실서버 공고 조회, 서버에 없는 bumpRank 제외 (전시회 후 삭제)
+query DemoServerOrganizationPostings($organizationId: ID!) {
+  organizationPostings(organizationId: $organizationId) {
+    id
+    title
+    status
+    hasInterview
+    publishedAt
+    recruitEndAt
+    docResultConfirmedAt
+    docResultAt
+    finalResultAt
+  }
+}
+
+mutation DemoServerDeletePosting($id: ID!) {
+  deletePosting(id: $id)
+}
+
+# 공고 상세 필드에서 서버에 없는 otherActivePostings 제외 (전시회 후 삭제)
+query DemoServerPostingDetail($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    content
+    noPosition
+    hasInterview
+    allowEnrolled
+    allowOnLeave
+    eligibilityNote
+    region
+    fee
+    recruitStartAt
+    recruitEndAt
+    docResultAt
+    finalResultAt
+    images {
+      url
+      isRepresentative
+      sortOrder
+    }
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      title
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+    }
+    organization {
+      id
+      name
+      type
+      logoUrl
+      tagline
+      keywords
+      fields
+      links {
+        id
+        url
+      }
+    }
+  }
+}
