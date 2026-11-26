@@ -56,7 +56,7 @@ function usePostingDraftSave({
   const [saveState, setSaveState] = useState<SaveState>(
     savedDraft ? { status: 'saved', savedAt: new Date(savedDraft.updatedAt) } : { status: 'idle' },
   )
-  const { mutateAsync, isPending } = useSavePostingDraftMutation()
+  const { mutateAsync } = useSavePostingDraftMutation()
   const { showToast } = useToast()
   // 같은 파일로 다시 저장할 때 또 올리지 않도록 마지막으로 올린 이미지 기억
   const uploadedImageRef = useRef<UploadedImage | null>(null)
@@ -120,7 +120,8 @@ function usePostingDraftSave({
   return {
     postingId,
     saveState,
-    isSaving: isPending,
+    // 대표 이미지 업로드부터 저장 완료까지 중복 저장 방지
+    isSaving: saveState.status === 'saving',
     canSave: organizationId !== null,
     saveStep,
   }
