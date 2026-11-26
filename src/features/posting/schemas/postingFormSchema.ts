@@ -4,6 +4,12 @@ const QUESTION_TYPES = ['text', 'activity', 'file'] as const
 const FILE_TYPES = ['pdf', 'image', 'ppt', 'mp4'] as const
 const ACTIVITY_FIELDS = ['period', 'role', 'achievement'] as const
 
+// 서버 저장 제한과 같은 글자 수
+const QUESTION_MAX_LENGTH = {
+  title: 200,
+  description: 500,
+} as const
+
 const postingQuestionSchema = z.object({
   id: z.string(),
   type: z.enum(QUESTION_TYPES),
@@ -76,6 +82,7 @@ export {
   ACTIVITY_FIELDS,
   EMPTY_POSTING_FORM,
   FILE_TYPES,
+  QUESTION_MAX_LENGTH,
   QUESTION_TYPES,
   requiredPostingFormSchema as postingFormSchema,
 }

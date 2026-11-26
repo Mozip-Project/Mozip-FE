@@ -3,7 +3,11 @@
 import { Controller, type Control } from 'react-hook-form'
 import { TextField } from '@/components/ui/TextField/textField'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
-import type { Qualification } from '@/features/posting/schemas/postingInfoSchema'
+import {
+  POSTING_INFO_MAX_LENGTH,
+  validateOptionInput,
+  type Qualification,
+} from '@/features/posting/schemas/postingInfoSchema'
 import { PostingOptionGroup, type PostingOption } from './postingOptionGroup'
 
 const QUALIFICATION_OPTIONS = [
@@ -33,10 +37,14 @@ function PostingQualificationFields({ control }: PostingQualificationFieldsProps
             <Controller
               name="customQualification"
               control={control}
-              render={({ field: customField }) => (
+              rules={{ validate: (value) => validateOptionInput('customQualification', value) }}
+              render={({ field: customField, fieldState }) => (
                 <TextField
                   label="직접 입력"
                   placeholder="예) 1~3학년, 졸업 예정자 가능, 타 학교 학생 가능"
+                  maxLength={POSTING_INFO_MAX_LENGTH.customQualification}
+                  aria-invalid={fieldState.invalid}
+                  helper={fieldState.error?.message}
                   {...customField}
                 />
               )}

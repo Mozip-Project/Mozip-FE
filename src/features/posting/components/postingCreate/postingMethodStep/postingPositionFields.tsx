@@ -18,6 +18,7 @@ function PostingPositionFields({ control }: PostingPositionFieldsProps) {
   const titleId = useId()
   const { fields, append, remove } = useFieldArray({ control, name: 'positions' })
   const { remove: removeQuestionSet } = useFieldArray({ control, name: 'questionSets' })
+  const positionNames = fields.map((field) => field.name)
 
   function handleAdd(name: string) {
     append({ name })
@@ -40,7 +41,7 @@ function PostingPositionFields({ control }: PostingPositionFieldsProps) {
       {fields.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-gap-s rounded-l bg-neutral-weak p-padding-xxl">
           <p className="text-body2 font-normal text-neutral-muted">추가한 포지션이 없어요</p>
-          <PostingPositionAddDialog onAdd={handleAdd}>
+          <PostingPositionAddDialog existingNames={positionNames} onAdd={handleAdd}>
             <Button variant="secondary" size="s">
               <PlusIcon aria-hidden />
               포지션 추가
@@ -69,7 +70,7 @@ function PostingPositionFields({ control }: PostingPositionFieldsProps) {
               </li>
             ))}
           </ul>
-          <PostingPositionAddDialog onAdd={handleAdd}>
+          <PostingPositionAddDialog existingNames={positionNames} onAdd={handleAdd}>
             <Button variant="tertiary" size="s">
               <PlusIcon aria-hidden className="text-neutral" />
               포지션 추가

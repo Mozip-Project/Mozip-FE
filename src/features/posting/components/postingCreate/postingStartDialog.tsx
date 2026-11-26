@@ -28,23 +28,20 @@ type InterviewOption = {
   image: StaticImageData
   title: string
   description: string
-  descriptionClassName: string
 }
 
 const INTERVIEW_OPTIONS = {
   interview: {
     hasInterview: true,
     image: meetingImage,
-    title: '면접을 봐요',
-    description: '면접 일정까지 한번에 정해요',
-    descriptionClassName: 'text-label2',
+    title: '면접까지 봐요',
+    description: '서류와 면접으로 합격자를 정해요',
   },
   noInterview: {
     hasInterview: false,
     image: noMeetingImage,
-    title: '면접을 보지 않아요',
-    description: '서류 평가만으로 합격자를 정해요',
-    descriptionClassName: 'text-caption1',
+    title: '서류에서 끝나요',
+    description: '서류만으로 합격자를 정해요',
   },
 } satisfies Record<InterviewOptionValue, InterviewOption>
 
@@ -125,9 +122,7 @@ function PostingStartDialog({ children }: PostingStartDialogProps) {
                 />
                 <span className="flex w-full flex-col gap-gap-xxs text-center break-keep">
                   <span className="text-body2 font-semibold text-neutral">{option.title}</span>
-                  <span
-                    className={cn('font-medium text-neutral-subtle', option.descriptionClassName)}
-                  >
+                  <span className="text-label2 font-medium text-neutral-subtle">
                     {option.description}
                   </span>
                 </span>

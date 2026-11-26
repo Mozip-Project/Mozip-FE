@@ -63,8 +63,10 @@ type PostingCreateFormProps = {
 }
 
 function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
+  // 입력 칸 안내 문구는 지원서 작성과 같이 칸을 벗어난 뒤부터 표시
   const { control, register, getValues, setValue } = useForm<PostingCreateValues>({
     defaultValues: EMPTY_POSTING_CREATE,
+    mode: 'onTouched',
   })
   const values = useWatch({ control })
   const [recruitType, positions] = useWatch({ control, name: ['recruitType', 'positions'] })

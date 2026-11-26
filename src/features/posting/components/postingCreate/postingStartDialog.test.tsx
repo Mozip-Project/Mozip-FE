@@ -45,8 +45,8 @@ describe('PostingStartDialog', () => {
   })
 
   it.each([
-    ['면접을 봐요', '/manage/postings/new?interview=true'],
-    ['면접을 보지 않아요', '/manage/postings/new?interview=false'],
+    ['면접까지 봐요', '/manage/postings/new?interview=true'],
+    ['서류에서 끝나요', '/manage/postings/new?interview=false'],
   ])(
     '%s 선택 후 다음을 누르면 다이얼로그를 닫고 면접 여부를 담아 공고 작성으로 이동',
     async (option, path) => {
@@ -65,12 +65,12 @@ describe('PostingStartDialog', () => {
   it('취소로 닫았다 다시 열면 선택 초기화', async () => {
     const user = await openDialog()
 
-    await user.click(screen.getByRole('radio', { name: /면접을 봐요/ }))
+    await user.click(screen.getByRole('radio', { name: /면접까지 봐요/ }))
     await user.click(screen.getByRole('button', { name: '취소' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '새 공고 만들기' }))
-    expect(screen.getByRole('radio', { name: /면접을 봐요/ })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: /면접까지 봐요/ })).not.toBeChecked()
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
     expect(push).not.toHaveBeenCalled()
   })
@@ -80,7 +80,7 @@ describe('PostingStartDialog', () => {
     const { rerender } = render(<DialogInPage mode="visible" />)
 
     await user.click(screen.getByRole('button', { name: '새 공고 만들기' }))
-    await user.click(screen.getByRole('radio', { name: /면접을 봐요/ }))
+    await user.click(screen.getByRole('radio', { name: /면접까지 봐요/ }))
     await user.click(screen.getByRole('button', { name: '다음' }))
 
     rerender(<DialogInPage mode="hidden" />)
@@ -89,6 +89,6 @@ describe('PostingStartDialog', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '새 공고 만들기' }))
-    expect(screen.getByRole('radio', { name: /면접을 봐요/ })).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: /면접까지 봐요/ })).not.toBeChecked()
   })
 })

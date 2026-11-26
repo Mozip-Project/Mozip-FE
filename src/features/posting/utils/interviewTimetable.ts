@@ -142,10 +142,20 @@ function countInterviews(slotKeys: string[], durationMinutes: number, breakMinut
   )
 }
 
+// 면접 1회도 못 들어가는 짧은 묶음. 서버도 블록 길이 < 면접 1회 시간을 거부
+function hasShortSlotBlock(slotKeys: string[], durationMinutes: number) {
+  return groupSlotKeysByDate(slotKeys).some(({ date, slotKeys: dateSlotKeys }) =>
+    getSlotBlocks(date, dateSlotKeys).some(
+      (block) => block.length * SLOT_MINUTES < durationMinutes,
+    ),
+  )
+}
+
 export {
   applySlotRange,
   countInterviews,
   countInterviewsInBlock,
+  hasShortSlotBlock,
   getSlotBlocks,
   getSlotDate,
   getSlotEndTime,

@@ -14,9 +14,10 @@ import {
   INTERVIEW_DURATIONS,
   INTERVIEW_ROOM_COUNTS,
   MAX_INTERVIEW_DAYS,
+  SHORT_SLOT_BLOCK_MESSAGE,
 } from '@/features/posting/schemas/postingInterviewSchema'
 import { getInterviewPeriod } from '@/features/posting/utils/interviewPeriod'
-import { getSlotDate } from '@/features/posting/utils/interviewTimetable'
+import { getSlotDate, hasShortSlotBlock } from '@/features/posting/utils/interviewTimetable'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/providers/toastProvider'
 import { formatMonthDayWithWeekday } from '@/utils/date'
@@ -167,6 +168,8 @@ function InterviewTimeSection({ control, titleRef, onEditDates }: InterviewTimeS
     name: ['interviewDates', 'interviewDuration', 'interviewBreak'],
   })
   const { field } = useController({ control, name: 'interviewSlots' })
+  const durationMinutes = interviewDuration ? Number(interviewDuration) : null
+  const hasShortBlock = durationMinutes !== null && hasShortSlotBlock(field.value, durationMinutes)
 
   return (
     <section aria-labelledby={titleId} className="flex flex-col gap-gap-xl">
@@ -189,11 +192,17 @@ function InterviewTimeSection({ control, titleRef, onEditDates }: InterviewTimeS
           날짜 수정
         </Button>
       </div>
+      {/* 시간표는 입력 칸이 아니라 벗어남 기준 없이 고르는 즉시 안내 */}
+      {hasShortBlock && (
+        <InlineNotice tone="critical" role="alert">
+          {SHORT_SLOT_BLOCK_MESSAGE}
+        </InlineNotice>
+      )}
       <InterviewTimetable
         dates={interviewDates}
         selectedSlots={field.value}
         onSelectedSlotsChange={field.onChange}
-        durationMinutes={interviewDuration ? Number(interviewDuration) : null}
+        durationMinutes={durationMinutes}
         breakMinutes={interviewBreak ? Number(interviewBreak) : null}
       />
     </section>
