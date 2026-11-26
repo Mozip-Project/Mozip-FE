@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 const SITE_NAME = 'mozip.'
-const SITE_DESCRIPTION = '동아리 모집 플랫폼'
+const SITE_DESCRIPTION = '모집의 처음부터 끝까지 한 곳에서'
 
 export const metadata: Metadata = {
   title: SITE_NAME,
