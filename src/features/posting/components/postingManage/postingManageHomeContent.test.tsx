@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
+import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
@@ -106,7 +107,7 @@ describe('PostingManageHomeContent', () => {
     expect(screen.getAllByText('일정 미정')).toHaveLength(2)
     expect(
       screen.getByRole('link', { name: 'UXUX 15기 운영진 추가 모집 공고 이어서 작성하기' }),
-    ).toHaveAttribute('href', '/manage/postings/3/edit')
+    ).toHaveAttribute('href', `/manage/postings/${ORGANIZATION_POSTING_ID.draft}/edit`)
 
     await user.click(screen.getByRole('button', { name: 'UXUX 15기 운영진 추가 모집 메뉴' }))
     await user.click(await screen.findByRole('menuitem', { name: '공고 삭제' }))

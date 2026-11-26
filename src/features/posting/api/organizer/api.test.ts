@@ -20,6 +20,7 @@ import {
 const { docReview: DOC_REVIEW_ID, recruiting: RECRUITING_ID } = ORGANIZATION_POSTING_ID
 // 지원자 0명인 종료 공고
 const CLOSED_ID = ORGANIZATION_POSTING_ID.ended
+const DRAFT_ID = ORGANIZATION_POSTING_ID.draft
 const NOTICE = { subject: '모집 일정 변경 안내', body: '{이름}님, 일정이 바뀌었어요.' }
 
 beforeAll(() => {
@@ -83,14 +84,14 @@ describe('deletePosting', () => {
       postingCounts: { published: 5, draft: 1, ended: 1 },
     })
 
-    await expect(deletePosting('3')).resolves.toBe(true)
+    await expect(deletePosting(DRAFT_ID)).resolves.toBe(true)
     await expect(getManagedPostingSummary(MOCK_ORGANIZATION_ID)).resolves.toMatchObject({
       postingCounts: { published: 5, draft: 0, ended: 1 },
     })
   })
 
   it('작성 중이 아니면 POSTING_409', async () => {
-    await expect(deletePosting('4')).rejects.toMatchObject({ code: 'POSTING_409' })
+    await expect(deletePosting(CLOSED_ID)).rejects.toMatchObject({ code: 'POSTING_409' })
   })
 })
 
@@ -151,7 +152,7 @@ describe('sendNotice', () => {
   })
 
   it('작성 중 공고는 MESSAGE_409', async () => {
-    await expect(sendNotice({ postingId: '3', ...NOTICE })).rejects.toMatchObject({
+    await expect(sendNotice({ postingId: DRAFT_ID, ...NOTICE })).rejects.toMatchObject({
       code: 'MESSAGE_409',
     })
   })
@@ -199,7 +200,7 @@ describe('savePostingDraft', () => {
       MOCK_ORGANIZATION_ID,
       MANAGED_POSTING_TAB_STATUSES.draft,
     )
-    expect(drafts.map(({ id }) => id)).toEqual([posting.id, '3'])
+    expect(drafts.map(({ id }) => id)).toEqual([posting.id, DRAFT_ID])
   })
 
   it('새 공고는 제목이 없으면 COMMON_400', async () => {
@@ -287,8 +288,8 @@ describe('savePostingDraft', () => {
   })
 
   it('운영진 홈의 작성 중 샘플을 이어서 조회', async () => {
-    await expect(getPostingDraft('3')).resolves.toMatchObject({
-      id: '3',
+    await expect(getPostingDraft(DRAFT_ID)).resolves.toMatchObject({
+      id: DRAFT_ID,
       status: 'DRAFT',
       title: 'UXUX 15기 운영진 추가 모집',
     })
