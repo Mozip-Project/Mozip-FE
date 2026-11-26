@@ -1,14 +1,19 @@
 import type { NextConfig } from 'next'
 
+const uploadImageHostname = process.env.UPLOAD_IMAGE_HOSTNAME
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
   cacheComponents: true,
   partialPrefetching: true,
   images: {
-    // TODO: 백엔드 이미지 호스트가 정해지면 추가, picsum은 MSW 목데이터 썸네일용
+    // picsum은 MSW 목데이터 썸네일용, 업로드 이미지 호스트는 환경마다 달라 환경 변수로
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos', pathname: '/seed/**', search: '' },
+      ...(uploadImageHostname
+        ? [{ protocol: 'https' as const, hostname: uploadImageHostname, pathname: '/**' }]
+        : []),
     ],
   },
   turbopack: {

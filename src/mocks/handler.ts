@@ -13,6 +13,7 @@ import { documentReviewHandlers } from '@/features/recruitment/mocks/documentRev
 import { recruitmentPostingHandlers } from '@/features/recruitment/mocks/recruitmentPostingHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
+import { fileUploadHandlers, profileImageUploadHandlers } from './fileUploadHandlers'
 import type { AnyHandler } from 'msw'
 
 // 전시회 시연 모드는 공고 작성 저장·조회·게시를 실제 서버로 보냄 (전시회 후 삭제)
@@ -34,6 +35,8 @@ const handlers: AnyHandler[] = [
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
   ...documentResultHandlers,
+  // 시연 모드는 공고 작성이 실제 서버로 가서 업로드도 실제 presigned-url 사용, 서버에 없는 프로필 사진만 MSW
+  ...(isPostingDemoMode ? profileImageUploadHandlers : fileUploadHandlers),
 ]
 
 export { handlers }

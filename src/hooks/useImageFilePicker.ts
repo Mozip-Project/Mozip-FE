@@ -1,29 +1,30 @@
 import { useState, type ChangeEvent } from 'react'
 import { getFileRejection, type FileRejection } from '@/utils/file'
 
-// 화면마다 받는 형식이 달라 형식과 그 안내 문구를 함께 넘김
-type ImageFileFormat = {
+// 화면마다 받는 형식·용량이 달라 그 안내 문구와 함께 넘김
+type ImageFileRule = {
   acceptedTypes: readonly string[]
   invalidTypeMessage: string
+  maxSizeBytes: number
+  oversizedMessage: string
 }
 
-// 이미지 한 장 업로드 기본 형식
-const DEFAULT_IMAGE_FILE_FORMAT = {
+// 이미지 한 장 업로드 기본 규칙
+const DEFAULT_IMAGE_FILE_RULE = {
   acceptedTypes: ['image/png', 'image/jpeg'],
   invalidTypeMessage: 'PNG, JPG 이미지만 업로드 가능해요',
-} satisfies ImageFileFormat
-
-const IMAGE_MAX_SIZE_BYTES = 10 * 1024 * 1024
-const OVERSIZED_MESSAGE = '10MB 이하의 이미지만 업로드 가능해요'
+  maxSizeBytes: 10 * 1024 * 1024,
+  oversizedMessage: '10MB 이하의 이미지만 업로드 가능해요',
+} satisfies ImageFileRule
 
 function useImageFilePicker(
   onSelect: (file: File) => void,
-  fileFormat: ImageFileFormat = DEFAULT_IMAGE_FILE_FORMAT,
+  fileRule: ImageFileRule = DEFAULT_IMAGE_FILE_RULE,
 ) {
   const [rejection, setRejection] = useState<FileRejection | null>(null)
   const rejectionMessages = {
-    invalidType: fileFormat.invalidTypeMessage,
-    oversized: OVERSIZED_MESSAGE,
+    invalidType: fileRule.invalidTypeMessage,
+    oversized: fileRule.oversizedMessage,
   } satisfies Record<FileRejection, string>
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -33,10 +34,7 @@ function useImageFilePicker(
     if (!file) {
       return
     }
-    const nextRejection = getFileRejection(file, {
-      acceptedTypes: fileFormat.acceptedTypes,
-      maxSizeBytes: IMAGE_MAX_SIZE_BYTES,
-    })
+    const nextRejection = getFileRejection(file, fileRule)
     setRejection(nextRejection)
 
     if (!nextRejection) {
@@ -49,11 +47,11 @@ function useImageFilePicker(
     errorMessage: rejection ? rejectionMessages[rejection] : null,
     inputProps: {
       type: 'file',
-      accept: fileFormat.acceptedTypes.join(','),
+      accept: fileRule.acceptedTypes.join(','),
       onChange: handleChange,
     },
   } as const
 }
 
 export { useImageFilePicker }
-export type { ImageFileFormat }
+export type { ImageFileRule }

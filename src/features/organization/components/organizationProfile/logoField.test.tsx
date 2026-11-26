@@ -52,7 +52,7 @@ describe('LogoField', () => {
     expect(revokeObjectURL).toHaveBeenCalledWith(PREVIEW_URL)
   })
 
-  it('10MB를 넘는 파일은 반영하지 않고 안내 문구 표시', async () => {
+  it('5MB를 넘는 파일은 반영하지 않고 안내 문구 표시', async () => {
     const user = userEvent.setup()
     const { container } = render(<ControlledLogoField />)
     const fileInput = container.querySelector<HTMLInputElement>('input[type=file]')
@@ -62,10 +62,10 @@ describe('LogoField', () => {
     }
 
     const largeFile = new File(['logo'], 'large.png', { type: 'image/png' })
-    Object.defineProperty(largeFile, 'size', { value: 10 * 1024 * 1024 + 1 })
+    Object.defineProperty(largeFile, 'size', { value: 5 * 1024 * 1024 + 1 })
     await user.upload(fileInput, largeFile)
 
-    expect(screen.getByRole('alert')).toHaveTextContent('10MB 이하의 이미지만 업로드 가능해요')
+    expect(screen.getByRole('alert')).toHaveTextContent('5MB 이하의 이미지만 업로드 가능해요')
     expect(screen.queryByRole('img', { name: '선택한 로고' })).not.toBeInTheDocument()
 
     await user.upload(fileInput, new File(['logo'], 'logo.png', { type: 'image/png' }))
