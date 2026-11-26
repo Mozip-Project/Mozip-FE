@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { PostingDraftFieldsFragment } from '@/gql/graphql'
 import { toDraftStepInput } from './postingDraftInput'
-import { getSavedPositionIds, toPostingCreateValues } from './postingDraftValues'
+import {
+  getSavedPositions,
+  hasDetachedQuestions,
+  toPostingCreateValues,
+} from './postingDraftValues'
 
 const EMPTY_DRAFT = {
   id: 'posting-1',
@@ -153,6 +157,19 @@ describe('toPostingCreateValues', () => {
     expect(devSet?.questions.map((question) => question.id)).toEqual(['q3'])
   })
 
+  it('포지션 연결이 끊긴 문항은 지워지지 않도록 첫 포지션 묶음에 복원', () => {
+    const values = toPostingCreateValues({
+      ...FILLED_DRAFT,
+      questions: FILLED_DRAFT.questions.map((question) =>
+        question.id === 'q3' ? { ...question, position: null } : question,
+      ),
+    })
+    const [designSet, devSet] = values.questionSets
+
+    expect(designSet?.questions.map((question) => question.id)).toEqual(['q1', 'q3', 'q2'])
+    expect(devSet?.questions).toEqual([])
+  })
+
   it('통합 모집은 문항 묶음 하나', () => {
     const values = toPostingCreateValues({
       ...FILLED_DRAFT,
@@ -183,7 +200,7 @@ describe('toPostingCreateValues', () => {
 
   it('불러온 값을 다시 저장 입력으로 바꾸면 서버 값과 같음', () => {
     const values = toPostingCreateValues(FILLED_DRAFT)
-    const context = { positionIds: getSavedPositionIds(FILLED_DRAFT) }
+    const context = { savedPositions: getSavedPositions(FILLED_DRAFT) }
 
     expect(toDraftStepInput('schedule', values, true, context)).toMatchObject({
       recruitStartAt: FILLED_DRAFT.recruitStartAt,
@@ -206,8 +223,34 @@ describe('toPostingCreateValues', () => {
   })
 })
 
-describe('getSavedPositionIds', () => {
-  it('저장된 포지션 id를 순서대로', () => {
-    expect(getSavedPositionIds(FILLED_DRAFT)).toEqual(['p1', 'p2'])
+describe('getSavedPositions', () => {
+  it('저장된 포지션 id와 이름을 순서대로', () => {
+    expect(getSavedPositions(FILLED_DRAFT)).toEqual([
+      { id: 'p1', name: '디자인팀' },
+      { id: 'p2', name: '개발팀' },
+    ])
+  })
+})
+
+describe('hasDetachedQuestions', () => {
+  it('포지션별 모집에서 포지션 연결이 끊긴 문항이 있으면 true', () => {
+    const detached = {
+      ...FILLED_DRAFT,
+      questions: FILLED_DRAFT.questions.map((question) => ({ ...question, position: null })),
+    }
+
+    expect(hasDetachedQuestions(detached)).toBe(true)
+    expect(hasDetachedQuestions(FILLED_DRAFT)).toBe(false)
+  })
+
+  it('통합 모집이거나 포지션이 없으면 공통 문항이 정상이라 false', () => {
+    const integrated = {
+      ...FILLED_DRAFT,
+      noPosition: true,
+      positions: [],
+      questions: FILLED_DRAFT.questions.map((question) => ({ ...question, position: null })),
+    }
+
+    expect(hasDetachedQuestions(integrated)).toBe(false)
   })
 })

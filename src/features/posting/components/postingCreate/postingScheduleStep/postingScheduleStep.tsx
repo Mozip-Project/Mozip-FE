@@ -57,7 +57,7 @@ function PostingScheduleStep({ control, hasInterview }: PostingScheduleStepProps
           <ScheduleDateField
             control={control}
             name="documentResultDate"
-            label="서류 결과 및 면접 일정 발표일"
+            label="서류 결과 발표일"
             required
             minDate={resultMinDates.documentResultDate}
           />

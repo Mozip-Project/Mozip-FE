@@ -15,6 +15,7 @@ import {
   TIMETABLE_SLOT_TIMES,
 } from './interviewTimetable'
 import type { PostingCreateStep } from './postingCreateSteps'
+import type { SavedPosition } from './postingDraftValues'
 
 type DraftStepId = Exclude<PostingCreateStep['id'], 'review'>
 
@@ -28,8 +29,8 @@ const QUESTION_TYPE_INPUT = {
 type DraftInputContext = {
   // 새로 업로드한 대표 이미지 주소. 없으면 images를 보내지 않아 서버 값 유지
   mainImageUrl?: string
-  // 최근 저장 응답의 포지션 id, 문항 묶음과 같은 순서
-  positionIds: readonly string[]
+  // 최근 저장 응답의 포지션, 문항 묶음과 같은 순서
+  savedPositions: readonly SavedPosition[]
 }
 
 function toNullableText(value: string) {
@@ -81,18 +82,33 @@ function toScheduleInput(values: PostingCreateValues): PostingDraftInput {
   }
 }
 
-// 포지션은 저장할 때마다 통째로 다시 만들어져 id 없이 이름과 순서만 전송
-function toMethodInput(values: PostingCreateValues): PostingDraftInput {
+function isSamePositionNames(names: string[], savedPositions: readonly SavedPosition[]) {
+  return (
+    names.length === savedPositions.length &&
+    names.every((name, index) => name === savedPositions[index]?.name)
+  )
+}
+
+// 포지션은 보낼 때마다 새 id로 다시 만들어져 문항 연결이 끊기므로 바뀐 경우에만 전송
+function toMethodInput(
+  values: PostingCreateValues,
+  savedPositions: readonly SavedPosition[],
+): PostingDraftInput {
   switch (values.recruitType) {
     case null:
       return {}
     case 'integrated':
       return { noPosition: true }
-    case 'position':
+    case 'position': {
+      const names = values.positions.map(({ name }) => name)
+      if (isSamePositionNames(names, savedPositions)) {
+        return { noPosition: false }
+      }
       return {
         noPosition: false,
-        positions: values.positions.map(({ name }, sortOrder) => ({ name, sortOrder })),
+        positions: names.map((name, sortOrder) => ({ name, sortOrder })),
       }
+    }
   }
 }
 
@@ -118,13 +134,13 @@ function toQuestionInput(
 // 포지션별 모집은 문항 묶음 순서가 포지션 순서, 통합 모집은 묶음 하나에 positionId null
 function toFormInput(
   values: PostingCreateValues,
-  positionIds: readonly string[],
+  savedPositions: readonly SavedPosition[],
 ): PostingDraftInput {
   const isPositionRecruit = values.recruitType === 'position'
 
   return {
     questions: values.questionSets.flatMap(({ questions }, setIndex) => {
-      const positionId = isPositionRecruit ? (positionIds[setIndex] ?? null) : null
+      const positionId = isPositionRecruit ? (savedPositions[setIndex]?.id ?? null) : null
       return questions
         .flatMap((question) => {
           const type = QUESTION_TYPE_INPUT[question.type]
@@ -173,9 +189,9 @@ function toDraftStepInput(
     case 'schedule':
       return toScheduleInput(values)
     case 'method':
-      return toMethodInput(values)
+      return toMethodInput(values, context.savedPositions)
     case 'form':
-      return toFormInput(values, context.positionIds)
+      return toFormInput(values, context.savedPositions)
     case 'interview':
       return toInterviewInput(values)
   }

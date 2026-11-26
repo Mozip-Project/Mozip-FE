@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
+import { getPostingEditPath } from '@/features/posting/utils/postingCreateRoute'
 import type { RecruitmentProgress, RecruitmentStage } from '@/features/recruitment/types'
 import {
   getApplicantManagementPath,
@@ -18,11 +19,10 @@ const STAGE_ACTION_LABEL = {
   finalResult: '최종 결과 안내하기',
 } satisfies Record<RecruitmentStage, string>
 
-function getStageActionHref(stage: RecruitmentStage, postingId: string): Route | undefined {
+function getStageActionHref(stage: RecruitmentStage, postingId: string): Route {
   switch (stage) {
-    // TODO: 작성 중 공고 이어서 작성 경로(공고 id 전달)가 생기면 연결
     case 'posting':
-      return undefined
+      return getPostingEditPath(postingId)
     case 'application':
       return getApplicantManagementPath(postingId)
     case 'documentReview':
@@ -53,17 +53,11 @@ function RecruitmentStageGuide({ postingId, title, progress }: RecruitmentStageG
       shouldAnnounce={false}
       className="border-0 bg-neutral-weak shadow-none"
       actions={
-        actionHref ? (
-          <Button asChild variant="secondary" size="m">
-            <Link href={actionHref} aria-label={accessibleActionLabel}>
-              {actionLabel}
-            </Link>
-          </Button>
-        ) : (
-          <Button variant="secondary" size="m" aria-label={accessibleActionLabel}>
+        <Button asChild variant="secondary" size="m">
+          <Link href={actionHref} aria-label={accessibleActionLabel}>
             {actionLabel}
-          </Button>
-        )
+          </Link>
+        </Button>
       }
     >
       {getRecruitmentStageGuideMessage(progress)}
