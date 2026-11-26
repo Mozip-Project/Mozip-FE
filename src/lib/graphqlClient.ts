@@ -25,7 +25,8 @@ function isNonRetryableError(error: unknown) {
   return NON_RETRYABLE_AUTH_CODES.has(error.code) || CLIENT_ERROR_CODE_PATTERN.test(error.code)
 }
 
-function requestGraphQL<TResult, TVariables extends Variables>(
+// 환경 변수 누락도 reject로 전달하도록 async
+async function requestGraphQL<TResult, TVariables extends Variables>(
   document: TypedDocumentString<TResult, TVariables>,
   ...[variables]: VariablesArgs<TVariables>
 ): Promise<TResult> {

@@ -46,18 +46,8 @@ function requestRest(path: string, options: RestRequestOptions = {}): Promise<un
 }
 
 // 로그인 없이 호출하는 /auth/* 용도라 토큰 재발급(AUTH_002) 미처리
-// 주소는 GraphQL 엔드포인트 origin 기준, 성공 응답의 data만 반환
-async function postRest(path: `/${string}`): Promise<unknown> {
-  const response = await fetch(getApiUrl(path), {
-    method: 'POST',
-    credentials: 'include',
-  })
-  const body: unknown = await response.json().catch(() => undefined)
-
-  if (response.ok) {
-    return readData(body)
-  }
-  throw parseRestError(body) ?? new Error(`REST 요청 실패 (HTTP ${response.status})`)
+function postRest(path: `/${string}`): Promise<unknown> {
+  return sendRest(path, { method: 'POST' })
 }
 
 export { postRest, requestRest }

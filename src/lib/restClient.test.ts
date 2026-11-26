@@ -137,10 +137,25 @@ describe('postRest', () => {
     )
 
     await expect(postRest('/auth/logout')).resolves.toEqual({ id: 1 })
-    expect(fetchSpy).toHaveBeenCalledWith(new URL(LOGOUT_URL), {
-      method: 'POST',
-      credentials: 'include',
-    })
+    expect(fetchSpy).toHaveBeenCalledWith(
+      new URL(LOGOUT_URL),
+      expect.objectContaining({ method: 'POST', credentials: 'include', body: undefined }),
+    )
+  })
+
+  it('HTTP 성공이어도 success가 false면 ApiError로 던짐', async () => {
+    server.use(
+      http.post(LOGOUT_URL, () =>
+        HttpResponse.json({
+          success: false,
+          code: 'AUTH_006',
+          message: '로그인 처리를 잠시 할 수 없습니다.',
+          data: null,
+        }),
+      ),
+    )
+
+    await expect(postRest('/auth/logout')).rejects.toBeInstanceOf(ApiError)
   })
 
   it('본문이 없는 성공은 data 없이 끝남', async () => {
