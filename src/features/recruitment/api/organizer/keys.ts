@@ -20,6 +20,16 @@ const recruitmentKeys = {
   docEvaluationList: (variables: DocEvaluationApplicationsQueryVariables) =>
     [...recruitmentKeys.docEvaluations(String(variables.postingId)), variables] as const,
 
+  // 서류 평가하기 칩, 저장 뒤 목록 재조회에 섞이지 않게 서류 평가 목록과 분리
+  docEvaluationChips: (postingId: string) =>
+    [...recruitmentKeys.all(postingId), 'docEvaluationChips'] as const,
+  postingQuestions: (postingId: string) =>
+    [...recruitmentKeys.all(postingId), 'postingQuestions'] as const,
+  docEvaluationApplication: (postingId: string, applicationId: string) =>
+    [...recruitmentKeys.all(postingId), 'docEvaluationApplication', applicationId] as const,
+  myDocEvaluation: (postingId: string, applicationId: string) =>
+    [...recruitmentKeys.all(postingId), 'myDocEvaluation', applicationId] as const,
+
   // 서류 평가 취합
   docSummaries: (postingId: string) => [...recruitmentKeys.all(postingId), 'docSummary'] as const,
   docSummaryList: (variables: DocEvaluationSummaryQueryVariables) =>

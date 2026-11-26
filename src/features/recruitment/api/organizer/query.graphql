@@ -7,6 +7,7 @@ query RecruitmentPosting($id: ID!) {
     hasInterview
     noPosition
     docResultConfirmedAt
+    docScorePerQuestion
   }
 }
 
@@ -93,6 +94,104 @@ query DocEvaluationApplications(
     page
     totalPages
   }
+}
+
+# 칩은 목록 조건 없이 공고 전체 지원자 사용
+query DocEvaluationApplicationChips($postingId: ID!) {
+  docEvaluationApplicationChips(postingId: $postingId) {
+    application {
+      id
+      user {
+        name
+      }
+    }
+    myEvaluationStatus
+  }
+}
+
+# 서류 평가하기 지원서, 학교·전화번호는 제출 시점 프로필(profileSnapshot)
+query DocEvaluationApplicationDetail($id: ID!) {
+  application(id: $id) {
+    id
+    user {
+      name
+    }
+    position {
+      id
+      name
+    }
+    profileSnapshot
+    availableTimes
+    answers {
+      id
+      question {
+        id
+        type
+        title
+        description
+        required
+        maxLength
+        sortOrder
+        options {
+          activityFields
+        }
+      }
+      content
+      attachments {
+        id
+        type
+        url
+        fileName
+      }
+    }
+  }
+}
+
+# 서류 평가하기 문항 번호용, 답하지 않은 문항은 지원서 answers에서 빠져 공고 문항으로 매김
+query PostingQuestions($id: ID!) {
+  posting(id: $id) {
+    id
+    questions {
+      id
+      type
+      sortOrder
+      position {
+        id
+      }
+    }
+  }
+}
+
+# 서류 평가하기 패널의 내 평가, 평가 전이면 null
+query MyDocEvaluation($applicationId: ID!) {
+  myDocEvaluation(applicationId: $applicationId) {
+    ...MyDocEvaluationFields
+  }
+}
+
+mutation SaveDocEvaluation($input: SaveDocEvaluationInput!, $submit: Boolean!) {
+  saveDocEvaluation(input: $input, submit: $submit) {
+    evaluation {
+      ...MyDocEvaluationFields
+    }
+    remainingCount
+    nextUnevaluatedApplicationId
+  }
+}
+
+# 조회와 저장 응답을 같은 캐시에 넣도록 같은 필드 사용
+fragment MyDocEvaluationFields on DocEvaluation {
+  id
+  status
+  opinion
+  memo
+  scores {
+    question {
+      id
+    }
+    score
+  }
+  updatedAt
 }
 
 query DocEvaluationSummary(

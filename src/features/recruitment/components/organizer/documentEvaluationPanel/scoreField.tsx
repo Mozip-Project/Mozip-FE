@@ -4,6 +4,8 @@ import type { DocumentEvaluationValues } from '@/features/recruitment/schemas/do
 
 type ScoreQuestion = {
   id: string
+  // 지원서 카드와 같은 문항 번호
+  number: number
   label: string
 }
 
@@ -18,7 +20,7 @@ function ScoreField({ questions, control, disabled }: ScoreFieldProps) {
   return (
     <div className="flex min-w-70 flex-col gap-gap-m">
       <p className="truncate text-label1 font-semibold text-neutral-muted">문항별 점수</p>
-      {questions.map((question, index) => (
+      {questions.map((question) => (
         <Controller
           key={question.id}
           name={`scores.${question.id}`}
@@ -26,7 +28,7 @@ function ScoreField({ questions, control, disabled }: ScoreFieldProps) {
           render={({ field, fieldState }) => (
             <ScoreRow
               aria-required
-              label={`Q${index + 1}. ${question.label}`}
+              label={`Q${question.number}. ${question.label}`}
               value={field.value ?? ''}
               onValueChange={field.onChange}
               errorMessage={fieldState.error?.message}

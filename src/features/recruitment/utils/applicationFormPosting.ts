@@ -184,5 +184,5 @@ function markAppliedPositions(
   }))
 }
 
-export { markAppliedPositions, toApplicationFormPosting }
+export { DEFAULT_TEXT_MAX_LENGTH, markAppliedPositions, toApplicationFormPosting }
 export type { ApplicationFormPosting }

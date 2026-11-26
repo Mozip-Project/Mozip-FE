@@ -33,13 +33,14 @@ describe('useDocumentReview (MSW)', () => {
     await waitFor(() => expect(result.current.data).toBeDefined())
 
     expect(
-      result.current.data?.applicants.slice(0, 3).map(({ name, action }) => [name, action]),
+      result.current.data?.applicants.slice(0, 4).map(({ name, action }) => [name, action]),
     ).toEqual([
-      ['한가람', 'evaluate'],
-      ['윤서진', 'edit'],
-      ['오하늘', 'evaluate'],
+      ['정세나', 'evaluate'],
+      ['이지원', 'evaluate'],
+      ['김모집', 'evaluate'],
+      ['한결', 'edit'],
     ])
-    expect(result.current.data?.statusCounts).toEqual({ all: 48, pending: 16, done: 32 })
+    expect(result.current.data?.statusCounts).toEqual({ all: 48, pending: 3, done: 45 })
   })
 
   it('결과 확정 후에는 모든 지원자의 버튼이 평가 보기', async () => {
@@ -53,9 +54,11 @@ describe('useDocumentReview (MSW)', () => {
 
   it('평가 완료 탭이 비면 같은 조건의 첫 평가 전 지원자로 안내', async () => {
     const postingId = ORGANIZATION_POSTING_ID.docReview
-    const { result } = renderReview(postingId, { status: 'done', q: '오하늘' })
+    const { result } = renderReview(postingId, { status: 'done', q: '김모집' })
     await waitFor(() =>
-      expect(result.current.startReviewHref).toBe(`/manage/postings/${postingId}/documents/3`),
+      expect(result.current.startReviewHref).toBe(
+        `/manage/postings/${postingId}/documents/application-${postingId}-3`,
+      ),
     )
 
     expect(result.current.data?.applicants).toEqual([])
