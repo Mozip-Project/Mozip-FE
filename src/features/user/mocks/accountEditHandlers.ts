@@ -108,6 +108,10 @@ const accountEditHandlers = [
       const account = updateMockAccount({
         ...(name ? { name } : {}),
         ...(input.phone ? { phone: input.phone } : {}),
+        // 명세상 빈 문자열이면 기본 아바타, 보내지 않으면 유지
+        ...(input.profileImageUrl != null
+          ? { profileImageUrl: input.profileImageUrl || null }
+          : {}),
       })
       return HttpResponse.json({ data: { updateProfile: account } })
     },

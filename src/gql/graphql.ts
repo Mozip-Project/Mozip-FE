@@ -328,8 +328,8 @@ export type UpdateOrganizationInput = {
   keywords: Array<string>;
   /** 1개 이상 */
   links: Array<OrganizationLinkInput>;
-  /** 업로드 후 받은 key, null이면 기존 로고 유지 */
-  logoFileKey?: string | null | undefined;
+  /** 업로드한 fileUrl, null·빈 문자열이면 기본 이미지로 초기화. 기존 로고를 유지하려면 그 주소를 다시 보냄 */
+  logoUrl?: string | null | undefined;
   /** 최대 40자 */
   tagline: string;
 };
@@ -635,21 +635,21 @@ export type MeQuery = { me: { id: string, lastOrganization: { id: string } | nul
 export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyAccountQuery = { me: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type MyAccountQuery = { me: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type UpdateNotificationSettingsMutationVariables = Exact<{
   input: NotificationSettingsInput;
 }>;
 
 
-export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type UpdateProfileMutationVariables = Exact<{
   input: UpdateProfileInput;
 }>;
 
 
-export type UpdateProfileMutation = { updateProfile: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type UpdateProfileMutation = { updateProfile: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type RequestPhoneChangeMutationVariables = Exact<{
   phone: string;
@@ -673,7 +673,7 @@ export type ChangePasswordMutationVariables = Exact<{
 
 export type ChangePasswordMutation = { changePassword: boolean };
 
-export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
+export type MyAccountFieldsFragment = { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
 
 export type WithdrawMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -864,6 +864,7 @@ export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1733,6 +1734,7 @@ export const MyAccountDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1771,6 +1773,7 @@ export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1809,6 +1812,7 @@ export const UpdateProfileDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }

@@ -10,7 +10,7 @@ import {
   getKeywordSuggestions,
   getOrganization,
   getOrganizationMembers,
-  updateOrganization,
+  saveOrganizationProfile,
 } from './api'
 import { organizationKeys } from './keys'
 
@@ -34,7 +34,8 @@ function useUpdateOrganizationMutation(organizationId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (input: UpdateOrganizationInput) => updateOrganization(organizationId, input),
+    mutationFn: ({ input, newLogo }: { input: UpdateOrganizationInput; newLogo: File | null }) =>
+      saveOrganizationProfile(organizationId, input, newLogo),
     onSuccess: async (organization) => {
       const detailKey = organizationKeys.detail(organizationId)
       // 저장 전 값을 담은 진행 중인 조회가 저장 결과를 덮지 않도록 취소

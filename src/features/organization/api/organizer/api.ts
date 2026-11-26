@@ -8,6 +8,7 @@ import {
   UpdateOrganizationDocument,
   type UpdateOrganizationInput,
 } from '@/gql/graphql'
+import { uploadFile } from '@/lib/fileUpload'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
 // TODO: 단체 프로필 조회 API 확정 후 실제 요청으로 교체
@@ -37,6 +38,16 @@ async function updateOrganization(organizationId: string, input: UpdateOrganizat
   return data.updateOrganization
 }
 
+// 새 로고가 있으면 먼저 업로드하고 받은 키로 저장, 업로드 실패 시 저장하지 않음
+async function saveOrganizationProfile(
+  organizationId: string,
+  input: UpdateOrganizationInput,
+  newLogo: File | null,
+) {
+  const logoUrl = newLogo ? (await uploadFile(newLogo, 'ORG_LOGO')).fileUrl : input.logoUrl
+  return updateOrganization(organizationId, { ...input, logoUrl })
+}
+
 async function getKeywordSuggestions(query: string) {
   const data = await requestGraphQL(KeywordSuggestionsDocument, { query })
   return data.keywordSuggestions
@@ -48,5 +59,5 @@ export {
   getOrganizationMembers,
   getOrganizationPlan,
   getOrganizationProfile,
-  updateOrganization,
+  saveOrganizationProfile,
 }

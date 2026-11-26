@@ -17,6 +17,7 @@ import {
 } from '@/features/mypage/utils/accountEdit'
 import { useChangePasswordMutation, useUpdateProfileMutation } from '@/features/user/api/queries'
 import { ApiError } from '@/lib/apiError'
+import { uploadFile } from '@/lib/fileUpload'
 import { useToast } from '@/providers/toastProvider'
 import { NameSection } from './nameSection'
 import { PasswordSection } from './passwordSection'
@@ -33,6 +34,7 @@ const SERVER_FIELD_NAMES = ['name', 'currentPassword', 'newPassword'] as const
 type AccountEditFormProps = {
   name: string
   maskedPhone: string
+  profileImageUrl: string | null
 }
 
 function createEmptyValues(name: string): AccountEditValues {
@@ -67,7 +69,7 @@ function applyServerFieldErrors(error: Error, setError: UseFormSetError<AccountE
   return fieldErrors.length > 0
 }
 
-function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
+function AccountEditForm({ name, maskedPhone, profileImageUrl }: AccountEditFormProps) {
   const { showToast } = useToast()
   const changePassword = useChangePasswordMutation()
   const updateProfile = useUpdateProfileMutation()
@@ -96,13 +98,37 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
     showToast({ title, description: getServerErrorMessage(error), icon: 'alert' })
   }
 
+  // 새 프로필 이미지는 먼저 올려 실패하면 아무것도 저장하지 않음, 올렸으면 받은 주소 반환
+  async function uploadProfileImage(profileImage: File | null) {
+    if (!profileImage) {
+      return { isUploaded: true, url: undefined }
+    }
+    try {
+      const { fileUrl } = await uploadFile(profileImage, 'PROFILE_IMAGE')
+      return { isUploaded: true, url: fileUrl }
+    } catch (error) {
+      showSaveFailed(
+        '프로필 이미지를 올리지 못했어요',
+        error instanceof Error ? error : new Error(),
+      )
+      return { isUploaded: false, url: undefined }
+    }
+  }
+
   // 현재 비밀번호 불일치가 가장 흔한 실패라 비밀번호를 먼저 바꿔 실패 시 아무것도 저장하지 않음
   async function handleSave(values: AccountEditValues) {
     const passwordInput = toChangePasswordInput(values)
+    const uploadedImage = await uploadProfileImage(values.profileImage)
+    if (!uploadedImage.isUploaded) {
+      return
+    }
     // 조회로 바뀔 수 있는 name prop 대신 폼이 불러오거나 저장한 이름과 비교, 최신 서버 이름 덮어쓰기 방지
     const savedName = defaultValues?.name ?? name
-    const profileInput = toUpdateProfileInput(values, { savedName, verifiedPhone })
-    // TODO: 프로필 이미지만 바꾼 경우는 업로드 API 배포 후 저장, 지금은 보낼 값이 없어 요청하지 않음
+    const profileInput = toUpdateProfileInput(values, {
+      savedName,
+      verifiedPhone,
+      uploadedImageUrl: uploadedImage.url,
+    })
     if (!passwordInput && !profileInput) {
       return
     }
@@ -175,7 +201,7 @@ function AccountEditForm({ name, maskedPhone }: AccountEditFormProps) {
         disabled={isSubmitting}
         className="flex min-w-0 flex-col gap-gap-xxl [&_input]:scroll-mt-10"
       >
-        <ProfileImageSection control={control} />
+        <ProfileImageSection control={control} savedImageUrl={profileImageUrl} />
         <NameSection control={control} />
         <PhoneSection
           control={control}

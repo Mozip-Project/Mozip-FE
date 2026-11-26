@@ -148,6 +148,8 @@ const organizationProfileHandlers = [
 
       const updated = {
         ...organization,
+        // 서버처럼 보낸 주소로 덮어쓰고, 비어 있으면 기본 이미지(null)
+        logoUrl: input.logoUrl || null,
         tagline: input.tagline,
         fields: input.fields,
         keywords: [...new Set(input.keywords)],

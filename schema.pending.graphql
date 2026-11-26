@@ -505,8 +505,8 @@ input ChangePasswordInput {
 }
 
 input UpdateOrganizationInput {
-  "업로드 후 받은 key, null이면 기존 로고 유지"
-  logoFileKey: String
+  "업로드한 fileUrl, null·빈 문자열이면 기본 이미지로 초기화. 기존 로고를 유지하려면 그 주소를 다시 보냄"
+  logoUrl: String
   "최대 40자"
   tagline: String!
   "학생회는 빈 배열"

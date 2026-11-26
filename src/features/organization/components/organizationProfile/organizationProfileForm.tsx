@@ -22,6 +22,7 @@ import {
 } from '@/features/organization/utils/organizationProfile'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import { ApiError } from '@/lib/apiError'
+import { FileUploadError } from '@/lib/fileUpload'
 import { useToast } from '@/providers/toastProvider'
 import { ActivityCategoryField } from './activityCategoryField'
 import { KeywordSuggestionField } from './keywordSuggestionField'
@@ -81,9 +82,14 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
     // 이전 저장의 오류 칸으로 다시 포커스가 가지 않도록 초기화
     setErrorFocusPath(null)
     try {
-      const saved = await updateOrganization.mutateAsync(
-        toUpdateOrganizationInput(values, isStudentCouncilOrganization),
-      )
+      const saved = await updateOrganization.mutateAsync({
+        input: toUpdateOrganizationInput(
+          values,
+          isStudentCouncilOrganization,
+          organization.logoUrl,
+        ),
+        newLogo: values.logo,
+      })
       // 서버가 정리한 값(https 링크 등)을 새 기준으로 삼아 다시 바꿀 때까지 저장 비활성
       reset(toOrganizationProfileValues(saved))
       showToast({ title: '단체 프로필을 저장했어요' })
@@ -93,6 +99,17 @@ function OrganizationProfileForm({ organization }: OrganizationProfileFormProps)
   }
 
   function showSaveError(error: unknown) {
+    // 업로드가 실패하면 저장 요청을 보내지 않아 다른 입력값은 그대로 다시 저장 가능
+    if (error instanceof FileUploadError) {
+      showToast({
+        title: '로고를 업로드하지 못했어요',
+        description:
+          error.cause instanceof ApiError ? error.cause.message : '잠시 후 다시 시도해 주세요',
+        icon: 'alert',
+      })
+      return
+    }
+
     const fieldErrors = error instanceof ApiError ? toProfileFieldErrors(error.fieldErrors) : []
     const inlineErrors = fieldErrors.filter(({ path }) => INLINE_ERROR_PATHS.includes(path))
     const otherError = fieldErrors.find(({ path }) => !INLINE_ERROR_PATHS.includes(path))

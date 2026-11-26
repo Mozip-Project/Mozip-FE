@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { HttpResponse } from 'msw'
+import { http, HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { resetMyAccount } from '@/features/user/mocks/userHandlers'
+import { resetUploadedFiles } from '@/mocks/fileUploadHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
@@ -27,7 +28,17 @@ beforeAll(() => {
 
 afterEach(() => {
   resetMyAccount()
+  resetUploadedFiles()
+  vi.restoreAllMocks()
 })
+
+function getFileInput() {
+  const fileInput = document.querySelector<HTMLInputElement>('input[type=file]')
+  if (!fileInput) {
+    throw new Error('파일 입력 없음')
+  }
+  return fileInput
+}
 
 afterAll(() => {
   vi.unstubAllEnvs()
@@ -64,5 +75,51 @@ describe('AccountEditContent', () => {
     await userEvent.click(screen.getByRole('button', { name: '다시 시도' }))
 
     expect(await screen.findByRole('textbox', { name: /이름/ })).toHaveValue('김모집')
+  })
+
+  it('프로필 이미지만 바꿔 저장하면 올린 이미지가 현재 프로필 이미지가 됨', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-profile')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+    renderAccountEdit()
+    await screen.findByRole('textbox', { name: /이름/ })
+
+    await user.upload(getFileInput(), new File(['me'], 'me.png', { type: 'image/png' }))
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('정보를 저장했어요')).toBeInTheDocument()
+    expect(await screen.findByRole('img', { name: '현재 프로필 이미지' })).toHaveAttribute(
+      'src',
+      expect.stringContaining('profile_image/'),
+    )
+  })
+
+  it('프로필 이미지를 올리지 못하면 아무것도 저장하지 않고 안내', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:new-profile')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+    let updateProfileCount = 0
+    server.use(
+      http.post('*/api/files/presigned-url', () =>
+        HttpResponse.json(
+          { success: false, code: 'FILE_413', message: '용량 초과', data: null },
+          { status: 413 },
+        ),
+      ),
+      graphqlApi.mutation('UpdateProfile', () => {
+        updateProfileCount += 1
+      }),
+    )
+    renderAccountEdit()
+    const nameInput = await screen.findByRole('textbox', { name: /이름/ })
+
+    await user.clear(nameInput)
+    await user.type(nameInput, '이모집')
+    await user.upload(getFileInput(), new File(['me'], 'me.png', { type: 'image/png' }))
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('프로필 이미지를 올리지 못했어요')).toBeInTheDocument()
+    expect(updateProfileCount).toBe(0)
+    expect(nameInput).toHaveValue('이모집')
   })
 })
