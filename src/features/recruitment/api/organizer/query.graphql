@@ -1,9 +1,12 @@
 # 모집 관리 화면(지원자 관리·서류 평가·서류 평가 취합)과 LNB가 같이 쓰는 공고 정보
-# 포지션 열, 결과 칩·평가 버튼·확정 후 화면, 면접 단계 구성용
+# 포지션 열, 결과 칩·평가 버튼·확정 후 화면, 면접 단계 구성, LNB 모집 카드 이름·D-day용
 query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
     id
+    title
     status
+    recruitEndAt
+    docResultAt
     hasInterview
     noPosition
     docResultConfirmedAt

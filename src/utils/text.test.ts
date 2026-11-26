@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { getTextLength, insertTextAt, trimTextBeforeCaret } from './text'
+import { getTextLength, insertTextAt, trimTextBeforeCaret, withDirectionParticle } from './text'
+
+describe('withDirectionParticle', () => {
+  it('받침이 있으면 으로', () => {
+    expect(withDirectionParticle('신입 부원 모집')).toBe('신입 부원 모집으로')
+  })
+
+  it('받침이 없거나 ㄹ 받침이면 로', () => {
+    expect(withDirectionParticle('14기 운영진 모집 공고')).toBe('14기 운영진 모집 공고로')
+    expect(withDirectionParticle('하반기 모집 신청 마감일')).toBe('하반기 모집 신청 마감일로')
+  })
+
+  it('한글이 아닌 글자로 끝나면 로', () => {
+    expect(withDirectionParticle('UXUX')).toBe('UXUX로')
+  })
+})
 
 describe('insertTextAt', () => {
   it('커서 위치에 넣고 넣은 글자 뒤로 커서 이동', () => {

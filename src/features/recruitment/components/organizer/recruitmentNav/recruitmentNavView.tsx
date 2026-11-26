@@ -3,86 +3,109 @@ import MegaphoneIcon from '@/assets/icons/megaphone.svg'
 import MessageIcon from '@/assets/icons/message.svg'
 import UsersIcon from '@/assets/icons/users.svg'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
-import type { DocumentResultOverview } from '@/features/recruitment/types'
+import {
+  getDocumentStageStatus,
+  getInterviewStageStatus,
+  getPostingStageStatus,
+  type LnbStageStatus,
+} from '@/features/recruitment/utils/recruitmentNavStatus'
+import type { PostingStatus } from '@/gql/graphql'
 import { Lnb } from './lnb'
-import { LnbStageItem, LnbStageLink } from './lnbStageItem'
+import { LnbStageGroup, LnbStageItem, LnbStageLink } from './lnbStageItem'
 import { LnbSubButton, LnbSubItem } from './lnbSubItem'
-import { RecruitSwitcher } from './recruitSwitcher'
+import type { ReactNode } from 'react'
 
-// TODO: 모집 조회 API 연결 후 모집명·상태·일정을 실제 값으로 교체
+type LnbSection = 'posting' | 'documents'
+
 type RecruitmentNavViewProps = {
-  // null은 조회 전, 면접 평가 메뉴가 나타났다 사라지지 않도록 숨김
-  overview: DocumentResultOverview | null
-  // 목록·작성 화면처럼 공고 ID가 없으면 공고별 상태 생략
-  isPostingSelected?: boolean
+  switcher: ReactNode
+  // null은 공고 선택 전이거나 조회 중
+  postingStatus: PostingStatus | null
+  hasInterview: boolean
+  currentSection: LnbSection | null
   isCreatingPosting?: boolean
 }
 
+const EMPTY_STATUS_LABEL = '—'
+
+const INTERVIEW_AVAILABLE_STATUSES = new Set<PostingStatus>(['INTERVIEW', 'FINAL_RESULT', 'ENDED'])
+
+function toStatusProps(status: LnbStageStatus | null) {
+  return { statusLabel: status?.label, isStatusHighlighted: status?.isHighlighted ?? false }
+}
+
 function RecruitmentNavView({
-  overview,
-  isPostingSelected = true,
+  switcher,
+  postingStatus,
+  hasInterview,
+  currentSection,
   isCreatingPosting = false,
 }: RecruitmentNavViewProps) {
-  const isConfirmed = Boolean(overview?.confirmedAt)
-  const documentStatusLabel = isConfirmed ? '완료' : '진행 중'
+  const isDraft = postingStatus === 'DRAFT'
+  // 조회 중이거나 게시 전이면 지원자 관리부터 비활성
+  const isPublished = postingStatus !== null && !isDraft
 
   return (
-    <Lnb
-      switcher={
-        isPostingSelected ? (
-          <RecruitSwitcher
-            name="UXUX 14기 신입 부원 모집"
-            statusLabel={isConfirmed ? '서류 평가 완료' : '서류 평가 진행 중'}
-            scheduleLabel="지원 마감 10/16 (금)"
-          />
-        ) : (
-          // TODO: 공고 선택 전 문구 디자인 확정 후 교체
-          <RecruitSwitcher name="공고를 선택해 주세요" />
-        )
-      }
-    >
+    <Lnb switcher={switcher}>
       <li>
-        <LnbStageItem
+        <LnbStageGroup
           icon={<MegaphoneIcon aria-hidden />}
           label="공고 관리"
-          statusLabel={isPostingSelected ? '마감' : undefined}
-          isExpanded
+          isCurrent={currentSection === 'posting'}
+          {...toStatusProps(postingStatus && getPostingStageStatus(postingStatus))}
+        >
+          <li>
+            <LnbSubItem label="공고 관리" path="postings" />
+          </li>
+          <li>
+            <PostingStartDialog>
+              <LnbSubButton isCurrent={isCreatingPosting}>공고 작성</LnbSubButton>
+            </PostingStartDialog>
+          </li>
+        </LnbStageGroup>
+      </li>
+      <li>
+        <LnbStageLink
+          icon={<UsersIcon aria-hidden />}
+          label="지원자 관리"
+          path="applicants"
+          isDisabled={!isPublished}
         />
       </li>
       <li>
-        <LnbSubItem label="공고 관리" path="postings" />
+        {isPublished ? (
+          <LnbStageGroup
+            icon={<FileTextIcon aria-hidden />}
+            label="서류 평가"
+            isCurrent={currentSection === 'documents'}
+            {...toStatusProps(getDocumentStageStatus(postingStatus))}
+          >
+            <li>
+              <LnbSubItem label="서류 평가" path="documents" />
+            </li>
+            <li>
+              <LnbSubItem label="서류 평가 취합" path="documents/summary" />
+            </li>
+          </LnbStageGroup>
+        ) : (
+          <LnbStageItem
+            icon={<FileTextIcon aria-hidden />}
+            label="서류 평가"
+            isExpanded={false}
+            isDisabled
+            {...toStatusProps(isDraft ? getDocumentStageStatus('DRAFT') : null)}
+          />
+        )}
       </li>
-      <li>
-        <PostingStartDialog>
-          <LnbSubButton isCurrent={isCreatingPosting}>공고 작성</LnbSubButton>
-        </PostingStartDialog>
-      </li>
-      <li>
-        <LnbStageLink icon={<UsersIcon aria-hidden />} label="지원자 관리" path="applicants" />
-      </li>
-      <li>
-        <LnbStageItem
-          icon={<FileTextIcon aria-hidden />}
-          label="서류 평가"
-          statusLabel={isPostingSelected ? documentStatusLabel : undefined}
-          isActive={isPostingSelected}
-          isStatusHighlighted
-          isExpanded
-        />
-      </li>
-      <li>
-        <LnbSubItem label="서류 평가" path="documents" />
-      </li>
-      <li>
-        <LnbSubItem label="서류 평가 취합" path="documents/summary" />
-      </li>
-      {overview?.hasInterview && (
+      {/* TODO: MVP 면접 평가 하위 메뉴(타임테이블)는 면접 단계 디자인 확인 후 연결 */}
+      {postingStatus && hasInterview && (
         <li>
           <LnbStageItem
             icon={<MessageIcon aria-hidden />}
             label="면접 평가"
-            statusLabel={isConfirmed ? '진행 전' : '대기'}
             isExpanded={false}
+            isDisabled={!INTERVIEW_AVAILABLE_STATUSES.has(postingStatus)}
+            {...toStatusProps(getInterviewStageStatus(postingStatus))}
           />
         </li>
       )}
@@ -90,4 +113,49 @@ function RecruitmentNavView({
   )
 }
 
-export { RecruitmentNavView }
+// 새 모집 만들기는 본문 빈 상태에서 제공
+function EmptyRecruitmentNavView() {
+  return (
+    <Lnb
+      switcher={
+        <p className="rounded-l border border-dashed border-neutral-muted bg-layer-basement p-padding-m text-label1 font-semibold text-neutral">
+          진행 중인 모집이 없어요
+        </p>
+      }
+    >
+      <li>
+        <LnbStageItem
+          icon={<MegaphoneIcon aria-hidden />}
+          label="공고 관리"
+          statusLabel={EMPTY_STATUS_LABEL}
+          isExpanded={false}
+          isDisabled
+        />
+      </li>
+      <li>
+        <LnbStageItem icon={<UsersIcon aria-hidden />} label="지원자 관리" isDisabled />
+      </li>
+      <li>
+        <LnbStageItem
+          icon={<FileTextIcon aria-hidden />}
+          label="서류 평가"
+          statusLabel={EMPTY_STATUS_LABEL}
+          isExpanded={false}
+          isDisabled
+        />
+      </li>
+      <li>
+        <LnbStageItem
+          icon={<MessageIcon aria-hidden />}
+          label="면접 평가"
+          statusLabel={EMPTY_STATUS_LABEL}
+          isExpanded={false}
+          isDisabled
+        />
+      </li>
+    </Lnb>
+  )
+}
+
+export { EmptyRecruitmentNavView, RecruitmentNavView }
+export type { LnbSection }
