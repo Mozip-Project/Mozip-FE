@@ -85,6 +85,12 @@ export type DocSummarySort =
   | 'SCORE_ASC'
   | 'SCORE_DESC';
 
+export type EmailWarning =
+  /** 연락 이메일 없음 */
+  | 'MISSING'
+  /** 흔한 도메인과 편집 거리 1 이내 */
+  | 'SUSPICIOUS_DOMAIN';
+
 export type FileType =
   | 'IMAGE'
   | 'MP4'
@@ -99,6 +105,18 @@ export type FinalResult =
 export type MemberRole =
   | 'OPERATOR'
   | 'REPRESENTATIVE';
+
+export type MessageDeliveryStatus =
+  | 'FAILED'
+  | 'PENDING'
+  | 'SUCCESS';
+
+/** 지원자 안내 메시지 (공지, 결과 발표), 메일 발송 내역 */
+export type MessageType =
+  | 'DOC_RESULT'
+  | 'FINAL_RESULT'
+  | 'INTERVIEW'
+  | 'NOTICE';
 
 export type MyDocEvaluationStatus =
   /** 자동 저장만 됨, 목록에서는 평가 전 */
@@ -498,6 +516,16 @@ export type ConfirmDocResultMutationVariables = Exact<{
 
 export type ConfirmDocResultMutation = { confirmDocResult: { posting: { id: string, docResultConfirmedAt: string | null } } };
 
+export type ResultMessageRecipientsQueryVariables = Exact<{
+  postingId: string | number;
+  type: MessageType;
+}>;
+
+
+export type ResultMessageRecipientsQuery = { resultMessages: { pass: { recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> }, fail: { recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> } } };
+
+export type ResultMessageRecipientFieldsFragment = { email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -674,6 +702,30 @@ export const MyDocEvaluationFieldsFragmentDoc = new TypedDocumentString(`
   updatedAt
 }
     `, {"fragmentName":"MyDocEvaluationFields"}) as unknown as TypedDocumentString<MyDocEvaluationFieldsFragment, unknown>;
+export const ResultMessageRecipientFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}
+    `, {"fragmentName":"ResultMessageRecipientFields"}) as unknown as TypedDocumentString<ResultMessageRecipientFieldsFragment, unknown>;
 export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
     fragment MyAccountFields on Me {
   id
@@ -1390,6 +1442,43 @@ export const ConfirmDocResultDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ConfirmDocResultMutation, ConfirmDocResultMutationVariables>;
+export const ResultMessageRecipientsDocument = new TypedDocumentString(`
+    query ResultMessageRecipients($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    pass {
+      recipients {
+        ...ResultMessageRecipientFields
+      }
+    }
+    fail {
+      recipients {
+        ...ResultMessageRecipientFields
+      }
+    }
+  }
+}
+    fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}`) as unknown as TypedDocumentString<ResultMessageRecipientsQuery, ResultMessageRecipientsQueryVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

@@ -275,3 +275,42 @@ mutation ConfirmDocResult($postingId: ID!) {
     }
   }
 }
+
+# 결과 안내 받는 사람, 메시지·발송 집계는 발송 연결 때 추가
+query ResultMessageRecipients($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    pass {
+      recipients {
+        ...ResultMessageRecipientFields
+      }
+    }
+    fail {
+      recipients {
+        ...ResultMessageRecipientFields
+      }
+    }
+  }
+}
+
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}

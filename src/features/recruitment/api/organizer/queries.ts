@@ -16,6 +16,7 @@ import {
   getPostingApplications,
   getPostingQuestions,
   getRecruitmentPosting,
+  getResultMessageRecipients,
   saveDocEvaluation,
   setDocResult,
 } from './api'
@@ -208,6 +209,13 @@ function useConfirmDocResultMutation(postingId: string) {
   })
 }
 
+function useResultMessageRecipientsQuery(postingId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.resultMessages(postingId),
+    queryFn: () => getResultMessageRecipients(postingId),
+  })
+}
+
 export {
   useConfirmDocResultMutation,
   useDocEvaluationApplicationChipsQuery,
@@ -218,6 +226,7 @@ export {
   usePostingApplicationsQuery,
   usePostingQuestionsQuery,
   useRecruitmentPostingQuery,
+  useResultMessageRecipientsQuery,
   useSaveDocEvaluationMutation,
   useSetDocResultsMutation,
 }

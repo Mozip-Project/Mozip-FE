@@ -8,6 +8,7 @@ import {
   PostingApplicationsDocument,
   PostingQuestionsDocument,
   RecruitmentPostingDocument,
+  ResultMessageRecipientsDocument,
   SaveDocEvaluationDocument,
   SetDocResultDocument,
   type DocEvaluationApplicationsQueryVariables,
@@ -73,6 +74,14 @@ async function confirmDocResult(postingId: string) {
   return data.confirmDocResult
 }
 
+async function getResultMessageRecipients(postingId: string) {
+  const data = await requestGraphQL(ResultMessageRecipientsDocument, {
+    postingId,
+    type: 'DOC_RESULT',
+  })
+  return data.resultMessages
+}
+
 export {
   confirmDocResult,
   getDocEvaluationApplicationChips,
@@ -83,6 +92,7 @@ export {
   getPostingApplications,
   getPostingQuestions,
   getRecruitmentPosting,
+  getResultMessageRecipients,
   saveDocEvaluation,
   setDocResult,
 }

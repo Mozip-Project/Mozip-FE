@@ -10,6 +10,7 @@ import { applicationFormHandlers } from '@/features/recruitment/mocks/applicatio
 import { documentResultHandlers } from '@/features/recruitment/mocks/documentResultHandlers'
 import { documentReviewHandlers } from '@/features/recruitment/mocks/documentReviewHandlers'
 import { recruitmentPostingHandlers } from '@/features/recruitment/mocks/recruitmentPostingHandlers'
+import { resultNoticeHandlers } from '@/features/recruitment/mocks/resultNoticeHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
 import type { AnyHandler } from 'msw'
@@ -29,6 +30,7 @@ const handlers: AnyHandler[] = [
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
   ...documentResultHandlers,
+  ...resultNoticeHandlers,
 ]
 
 export { handlers }

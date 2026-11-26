@@ -34,6 +34,9 @@ const recruitmentKeys = {
   docSummaries: (postingId: string) => [...recruitmentKeys.all(postingId), 'docSummary'] as const,
   docSummaryList: (variables: DocEvaluationSummaryQueryVariables) =>
     [...recruitmentKeys.docSummaries(String(variables.postingId)), variables] as const,
+
+  resultMessages: (postingId: string) =>
+    [...recruitmentKeys.all(postingId), 'resultMessages'] as const,
 }
 
 export { recruitmentKeys }
