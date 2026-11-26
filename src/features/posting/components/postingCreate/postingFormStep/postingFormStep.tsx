@@ -29,6 +29,7 @@ import {
   type QuestionTemplateId,
 } from '@/features/posting/utils/postingQuestionTemplates'
 import { cn } from '@/lib/utils'
+import { getDropIndex } from '@/utils/dropIndex'
 import { ActivityAnswerPreview } from './activityAnswerPreview'
 import { FileAnswerPreview } from './fileAnswerPreview'
 import { PostingQuestionSettings } from './postingQuestionSettings'
@@ -187,27 +188,27 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
     setDraggedIndex(index)
   }
 
-  function handleDragOverItem(event: DragEvent<HTMLLIElement>, index: number) {
-    if (draggedIndex === null) {
-      return
-    }
-    const { top, height } = event.currentTarget.getBoundingClientRect()
-    const isLowerHalf = event.clientY > top + height / 2
-    setDropIndex(isLowerHalf ? index + 1 : index)
-  }
-
-  // 문항 사이 간격에서도 놓을 수 있도록 목록 전체에서 허용
+  // 문항 사이 간격·오른쪽 여백에서도 포인터 높이로 놓을 자리를 다시 계산
   function handleDragOverList(event: DragEvent<HTMLOListElement>) {
     if (draggedIndex === null) {
       return
     }
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
+    const itemCenters = Array.from(listRef.current?.children ?? [], (item) => {
+      const { top, height } = item.getBoundingClientRect()
+      return top + height / 2
+    })
+    setDropIndex(getDropIndex(itemCenters, event.clientY))
   }
 
+  // 설정 패널 입력칸에 글자를 끌어다 놓는 기본 동작은 유지
   function handleDrop(event: DragEvent<HTMLOListElement>) {
+    if (draggedIndex === null) {
+      return
+    }
     event.preventDefault()
-    if (draggedIndex !== null && dropIndex !== null) {
+    if (dropIndex !== null) {
       // 뒤로 옮기면 빠진 자기 자리만큼 한 칸 앞
       moveQuestion(draggedIndex, dropIndex > draggedIndex ? dropIndex - 1 : dropIndex)
     }
@@ -301,11 +302,7 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
             const isLast = index === fields.length - 1
 
             return (
-              <li
-                key={field.fieldKey}
-                onDragOver={(event) => handleDragOverItem(event, index)}
-                className="relative"
-              >
+              <li key={field.fieldKey} className="relative">
                 {isDropTarget(index) && <DropIndicator position="before" />}
                 {/* 설정 패널 입력의 글자 선택을 막지 않도록 카드만 드래그 대상 */}
                 <div
