@@ -255,6 +255,37 @@ describe('savePostingDraft', () => {
     ).rejects.toMatchObject({ code: 'COMMON_400' })
   })
 
+  it('포지션만 다시 저장하면 기존 문항은 포지션 연결이 끊겨 공통 문항으로 남음', async () => {
+    const { id } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: '공고' },
+    })
+    const positionsInput = { noPosition: false, positions: [{ name: '디자인팀', sortOrder: 0 }] }
+    const { positions } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: positionsInput,
+    })
+    await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: {
+        questions: [
+          { positionId: positions[0]?.id, type: 'TEXT', title: 'Q', required: true, sortOrder: 0 },
+        ],
+      },
+    })
+
+    const resaved = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      id,
+      input: positionsInput,
+    })
+
+    expect(resaved.positions[0]?.id).not.toBe(positions[0]?.id)
+    expect(resaved.questions).toMatchObject([{ title: 'Q', position: null }])
+  })
+
   it('운영진 홈의 작성 중 샘플을 이어서 조회', async () => {
     await expect(getPostingDraft('3')).resolves.toMatchObject({
       id: '3',

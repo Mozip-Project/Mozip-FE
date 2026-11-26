@@ -140,6 +140,18 @@ function resolveTimeRanges(
   }))
 }
 
+// 서버처럼 지워진 포지션을 가리키던 문항은 공통 문항(position null)으로 남음 (ON DELETE SET NULL)
+function detachRemovedPositions(
+  questions: PostingDraftFieldsFragment['questions'],
+  positionIds: Set<string>,
+) {
+  return questions.map((question) =>
+    question.position && !positionIds.has(question.position.id)
+      ? { ...question, position: null }
+      : question,
+  )
+}
+
 // 명세상 저장하면 포지션·문항·이미지·면접 시간대는 통째로 교체, 새 id 발급
 function applyInput(
   posting: PostingDraftFieldsFragment,
@@ -187,7 +199,7 @@ function applyInput(
           maxLength: question.maxLength ?? null,
           sortOrder: question.sortOrder,
         }))
-      : posting.questions,
+      : detachRemovedPositions(posting.questions, positionIds),
     hasInterview,
     // 면접 없는 공고는 면접 설정을 비움
     interviewMinutes: hasInterview ? (input.interviewMinutes ?? posting.interviewMinutes) : null,
