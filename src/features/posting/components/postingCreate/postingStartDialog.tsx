@@ -52,9 +52,11 @@ const OPTION_IMAGE_SIZE_PX = 105
 
 type PostingStartDialogProps = {
   children: ReactNode
+  // 다른 팝업 안에서 열었을 때 이동 전에 바깥 팝업도 닫기
+  onNext?: () => void
 }
 
-function PostingStartDialog({ children }: PostingStartDialogProps) {
+function PostingStartDialog({ children, onNext }: PostingStartDialogProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState<InterviewOptionValue | null>(null)
@@ -86,6 +88,7 @@ function PostingStartDialog({ children }: PostingStartDialogProps) {
     }
     // LNB처럼 이동 후에도 남는 위치에서 열면 정리 effect가 돌지 않아 직접 닫기
     handleOpenChange(false)
+    onNext?.()
     router.push(getNewPostingPath(INTERVIEW_OPTIONS[selectedValue].hasInterview))
   }
 

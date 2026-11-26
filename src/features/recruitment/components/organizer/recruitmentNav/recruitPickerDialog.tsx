@@ -78,7 +78,7 @@ function RecruitPickerDialog({
           currentPostingId={currentPostingId}
           onClose={() => setIsOpen(false)}
         />
-        <PostingStartDialog>
+        <PostingStartDialog onNext={() => setIsOpen(false)}>
           <Button size="l" className="w-full">
             <PlusIcon aria-hidden />새 공고 만들기
           </Button>
