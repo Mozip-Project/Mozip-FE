@@ -22,12 +22,16 @@ const recruitmentPostingHandlers = [
         })
       }
 
-      const { id, status, hasInterview, docResultConfirmedAt } = posting
+      const { id, title, status, recruitEndAt, docResultAt, hasInterview, docResultConfirmedAt } =
+        posting
       return HttpResponse.json({
         data: {
           posting: {
             id,
+            title,
             status,
+            recruitEndAt,
+            docResultAt,
             hasInterview,
             noPosition: sample.noPosition,
             docResultConfirmedAt,

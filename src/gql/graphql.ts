@@ -385,7 +385,7 @@ export type RecruitmentPostingQueryVariables = Exact<{
 }>;
 
 
-export type RecruitmentPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
+export type RecruitmentPostingQuery = { posting: { id: string, title: string, status: PostingStatus, recruitEndAt: string | null, docResultAt: string | null, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null } };
 
 export type PostingApplicationsQueryVariables = Exact<{
   postingId: string | number;
@@ -1046,7 +1046,10 @@ export const RecruitmentPostingDocument = new TypedDocumentString(`
     query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
     id
+    title
     status
+    recruitEndAt
+    docResultAt
     hasInterview
     noPosition
     docResultConfirmedAt
