@@ -69,6 +69,8 @@ function useDocumentEvaluationSave({
       setSaveState({ status: 'saved', savedAt: new Date(payload.evaluation.updatedAt) })
       return payload
     } catch (error) {
+      // 저장 못 한 입력이 남아 화면을 떠날 때 다시 저장
+      hasUnsavedChangeRef.current = true
       setSaveState({ status: 'failed' })
       showInputErrors(error)
       return null
@@ -78,6 +80,10 @@ function useDocumentEvaluationSave({
   const { scheduleSave, saveNow, cancelScheduledSave, waitForSave } = useAutoSave(
     AUTO_SAVE_DELAY_MS,
     async () => {
+      // 저장 버튼 대기 중에 예약된 자동 저장이 잠금 뒤 실행돼도 저장 완료를 덮지 않도록 생략
+      if (isSubmitLockedRef.current) {
+        return
+      }
       await save(false)
     },
   )

@@ -111,6 +111,8 @@ function DocumentEvaluationForm({
     onAllEvaluated: () => setIsDoneDialogOpen(true),
   })
   const { control, formState } = form
+  // 저장 버튼 요청 중 바꾼 값은 저장되지 않고 다음 지원자로 넘어가 입력을 막음
+  const isInputLocked = isConfirmed || formState.isSubmitting
 
   return (
     <section className={EVALUATION_PANEL_CLASS}>
@@ -131,7 +133,7 @@ function DocumentEvaluationForm({
                   aria-labelledby={opinionLabelId}
                   value={field.value}
                   onValueChange={field.onChange}
-                  disabled={isConfirmed}
+                  disabled={isInputLocked}
                   errorMessage={fieldState.error?.message}
                 >
                   {OPINIONS.map((opinion) => (
@@ -148,7 +150,7 @@ function DocumentEvaluationForm({
             />
           </div>
           {scoreQuestions.length > 0 && (
-            <ScoreField questions={scoreQuestions} control={control} disabled={isConfirmed} />
+            <ScoreField questions={scoreQuestions} control={control} disabled={isInputLocked} />
           )}
           <div className="flex flex-col gap-gap-s">
             <label htmlFor={memoId} className="text-label1 font-semibold text-neutral-muted">
@@ -161,7 +163,7 @@ function DocumentEvaluationForm({
                 <TextArea
                   {...field}
                   id={memoId}
-                  readOnly={isConfirmed}
+                  readOnly={isInputLocked}
                   placeholder={isConfirmed ? undefined : MEMO_PLACEHOLDER}
                   maxLength={MEMO_MAX_LENGTH}
                 />

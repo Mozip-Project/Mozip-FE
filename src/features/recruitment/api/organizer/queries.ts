@@ -102,8 +102,17 @@ function useSaveDocEvaluationMutation(postingId: string) {
 
   return useMutation({
     mutationFn: saveDocEvaluation,
-    onSuccess: ({ evaluation }, { input, submit }) => {
+    // 자동, 이탈, 저장 버튼 저장을 보낸 순서대로 처리해 늦게 도착한 이전 저장이 최신 평가를 덮지 않도록 처리
+    scope: { id: `doc-evaluation-${postingId}` },
+    onSuccess: async ({ evaluation }, { input, submit }) => {
       const applicationId = String(input.applicationId)
+      // 저장 전에 시작한 조회가 늦게 끝나 저장 결과를 덮지 않도록 취소
+      await Promise.all([
+        queryClient.cancelQueries({
+          queryKey: recruitmentKeys.myDocEvaluation(postingId, applicationId),
+        }),
+        queryClient.cancelQueries({ queryKey: recruitmentKeys.docEvaluationChips(postingId) }),
+      ])
       queryClient.setQueryData(
         recruitmentKeys.myDocEvaluation(postingId, applicationId),
         evaluation,

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { HttpResponse } from 'msw'
 import { useForm } from 'react-hook-form'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { recruitmentKeys } from '@/features/recruitment/api/organizer/keys'
 import type { DocumentEvaluationValues } from '@/features/recruitment/schemas/documentEvaluationSchema'
@@ -23,8 +23,12 @@ const NO_AUTO_SAVE_APPLICATION_ID = `application-${POSTING_ID}-5`
 const LEAVE_APPLICATION_ID = `application-${POSTING_ID}-6`
 const INSTANT_SAVE_APPLICATION_ID = `application-${POSTING_ID}-7`
 const SUBMIT_LOCK_APPLICATION_ID = `application-${POSTING_ID}-8`
+const FAILED_SAVE_APPLICATION_ID = `application-${POSTING_ID}-9`
+const WAITING_SUBMIT_APPLICATION_ID = `application-${POSTING_ID}-10`
+const LEAVE_WHILE_SAVING_APPLICATION_ID = `application-${POSTING_ID}-11`
 // 자동 저장 대기(3초)보다 짧게 기다려 자동 저장이 아닌 이탈 저장만 확인
 const BEFORE_AUTO_SAVE_MS = 100
+const AUTO_SAVE_DELAY_MS = 3000
 
 beforeAll(() => {
   vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
@@ -46,6 +50,25 @@ function recordSaveRequests() {
     ),
   )
   return requests
+}
+
+// 작성 중 저장 응답을 붙잡아 두고, 풀면 기본 MSW handler로 넘김
+function holdDraftSaves() {
+  let release = () => {}
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    graphqlApi.mutation<SaveDocEvaluationMutation, SaveDocEvaluationMutationVariables>(
+      'SaveDocEvaluation',
+      async ({ variables }) => {
+        if (!variables.submit) {
+          await gate
+        }
+      },
+    ),
+  )
+  return release
 }
 
 function respondSaveError(code: string, fieldErrors: { field: string; message: string }[] = []) {
@@ -242,5 +265,61 @@ describe('useDocumentEvaluationSave (MSW)', () => {
     const requests = recordSaveRequests()
     act(() => result.current.form.setValue('scores.motivation', '3'))
     await waitFor(() => expect(requests.at(-1)?.submit).toBe(false))
+  })
+
+  it('작성 중 저장에 실패하면 추가 입력 없이 떠나도 다시 저장', async () => {
+    respondSaveError('COMMON_500')
+    const requests = recordSaveRequests()
+    const { result, unmount } = renderSave(FAILED_SAVE_APPLICATION_ID, true)
+
+    act(() => result.current.form.setValue('scores.motivation', '3'))
+    await waitFor(() => expect(result.current.saveState.status).toBe('failed'))
+    unmount()
+
+    await waitFor(() => expect(requests).toHaveLength(2))
+    expect(requests[1]?.input.scores).toEqual([{ questionId: 'motivation', score: 3 }])
+  })
+
+  it('저장 버튼이 앞선 저장을 기다리는 중 바꾼 메모는 저장 완료 뒤 작성 중으로 덮지 않음', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    const releaseDraft = holdDraftSaves()
+    const requests = recordSaveRequests()
+    const { result } = renderSave(WAITING_SUBMIT_APPLICATION_ID, true)
+
+    act(() => {
+      result.current.form.setValue('opinion', 'pass')
+      result.current.form.setValue('scores.motivation', '5')
+    })
+    await waitFor(() => expect(requests).toHaveLength(1))
+    let submitting: Promise<unknown> = Promise.resolve()
+    act(() => {
+      submitting = result.current.submitEvaluation()
+    })
+    act(() => result.current.form.setValue('memo', '대기 중 메모'))
+    releaseDraft()
+    await act(() => submitting)
+    await act(() => vi.advanceTimersByTimeAsync(AUTO_SAVE_DELAY_MS + BEFORE_AUTO_SAVE_MS))
+
+    expect(requests.at(-1)).toMatchObject({ input: { memo: '대기 중 메모' }, submit: true })
+  })
+
+  it('작성 중 저장 요청 중에 떠나면 그 저장이 끝난 뒤 최신 값으로 저장', async () => {
+    const releaseDraft = holdDraftSaves()
+    const requests = recordSaveRequests()
+    const { result, unmount } = renderSave(LEAVE_WHILE_SAVING_APPLICATION_ID, true)
+
+    act(() => result.current.form.setValue('scores.motivation', '3'))
+    await waitFor(() => expect(requests).toHaveLength(1))
+    act(() => result.current.form.setValue('memo', '최신 메모'))
+    unmount()
+    await new Promise((resolve) => setTimeout(resolve, BEFORE_AUTO_SAVE_MS))
+    expect(requests).toHaveLength(1)
+
+    releaseDraft()
+    await waitFor(() => expect(requests).toHaveLength(2))
+    expect(requests[1]?.input.memo).toBe('최신 메모')
   })
 })
