@@ -1,15 +1,17 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useTransition } from 'react'
 import { OrganizationSelector } from '@/components/ui/Gnb/organizationSelector'
 import { COMING_SOON_TOAST } from '@/features/organization/constants'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { saveCurrentOrganization } from '@/features/organization/server/saveCurrentOrganization'
 import { useToast } from '@/providers/toastProvider'
+import type { Route } from 'next'
 
 // TODO: 회원가입의 단체 생성 화면이 생기면 그 경로로 변경
 const NO_ORGANIZATION_REDIRECT_PATH = '/'
+const POSTINGS_ENTRY_PATH = '/manage/postings' satisfies Route
 
 type OrganizationSwitcherProps = {
   savedOrganizationId: string | undefined
@@ -17,6 +19,7 @@ type OrganizationSwitcherProps = {
 
 function OrganizationSwitcher({ savedOrganizationId }: OrganizationSwitcherProps) {
   const router = useRouter()
+  const { postingId } = useParams<{ postingId?: string }>()
   const { showToast } = useToast()
   const { meQuery, organizations, currentOrganizationId } =
     useCurrentOrganization(savedOrganizationId)
@@ -34,7 +37,13 @@ function OrganizationSwitcher({ savedOrganizationId }: OrganizationSwitcherProps
     if (organizationId === currentOrganizationId) {
       return
     }
-    startTransition(() => saveCurrentOrganization(organizationId))
+    startTransition(async () => {
+      await saveCurrentOrganization(organizationId)
+      // 공고별 화면은 이전 단체 공고라 모집 관리 첫 화면으로 이동
+      if (postingId) {
+        router.replace(POSTINGS_ENTRY_PATH)
+      }
+    })
   }
 
   // TODO: 새 단체 등록은 createOrganization, 대표 인수는 화면 확정 후 연결
