@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetOrganizationProfiles } from '@/features/organization/mocks/organizationProfileHandlers'
 import type { OrganizationProfileFieldsFragment } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { OrganizationProfileForm } from './organizationProfileForm'
@@ -15,7 +16,7 @@ const SLOW_SAVE_DELAY_MS = 100
 
 // 아직 아무것도 저장하지 않은 단체
 const EMPTY_ORGANIZATION: OrganizationProfileFieldsFragment = {
-  id: '1',
+  id: MOCK_ORGANIZATION_ID,
   name: '샘플 단체',
   type: 'CLUB',
   scope: 'CAMPUS',

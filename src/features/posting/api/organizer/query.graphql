@@ -56,3 +56,78 @@ mutation BumpPosting($id: ID!) {
 mutation DeletePosting($id: ID!) {
   deletePosting(id: $id)
 }
+
+# 공고 작성 화면을 채우는 데 쓰는 값. 저장 응답도 같은 모양으로 받아 새 포지션 id·저장 시각 반영
+fragment PostingDraftFields on Posting {
+  id
+  status
+  hasInterview
+  updatedAt
+  organization {
+    id
+  }
+  title
+  images {
+    id
+    url
+    isRepresentative
+    sortOrder
+  }
+  region
+  fee
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  content
+  recruitStartAt
+  recruitEndAt
+  activityStartedOn
+  activityEndedOn
+  noPosition
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    position {
+      id
+    }
+    type
+    title
+    description
+    required
+    maxLength
+    sortOrder
+  }
+  interviewMinutes
+  breakMinutes
+  interviewTimeRanges {
+    id
+    date
+    startTime
+    endTime
+  }
+  maxApplicantsPerInterview
+  maxParallelInterviews
+}
+
+query PostingDraft($id: ID!) {
+  posting(id: $id) {
+    ...PostingDraftFields
+  }
+}
+
+mutation SavePostingDraft($organizationId: ID!, $id: ID, $input: PostingDraftInput!) {
+  savePostingDraft(organizationId: $organizationId, id: $id, input: $input) {
+    ...PostingDraftFields
+  }
+}
+
+mutation PublishPosting($id: ID!) {
+  publishPosting(id: $id) {
+    id
+    status
+  }
+}

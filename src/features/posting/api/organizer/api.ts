@@ -4,8 +4,12 @@ import {
   ManagedPostingDetailDocument,
   ManagedPostingSummaryDocument,
   OrganizationPostingsDocument,
+  PostingDraftDocument,
+  PublishPostingDocument,
+  SavePostingDraftDocument,
   SendNoticeDocument,
   type PostingStatus,
+  type SavePostingDraftMutationVariables,
   type SendNoticeMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
@@ -43,11 +47,30 @@ async function sendNotice(variables: SendNoticeMutationVariables) {
   return data.sendNotice
 }
 
+async function getPostingDraft(postingId: string) {
+  const data = await requestGraphQL(PostingDraftDocument, { id: postingId })
+  return data.posting
+}
+
+// id 없이 저장하면 새 공고 생성
+async function savePostingDraft(variables: SavePostingDraftMutationVariables) {
+  const data = await requestGraphQL(SavePostingDraftDocument, variables)
+  return data.savePostingDraft
+}
+
+async function publishPosting(postingId: string) {
+  const data = await requestGraphQL(PublishPostingDocument, { id: postingId })
+  return data.publishPosting
+}
+
 export {
   bumpPosting,
   deletePosting,
   getManagedPosting,
   getManagedPostingSummary,
   getOrganizationPostings,
+  getPostingDraft,
+  publishPosting,
+  savePostingDraft,
   sendNotice,
 }
