@@ -1,6 +1,15 @@
-import type { DocumentResultApplicant } from '@/features/recruitment/types'
+import type { DocumentResult, DocumentReviewPosition } from '@/features/recruitment/types'
 
-// TODO: 서류 평가 취합 API 확정 후 삭제, 이름은 모두 가상 인물
+type DocumentResultSampleApplicant = {
+  id: string
+  name: string
+  position: DocumentReviewPosition
+  opinionCounts: Record<DocumentResult, number>
+  averageScore: number
+  result: DocumentResult
+}
+
+// 서류 평가 취합·지원자 관리 MSW와 결과 안내 샘플이 같이 사용, 이름은 모두 가상 인물
 const DOCUMENT_RESULT_SAMPLE = [
   {
     id: '1',
@@ -386,6 +395,6 @@ const DOCUMENT_RESULT_SAMPLE = [
     averageScore: 1.1,
     result: 'fail',
   },
-] satisfies Omit<DocumentResultApplicant, 'rank'>[]
+] satisfies DocumentResultSampleApplicant[]
 
 export { DOCUMENT_RESULT_SAMPLE }

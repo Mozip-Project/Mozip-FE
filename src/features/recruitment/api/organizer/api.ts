@@ -1,15 +1,25 @@
 import {
-  ApplicantManagementPostingDocument,
+  ConfirmDocResultDocument,
+  DocEvaluationApplicationChipsDocument,
+  DocEvaluationApplicationDetailDocument,
   DocEvaluationApplicationsDocument,
-  DocumentReviewPostingDocument,
+  DocEvaluationSummaryDocument,
+  MyDocEvaluationDocument,
   PostingApplicationsDocument,
+  PostingQuestionsDocument,
+  RecruitmentPostingDocument,
+  SaveDocEvaluationDocument,
+  SetDocResultDocument,
   type DocEvaluationApplicationsQueryVariables,
+  type DocEvaluationSummaryQueryVariables,
   type PostingApplicationsQueryVariables,
+  type SaveDocEvaluationMutationVariables,
+  type SetDocResultMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
 
-async function getApplicantManagementPosting(postingId: string) {
-  const data = await requestGraphQL(ApplicantManagementPostingDocument, { id: postingId })
+async function getRecruitmentPosting(postingId: string) {
+  const data = await requestGraphQL(RecruitmentPostingDocument, { id: postingId })
   return data.posting
 }
 
@@ -18,19 +28,61 @@ async function getPostingApplications(variables: PostingApplicationsQueryVariabl
   return data.postingApplications
 }
 
-async function getDocumentReviewPosting(postingId: string) {
-  const data = await requestGraphQL(DocumentReviewPostingDocument, { id: postingId })
-  return data.posting
-}
-
 async function getDocEvaluationApplications(variables: DocEvaluationApplicationsQueryVariables) {
   const data = await requestGraphQL(DocEvaluationApplicationsDocument, variables)
   return data.docEvaluationApplications
 }
 
+async function getDocEvaluationApplicationChips(postingId: string) {
+  const data = await requestGraphQL(DocEvaluationApplicationChipsDocument, { postingId })
+  return data.docEvaluationApplicationChips
+}
+
+async function getDocEvaluationApplicationDetail(applicationId: string) {
+  const data = await requestGraphQL(DocEvaluationApplicationDetailDocument, { id: applicationId })
+  return data.application
+}
+
+async function getPostingQuestions(postingId: string) {
+  const data = await requestGraphQL(PostingQuestionsDocument, { id: postingId })
+  return data.posting.questions
+}
+
+async function getMyDocEvaluation(applicationId: string) {
+  const data = await requestGraphQL(MyDocEvaluationDocument, { applicationId })
+  return data.myDocEvaluation
+}
+
+async function saveDocEvaluation(variables: SaveDocEvaluationMutationVariables) {
+  const data = await requestGraphQL(SaveDocEvaluationDocument, variables)
+  return data.saveDocEvaluation
+}
+
+async function getDocEvaluationSummary(variables: DocEvaluationSummaryQueryVariables) {
+  const data = await requestGraphQL(DocEvaluationSummaryDocument, variables)
+  return data.docEvaluationSummary
+}
+
+async function setDocResult(variables: SetDocResultMutationVariables) {
+  const data = await requestGraphQL(SetDocResultDocument, variables)
+  return data.setDocResult
+}
+
+async function confirmDocResult(postingId: string) {
+  const data = await requestGraphQL(ConfirmDocResultDocument, { postingId })
+  return data.confirmDocResult
+}
+
 export {
-  getApplicantManagementPosting,
+  confirmDocResult,
+  getDocEvaluationApplicationChips,
+  getDocEvaluationApplicationDetail,
   getDocEvaluationApplications,
-  getDocumentReviewPosting,
+  getDocEvaluationSummary,
+  getMyDocEvaluation,
   getPostingApplications,
+  getPostingQuestions,
+  getRecruitmentPosting,
+  saveDocEvaluation,
+  setDocResult,
 }

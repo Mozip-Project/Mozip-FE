@@ -1,5 +1,5 @@
 import {
-  useApplicantManagementPostingQuery,
+  useRecruitmentPostingQuery,
   usePostingApplicationsQuery,
 } from '@/features/recruitment/api/organizer/queries'
 import {
@@ -37,7 +37,7 @@ function toApplicants({ rows }: PostingApplicationPage) {
 
 // 공고 정보는 조건과 무관해 한 번만 조회, 목록은 조건 변경 중 이전 결과 유지
 function useApplicantManagement(postingId: string, query: ApplicantManagementQuery) {
-  const postingQuery = useApplicantManagementPostingQuery(postingId)
+  const postingQuery = useRecruitmentPostingQuery(postingId)
   const applicationsQuery = usePostingApplicationsQuery(
     toPostingApplicationsVariables(postingId, query),
   )

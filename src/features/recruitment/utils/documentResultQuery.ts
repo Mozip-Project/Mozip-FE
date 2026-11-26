@@ -6,7 +6,12 @@ import {
   type DocumentResultStatus,
 } from '@/features/recruitment/types'
 import type { SearchParamsSource } from '@/utils/searchParams'
-import { getBoardHref, parseBoardQuery, type BoardQueryConfig } from './boardQuery'
+import {
+  getBoardHref,
+  parseBoardQuery,
+  parsePositionIds,
+  type BoardQueryConfig,
+} from './boardQuery'
 import { getDocumentResultPath } from './recruitmentRoutes'
 
 const DOCUMENT_RESULT_QUERY_CONFIG = {
@@ -14,10 +19,14 @@ const DOCUMENT_RESULT_QUERY_CONFIG = {
   sorts: DOCUMENT_RESULT_SORTS,
   defaultStatus: 'all',
   defaultSort: 'rankDesc',
-} satisfies BoardQueryConfig<DocumentResultStatus, DocumentResultSort>
+  isPositionFiltered: (positions) => positions.length > 0,
+} satisfies BoardQueryConfig<DocumentResultStatus, DocumentResultSort, string>
 
 function parseDocumentResultQuery(searchParams: SearchParamsSource): DocumentResultQuery {
-  return parseBoardQuery(searchParams, DOCUMENT_RESULT_QUERY_CONFIG)
+  return {
+    ...parseBoardQuery(searchParams, DOCUMENT_RESULT_QUERY_CONFIG),
+    positions: parsePositionIds(searchParams),
+  }
 }
 
 function getDocumentResultHref(postingId: string, query: DocumentResultQuery) {

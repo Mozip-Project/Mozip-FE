@@ -44,23 +44,29 @@ function getLatestDraft(myApplications: readonly MyApplicationResponse[]) {
   return drafts[0] ?? null
 }
 
-function toActivityAnswers(content: string | null): ActivityAnswer[] | null {
+// 활동 경험 답변 JSON, 읽을 수 없으면 빈 목록
+function parseActivityContent(content: string | null) {
   if (!content) {
-    return null
+    return []
   }
 
   let parsed: unknown
   try {
     parsed = JSON.parse(content)
   } catch {
-    return null
+    return []
   }
 
   const result = ACTIVITY_CONTENT_SCHEMA.safeParse(parsed)
-  if (!result.success || result.data.length === 0) {
+  return result.success ? result.data : []
+}
+
+function toActivityAnswers(content: string | null): ActivityAnswer[] | null {
+  const rows = parseActivityContent(content)
+  if (rows.length === 0) {
     return null
   }
-  return result.data.map((row) => ({ ...createEmptyActivityAnswer(), ...row }))
+  return rows.map((row) => ({ ...createEmptyActivityAnswer(), ...row }))
 }
 
 function toFileLinks(attachments: AnswerResponse['attachments']): FileAnswerLink[] {
@@ -146,5 +152,5 @@ function toApplicationFormInitialValues({
   return { positionId: draftPosition?.id ?? '', answers }
 }
 
-export { getLatestDraft, toApplicationFormInitialValues }
+export { getLatestDraft, parseActivityContent, toApplicationFormInitialValues }
 export type { MyApplicationResponse }

@@ -34,7 +34,7 @@ type RecruitmentBoardTab<TStatus extends string> = {
 
 type RecruitmentBoardHeader = Pick<
   ComponentProps<typeof PageHeader>,
-  'title' | 'description' | 'actions'
+  'title' | 'badge' | 'description'
 >
 
 type RecruitmentBoardPositionOption<TPosition extends string> = {
@@ -116,22 +116,20 @@ function RecruitmentBoard<TStatus extends string, TSort extends string, TPositio
   const pageHeader = (
     <PageHeader
       title={header.title}
+      badge={header.badge}
       description={header.description}
       className="min-h-10"
       actions={
-        <>
-          <div ref={searchFieldRef} inert={isPlaceholder} className="contents">
-            <SearchField
-              size="s"
-              className="w-55"
-              aria-label="지원자 이름 검색"
-              placeholder="이름 검색"
-              value={search.keyword}
-              onValueChange={search.changeKeyword}
-            />
-          </div>
-          {header.actions}
-        </>
+        <div ref={searchFieldRef} inert={isPlaceholder} className="contents">
+          <SearchField
+            size="s"
+            className="w-55"
+            aria-label="지원자 이름 검색"
+            placeholder="이름 검색"
+            value={search.keyword}
+            onValueChange={search.changeKeyword}
+          />
+        </div>
       }
     />
   )

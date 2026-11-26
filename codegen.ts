@@ -20,6 +20,8 @@ const config: CodegenConfig = {
           DateTime: 'string',
           Date: 'string',
           LocalTime: 'string',
+          // 모양이 정해지지 않은 JSON은 받는 쪽에서 검사
+          JSON: 'unknown',
         },
       },
     },

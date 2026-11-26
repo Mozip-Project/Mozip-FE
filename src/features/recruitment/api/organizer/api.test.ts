@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
-import { getDocEvaluationApplications, getDocumentReviewPosting } from './api'
+import { getDocEvaluationApplications, getRecruitmentPosting } from './api'
 
 const POSTING_ID = ORGANIZATION_POSTING_ID.docReview
 
@@ -14,7 +14,7 @@ afterAll(() => {
 
 describe('서류 평가 목록 API (MSW)', () => {
   it('공고 정보와 최신순 10명, 내 평가 상태를 조회', async () => {
-    expect(await getDocumentReviewPosting(POSTING_ID)).toMatchObject({
+    expect(await getRecruitmentPosting(POSTING_ID)).toMatchObject({
       id: POSTING_ID,
       noPosition: false,
       docResultConfirmedAt: null,
@@ -25,7 +25,7 @@ describe('서류 평가 목록 API (MSW)', () => {
       totalCount: 48,
       page: 1,
       totalPages: 5,
-      tabCounts: { all: 48, notEvaluated: 16, evaluated: 32 },
+      tabCounts: { all: 48, notEvaluated: 3, evaluated: 45 },
     })
     expect(result.rows).toHaveLength(10)
     expect(
@@ -33,9 +33,9 @@ describe('서류 평가 목록 API (MSW)', () => {
         .slice(0, 3)
         .map(({ application, myEvaluationStatus }) => [application.user.name, myEvaluationStatus]),
     ).toEqual([
-      ['한가람', 'NONE'],
-      ['윤서진', 'SAVED'],
-      ['오하늘', 'DRAFT'],
+      ['정세나', 'NONE'],
+      ['이지원', 'NONE'],
+      ['김모집', 'DRAFT'],
     ])
   })
 
@@ -46,12 +46,12 @@ describe('서류 평가 목록 API (MSW)', () => {
     })
     const done = await getDocEvaluationApplications({ postingId: POSTING_ID, tab: 'EVALUATED' })
 
-    expect(pending.totalCount).toBe(16)
+    expect(pending.totalCount).toBe(3)
     expect(pending.rows.some(({ myEvaluationStatus }) => myEvaluationStatus === 'DRAFT')).toBe(true)
     expect(pending.rows.every(({ myEvaluationStatus }) => myEvaluationStatus !== 'SAVED')).toBe(
       true,
     )
-    expect(done.totalCount).toBe(32)
+    expect(done.totalCount).toBe(45)
     expect(done.rows.every(({ myEvaluationStatus }) => myEvaluationStatus === 'SAVED')).toBe(true)
     expect(pending.tabCounts).toEqual(done.tabCounts)
   })
@@ -69,8 +69,8 @@ describe('서류 평가 목록 API (MSW)', () => {
     expect(result.totalPages).toBe(0)
     expect(result.tabCounts).toEqual({ all: 1, notEvaluated: 0, evaluated: 1 })
     expect(result.positionCounts.map(({ position, count }) => [position.id, count])).toEqual([
-      ['design', 2],
-      ['development', 3],
+      ['design', 1],
+      ['development', 2],
       ['planning', 1],
     ])
   })
@@ -82,7 +82,7 @@ describe('서류 평가 목록 API (MSW)', () => {
       sort: 'NAME_ASC',
     })
 
-    expect(result.totalCount).toBe(26)
+    expect(result.totalCount).toBe(28)
     expect(
       result.rows.every(({ application }) =>
         ['디자인', '기획'].includes(application.position?.name ?? ''),
@@ -90,7 +90,7 @@ describe('서류 평가 목록 API (MSW)', () => {
     ).toBe(true)
     const names = result.rows.map(({ application }) => application.user.name)
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'ko')))
-    expect(result.positionCounts.map(({ count }) => count)).toEqual([20, 22, 6])
+    expect(result.positionCounts.map(({ count }) => count)).toEqual([19, 20, 9])
   })
 
   it('null·빈 포지션 목록은 전체, 페이지는 1부터 10행씩 조회', async () => {
@@ -101,12 +101,12 @@ describe('서류 평가 목록 API (MSW)', () => {
     expect(empty).toEqual(all)
     expect(last.page).toBe(5)
     expect(last.rows).toHaveLength(8)
-    expect(last.rows[0]?.application.id).toBe('41')
+    expect(last.rows[0]?.application.id).toBe(`application-${POSTING_ID}-41`)
   })
 
   it('파트 없는 모집은 포지션 숫자 없이 지원자를 반환', async () => {
     const postingId = ORGANIZATION_POSTING_ID.noInterviewResult
-    expect(await getDocumentReviewPosting(postingId)).toMatchObject({ noPosition: true })
+    expect(await getRecruitmentPosting(postingId)).toMatchObject({ noPosition: true })
     const result = await getDocEvaluationApplications({ postingId })
 
     expect(result.totalCount).toBe(18)
@@ -124,7 +124,7 @@ describe('서류 평가 목록 API (MSW)', () => {
     await expect(getDocEvaluationApplications({ postingId: 'missing' })).rejects.toMatchObject({
       code: 'POSTING_404',
     })
-    await expect(getDocumentReviewPosting('missing')).rejects.toMatchObject({ code: 'POSTING_404' })
+    await expect(getRecruitmentPosting('missing')).rejects.toMatchObject({ code: 'POSTING_404' })
     await expect(
       getDocEvaluationApplications({ postingId: POSTING_ID, page: 0 }),
     ).rejects.toMatchObject({ code: 'COMMON_400' })

@@ -18,6 +18,12 @@ export const Selected: Story = {
   render: () => <ScoreRow label="Q1. 지원 동기" defaultValue="4" className="w-87.5 max-w-full" />,
 }
 
+export const ReadOnly: Story = {
+  render: () => (
+    <ScoreRow label="Q1. 지원 동기" defaultValue="5" disabled className="w-87.5 max-w-full" />
+  ),
+}
+
 export const Error: Story = {
   render: () => (
     <ScoreRow
