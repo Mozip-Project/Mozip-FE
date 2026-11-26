@@ -77,6 +77,7 @@ function toQuestionSet(serverQuestions: ServerQuestion[]): PostingQuestionSet {
 }
 
 // 포지션별 모집은 포지션 순서대로 묶음, 통합 모집은 묶음 하나
+// 연결이 끊긴 문항은 원래 포지션을 알 수 없어 지워지지 않도록 첫 포지션 묶음에 복원
 function toQuestionSets(posting: PostingDraftFieldsFragment, positionIds: string[]) {
   if (posting.questions.length === 0) {
     return []
@@ -84,8 +85,12 @@ function toQuestionSets(posting: PostingDraftFieldsFragment, positionIds: string
   if (posting.noPosition) {
     return [toQuestionSet(posting.questions)]
   }
-  return positionIds.map((positionId) =>
-    toQuestionSet(posting.questions.filter((question) => question.position?.id === positionId)),
+  return positionIds.map((positionId, index) =>
+    toQuestionSet(
+      posting.questions.filter(
+        ({ position }) => position?.id === positionId || (index === 0 && position === null),
+      ),
+    ),
   )
 }
 

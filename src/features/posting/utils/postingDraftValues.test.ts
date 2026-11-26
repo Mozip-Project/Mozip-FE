@@ -157,6 +157,19 @@ describe('toPostingCreateValues', () => {
     expect(devSet?.questions.map((question) => question.id)).toEqual(['q3'])
   })
 
+  it('포지션 연결이 끊긴 문항은 지워지지 않도록 첫 포지션 묶음에 복원', () => {
+    const values = toPostingCreateValues({
+      ...FILLED_DRAFT,
+      questions: FILLED_DRAFT.questions.map((question) =>
+        question.id === 'q3' ? { ...question, position: null } : question,
+      ),
+    })
+    const [designSet, devSet] = values.questionSets
+
+    expect(designSet?.questions.map((question) => question.id)).toEqual(['q1', 'q3', 'q2'])
+    expect(devSet?.questions).toEqual([])
+  })
+
   it('통합 모집은 문항 묶음 하나', () => {
     const values = toPostingCreateValues({
       ...FILLED_DRAFT,

@@ -25,7 +25,8 @@ function PostingDraftEditContent({ postingId, savedOrganizationId }: PostingDraf
   const { meQuery, currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
   const draftQuery = usePostingDraftQuery(postingId)
 
-  if (meQuery.isError) {
+  // 재조회 실패는 이전 단체 정보로 폼 유지
+  if (meQuery.isError && !meQuery.data) {
     return (
       <OrganizationLoadError
         message="단체 정보를 불러오지 못했어요"

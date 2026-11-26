@@ -65,17 +65,19 @@ function usePostingDraftSave({
         setPostingId(posting.id)
         window.history.replaceState(null, '', getPostingEditPath(posting.id))
       }
+      // 다시 연결하는 요청이 실패해도 다음 저장이 새 포지션 id를 쓰도록 먼저 반영
+      const savedPositionsAfterSave = getSavedPositions(posting)
+      setSavedPositions(savedPositionsAfterSave)
       // 포지션이 새 id로 바뀌어 연결이 끊긴 문항을 새 id로 다시 저장
       if (hasDetachedQuestions(posting)) {
         posting = await mutateAsync({
           organizationId,
           id: posting.id,
           input: toDraftStepInput('form', values, hasInterview, {
-            savedPositions: getSavedPositions(posting),
+            savedPositions: savedPositionsAfterSave,
           }),
         })
       }
-      setSavedPositions(getSavedPositions(posting))
       setSaveState({ status: 'saved', savedAt: new Date(posting.updatedAt) })
       return true
     } catch (error) {
