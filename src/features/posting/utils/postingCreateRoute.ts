@@ -12,6 +12,13 @@ function getPostingEditPath(postingId: string) {
   return `/manage/postings/${postingId}/edit` as Route
 }
 
+const POSTING_EDIT_PATH_PATTERN = /^\/manage\/postings\/([^/]+)\/edit$/
+
+// 첫 저장은 주소만 편집 주소로 바꿔 라우트 params에 공고 ID가 없어 주소에서 읽음
+function parsePostingEditPath(pathname: string) {
+  return POSTING_EDIT_PATH_PATTERN.exec(pathname)?.[1]
+}
+
 function parseHasInterview(value: string | string[] | undefined) {
   if (value === 'true') {
     return true
@@ -22,4 +29,10 @@ function parseHasInterview(value: string | string[] | undefined) {
   return null
 }
 
-export { INTERVIEW_SEARCH_PARAM, getNewPostingPath, getPostingEditPath, parseHasInterview }
+export {
+  INTERVIEW_SEARCH_PARAM,
+  getNewPostingPath,
+  getPostingEditPath,
+  parseHasInterview,
+  parsePostingEditPath,
+}
