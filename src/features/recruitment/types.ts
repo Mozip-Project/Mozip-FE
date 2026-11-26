@@ -190,14 +190,17 @@ type RecipientDelivery =
 // 면접 정보 안내에서만 있음, 확정한 타임테이블 값
 type ResultNoticeInterviewSchedule = {
   dateTime: string
-  place: string
+  // 장소를 정하지 않은 면접 칸은 null
+  place: string | null
 }
 
 type ResultNoticeRecipient = {
   id: string
   name: string
-  position: DocumentReviewPosition
-  email: string
+  // 서버 포지션 이름, 포지션 없는 모집은 null
+  position: string | null
+  // 연락 이메일이 없으면 null
+  email: string | null
   delivery: RecipientDelivery
   interviewSchedule?: ResultNoticeInterviewSchedule
 }
@@ -211,12 +214,11 @@ const RESULT_NOTICE_SEND_SUBJECT = {
   interview: '서류 결과와 면접 일정을',
 } satisfies Record<ResultNoticeKind, string>
 
+// 받는 사람은 결과 안내 조회, 나머지는 아직 목데이터
 type ResultNoticeOverview = {
   organizationName: string
   // 면접 정보 안내에서만 있음
   interviewPeriod?: string
-  // 확정된 합격·불합격 지원자, 탭 숫자도 이 인원 기준
-  recipients: Record<ResultNoticeTarget, ResultNoticeRecipient[]>
 }
 
 // 대상 하나의 발송 결과, 받는 사람별 전달 상태 포함

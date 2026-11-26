@@ -154,7 +154,7 @@ describe('getResultNoticeSendState', () => {
 const FAILED_RECIPIENT: ResultNoticeRecipient = {
   id: 'f1',
   name: '지원자f1',
-  position: 'design',
+  position: '디자인',
   email: 'f1@example.com',
   delivery: { status: 'failed', message: '전달 실패' },
 }

@@ -16,8 +16,9 @@ import {
 function createRecipient(
   id: string,
   delivery: RecipientDelivery = { status: 'pending' },
+  email = `a${id}@example.com`,
 ): ResultNoticeRecipient {
-  return { id, name: `지원자${id}`, position: 'design', email: `a${id}@example.com`, delivery }
+  return { id, name: `지원자${id}`, position: '디자인', email, delivery }
 }
 
 const EMAIL_CHECK: RecipientDelivery = { status: 'emailCheck', message: '주소 확인' }
@@ -25,7 +26,7 @@ const EMAIL_CHECK: RecipientDelivery = { status: 'emailCheck', message: '주소 
 // 합격 2명 중 1명은 이메일 확인 필요, 불합격 2명 중 1명은 전달 실패 샘플
 const RECIPIENTS: ResultNoticeRecipients = {
   pass: [createRecipient('p1'), createRecipient('p2', EMAIL_CHECK)],
-  fail: [createRecipient('f1'), createRecipient(SEND_FAILED_SAMPLE.applicantId)],
+  fail: [createRecipient('f1'), createRecipient('f2', undefined, SEND_FAILED_SAMPLE.email)],
 }
 
 const MESSAGES = {

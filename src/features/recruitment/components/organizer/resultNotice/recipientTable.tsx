@@ -6,11 +6,7 @@ import CheckIcon from '@/assets/icons/check.svg'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import { Button } from '@/components/ui/Button/button'
 import { TableCell, TableHeadCell } from '@/components/ui/Table/table'
-import {
-  DOCUMENT_REVIEW_POSITION_LABEL,
-  type RecipientDelivery,
-  type ResultNoticeRecipient,
-} from '@/features/recruitment/types'
+import type { RecipientDelivery, ResultNoticeRecipient } from '@/features/recruitment/types'
 import { scrollWithoutRevealing } from '@/hooks/useHideOnScrollDown'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +20,7 @@ const COLUMN_CLASS = {
 }
 
 const ROW_CLASS = 'flex items-center px-padding-xl'
+const BODY_ROW_CLASS = 'min-h-14 border-t border-neutral-subtle py-padding-s'
 
 const DELIVERY_ROW_CLASS = {
   pending: '',
@@ -31,6 +28,8 @@ const DELIVERY_ROW_CLASS = {
   failed: 'bg-critical-weak',
   emailCheck: 'bg-warning-weak',
 } satisfies Record<RecipientDelivery['status'], string>
+
+const SKELETON_ROW_KEYS = Array.from({ length: COLLAPSED_ROW_COUNT }, (_, index) => index)
 
 // 같은 행으로 다시 이동해도 스크롤하도록 요청마다 새 객체로 전달
 type RecipientFocusRequest = {
@@ -105,15 +104,8 @@ function RecipientTable({ label, recipients, statusLabel, focusRequest }: Recipi
 
   return (
     <div data-slot="recipient-table">
-      <div ref={tableRef} role="table" aria-label={label}>
-        <div role="row" className={cn(ROW_CLASS, 'bg-neutral-weak py-padding-xs')}>
-          <TableHeadCell className={COLUMN_CLASS.name}>지원자</TableHeadCell>
-          <TableHeadCell className={COLUMN_CLASS.position}>포지션</TableHeadCell>
-          <TableHeadCell className={COLUMN_CLASS.email}>이메일</TableHeadCell>
-          <TableHeadCell align="right" className="min-w-0 flex-1">
-            {statusLabel ?? <span className="sr-only">발송 상태</span>}
-          </TableHeadCell>
-        </div>
+      <div ref={tableRef} role="table" aria-label={label} aria-busy={false}>
+        <TableHead statusLabel={statusLabel} />
 
         {visibleRecipients.map((recipient, index) => {
           const canReceiveFocus =
@@ -128,7 +120,7 @@ function RecipientTable({ label, recipients, statusLabel, focusRequest }: Recipi
               tabIndex={canReceiveFocus ? -1 : undefined}
               className={cn(
                 ROW_CLASS,
-                'min-h-14 border-t border-neutral-subtle py-padding-s',
+                BODY_ROW_CLASS,
                 'outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
                 DELIVERY_ROW_CLASS[recipient.delivery.status],
               )}
@@ -137,10 +129,10 @@ function RecipientTable({ label, recipients, statusLabel, focusRequest }: Recipi
                 {recipient.name}
               </TableCell>
               <TableCell type="text" className={COLUMN_CLASS.position}>
-                {DOCUMENT_REVIEW_POSITION_LABEL[recipient.position]}
+                {recipient.position ?? ''}
               </TableCell>
               <TableCell type="text" className={COLUMN_CLASS.email}>
-                {recipient.email}
+                {recipient.email ?? ''}
               </TableCell>
               <div role="cell" className={COLUMN_CLASS.status}>
                 <DeliveryStatus delivery={recipient.delivery} />
@@ -168,6 +160,19 @@ function RecipientTable({ label, recipients, statusLabel, focusRequest }: Recipi
   )
 }
 
+function TableHead({ statusLabel }: Pick<RecipientTableProps, 'statusLabel'>) {
+  return (
+    <div role="row" className={cn(ROW_CLASS, 'bg-neutral-weak py-padding-xs')}>
+      <TableHeadCell className={COLUMN_CLASS.name}>지원자</TableHeadCell>
+      <TableHeadCell className={COLUMN_CLASS.position}>포지션</TableHeadCell>
+      <TableHeadCell className={COLUMN_CLASS.email}>이메일</TableHeadCell>
+      <TableHeadCell align="right" className="min-w-0 flex-1">
+        {statusLabel ?? <span className="sr-only">발송 상태</span>}
+      </TableHeadCell>
+    </div>
+  )
+}
+
 function DeliveryStatus({ delivery }: { delivery: RecipientDelivery }) {
   switch (delivery.status) {
     case 'pending':
@@ -190,5 +195,30 @@ function DeliveryStatus({ delivery }: { delivery: RecipientDelivery }) {
   }
 }
 
-export { RecipientTable }
+// 발송 전 화면 기준, 접힌 상태의 5행
+function RecipientSkeletonTable({ label }: Pick<RecipientTableProps, 'label'>) {
+  return (
+    <div data-slot="recipient-table">
+      <div role="table" aria-label={label} aria-busy={true}>
+        <TableHead />
+
+        {SKELETON_ROW_KEYS.map((key) => (
+          <div key={key} aria-hidden className={cn(ROW_CLASS, BODY_ROW_CLASS)}>
+            <span className={cn(COLUMN_CLASS.name, 'flex items-center')}>
+              <span className="skeleton-bar h-3.5 w-14 rounded-full" />
+            </span>
+            <span className={cn(COLUMN_CLASS.position, 'flex items-center')}>
+              <span className="skeleton-bar h-3.5 w-10 rounded-full" />
+            </span>
+            <span className={cn(COLUMN_CLASS.email, 'flex items-center')}>
+              <span className="skeleton-bar h-3.5 w-36 rounded-full" />
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export { RecipientSkeletonTable, RecipientTable }
 export type { RecipientFocusRequest }

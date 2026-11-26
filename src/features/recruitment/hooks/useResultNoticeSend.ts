@@ -35,12 +35,12 @@ type ResultNoticeSendResults = Partial<Record<ResultNoticeTarget, ResultNoticeTa
 type FailedRecipientsByTarget = Record<ResultNoticeTarget, ResultNoticeRecipient[]>
 
 // 이메일 확인 필요 인원은 보내지 않아 상태 유지
-function getMockDelivery({ id, delivery }: ResultNoticeRecipient): RecipientDelivery {
+function getMockDelivery({ email, delivery }: ResultNoticeRecipient): RecipientDelivery {
   if (delivery.status === 'emailCheck') {
     return delivery
   }
 
-  if (id === SEND_FAILED_SAMPLE.applicantId) {
+  if (email === SEND_FAILED_SAMPLE.email) {
     return { status: 'failed', message: SEND_FAILED_SAMPLE.message }
   }
 

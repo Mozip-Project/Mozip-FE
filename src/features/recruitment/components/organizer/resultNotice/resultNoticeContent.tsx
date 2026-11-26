@@ -1,13 +1,19 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useParams } from 'next/navigation'
 import { useRef, useState, type Ref } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
+import FileTextIcon from '@/assets/icons/fileText.svg'
 import UsersIcon from '@/assets/icons/users.svg'
 import { EmptyState } from '@/components/ui/EmptyState/emptyState'
 import { scrollToStickyBarTop, StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs/tabs'
-import { useResultNoticeSend } from '@/features/recruitment/hooks/useResultNoticeSend'
+import { useResultMessageRecipientsQuery } from '@/features/recruitment/api/organizer/queries'
+import {
+  useResultNoticeSend,
+  type ResultNoticeRecipients,
+} from '@/features/recruitment/hooks/useResultNoticeSend'
 import {
   INTERVIEW_RESULT_NOTICE_SAMPLE,
   RESULT_NOTICE_SAMPLE,
@@ -23,17 +29,24 @@ import {
   type ResultNoticeOverview,
   type ResultNoticeTarget,
 } from '@/features/recruitment/types'
-import { countEmailCheckRecipients } from '@/features/recruitment/utils/resultNoticeRecipient'
+import {
+  countEmailCheckRecipients,
+  toResultNoticeRecipient,
+} from '@/features/recruitment/utils/resultNoticeRecipient'
 import {
   getPendingTargets,
   getResultNoticeSendState,
 } from '@/features/recruitment/utils/resultNoticeSendState'
+import { cn } from '@/lib/utils'
 import { isOneOf } from '@/utils/isOneOf'
 import { DeliveryFailureNotice } from './deliveryFailureNotice'
+import { RecipientSkeletonTable, type RecipientFocusRequest } from './recipientTable'
 import { ResultNoticePanel } from './resultNoticePanel'
 import { ResultNoticeSendDialog } from './resultNoticeSendDialog'
 import { ResultNoticeSummaryBar } from './resultNoticeSummaryBar'
-import type { RecipientFocusRequest } from './recipientTable'
+
+const SKELETON_CARD_CLASS =
+  'flex flex-col gap-gap-l rounded-l border border-neutral-subtle bg-layer-default p-padding-xl'
 
 // flex-1: 페이지 최소 높이(page-min-height)까지 늘려 하단 바(page-bottom-bar)를 화면 아래에 배치
 const TABS_CLASS = 'flex flex-1 flex-col gap-gap-xl'
@@ -48,8 +61,70 @@ type ResultNoticeContentProps = {
   kind: ResultNoticeKind
 }
 
-// TODO: 결과 안내 API 확정 후 조회로 교체하고 로딩·실패 상태 추가
 function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
+  const { postingId } = useParams<{ postingId: string }>()
+  const { data, isError } = useResultMessageRecipientsQuery(postingId)
+
+  if (!data) {
+    return <ResultNoticeContentFallback isError={isError} />
+  }
+
+  const recipients = {
+    pass: data.pass.recipients.map(toResultNoticeRecipient),
+    fail: data.fail.recipients.map(toResultNoticeRecipient),
+  } satisfies ResultNoticeRecipients
+
+  return <ResultNoticeTabs kind={kind} recipients={recipients} />
+}
+
+// TODO: 로딩·조회 실패 디자인 확인 필요, 서류 결과 확정 전(MESSAGE_409)도 지금은 조회 실패로 표시
+function ResultNoticeContentFallback({ isError }: { isError: boolean }) {
+  if (isError) {
+    return (
+      <div role="alert">
+        <EmptyState icon={<FileTextIcon className="size-7" />} title="조회에 실패했어요" />
+      </div>
+    )
+  }
+
+  // 탭바, 작성·미리보기 카드, 받는 사람 카드 자리
+  return (
+    <div role="status">
+      <span className="sr-only">받는 사람을 불러오는 중</span>
+      <div aria-hidden className="flex animate-skeleton-delayed-show flex-col gap-gap-xl">
+        <div className="flex gap-gap-l border-b border-neutral-subtle pb-padding-s">
+          <span className="skeleton-bar h-5 w-16 rounded-full" />
+          <span className="skeleton-bar h-5 w-16 rounded-full" />
+        </div>
+        <div className="flex flex-col gap-gap-m">
+          <div className="flex gap-gap-l">
+            <div className={cn(SKELETON_CARD_CLASS, 'min-w-70 flex-1')}>
+              <span className="skeleton-bar h-6 w-32 rounded-full" />
+              <span className="skeleton-bar h-60 w-full rounded-m" />
+            </div>
+            <div className={cn(SKELETON_CARD_CLASS, 'w-95 shrink-0')}>
+              <span className="skeleton-bar h-4 w-16 rounded-full" />
+              <span className="skeleton-bar h-60 w-full rounded-m" />
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-l border border-neutral-subtle bg-layer-default">
+            <div className="px-padding-xl py-padding-m">
+              <span className="skeleton-bar block h-6 w-24 rounded-full" />
+            </div>
+            <RecipientSkeletonTable label="받는 사람" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type ResultNoticeTabsProps = ResultNoticeContentProps & {
+  recipients: ResultNoticeRecipients
+}
+
+function ResultNoticeTabs({ kind, recipients }: ResultNoticeTabsProps) {
+  // TODO: 결과 안내 메시지 조회 연결 후 단체명·면접 기간도 조회 값으로 교체
   const notice: ResultNoticeOverview =
     kind === 'interview' ? INTERVIEW_RESULT_NOTICE_SAMPLE : RESULT_NOTICE_SAMPLE
   const [currentTarget, setCurrentTarget] = useState<ResultNoticeTarget>('pass')
@@ -60,14 +135,14 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
     defaultValues: EMPTY_MESSAGES,
   })
   const [passMessage, failMessage] = useWatch({ control, name: ['pass', 'fail'] })
-  const sendFlow = useResultNoticeSend(notice.recipients)
+  const sendFlow = useResultNoticeSend(recipients)
   const tabsRef = useRef<HTMLDivElement>(null)
   const tabsListRef = useRef<HTMLDivElement>(null)
   const [failedRowFocusRequest, setFailedRowFocusRequest] = useState<RecipientFocusRequest>()
 
   const recipientCounts = {
-    pass: notice.recipients.pass.length,
-    fail: notice.recipients.fail.length,
+    pass: recipients.pass.length,
+    fail: recipients.fail.length,
   } satisfies Record<ResultNoticeTarget, number>
   const hasFailRecipients = recipientCounts.fail > 0
 
@@ -81,8 +156,8 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
   })
 
   const sendCounts = {
-    pass: recipientCounts.pass - countEmailCheckRecipients(notice.recipients.pass),
-    fail: recipientCounts.fail - countEmailCheckRecipients(notice.recipients.fail),
+    pass: recipientCounts.pass - countEmailCheckRecipients(recipients.pass),
+    fail: recipientCounts.fail - countEmailCheckRecipients(recipients.fail),
   } satisfies Record<ResultNoticeTarget, number>
 
   const pendingTargets = getPendingTargets({
@@ -176,7 +251,7 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
                 target={target}
                 organizationName={notice.organizationName}
                 interviewPeriod={notice.interviewPeriod}
-                recipients={notice.recipients[target]}
+                recipients={recipients[target]}
                 control={control}
                 onMessageReset={() => handleMessageReset(target)}
                 sendResult={sendFlow.results[target]}
@@ -197,7 +272,7 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
       <ResultNoticeSendDialog
         kind={kind}
         dialog={sendFlow.dialog}
-        recipients={notice.recipients}
+        recipients={recipients}
         progress={sendFlow.progress}
         results={sendFlow.results}
         onClose={sendFlow.closeDialog}
