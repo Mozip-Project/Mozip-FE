@@ -159,9 +159,24 @@ function toPostingCreateValues(posting: PostingDraftFieldsFragment): PostingCrea
   }
 }
 
-// 문항의 positionId로 쓸 저장된 포지션 id, 문항 묶음과 같은 순서
-function getSavedPositionIds(posting: PostingDraftFieldsFragment) {
-  return posting.positions.toSorted(bySortOrder).map((position) => position.id)
+type SavedPosition = {
+  id: string
+  name: string
 }
 
-export { getSavedPositionIds, toPostingCreateValues }
+// 문항의 positionId로 쓸 저장된 포지션, 문항 묶음과 같은 순서
+function getSavedPositions(posting: PostingDraftFieldsFragment): SavedPosition[] {
+  return posting.positions.toSorted(bySortOrder).map(({ id, name }) => ({ id, name }))
+}
+
+// 포지션을 다시 만들면 서버가 기존 문항의 포지션 연결을 끊음(ON DELETE SET NULL), 화면은 공통 문항을 만들지 않음
+function hasDetachedQuestions(posting: PostingDraftFieldsFragment) {
+  return (
+    !posting.noPosition &&
+    posting.positions.length > 0 &&
+    posting.questions.some((question) => question.position === null)
+  )
+}
+
+export { getSavedPositions, hasDetachedQuestions, toPostingCreateValues }
+export type { SavedPosition }

@@ -4,7 +4,11 @@ import { useSavePostingDraftMutation } from '@/features/posting/api/organizer/qu
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
 import { getPostingEditPath } from '@/features/posting/utils/postingCreateRoute'
 import { toDraftStepInput, type DraftStepId } from '@/features/posting/utils/postingDraftInput'
-import { getSavedPositionIds } from '@/features/posting/utils/postingDraftValues'
+import {
+  getSavedPositions,
+  hasDetachedQuestions,
+  type SavedPosition,
+} from '@/features/posting/utils/postingDraftValues'
 import { ApiError } from '@/lib/apiError'
 import { useToast } from '@/providers/toastProvider'
 
@@ -13,7 +17,7 @@ const SAVE_FAILED_MESSAGE = '잠시 후 다시 시도해 주세요'
 // 이어서 작성할 때 불러온 공고
 type SavedPostingDraft = {
   id: string
-  positionIds: string[]
+  positions: SavedPosition[]
   updatedAt: string
 }
 
@@ -38,7 +42,7 @@ function usePostingDraftSave({
   savedDraft,
 }: UsePostingDraftSaveParams) {
   const [postingId, setPostingId] = useState(savedDraft?.id ?? null)
-  const [positionIds, setPositionIds] = useState(savedDraft?.positionIds ?? [])
+  const [savedPositions, setSavedPositions] = useState(savedDraft?.positions ?? [])
   const [saveState, setSaveState] = useState<SaveState>(
     savedDraft ? { status: 'saved', savedAt: new Date(savedDraft.updatedAt) } : { status: 'idle' },
   )
@@ -52,16 +56,26 @@ function usePostingDraftSave({
 
     setSaveState({ status: 'saving' })
     try {
-      const posting = await mutateAsync({
+      let posting = await mutateAsync({
         organizationId,
         id: postingId,
-        input: toDraftStepInput(stepId, values, hasInterview, { positionIds }),
+        input: toDraftStepInput(stepId, values, hasInterview, { savedPositions }),
       })
       if (!postingId) {
         setPostingId(posting.id)
         window.history.replaceState(null, '', getPostingEditPath(posting.id))
       }
-      setPositionIds(getSavedPositionIds(posting))
+      // 포지션이 새 id로 바뀌어 연결이 끊긴 문항을 새 id로 다시 저장
+      if (hasDetachedQuestions(posting)) {
+        posting = await mutateAsync({
+          organizationId,
+          id: posting.id,
+          input: toDraftStepInput('form', values, hasInterview, {
+            savedPositions: getSavedPositions(posting),
+          }),
+        })
+      }
+      setSavedPositions(getSavedPositions(posting))
       setSaveState({ status: 'saved', savedAt: new Date(posting.updatedAt) })
       return true
     } catch (error) {

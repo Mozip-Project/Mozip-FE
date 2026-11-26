@@ -7,7 +7,7 @@ import { OrganizationLoadError } from '@/features/organization/components/organi
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { usePostingDraftQuery } from '@/features/posting/api/organizer/queries'
 import {
-  getSavedPositionIds,
+  getSavedPositions,
   toPostingCreateValues,
 } from '@/features/posting/utils/postingDraftValues'
 import { ApiError } from '@/lib/apiError'
@@ -70,7 +70,7 @@ function PostingDraftEditContent({ postingId, savedOrganizationId }: PostingDraf
       defaultValues={toPostingCreateValues(posting)}
       savedDraft={{
         id: posting.id,
-        positionIds: getSavedPositionIds(posting),
+        positions: getSavedPositions(posting),
         updatedAt: posting.updatedAt,
       }}
     />

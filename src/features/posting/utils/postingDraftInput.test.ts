@@ -7,7 +7,7 @@ import type { PostingQuestion } from '@/features/posting/schemas/postingFormSche
 import { toDraftStepInput, type DraftInputContext } from './postingDraftInput'
 import { createQuestion } from './postingQuestions'
 
-const EMPTY_CONTEXT = { positionIds: [] } satisfies DraftInputContext
+const EMPTY_CONTEXT = { savedPositions: [] } satisfies DraftInputContext
 
 function question(overrides: Partial<PostingQuestion> & Pick<PostingQuestion, 'type'>) {
   return { ...createQuestion(overrides.type), ...overrides }
@@ -101,6 +101,27 @@ describe('toDraftStepInput', () => {
     })
   })
 
+  it('모집 방식: 저장된 포지션과 이름·순서가 같으면 다시 만들지 않도록 positions 생략', () => {
+    const savedPositions = [
+      { id: 'p1', name: '디자인팀' },
+      { id: 'p2', name: '개발팀' },
+    ]
+    const toInput = (names: string[]) =>
+      toDraftStepInput(
+        'method',
+        values({ recruitType: 'position', positions: names.map((name) => ({ name })) }),
+        false,
+        { savedPositions },
+      )
+
+    expect(toInput(['디자인팀', '개발팀'])).toEqual({ noPosition: false })
+    expect(toInput(['개발팀', '디자인팀']).positions).toEqual([
+      { name: '개발팀', sortOrder: 0 },
+      { name: '디자인팀', sortOrder: 1 },
+    ])
+    expect(toInput(['디자인팀']).positions).toEqual([{ name: '디자인팀', sortOrder: 0 }])
+  })
+
   it('지원서 양식: 포지션 순서대로 positionId, 탭 안 순서, 글 문항만 글자 수', () => {
     const intro = question({ type: 'text', title: ' 자기소개 ', maxLength: '700' })
     const portfolio = question({ type: 'file', title: '포트폴리오', description: '  ' })
@@ -111,7 +132,12 @@ describe('toDraftStepInput', () => {
         questionSets: [{ questions: [intro, portfolio] }, { questions: [intro] }],
       }),
       false,
-      { positionIds: ['p1', 'p2'] },
+      {
+        savedPositions: [
+          { id: 'p1', name: '디자인팀' },
+          { id: 'p2', name: '개발팀' },
+        ],
+      },
     )
 
     expect(input.questions).toEqual([
@@ -152,7 +178,7 @@ describe('toDraftStepInput', () => {
         ],
       }),
       false,
-      { positionIds: ['p1'] },
+      { savedPositions: [{ id: 'p1', name: '디자인팀' }] },
     )
 
     expect(input.questions).toEqual([
