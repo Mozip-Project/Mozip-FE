@@ -1,21 +1,5 @@
-import { notFound } from 'next/navigation'
-import { AttachmentCard } from '@/components/ui/AttachmentCard/attachmentCard'
-import { BackLink } from '@/components/ui/BackLink/backLink'
-import {
-  EVALUATION_STRIP_SAMPLE,
-  getDocumentEvaluationSample,
-} from '@/features/recruitment/mocks/documentEvaluationSample'
-import {
-  getDocumentReviewHref,
-  parseDocumentReviewQuery,
-} from '@/features/recruitment/utils/documentReviewQuery'
-import { findNextApplicantToEvaluate } from '@/features/recruitment/utils/nextApplicant'
-import { AnswerCard } from './answerCard'
-import { ApplicantInfoCard } from './applicantInfoCard'
-import { AvailabilityCard } from './availabilityCard'
-import { DocumentEvaluationChipStrip } from './documentEvaluationChipStrip'
-import { DocumentEvaluationPanel } from './documentEvaluationPanel'
-import type { Route } from 'next'
+import { DocumentEvaluationApplication } from '@/features/recruitment/components/organizer/documentEvaluationApplication/documentEvaluationApplication'
+import { DocumentEvaluationPanel } from '@/features/recruitment/components/organizer/documentEvaluationPanel/documentEvaluationPanel'
 
 type DocumentEvaluationContentProps = Pick<
   PageProps<'/manage/postings/[postingId]/documents/[applicantId]'>,
@@ -24,64 +8,16 @@ type DocumentEvaluationContentProps = Pick<
 
 async function DocumentEvaluationContent({ params }: DocumentEvaluationContentProps) {
   const { postingId, applicantId } = await params
-  const applicant = getDocumentEvaluationSample(applicantId)
-
-  if (!applicant) {
-    notFound()
-  }
-
-  const listHref = getDocumentReviewHref(postingId, parseDocumentReviewQuery({}))
-  const next = findNextApplicantToEvaluate(EVALUATION_STRIP_SAMPLE, applicant.id)
-  const nextApplicant = next && {
-    href: `/manage/postings/${postingId}/documents/${next.id}` as Route,
-    isWrapped: next.isWrapped,
-  }
 
   return (
-    <div className="flex flex-col gap-gap-xl">
-      <h1 className="sr-only">{applicant.name} 서류 평가</h1>
-      <BackLink href={listHref} label="서류 평가" className="self-start" />
-
-      <DocumentEvaluationChipStrip
-        postingId={postingId}
-        applicants={EVALUATION_STRIP_SAMPLE}
-        currentId={applicant.id}
-      />
-
-      <div className="flex items-start gap-gap-xl">
-        <div className="flex min-w-0 flex-1 flex-col gap-gap-l">
-          <ApplicantInfoCard
-            name={applicant.name}
-            education={applicant.education}
-            position={applicant.position}
-            phone={applicant.phone}
-            email={applicant.email}
-          />
-          {applicant.answers.map((answer, index) => (
-            <AnswerCard
-              key={answer.id}
-              questionNumber={index + 1}
-              question={answer.question}
-              answer={answer.answer}
-              maxLength={answer.maxLength}
-            />
-          ))}
-          <AvailabilityCard slots={applicant.availableSlots} />
-          <AttachmentCard
-            title="포트폴리오"
-            items={applicant.attachments}
-            emptyMessage="첨부한 포트폴리오가 없어요"
-          />
-        </div>
-
-        <DocumentEvaluationPanel
-          key={applicant.id}
-          applicantName={applicant.name}
-          scoreQuestions={applicant.scoreQuestions}
-          savedEvaluation={applicant.savedEvaluation}
-          nextApplicant={nextApplicant}
-        />
+    <div className="flex items-start gap-gap-xl">
+      {/* 지원서 로딩·오류 중에도 페이지 제목 유지 */}
+      <h1 className="sr-only">서류 평가</h1>
+      <div className="flex min-w-0 flex-1 flex-col gap-gap-l">
+        <DocumentEvaluationApplication postingId={postingId} applicationId={applicantId} />
       </div>
+
+      <DocumentEvaluationPanel key={applicantId} postingId={postingId} applicantId={applicantId} />
     </div>
   )
 }

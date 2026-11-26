@@ -49,6 +49,14 @@ export const Error: Story = {
   ),
 }
 
+export const ReadOnly: Story = {
+  render: () => (
+    <SegmentGroup aria-label="평가 결과" defaultValue="pass" disabled className="w-90">
+      <ResultOptions />
+    </SegmentGroup>
+  ),
+}
+
 const FIVE_OPTIONS = ['합격', '보류', '불합격', '옵션 4', '옵션 5'] as const
 
 function FiveOptions() {

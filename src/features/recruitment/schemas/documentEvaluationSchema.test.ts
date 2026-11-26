@@ -22,13 +22,15 @@ describe('createSubmitSchema', () => {
     expect(result.success).toBe(true)
   })
 
-  it('의견이 없어도 모든 문항 점수가 있으면 통과', () => {
+  it('모든 문항 점수가 있어도 의견이 없으면 의견 위치에 오류', () => {
     const result = submitSchema.safeParse({
       ...EMPTY_VALUES,
       scores: { motivation: '5', conflict: '3' },
     })
 
-    expect(result.success).toBe(true)
+    expect(result.error?.issues).toEqual([
+      expect.objectContaining({ path: ['opinion'], message: '의견을 선택해 주세요' }),
+    ])
   })
 
   it('점수가 빠진 문항마다 해당 문항 위치에 오류', () => {

@@ -1,9 +1,4 @@
 import { delay, HttpResponse } from 'msw'
-import { getManagedPostingSample } from '@/features/posting/mocks/managedPostingHandlers'
-import {
-  findOrganizationPostingSample,
-  ORGANIZATION_POSTING_SAMPLES,
-} from '@/features/posting/mocks/organizationPostingSamples'
 import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_RESULT_PAGE_SIZE } from '@/features/recruitment/types'
 import type {
@@ -14,18 +9,17 @@ import type {
   DocResult,
   DocResultTab,
   DocSummarySort,
-  PostingStatus,
   SetDocResultMutation,
   SetDocResultMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
-import { DOCUMENT_RESULT_SAMPLE } from './documentResultSample'
-
-// 샘플 의견 수 합계와 같은 운영진 수
-const EVALUATOR_COUNT = 3
-
-type SampleApplicant = (typeof DOCUMENT_RESULT_SAMPLE)[number]
+import {
+  findApplication,
+  getEvaluationSummary,
+  getPostingApplications,
+  setDocResultOverride,
+} from './organizerApplicationStore'
 
 type SummaryRow = {
   id: string
@@ -37,66 +31,6 @@ type SummaryRow = {
   evaluationComplete: boolean
   // 샘플 순서가 앞일수록 최근 제출
   submitOrder: number
-}
-
-const REVIEW_DOC_RESULT = {
-  pass: 'PASS',
-  hold: 'HOLD',
-  fail: 'FAIL',
-} satisfies Record<SampleApplicant['result'], DocResult>
-
-const CONFIRMED_DOC_RESULT = {
-  pass: 'PASS',
-  hold: 'FAIL',
-  fail: 'FAIL',
-} satisfies Record<SampleApplicant['result'], DocResult>
-
-const NOT_EVALUATED_OPINIONS = { pass: 0, hold: 0, fail: 0, notEvaluated: EVALUATOR_COUNT }
-
-// 결과 변경이 새로고침 전까지 유지되도록 지원서 ID별로 메모리에 보관
-const docResultOverrides = new Map<string, DocResult>()
-
-// 결과 변경 요청에 공고 ID가 없어 공고별로 다른 지원서 ID 사용
-function getSampleApplicationId(postingId: string, applicantId: string) {
-  return `application-${postingId}-${applicantId}`
-}
-
-// 지원자 관리 MSW도 서류 평가에서 바꾼 결과 표시
-function getDocResultOverride(applicationId: string) {
-  return docResultOverrides.get(applicationId)
-}
-
-// 모집 중은 평가 전(결과 확정까지 확인하도록 서류 평가 중은 전원 평가 완료), 확정 후에는 보류 없이 합격·불합격
-function toSummaryRow(
-  postingId: string,
-  applicant: SampleApplicant,
-  index: number,
-  status: PostingStatus,
-): SummaryRow {
-  const id = getSampleApplicationId(postingId, applicant.id)
-  const base = { id, name: applicant.name, positionId: applicant.position, submitOrder: index }
-
-  if (status === 'DRAFT' || status === 'RECRUITING') {
-    return {
-      ...base,
-      docResult: 'PENDING',
-      averageScore: null,
-      opinionCounts: NOT_EVALUATED_OPINIONS,
-      evaluationComplete: false,
-    }
-  }
-
-  return {
-    ...base,
-    docResult:
-      docResultOverrides.get(id) ??
-      (status === 'DOC_REVIEW'
-        ? REVIEW_DOC_RESULT[applicant.result]
-        : CONFIRMED_DOC_RESULT[applicant.result]),
-    averageScore: applicant.averageScore,
-    opinionCounts: { ...applicant.opinionCounts, notEvaluated: 0 },
-    evaluationComplete: true,
-  }
 }
 
 // 평가 완료된 지원자끼리 평균 내림차순, 같으면 합격 의견 수·제출일 오래된 순
@@ -149,19 +83,23 @@ function countResult(rows: readonly SummaryRow[], docResult: DocResult) {
   return rows.filter((row) => row.docResult === docResult).length
 }
 
-// 공고 상태·결과 변경을 반영한 공고 전체 지원자, 단체 공고가 아니면 null
+// 공고 상태·내 평가·결과 변경을 반영한 공고 전체 지원자, 단체 공고가 아니면 null
 function getPostingRows(postingId: string) {
-  const posting = getManagedPostingSample(postingId)
-  const sample = findOrganizationPostingSample(postingId)
+  const found = getPostingApplications(postingId)
 
-  if (!posting || !sample) {
+  if (!found) {
     return null
   }
 
+  const { posting, sample, applications } = found
   const rows = withRank(
-    DOCUMENT_RESULT_SAMPLE.slice(0, sample.applicantCount).map((applicant, index) =>
-      toSummaryRow(postingId, applicant, index, posting.status),
-    ),
+    applications.map((application, index) => ({
+      id: application.id,
+      name: application.name,
+      positionId: application.positionId,
+      submitOrder: index,
+      ...getEvaluationSummary(application, posting.status),
+    })),
   )
   return { posting, sample, rows }
 }
@@ -296,24 +234,23 @@ const documentResultHandlers = [
       await delay(MOCK_RESPONSE_DELAY_MS)
       const { applicationIds, result } = variables
       const ids = (Array.isArray(applicationIds) ? applicationIds : [applicationIds]).map(String)
-      const postingRows = ORGANIZATION_POSTING_SAMPLES.map(({ id }) => getPostingRows(id))
-      const targets = ids.map((id) => {
-        const found = postingRows.find((item) => item?.rows.some((row) => row.id === id))
-        return { found, row: found?.rows.find((row) => row.id === id) }
-      })
+      const targets = ids.map(findApplication)
 
-      if (targets.some(({ row }) => !row)) {
+      if (targets.some((target) => !target)) {
         return HttpResponse.json(errorBody('APPLICATION_404', '지원서를 찾을 수 없습니다.'))
       }
 
       const isLocked = targets.some(
-        ({ found, row }) => found?.posting.docResultConfirmedAt || !row?.evaluationComplete,
+        (target) =>
+          !target ||
+          target.posting.docResultConfirmedAt ||
+          !getEvaluationSummary(target.application, target.posting.status).evaluationComplete,
       )
       if (isLocked) {
         return HttpResponse.json(errorBody(...RESULT_LOCKED_ERROR))
       }
 
-      ids.forEach((id) => docResultOverrides.set(id, result))
+      ids.forEach((id) => setDocResultOverride(id, result))
 
       return HttpResponse.json({
         data: { setDocResult: ids.map((id) => ({ id, docResult: result })) },
@@ -357,4 +294,4 @@ const documentResultHandlers = [
   ),
 ]
 
-export { documentResultHandlers, getDocResultOverride, getSampleApplicationId }
+export { documentResultHandlers }

@@ -39,6 +39,18 @@ extend type Query {
     sort: ApplicationSort = SUBMITTED_DESC
     page: Int = 1
   ): DocEvaluationApplicationPage!
+  "서류 평가하기 칩: 목록과 같은 조건·순서로 페이지 없이 전부"
+  docEvaluationApplicationChips(
+    postingId: ID!
+    tab: DocEvaluationTab = ALL
+    positionIds: [ID!]
+    keyword: String
+    sort: ApplicationSort = SUBMITTED_DESC
+  ): [DocEvaluationApplicationRow!]!
+  "지원서 상세: 개발 서버에는 있으나 schema:pull 충돌 이슈로 pull 전까지 임시 정의. 본인 또는 그 공고 단체 운영진만"
+  application(id: ID!): Application!
+  "서류 평가하기 패널: 로그인한 운영진의 그 지원서 평가, 평가 전이면 null. 확정 후에도 그대로 내려줌"
+  myDocEvaluation(applicationId: ID!): DocEvaluation
   "서류 평가 취합: 제출된 지원서만 10행씩, 탭은 application.docResult 기준(PENDING은 ALL에만). summary는 필터와 무관한 공고 전체"
   docEvaluationSummary(
     postingId: ID!
@@ -313,6 +325,38 @@ type Mutation {
   setDocResult(applicationIds: [ID!]!, result: DocResult!): [Application!]!
   "확정 조건 미충족 EVALUATION_422(extensions.reason: NOT_ALL_EVALUATED / RESULT_NOT_SELECTED / HOLD_REMAINING / NO_APPLICANTS), 이미 확정 EVALUATION_423"
   confirmDocResult(postingId: ID!): ConfirmDocResultPayload!
+  "submit false는 자동 저장(DRAFT, 빈 값 허용), true는 저장 버튼(SAVED, 의견·문항별 점수 필수). 확정 후 EVALUATION_423, 검증 실패 COMMON_400"
+  saveDocEvaluation(input: SaveDocEvaluationInput!, submit: Boolean!): SaveDocEvaluationPayload!
+}
+
+extend type DocEvaluation {
+  "DRAFT / SAVED, NONE은 안 나옴"
+  status: MyDocEvaluationStatus!
+}
+
+input SaveDocEvaluationInput {
+  applicationId: ID!
+  "submit true면 필수"
+  opinion: Opinion
+  "posting.docScorePerQuestion = true일 때만, submit true면 전 문항 필수"
+  scores: [DocScoreInput!]
+  "최대 300자"
+  memo: String
+}
+
+input DocScoreInput {
+  "그 지원서 포지션에 적용되는 문항만"
+  questionId: ID!
+  "1~5"
+  score: Int!
+}
+
+type SaveDocEvaluationPayload {
+  evaluation: DocEvaluation!
+  "공고 전체에서 내 평가가 NONE/DRAFT인 지원서 수, 0이면 전체 완료"
+  remainingCount: Int!
+  "제출일 최신순 첫 미평가 지원서, 칩 순서로 다음이 없을 때만 사용"
+  nextUnevaluatedApplicationId: ID
 }
 
 type ConfirmDocResultPayload {

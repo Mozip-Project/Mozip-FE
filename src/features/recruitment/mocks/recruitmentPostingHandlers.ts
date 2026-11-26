@@ -35,6 +35,8 @@ const recruitmentPostingHandlers = [
             hasInterview,
             noPosition: sample.noPosition,
             docResultConfirmedAt,
+            // 평가 패널 점수 문항 확인용으로 모든 샘플 공고가 문항별 점수 사용
+            docScorePerQuestion: true,
           },
         },
       })
