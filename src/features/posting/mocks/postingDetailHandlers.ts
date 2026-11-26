@@ -1,8 +1,10 @@
 import { delay, HttpResponse } from 'msw'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import type { PostingQuery, PostingQueryVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
+import { fetchServerPostingDetail, toServerErrorBody } from './demoServerPostings'
 import {
   findOrganizationPostingSample,
   type OrganizationPostingSample,
@@ -339,7 +341,16 @@ const postingDetailHandlers = [
   graphqlApi.query<PostingQuery, PostingQueryVariables>('Posting', async ({ variables }) => {
     await delay(MOCK_RESPONSE_DELAY_MS)
     // ID 입력은 string | number로 생성되어 문자열로 통일
-    const posting = createPostingSample(String(variables.id), getSeoulIsoDate(new Date()))
+    const postingId = String(variables.id)
+    // 시연 모드의 실서버 공고는 실서버 상세 (전시회 후 삭제)
+    if (isServerPosting(postingId)) {
+      try {
+        return HttpResponse.json({ data: { posting: await fetchServerPostingDetail(postingId) } })
+      } catch (error) {
+        return HttpResponse.json(toServerErrorBody(error))
+      }
+    }
+    const posting = createPostingSample(postingId, getSeoulIsoDate(new Date()))
 
     if (!posting) {
       return HttpResponse.json({

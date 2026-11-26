@@ -3,7 +3,6 @@ import { isPostingDemoMode, isServerPosting } from '@/features/posting/utils/dem
 import {
   DemoServerDeletePostingDocument,
   DemoServerOrganizationPostingsDocument,
-  DemoServerPostingDetailDocument,
   type BumpPostingMutation,
   type BumpPostingMutationVariables,
   type DeletePostingMutation,
@@ -23,7 +22,11 @@ import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { requestServerGraphQL } from '@/mocks/serverGraphql'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
-import { mergeServerPostings } from './demoServerPostings'
+import {
+  fetchServerPostingDetail,
+  mergeServerPostings,
+  toServerErrorBody,
+} from './demoServerPostings'
 import {
   findOrganizationPostingSample,
   isDocumentResultConfirmed,
@@ -167,17 +170,10 @@ async function getDisplayedPostings(organizationId: string, state: OrganizationP
 async function getServerManagedPostingDetail(postingId: string) {
   type Body = GraphQLResponseBody<ManagedPostingDetailQuery>
   try {
-    const { posting } = await requestServerGraphQL(DemoServerPostingDetailDocument, {
-      id: postingId,
-    })
-    if (!posting) {
-      return HttpResponse.json<Body>(errorBody(...POSTING_NOT_FOUND_ERROR))
-    }
-    return HttpResponse.json<Body>({
-      data: { posting: { ...posting, applicationCount: 0, otherActivePostings: [] } },
-    })
-  } catch {
-    return HttpResponse.json<Body>(errorBody('COMMON_500', '공고를 불러오지 못했습니다.'))
+    const posting = await fetchServerPostingDetail(postingId)
+    return HttpResponse.json<Body>({ data: { posting: { ...posting, applicationCount: 0 } } })
+  } catch (error) {
+    return HttpResponse.json<Body>(toServerErrorBody(error))
   }
 }
 

@@ -247,8 +247,7 @@ export type PostingFilter = {
   fields?: Array<string> | null | undefined;
   hasInterview?: boolean | null | undefined;
   keyword?: string | null | undefined;
-  /** 명세는 하나, 여러 개 선택이라 배열로 요청 중(백엔드 확인 전 가정) */
-  organizationType?: Array<OrganizationType> | null | undefined;
+  organizationTypes?: Array<OrganizationType> | null | undefined;
   schoolId?: string | number | null | undefined;
 };
 

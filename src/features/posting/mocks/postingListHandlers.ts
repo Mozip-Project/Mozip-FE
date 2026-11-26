@@ -1,4 +1,5 @@
 import { delay, HttpResponse } from 'msw'
+import { isPostingDemoMode } from '@/features/posting/utils/demoServerPosting'
 import type {
   OrganizationField,
   PostingFilter,
@@ -8,6 +9,7 @@ import type {
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
+import { EMPTY_POSTING_PAGE, fetchServerPostingPage } from './demoServerPostings'
 import { POSTING_SAMPLE_ID } from './postingDetailHandlers'
 
 type PostingCard = PostingsQuery['postings']['items'][number]
@@ -150,7 +152,7 @@ function matchesFilter(sample: PostingCardSample, filter: PostingFilter | null |
   const matchesKeyword =
     !keyword ||
     [sample.title, sample.organization.name].some((text) => text.toLowerCase().includes(keyword))
-  const organizationTypes = filter?.organizationType ?? []
+  const organizationTypes = filter?.organizationTypes ?? []
   const matchesFields = fields.length === 0 || sample.fields.some((field) => fields.includes(field))
   const matchesType =
     organizationTypes.length === 0 || organizationTypes.includes(sample.organization.type)
@@ -183,12 +185,17 @@ const postingListHandlers = [
     const page = variables.page ?? DEFAULT_PAGE
     const size = variables.size ?? DEFAULT_PAGE_SIZE
     const cards = createPostingCards(variables, new Date())
+    // 시연 모드는 게시한 실서버 공고를 첫 페이지 앞에 붙임 (전시회 후 삭제)
+    const serverPage = isPostingDemoMode()
+      ? await fetchServerPostingPage(variables)
+      : EMPTY_POSTING_PAGE
+    const sampleItems = cards.slice(page * size, (page + 1) * size)
 
     return HttpResponse.json({
       data: {
         postings: {
-          totalCount: cards.length,
-          items: cards.slice(page * size, (page + 1) * size),
+          totalCount: cards.length + serverPage.totalCount,
+          items: page === 0 ? [...serverPage.items, ...sampleItems] : sampleItems,
         },
       },
     })
