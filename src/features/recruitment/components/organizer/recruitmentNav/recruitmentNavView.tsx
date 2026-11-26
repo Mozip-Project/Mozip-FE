@@ -41,8 +41,9 @@ function RecruitmentNavView({
   currentSection,
   isCreatingPosting = false,
 }: RecruitmentNavViewProps) {
-  // 게시 전이라 지원자 관리부터 비활성
   const isDraft = postingStatus === 'DRAFT'
+  // 조회 중이거나 게시 전이면 지원자 관리부터 비활성
+  const isPublished = postingStatus !== null && !isDraft
 
   return (
     <Lnb switcher={switcher}>
@@ -68,24 +69,16 @@ function RecruitmentNavView({
           icon={<UsersIcon aria-hidden />}
           label="지원자 관리"
           path="applicants"
-          isDisabled={isDraft}
+          isDisabled={!isPublished}
         />
       </li>
       <li>
-        {isDraft ? (
-          <LnbStageItem
-            icon={<FileTextIcon aria-hidden />}
-            label="서류 평가"
-            isExpanded={false}
-            isDisabled
-            {...toStatusProps(getDocumentStageStatus('DRAFT'))}
-          />
-        ) : (
+        {isPublished ? (
           <LnbStageGroup
             icon={<FileTextIcon aria-hidden />}
             label="서류 평가"
             isCurrent={currentSection === 'documents'}
-            {...toStatusProps(postingStatus && getDocumentStageStatus(postingStatus))}
+            {...toStatusProps(getDocumentStageStatus(postingStatus))}
           >
             <li>
               <LnbSubItem label="서류 평가" path="documents" />
@@ -94,6 +87,14 @@ function RecruitmentNavView({
               <LnbSubItem label="서류 평가 취합" path="documents/summary" />
             </li>
           </LnbStageGroup>
+        ) : (
+          <LnbStageItem
+            icon={<FileTextIcon aria-hidden />}
+            label="서류 평가"
+            isExpanded={false}
+            isDisabled
+            {...toStatusProps(isDraft ? getDocumentStageStatus('DRAFT') : null)}
+          />
         )}
       </li>
       {/* TODO: MVP 면접 평가 하위 메뉴(타임테이블)는 면접 단계 디자인 확인 후 연결 */}
