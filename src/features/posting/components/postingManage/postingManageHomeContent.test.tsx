@@ -51,7 +51,9 @@ describe('PostingManageHomeContent', () => {
   it('현재 단체명과 진행 중 공고, 서버 기준 탭 숫자 표시', async () => {
     renderHome()
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'UXUX' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: '한국대학생IT경영학회' }),
+    ).toBeInTheDocument()
     expect(
       await screen.findByRole('heading', { name: '서류 모집 중 확인하자...' }),
     ).toBeInTheDocument()

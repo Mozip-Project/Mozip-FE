@@ -749,7 +749,7 @@ export type ResultMessageRecipientFieldsFragment = { email: string | null, email
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string } }> } };
+export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string, logoUrl: string | null } }> } };
 
 export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2304,6 +2304,7 @@ export const MeDocument = new TypedDocumentString(`
       organization {
         id
         name
+        logoUrl
       }
     }
   }

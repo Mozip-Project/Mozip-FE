@@ -7,6 +7,7 @@ import type {
   PostingsQueryVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import {
@@ -38,7 +39,7 @@ const POSTING_CARD_SAMPLES = [
   {
     id: ID.open,
     title: 'UI/UX 디자인 동아리 14기 모집',
-    organization: { name: 'UXUX', type: 'CLUB' },
+    organization: { name: MOCK_ORGANIZATION_NAME, type: 'CLUB' },
     daysUntilEnd: 1,
     fields: ['DESIGN_MEDIA', 'IT_DEV'],
     schoolId: 'school-1',
@@ -118,7 +119,7 @@ const POSTING_CARD_SAMPLES = [
   {
     id: ID.supporters,
     title: '홍보 서포터즈 모집',
-    organization: { name: 'UXUX', type: 'CLUB' },
+    organization: { name: MOCK_ORGANIZATION_NAME, type: 'CLUB' },
     daysUntilEnd: 12,
     fields: ['DESIGN_MEDIA'],
     schoolId: 'school-1',

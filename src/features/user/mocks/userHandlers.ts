@@ -12,7 +12,11 @@ import type {
   WithdrawMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
-import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
+import {
+  MOCK_ORGANIZATION_ID,
+  MOCK_ORGANIZATION_LOGO_URL,
+  MOCK_ORGANIZATION_NAME,
+} from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 // 이름은 모두 가상, 단체 1은 대표자·단체 2는 운영진으로 소속
@@ -20,8 +24,15 @@ const ME_SAMPLE = {
   id: 'user-1',
   lastOrganization: { id: MOCK_ORGANIZATION_ID },
   memberships: [
-    { role: 'REPRESENTATIVE', organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' } },
-    { role: 'OPERATOR', organization: { id: '2', name: '멋쟁이개발자' } },
+    {
+      role: 'REPRESENTATIVE',
+      organization: {
+        id: MOCK_ORGANIZATION_ID,
+        name: MOCK_ORGANIZATION_NAME,
+        logoUrl: MOCK_ORGANIZATION_LOGO_URL,
+      },
+    },
+    { role: 'OPERATOR', organization: { id: '2', name: '멋쟁이개발자', logoUrl: null } },
   ],
 } satisfies MeQuery['me']
 
@@ -42,7 +53,7 @@ function createInitialAccount(): MyAccountFieldsFragment {
       {
         id: 'member-1',
         role: 'REPRESENTATIVE',
-        organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' },
+        organization: { id: MOCK_ORGANIZATION_ID, name: MOCK_ORGANIZATION_NAME },
         team: { name: '기획팀' },
       },
       {

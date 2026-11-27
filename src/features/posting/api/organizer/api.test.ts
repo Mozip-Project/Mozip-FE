@@ -101,7 +101,7 @@ describe('getManagedPosting', () => {
       id: DOC_REVIEW_ID,
       title: '서류 평가 진행 중이래',
       applicationCount: 48,
-      organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' },
+      organization: { id: MOCK_ORGANIZATION_ID, name: '한국대학생IT경영학회' },
     })
   })
 
