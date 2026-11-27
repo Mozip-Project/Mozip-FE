@@ -18,6 +18,11 @@ function PopoverClose(props: ComponentProps<typeof PopoverPrimitive.Close>) {
   return <PopoverPrimitive.Close data-slot="popover-close" {...props} />
 }
 
+// 트리거가 아닌 요소(카드·열 머리글)를 기준으로 위치·폭을 잡을 때 사용
+function PopoverAnchor(props: ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+}
+
 function PopoverContent({
   className,
   align = 'start',
@@ -42,4 +47,4 @@ function PopoverContent({
   )
 }
 
-export { Popover, PopoverClose, PopoverContent, PopoverTrigger }
+export { Popover, PopoverAnchor, PopoverClose, PopoverContent, PopoverTrigger }
