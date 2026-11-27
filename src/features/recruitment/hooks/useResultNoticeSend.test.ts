@@ -90,6 +90,8 @@ function respondSend(response: ResultMessagesFieldsFragment | { code: string; re
 
 // 앱과 같은 staleTime으로 이전 발송의 진행률 캐시가 남은 경우 확인
 const APP_STALE_TIME_MS = 60 * 1000
+// 저장 전 발송 여부를 확인하려고 기다리는 시간
+const SAVE_WAIT_CHECK_MS = 50
 
 function createProgressPanel(status: MessageStatus, processedCount: number, deliveredCount = 0) {
   return {
@@ -122,13 +124,31 @@ describe('useResultNoticeSend', () => {
       createPanel('DRAFT'),
     )
     const requests = respondSend(sendingNotice)
-    const flushSave = vi.fn(() => Promise.resolve(true))
+    let finishSave: (isSaved: boolean) => void = () => undefined
+    const flushSave = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          finishSave = resolve
+        }),
+    )
     const { result, rerender } = renderSend(flushSave)
 
     act(() => result.current.openConfirm(['pass']))
-    await act(() => result.current.startSend())
+    let sendPromise = Promise.resolve()
+    act(() => {
+      sendPromise = result.current.startSend()
+    })
+    // 저장이 끝나기 전에 발송 요청이 나갈 시간을 줌
+    await act(() => new Promise((resolve) => setTimeout(resolve, SAVE_WAIT_CHECK_MS)))
 
     expect(flushSave).toHaveBeenCalledOnce()
+    expect(requests).toEqual([])
+
+    await act(async () => {
+      finishSave(true)
+      await sendPromise
+    })
+
     expect(requests).toEqual([expect.objectContaining({ targets: ['PASS'], type: 'DOC_RESULT' })])
 
     rerender({ notice: sendingNotice })
