@@ -18,6 +18,7 @@ import type {
   ResultNoticeSendResults,
 } from '@/features/recruitment/hooks/useResultNoticeSend'
 import {
+  RESULT_NOTICE_POLL_INTERVAL_MS,
   RESULT_NOTICE_SEND_SUBJECT,
   type ResultNoticeKind,
   type ResultNoticeTarget,
@@ -143,6 +144,8 @@ function SendingContent({ kind, progress }: SendingContentProps) {
         valueText={`${sentCount} / ${totalCount}명`}
         value={sentCount}
         max={totalCount}
+        transitionDurationMs={RESULT_NOTICE_POLL_INTERVAL_MS}
+        shouldShowEstimate
       />
       <DialogFooter>
         <DialogClose asChild>
