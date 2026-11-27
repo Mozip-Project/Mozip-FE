@@ -34,12 +34,12 @@ function toServerManagedPostings(
   }))
 }
 
-// 시연에서 게시한 공고가 먼저 보이도록 실서버 공고를 앞에 둠
+// 평가·면접 시연에 쓰는 샘플이 새로 게시한 공고에 밀리지 않도록 샘플을 앞에 둠
 function mergeServerPostings(
   samples: readonly ManagedPostingFieldsFragment[],
   serverPostings: readonly ServerManagedPosting[],
 ): ManagedPostingFieldsFragment[] {
-  return [...toServerManagedPostings(serverPostings), ...samples]
+  return [...samples, ...toServerManagedPostings(serverPostings)]
 }
 
 // 서버에 없는 같은 단체 진행 중 공고는 빈 목록
