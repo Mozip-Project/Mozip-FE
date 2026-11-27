@@ -101,7 +101,7 @@ describe('getManagedPosting', () => {
       id: DOC_REVIEW_ID,
       title: 'UXUX 14기 신입 부원 모집',
       applicationCount: 48,
-      organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' },
+      organization: { id: MOCK_ORGANIZATION_ID, name: '한국대학생IT경영학회' },
     })
   })
 

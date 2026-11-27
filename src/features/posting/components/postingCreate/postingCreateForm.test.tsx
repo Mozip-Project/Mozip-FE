@@ -981,7 +981,7 @@ describe('PostingCreateForm', () => {
     expect(getQuestionCards()).toHaveLength(3)
   })
 
-  it('게시하면 완료 안내 후 운영진 홈으로 이동', async () => {
+  it('게시하면 완료 안내 후 게시한 공고 관리 화면으로 이동', async () => {
     const user = setupWithDate()
     renderForm(false)
     await goToReviewStep(user)
@@ -989,7 +989,7 @@ describe('PostingCreateForm', () => {
     await confirmPublish(user)
 
     expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
-    expect(push).toHaveBeenCalledWith('/manage')
+    expect(push).toHaveBeenCalledWith('/manage/postings/draft-1')
   })
 
   it('뒤로가기로 고치고 앞으로가기로 돌아와 게시하면 고친 단계를 저장한 뒤 게시', async () => {

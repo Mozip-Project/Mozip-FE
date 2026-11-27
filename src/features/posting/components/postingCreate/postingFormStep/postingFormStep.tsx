@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/DropdownMenu/dropdownMenu'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs/tabs'
 import { Tooltip } from '@/components/ui/Tooltip/tooltip'
+import { useDragAutoScroll } from '@/features/posting/hooks/useDragAutoScroll'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
 import {
   QUESTION_TYPES,
@@ -141,6 +142,9 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [addedId, setAddedId] = useState<string | null>(null)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const addBarRef = useRef<HTMLDivElement>(null)
+  // 위쪽은 고정된 문항 추가 줄 아래부터 스크롤 구간
+  useDragAutoScroll(draggedIndex !== null, addBarRef)
   // 끌어다 놓을 자리. 0은 첫 문항 앞, fields.length는 마지막 문항 뒤
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const [moveMessage, setMoveMessage] = useState('')
@@ -246,7 +250,11 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
 
   return (
     <div className="flex flex-col gap-gap-xl">
-      <div className="flex items-end justify-between border-b border-neutral-subtle">
+      {/* 공고 작성 고정 바(제목·단계 줄) 바로 아래에 이어서 고정 */}
+      <div
+        ref={addBarRef}
+        className="sticky-below-gnb z-10 flex items-end justify-between border-b border-neutral-subtle bg-layer-default [--sticky-offset:var(--sticky-top-bar-height)]"
+      >
         {tabs || <span />}
         <div className="flex items-center gap-gap-xs pb-1.5">
           <div className="flex items-center gap-gap-xxs">
@@ -353,15 +361,17 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
                 </div>
                 {isLast && isDropTarget(fields.length) && <DropIndicator position="after" />}
                 {isSelected && (
-                  <PostingQuestionSettings
-                    key={field.id}
-                    control={control}
-                    setIndex={setIndex}
-                    questionIndex={index}
-                    type={question.type}
-                    shouldFocusTitle={field.id === addedId}
-                    className="absolute top-0 left-[calc(100%+var(--spacing-gap-xl))]"
-                  />
+                  // 목록보다 길어진 패널이 화면 끝에 붙지 않도록 페이지 아래 여백만큼 확보
+                  <div className="absolute top-0 left-[calc(100%+var(--spacing-gap-xl))] pb-(--page-padding-bottom)">
+                    <PostingQuestionSettings
+                      key={field.id}
+                      control={control}
+                      setIndex={setIndex}
+                      questionIndex={index}
+                      type={question.type}
+                      shouldFocusTitle={field.id === addedId}
+                    />
+                  </div>
                 )}
               </li>
             )

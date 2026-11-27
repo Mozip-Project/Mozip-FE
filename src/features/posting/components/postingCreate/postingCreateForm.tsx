@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { SaveStatus } from '@/components/ui/SaveStatus/saveStatus'
 import { StepList } from '@/components/ui/StepList/stepList'
+import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { usePostingCreateStep } from '@/features/posting/hooks/usePostingCreateStep'
 import {
@@ -35,6 +36,7 @@ import {
   DEFAULT_QUESTION_TITLES,
   resizeQuestionSets,
 } from '@/features/posting/utils/postingQuestions'
+import { useStickyTopBarHeight } from '@/hooks/useStickyTopBarHeight'
 import { useToast } from '@/providers/toastProvider'
 import { PostingFormStep } from './postingFormStep/postingFormStep'
 import { PostingInfoStep } from './postingInfoStep/postingInfoStep'
@@ -118,6 +120,8 @@ function PostingCreateForm({
   const [stepIndex, setStepIndex] = useState(requestedStepIndex)
   // 보고 있는 단계와 뒤로가기·앞으로가기로 저장 없이 떠난 단계, 게시·임시 저장 전에 저장
   const unsavedStepIdsRef = useRef(new Set<DraftStepId>())
+  const stickyHeaderRef = useRef<HTMLDivElement>(null)
+  useStickyTopBarHeight(stickyHeaderRef)
   const { showToast } = useToast()
   const { currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
   const { postingId, saveState, isSaving, canSave, saveStep } = usePostingDraftSave({
@@ -261,45 +265,53 @@ function PostingCreateForm({
 
   return (
     <div className="flex flex-col gap-gap-xl">
-      <PageHeader
-        title="공고 작성"
-        actions={
-          <div className="flex items-center gap-gap-m">
-            <Button
-              variant="secondary"
-              size="m"
-              disabled={!canSave || !hasTitle || isSaving}
-              onClick={() => void handleTemporarySave()}
-            >
-              임시 저장
-            </Button>
-            {isReviewStep ? (
-              <PostingPublishDialog
-                isPublishing={isSaving || isPublishing}
-                onPublish={handlePublish}
-              />
-            ) : (
-              <Button size="m" disabled={!canGoNext || !canSave || isSaving} onClick={handleNext}>
-                다음
-                <ArrowRightIcon aria-hidden />
-              </Button>
-            )}
+      <StickyTopBar className="-mb-gap-xl">
+        <div ref={stickyHeaderRef} className="flex flex-col gap-gap-xl pb-gap-xl">
+          <PageHeader
+            title="공고 작성"
+            actions={
+              <div className="flex items-center gap-gap-m">
+                <Button
+                  variant="secondary"
+                  size="m"
+                  disabled={!canSave || !hasTitle || isSaving}
+                  onClick={() => void handleTemporarySave()}
+                >
+                  임시 저장
+                </Button>
+                {isReviewStep ? (
+                  <PostingPublishDialog
+                    isPublishing={isSaving || isPublishing}
+                    onPublish={handlePublish}
+                  />
+                ) : (
+                  <Button
+                    size="m"
+                    disabled={!canGoNext || !canSave || isSaving}
+                    onClick={handleNext}
+                  >
+                    다음
+                    <ArrowRightIcon aria-hidden />
+                  </Button>
+                )}
+              </div>
+            }
+          />
+          <div className="flex items-center justify-between gap-gap-l">
+            <StepList
+              label="공고 작성 단계"
+              steps={steps}
+              currentIndex={stepIndex}
+              stepSelection={{
+                furthestIndex,
+                isStepComplete,
+                onSelect: (index) => void saveAndMoveToStep(index),
+              }}
+            />
+            <SaveStatus {...saveState} />
           </div>
-        }
-      />
-      <div className="flex items-center justify-between gap-gap-l">
-        <StepList
-          label="공고 작성 단계"
-          steps={steps}
-          currentIndex={stepIndex}
-          stepSelection={{
-            furthestIndex,
-            isStepComplete,
-            onSelect: (index) => void saveAndMoveToStep(index),
-          }}
-        />
-        <SaveStatus {...saveState} />
-      </div>
+        </div>
+      </StickyTopBar>
       {currentStepId === 'info' && <PostingInfoStep control={control} register={register} />}
       {currentStepId === 'schedule' && (
         <PostingScheduleStep control={control} hasInterview={hasInterview} />

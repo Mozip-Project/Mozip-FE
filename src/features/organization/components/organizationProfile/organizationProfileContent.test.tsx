@@ -58,7 +58,7 @@ describe('OrganizationProfileContent', () => {
     expect(await screen.findByRole('textbox', { name: /한 줄 소개/ })).toHaveValue(
       '사용자 경험을 연구하고 만드는 동아리',
     )
-    expect(screen.getByRole('textbox', { name: '단체명' })).toHaveValue('UXUX')
+    expect(screen.getByRole('textbox', { name: '단체명' })).toHaveValue('한국대학생IT경영학회')
     expect(screen.getByRole('button', { name: '디자인 · 미디어' })).toBeInTheDocument()
     expect(screen.getByText('과학기술연합대학원대학교')).toBeInTheDocument()
     expect(screen.getByText('완료')).toBeInTheDocument()
@@ -154,6 +154,8 @@ describe('OrganizationProfileContent', () => {
 
     await user.click(screen.getByRole('button', { name: '다시 시도' }))
 
-    expect(await screen.findByRole('textbox', { name: '단체명' })).toHaveValue('UXUX')
+    expect(await screen.findByRole('textbox', { name: '단체명' })).toHaveValue(
+      '한국대학생IT경영학회',
+    )
   })
 })
