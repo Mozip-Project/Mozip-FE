@@ -45,6 +45,7 @@ function TimetableTrackHeader({
             <button
               type="button"
               aria-label={`${trackLabel} 장소 한 번에 입력, ${locationLabel ?? '입력 전'}`}
+              data-track-target="timetable_location_open"
               className={cn(
                 'flex cursor-pointer items-center gap-gap-xs rounded-full border bg-layer-default py-padding-xxs pr-padding-s pl-padding-xs text-caption1 font-medium',
                 locationLabel

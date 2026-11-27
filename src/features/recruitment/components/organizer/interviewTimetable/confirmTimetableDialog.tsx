@@ -40,7 +40,9 @@ function ConfirmTimetableDialog({
             <Button variant="secondary">취소</Button>
           </DialogClose>
           <DialogClose asChild>
-            <Button onClick={onConfirm}>확정하기</Button>
+            <Button onClick={onConfirm} data-track-target="timetable_confirm">
+              확정하기
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

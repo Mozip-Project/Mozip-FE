@@ -26,6 +26,7 @@ function UnassignedChip({ applicant, moveActions }: UnassignedChipProps) {
       <button
         type="button"
         draggable
+        data-track-target="timetable_unassigned_select"
         aria-pressed={isSelected}
         onClick={() => moveActions.onToggleSelect(item)}
         onDragStart={(event) => {
