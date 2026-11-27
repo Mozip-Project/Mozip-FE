@@ -15,7 +15,7 @@ import { LnbStageGroup, LnbStageItem, LnbStageLink } from './lnbStageItem'
 import { LnbSubButton, LnbSubItem } from './lnbSubItem'
 import type { ReactNode } from 'react'
 
-type LnbSection = 'posting' | 'documents'
+type LnbSection = 'posting' | 'documents' | 'interviews'
 
 type RecruitmentNavViewProps = {
   switcher: ReactNode
@@ -97,16 +97,29 @@ function RecruitmentNavView({
           />
         )}
       </li>
-      {/* TODO: MVP 면접 평가 하위 메뉴(타임테이블)는 면접 단계 디자인 확인 후 연결 */}
       {postingStatus && hasInterview && (
         <li>
-          <LnbStageItem
-            icon={<MessageIcon aria-hidden />}
-            label="면접 평가"
-            isExpanded={false}
-            isDisabled={!INTERVIEW_AVAILABLE_STATUSES.has(postingStatus)}
-            {...toStatusProps(getInterviewStageStatus(postingStatus))}
-          />
+          {INTERVIEW_AVAILABLE_STATUSES.has(postingStatus) ? (
+            // Figma MVP: 면접 평가 하위는 타임테이블만
+            <LnbStageGroup
+              icon={<MessageIcon aria-hidden />}
+              label="면접 평가"
+              isCurrent={currentSection === 'interviews'}
+              {...toStatusProps(getInterviewStageStatus(postingStatus))}
+            >
+              <li>
+                <LnbSubItem label="타임테이블" path="interviews/timetable" />
+              </li>
+            </LnbStageGroup>
+          ) : (
+            <LnbStageItem
+              icon={<MessageIcon aria-hidden />}
+              label="면접 평가"
+              isExpanded={false}
+              isDisabled
+              {...toStatusProps(getInterviewStageStatus(postingStatus))}
+            />
+          )}
         </li>
       )}
     </Lnb>
