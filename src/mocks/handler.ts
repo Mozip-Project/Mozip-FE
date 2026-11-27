@@ -3,6 +3,7 @@ import { organizationMemberHandlers } from '@/features/organization/mocks/organi
 import { organizationProfileHandlers } from '@/features/organization/mocks/organizationProfileHandlers'
 import { managedPostingHandlers } from '@/features/posting/mocks/managedPostingHandlers'
 import { postingDetailHandlers } from '@/features/posting/mocks/postingDetailHandlers'
+import { postingDraftHandlers } from '@/features/posting/mocks/postingDraftHandlers'
 import { postingListHandlers } from '@/features/posting/mocks/postingListHandlers'
 import { postingReportHandlers } from '@/features/posting/mocks/postingReportHandlers'
 import { applicantManagementHandlers } from '@/features/recruitment/mocks/applicantManagementHandlers'
@@ -13,7 +14,11 @@ import { recruitmentPostingHandlers } from '@/features/recruitment/mocks/recruit
 import { resultNoticeHandlers } from '@/features/recruitment/mocks/resultNoticeHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
+import { fileUploadHandlers, profileImageUploadHandlers } from './fileUploadHandlers'
 import type { AnyHandler } from 'msw'
+
+// 전시회 시연 모드는 공고 작성 저장·조회·게시를 실제 서버로 보냄 (전시회 후 삭제)
+const isPostingDemoMode = process.env.NEXT_PUBLIC_POSTING_DEMO_MODE === 'enabled'
 
 const handlers: AnyHandler[] = [
   ...notificationHandlers,
@@ -26,11 +31,14 @@ const handlers: AnyHandler[] = [
   ...organizationMemberHandlers,
   ...organizationProfileHandlers,
   ...managedPostingHandlers,
+  ...(isPostingDemoMode ? [] : postingDraftHandlers),
   ...recruitmentPostingHandlers,
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
   ...documentResultHandlers,
   ...resultNoticeHandlers,
+  // 시연 모드는 공고 작성이 실제 서버로 가서 업로드도 실제 presigned-url 사용, 서버에 없는 프로필 사진만 MSW
+  ...(isPostingDemoMode ? profileImageUploadHandlers : fileUploadHandlers),
 ]
 
 export { handlers }

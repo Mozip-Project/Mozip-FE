@@ -6,6 +6,7 @@ const ACCOUNT: MyAccountFieldsFragment = {
   id: 'user-1',
   phone: '01012345678',
   name: '김모집',
+  profileImageUrl: null,
   school: { name: '모집대학교' },
   schoolVerification: {
     schoolName: null,

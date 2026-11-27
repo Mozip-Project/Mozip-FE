@@ -54,6 +54,12 @@ describe('toUpdateProfileInput', () => {
     ).toEqual({ phone: '01098765432' })
   })
 
+  it('새 프로필 이미지만 바꿔도 올린 주소를 보냄', () => {
+    expect(
+      toUpdateProfileInput(VALUES, { ...CONTEXT, uploadedImageUrl: 'https://cdn.test/me.png' }),
+    ).toEqual({ profileImageUrl: 'https://cdn.test/me.png' })
+  })
+
   it('인증하지 않은 번호는 보내지 않음', () => {
     expect(
       toUpdateProfileInput(

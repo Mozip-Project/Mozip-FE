@@ -6,9 +6,12 @@ import {
   getManagedPosting,
   getManagedPostingSummary,
   getOrganizationPostings,
+  getPostingDraft,
+  publishPosting,
+  savePostingDraft,
   sendNotice,
 } from './api'
-import { managedPostingKeys } from './keys'
+import { managedPostingKeys, postingDraftKeys } from './keys'
 
 // 팝업이 발송 중 닫히지 않도록 진행 여부를 키로 확인
 const SEND_NOTICE_MUTATION_KEY = ['sendNotice'] as const
@@ -82,9 +85,41 @@ function useBumpPostingMutation() {
   })
 }
 
+function usePostingDraftQuery(postingId: string) {
+  return useQuery({
+    queryKey: postingDraftKeys.detail(postingId),
+    queryFn: () => getPostingDraft(postingId),
+  })
+}
+
+// 응답이 저장된 공고 전체라 작성 화면 값은 다시 요청하지 않고 바로 교체, 첫 저장이면 작성 중 탭 숫자도 바뀜
+function useSavePostingDraftMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: savePostingDraft,
+    onSuccess: (posting) => {
+      queryClient.setQueryData(postingDraftKeys.detail(posting.id), posting)
+      return queryClient.invalidateQueries({ queryKey: managedPostingKeys.all })
+    },
+  })
+}
+
+function usePublishPostingMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: publishPosting,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: managedPostingKeys.all }),
+  })
+}
+
 export {
   SEND_NOTICE_MUTATION_KEY,
   useBumpPostingMutation,
+  usePostingDraftQuery,
+  usePublishPostingMutation,
+  useSavePostingDraftMutation,
   useDeletePostingMutation,
   useManagedPostingQuery,
   useManagedPostingSummaryQuery,

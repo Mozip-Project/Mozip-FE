@@ -61,6 +61,8 @@ base URL, 인증 토큰, 에러 처리를 컴포넌트마다 따로 작성하지
 | `graphql.config.yml`       | 에디터 GraphQL 확장의 스키마·문서 위치. `.graphql` 문서 자동완성·필드 검사용     |
 
 - 엔드포인트는 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`(절대 주소)에서 읽습니다. 값이 없으면 import 시점이 아니라 첫 요청에서 에러를 던집니다.
+- `NEXT_PUBLIC_MOCK_ROLE`에 값이 있으면 GraphQL·REST 요청에 `X-Mock-Role` 헤더를 붙입니다. 개발 서버의 인증 우회(`AUTH_BYPASS_ENABLED`)가 쿠키 없는 요청을 이 역할의 개발용 회원(`OPERATOR`는 단체 1 대표)으로 인증합니다. 로그인 화면이 생기기 전 연동·시연용이며, 쿠키가 있으면 쿠키가 우선합니다.
+- 업로드한 이미지는 `next/image`로 보여 주므로, presigned-url이 돌려준 `fileUrl`의 호스트를 `UPLOAD_IMAGE_HOSTNAME`에 둡니다. `next.config.ts`가 빌드 때 읽어 허용 목록에 넣으므로 Vercel 값을 바꾸면 다시 배포해야 합니다.
 - GraphQL 에러는 HTTP 200으로 오므로 상태 코드가 아니라 `errors[].extensions.code`로 구분합니다. `requestGraphQL`은 이를 `ApiError`로 바꿔 던집니다.
 - `AUTH_002`(access token 만료)를 받으면 쿠키가 있는 브라우저에서만 `POST /auth/reissue`를 한 번 보내고 같은 요청을 다시 보냅니다. 동시에 여러 요청이 만료돼도 재발급은 한 번만 보냅니다.
 - 재발급이 `AUTH_004`·`AUTH_005`로 실패하면 `/`로 이동합니다(로그인 페이지가 생기면 로그인 경로로 교체). 이 두 코드와 재발급 뒤에도 남은 `AUTH_002`는 query에서 다시 시도하지 않습니다.

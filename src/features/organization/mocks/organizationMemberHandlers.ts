@@ -1,13 +1,14 @@
 import { delay, HttpResponse } from 'msw'
 import type { OrganizationMembersQuery, OrganizationMembersQueryVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 type ServerMembers = OrganizationMembersQuery['members']
 
 // 이름은 모두 가상, user-1이 내 정보(me)의 회원 ID. 단체 2는 팀 없는 단체
 const MEMBERS_BY_ORGANIZATION: Record<string, ServerMembers> = {
-  '1': [
+  [MOCK_ORGANIZATION_ID]: [
     {
       id: 'member-1',
       role: 'REPRESENTATIVE',

@@ -16,6 +16,7 @@ import type { PostingCreateValues } from '@/features/posting/schemas/postingCrea
 import {
   ACTIVITY_FIELDS,
   FILE_TYPES,
+  QUESTION_MAX_LENGTH,
   type PostingQuestionType,
 } from '@/features/posting/schemas/postingFormSchema'
 import { cn } from '@/lib/utils'
@@ -101,6 +102,7 @@ function PostingQuestionSettings({
                 label="질문"
                 required
                 placeholder="질문을 입력해 주세요"
+                maxLength={QUESTION_MAX_LENGTH.title}
                 {...field}
               />
             )}
@@ -109,7 +111,12 @@ function PostingQuestionSettings({
             name={`${name}.description`}
             control={control}
             render={({ field }) => (
-              <TextField label="설명" placeholder="설명을 입력해 주세요" {...field} />
+              <TextField
+                label="설명"
+                placeholder="설명을 입력해 주세요"
+                maxLength={QUESTION_MAX_LENGTH.description}
+                {...field}
+              />
             )}
           />
         </div>

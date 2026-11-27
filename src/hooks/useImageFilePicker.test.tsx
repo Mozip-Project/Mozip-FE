@@ -1,14 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { useImageFilePicker } from './useImageFilePicker'
+import { useImageFilePicker, type ImageFileRule } from './useImageFilePicker'
 
 type PickerProps = {
   onSelect: (file: File) => void
+  fileRule?: ImageFileRule
 }
 
-function Picker({ onSelect }: PickerProps) {
-  const picker = useImageFilePicker(onSelect)
+function Picker({ onSelect, fileRule }: PickerProps) {
+  const picker = useImageFilePicker(onSelect, fileRule)
 
   return (
     <>
@@ -27,11 +28,11 @@ function createImage(name: string, type: string, sizeBytes = 1024) {
   return file
 }
 
-function setup() {
+function setup(fileRule?: ImageFileRule) {
   const onSelect = vi.fn()
   // accept로 걸러지기 전 검증 확인용
   const user = userEvent.setup({ applyAccept: false })
-  render(<Picker onSelect={onSelect} />)
+  render(<Picker onSelect={onSelect} fileRule={fileRule} />)
   return { onSelect, user, input: screen.getByTestId('image-input') }
 }
 
@@ -74,5 +75,24 @@ describe('useImageFilePicker', () => {
     await user.upload(input, createImage('profile.gif', 'image/gif'))
     await user.click(screen.getByRole('button', { name: '오류 지우기' }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('화면별 규칙을 넘기면 그 형식·용량·문구로 검사', async () => {
+    const { onSelect, user, input } = setup({
+      acceptedTypes: ['image/webp'],
+      invalidTypeMessage: 'WEBP만 가능해요',
+      maxSizeBytes: 5 * 1024 * 1024,
+      oversizedMessage: '5MB 이하만 가능해요',
+    })
+
+    await user.upload(input, createImage('logo.png', 'image/png'))
+    expect(screen.getByRole('alert')).toHaveTextContent('WEBP만 가능해요')
+
+    await user.upload(input, createImage('logo.webp', 'image/webp', 5 * 1024 * 1024 + 1))
+    expect(screen.getByRole('alert')).toHaveTextContent('5MB 이하만 가능해요')
+
+    await user.upload(input, createImage('logo.webp', 'image/webp', 5 * 1024 * 1024))
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(input).toHaveAttribute('accept', 'image/webp')
   })
 })

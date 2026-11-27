@@ -9,6 +9,7 @@ import {
   getSlotRangeKeys,
   groupSlotKeysByDate,
   hasDateGap,
+  hasShortSlotBlock,
   isSamePosition,
   TIMETABLE_HOUR_LABELS,
   TIMETABLE_SLOT_TIMES,
@@ -62,6 +63,17 @@ describe('interviewTimetable', () => {
     expect(countInterviews(twoHours, 30, 10)).toBe(3)
     expect(countInterviews(twoHours, 60, 0)).toBe(2)
     expect(countInterviews(twoHours.slice(0, 1), 40, 0)).toBe(0)
+  })
+
+  it('면접 1회 시간보다 짧은 묶음이 하나라도 있으면 짧은 묶음 있음', () => {
+    const oneHour = ['2026-10-23T09:00', '2026-10-23T09:30']
+    const withLoneSlot = [...oneHour, '2026-10-26T13:00']
+
+    expect(hasShortSlotBlock(oneHour, 60)).toBe(false)
+    expect(hasShortSlotBlock(oneHour, 40)).toBe(false)
+    expect(hasShortSlotBlock(withLoneSlot, 30)).toBe(false)
+    expect(hasShortSlotBlock(withLoneSlot, 40)).toBe(true)
+    expect(hasShortSlotBlock([], 60)).toBe(false)
   })
 
   it('떨어진 칸과 다른 날짜는 따로 계산해 합산', () => {

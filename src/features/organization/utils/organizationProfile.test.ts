@@ -56,9 +56,9 @@ describe('toOrganizationProfileValues', () => {
 })
 
 describe('toUpdateOrganizationInput', () => {
-  it('폼 값을 저장 입력으로 변환하고 기존 로고 유지', () => {
-    expect(toUpdateOrganizationInput(values, false)).toEqual({
-      logoFileKey: null,
+  it('폼 값을 저장 입력으로 변환하고 기존 로고는 그 주소를 다시 보냄', () => {
+    expect(toUpdateOrganizationInput(values, false, 'https://cdn.test/logo.png')).toEqual({
+      logoUrl: 'https://cdn.test/logo.png',
       tagline: '사용자 경험을 연구하는 동아리',
       fields: ['DESIGN_MEDIA', 'IT_DEV'],
       keywords: ['UX', '디자인'],
@@ -70,6 +70,7 @@ describe('toUpdateOrganizationInput', () => {
     const input = toUpdateOrganizationInput(
       { ...values, introduction: '  소개  ', links: [{ url: ' https://a.com ' }] },
       false,
+      null,
     )
 
     expect(input.tagline).toBe('소개')
@@ -87,6 +88,7 @@ describe('toUpdateOrganizationInput', () => {
         ],
       },
       false,
+      null,
     )
 
     expect(input.links).toEqual([
@@ -97,13 +99,14 @@ describe('toUpdateOrganizationInput', () => {
   })
 
   it('학생회는 활동 분야를 빈 배열로 보냄', () => {
-    expect(toUpdateOrganizationInput(values, true).fields).toEqual([])
+    expect(toUpdateOrganizationInput(values, true, null).fields).toEqual([])
   })
 
   it('활동 분야 11개 모두 서버 값과 왕복 변환', () => {
     const input = toUpdateOrganizationInput(
       { ...values, categories: [...ACTIVITY_CATEGORIES] },
       false,
+      null,
     )
     const restored = toOrganizationProfileValues({ ...organization, fields: input.fields })
 
@@ -120,7 +123,7 @@ describe('toProfileFieldErrors', () => {
         { field: 'links[0].url', message: '링크 오류' },
         { field: 'keywords', message: '키워드 오류' },
         { field: 'fields', message: '분야 오류' },
-        { field: 'logoFileKey', message: '로고 오류' },
+        { field: 'logoUrl', message: '로고 오류' },
       ]),
     ).toEqual([
       { path: 'introduction', message: '소개 오류' },

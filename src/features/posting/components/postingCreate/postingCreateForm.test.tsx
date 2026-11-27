@@ -1,8 +1,21 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { HttpResponse } from 'msw'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
+import { resetPostingDrafts } from '@/features/posting/mocks/postingDraftHandlers'
+import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
+import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { PostingCreateForm } from './postingCreateForm'
+
+const { push } = vi.hoisted(() => ({ push: vi.fn() }))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push }),
+}))
 
 // jsdom 미지원
 class ResizeObserverStub {
@@ -14,11 +27,50 @@ class ResizeObserverStub {
 const IMAGE_FILE = new File(['image'], 'main.png', { type: 'image/png' })
 
 function renderForm(hasInterview = true) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
-    <ToastProvider>
-      <PostingCreateForm hasInterview={hasInterview} />
-    </ToastProvider>,
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <PostingCreateForm hasInterview={hasInterview} savedOrganizationId={MOCK_ORGANIZATION_ID} />
+      </ToastProvider>
+    </QueryClientProvider>,
   )
+}
+
+beforeAll(() => {
+  vi.stubEnv('NEXT_PUBLIC_GRAPHQL_ENDPOINT', 'https://api.test/graphql')
+})
+
+afterEach(() => {
+  resetManagedPostings()
+  resetPostingDrafts()
+  window.history.replaceState(null, '', '/')
+  push.mockClear()
+})
+
+afterAll(() => {
+  vi.unstubAllEnvs()
+})
+
+function getCurrentStep() {
+  const steps = screen.getByRole('list', { name: '공고 작성 단계' })
+  return within(steps)
+    .getAllByRole('listitem')
+    .find((step) => step.getAttribute('aria-current') === 'step')
+}
+
+// 다음은 저장 응답을 받은 뒤 단계를 넘겨 현재 단계가 바뀔 때까지 대기
+async function clickNext(user: ReturnType<typeof userEvent.setup>) {
+  const currentStep = getCurrentStep()
+  await user.click(screen.getByRole('button', { name: '다음' }))
+  await waitFor(() => expect(getCurrentStep()).not.toBe(currentStep))
+}
+
+// 단계 탭도 현재 단계를 저장한 뒤 이동해 현재 단계가 바뀔 때까지 대기
+async function clickStep(user: ReturnType<typeof userEvent.setup>, step: HTMLElement) {
+  const currentStep = getCurrentStep()
+  await user.click(step)
+  await waitFor(() => expect(getCurrentStep()).not.toBe(currentStep))
 }
 
 function getFileInput() {
@@ -38,9 +90,32 @@ function setupWithDate() {
   return userEvent.setup()
 }
 
+// 비면접 통합 모집으로 검토 단계까지 저장하며 이동
+async function goToReviewStep(user: ReturnType<typeof userEvent.setup>) {
+  await goToMethodStep(user)
+  await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+  await clickNext(user)
+  await clickNext(user)
+}
+
+async function confirmPublish(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: '공고 게시' }))
+  const dialog = await screen.findByRole('dialog', { name: '공고를 게시하시겠어요?' })
+  await user.click(within(dialog).getByRole('button', { name: '게시하기' }))
+}
+
+function publishError(code: string, fieldErrors?: { field: string; message: string }[]) {
+  return graphqlApi.mutation('PublishPosting', () =>
+    HttpResponse.json({
+      errors: [{ message: '게시할 수 없습니다.', extensions: { code, fieldErrors } }],
+      data: null,
+    }),
+  )
+}
+
 async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
   await fillInfoStep(user)
-  await user.click(screen.getByRole('button', { name: '다음' }))
+  await clickNext(user)
 
   const pickDate = async (trigger: HTMLElement, dayLabel: string) => {
     await user.click(trigger)
@@ -53,7 +128,7 @@ async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
   await pickDate(startDate, '2026년 10월 1일 목요일')
   await pickDate(endDate, '2026년 10월 8일 목요일')
   const documentResultDate = screen.queryByRole('button', {
-    name: /^서류 결과 및 면접 일정 발표일/,
+    name: /^서류 결과 발표일/,
   })
   if (documentResultDate) {
     await pickDate(documentResultDate, '2026년 10월 22일 목요일')
@@ -63,7 +138,7 @@ async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
     '2026년 10월 28일 수요일',
   )
   await waitFor(() => expect(screen.getByRole('button', { name: '다음' })).toBeEnabled())
-  await user.click(screen.getByRole('button', { name: '다음' }))
+  await clickNext(user)
 }
 
 async function addPosition(user: ReturnType<typeof userEvent.setup>, name: string) {
@@ -151,13 +226,13 @@ describe('PostingCreateForm', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('JPG·PNG가 아닌 파일은 올리지 않고 안내', async () => {
+  it('JPG·PNG·WEBP가 아닌 파일은 올리지 않고 안내', async () => {
     const user = userEvent.setup({ applyAccept: false })
     renderForm()
 
     await user.upload(getFileInput(), new File(['pdf'], 'doc.pdf', { type: 'application/pdf' }))
 
-    expect(await screen.findByText('JPG, PNG 이미지만 업로드 가능해요')).toBeInTheDocument()
+    expect(await screen.findByText('JPG, PNG, WEBP 이미지만 업로드 가능해요')).toBeInTheDocument()
     expect(screen.queryByRole('img', { name: '대표 이미지' })).not.toBeInTheDocument()
   })
 
@@ -200,6 +275,35 @@ describe('PostingCreateForm', () => {
     expect(customField()).not.toBeInTheDocument()
   })
 
+  it('체크하고 비운 채 입력칸을 벗어나면 입력 안내를 칸 아래에 표시', async () => {
+    const user = userEvent.setup()
+    renderForm()
+
+    await user.click(screen.getByRole('checkbox', { name: '활동 지역' }))
+    await user.click(screen.getByRole('checkbox', { name: '회비' }))
+    await user.click(screen.getByRole('checkbox', { name: '직접 입력' }))
+    const regionInput = screen.getByRole('textbox', { name: '활동 지역' })
+    // 아직 입력칸에 들어가지 않았으면 안내 없음
+    expect(regionInput).not.toHaveAttribute('aria-invalid', 'true')
+
+    for (const name of ['활동 지역', '회비', '직접 입력']) {
+      await user.click(screen.getByRole('textbox', { name }))
+      await user.tab()
+    }
+    expect(regionInput).toHaveAttribute('aria-invalid', 'true')
+    expect(regionInput).toHaveAccessibleDescription('활동 지역을 입력해 주세요')
+    expect(screen.getByRole('textbox', { name: '회비' })).toHaveAccessibleDescription(
+      '회비를 입력해 주세요',
+    )
+    expect(screen.getByRole('textbox', { name: '직접 입력' })).toHaveAccessibleDescription(
+      '지원 자격을 입력해 주세요',
+    )
+
+    await user.type(regionInput, '서울 마포구')
+    expect(regionInput).not.toHaveAttribute('aria-invalid', 'true')
+    expect(regionInput).not.toHaveAccessibleDescription()
+  })
+
   it('회비는 숫자만 받아 세 자리마다 쉼표 표시', async () => {
     const user = userEvent.setup()
     renderForm()
@@ -230,15 +334,53 @@ describe('PostingCreateForm', () => {
     expect(feeInput.selectionStart).toBe(3)
   })
 
-  it('임시 저장을 누르면 저장 시각 표시와 안내 토스트', async () => {
+  it('제목 없이 임시 저장을 누르면 저장하지 않고 제목 입력 안내', async () => {
     const user = userEvent.setup()
     renderForm()
+    const saveButton = screen.getByRole('button', { name: '임시 저장' })
+    await waitFor(() => expect(saveButton).toBeEnabled())
 
-    await user.click(screen.getByRole('button', { name: '임시 저장' }))
+    await user.click(saveButton)
+
+    expect(
+      await screen.findByText('공고 제목을 입력하면 임시 저장할 수 있어요'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('저장 완료')).not.toBeInTheDocument()
+  })
+
+  it('임시 저장하면 공고가 만들어지고 편집 주소로 바뀌며 저장 시각 표시와 안내 토스트', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    const saveButton = screen.getByRole('button', { name: '임시 저장' })
+    await waitFor(() => expect(saveButton).toBeEnabled())
+
+    await user.type(screen.getByRole('textbox', { name: /공고 제목/ }), 'UXUX 14기 신입 부원 모집')
+    await user.click(saveButton)
 
     expect(await screen.findByText('임시 저장되었습니다')).toBeInTheDocument()
     expect(screen.getByText('공고 관리 탭에서 언제든 이어 쓸 수 있어요')).toBeInTheDocument()
     expect(screen.getByText('저장 완료')).toBeInTheDocument()
+    expect(window.location.pathname).toMatch(/^\/manage\/postings\/.+\/edit$/)
+  })
+
+  it('저장에 실패하면 안내하고 현재 단계에 머묾', async () => {
+    server.use(
+      graphqlApi.mutation('SavePostingDraft', () =>
+        HttpResponse.json({
+          errors: [{ message: '공고를 저장할 수 없습니다.', extensions: { code: 'COMMON_500' } }],
+          data: null,
+        }),
+      ),
+    )
+    const user = userEvent.setup()
+    renderForm()
+
+    await fillInfoStep(user)
+    await user.click(screen.getByRole('button', { name: '다음' }))
+
+    expect(await screen.findByText('저장하지 못했어요')).toBeInTheDocument()
+    expect(screen.getByText('공고를 저장할 수 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText(/공고 정보/).closest('li')).toHaveAttribute('aria-current', 'step')
   })
 
   it.each([
@@ -251,7 +393,7 @@ describe('PostingCreateForm', () => {
       renderForm(hasInterview)
 
       await fillInfoStep(user)
-      await user.click(screen.getByRole('button', { name: '다음' }))
+      await clickNext(user)
 
       expect(screen.getByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
       expect(screen.getByText(/모집 일정/, { selector: 'li span' }).closest('li')).toHaveAttribute(
@@ -261,7 +403,7 @@ describe('PostingCreateForm', () => {
       expect(screen.getByRole('group', { name: '모집 시작 필수' })).toBeInTheDocument()
       expect(screen.getByRole('group', { name: '모집 마감 필수' })).toBeInTheDocument()
       expect(screen.getByRole('group', { name: '활동 기간' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: /서류 결과 및 면접 일정 발표일/ }) !== null).toBe(
+      expect(screen.queryByRole('button', { name: /서류 결과 발표일/ }) !== null).toBe(
         hasDocumentResult,
       )
       expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
@@ -286,7 +428,7 @@ describe('PostingCreateForm', () => {
     const stepList = screen.getByRole('list', { name: '공고 작성 단계' })
     expect(within(stepList).queryByRole('button', { name: /모집 방식/ })).not.toBeInTheDocument()
     expect(within(stepList).queryByRole('button', { name: /지원서 양식/ })).not.toBeInTheDocument()
-    await user.click(within(stepList).getByRole('button', { name: /공고 정보/ }))
+    await clickStep(user, within(stepList).getByRole('button', { name: /공고 정보/ }))
     const titleInput = screen.getByRole('textbox', { name: /공고 제목/ })
     expect(titleInput).toHaveValue('UXUX 14기 신입 부원 모집')
 
@@ -297,7 +439,7 @@ describe('PostingCreateForm', () => {
     await user.clear(titleInput)
     expect(within(stepList).queryByRole('button')).not.toBeInTheDocument()
     await user.type(titleInput, '새 제목')
-    await user.click(within(stepList).getByRole('button', { name: /모집 방식/ }))
+    await clickStep(user, within(stepList).getByRole('button', { name: /모집 방식/ }))
     expect(screen.getByRole('radio', { name: '통합 모집' })).toBeChecked()
   })
 
@@ -306,7 +448,7 @@ describe('PostingCreateForm', () => {
     renderForm()
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
 
     expect(await screen.findByText('기본 문항 3개를 추가했어요')).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
@@ -346,7 +488,7 @@ describe('PostingCreateForm', () => {
     renderForm()
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
 
     await user.click(screen.getByRole('button', { name: '활동 경험 문항 추가' }))
     expect(getQuestionCards().at(-1)).toBe('Q4 질문을 작성해 주세요 편집')
@@ -367,7 +509,7 @@ describe('PostingCreateForm', () => {
     await user.click(within(settings).getByRole('checkbox', { name: '역할' }))
     expect(within(card).queryByRole('textbox', { name: '역할' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    await user.click(screen.getByRole('button', { name: '템플릿으로 추가' }))
     expect((await screen.findAllByRole('menuitem')).map((item) => item.textContent)).toEqual([
       '팀워크형',
       '활동 의지형',
@@ -381,21 +523,25 @@ describe('PostingCreateForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeEnabled()
   })
 
-  it('포트폴리오형 템플릿을 고르면 문항이 바뀌고, 파일 문항 설정이 카드 미리보기에 반영', async () => {
+  it('포트폴리오형 템플릿을 고르면 기존 문항 아래에 추가되고, 파일 문항 설정이 카드 미리보기에 반영', async () => {
     const user = setupWithDate()
     renderForm()
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
 
-    await user.click(screen.getByRole('button', { name: '탬플릿으로 추가' }))
+    await user.click(screen.getByRole('button', { name: '템플릿으로 추가' }))
     await user.click(await screen.findByRole('menuitem', { name: '포트폴리오형' }))
     expect(getQuestionCards()).toEqual([
-      'Q1 포트폴리오 또는 결과물을 첨부해 주세요. 편집',
-      'Q2 대표 결과물에 대해 설명해 주세요. (기획 의도, 내 역할 등) 편집',
-      'Q3 작업에 사용한 도구나 기술을 알려 주세요. 편집',
+      'Q1 자기소개를 해 주세요 편집',
+      'Q2 지원 동기를 작성해 주세요 편집',
+      'Q3 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q4 포트폴리오 또는 결과물을 첨부해 주세요. 편집',
+      'Q5 대표 결과물에 대해 설명해 주세요. (기획 의도, 내 역할 등) 편집',
+      'Q6 작업에 사용한 도구나 기술을 알려 주세요. 편집',
     ])
-    const settings = screen.getByRole('complementary', { name: 'Q1 문항 설정' })
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Q4 .* 편집$/ })).toHaveFocus())
+    const settings = screen.getByRole('complementary', { name: 'Q4 문항 설정' })
     expect(
       within(settings).getByText('파일이나 링크 중 하나는 꼭 제출해야 해요'),
     ).toBeInTheDocument()
@@ -415,13 +561,82 @@ describe('PostingCreateForm', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
 
+  it('문항 메뉴의 위로·아래로 이동으로 순서를 바꾸고, 끝 문항은 그 방향 이동 비활성', async () => {
+    const user = setupWithDate()
+    renderForm()
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await clickNext(user)
+
+    await user.click(screen.getByRole('button', { name: 'Q1 문항 메뉴' }))
+    expect(await screen.findByRole('menuitem', { name: '위로 이동' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await user.click(screen.getByRole('menuitem', { name: '아래로 이동' }))
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 자기소개를 해 주세요 편집',
+      'Q3 지원 분야와 관련된 경험을 알려 주세요 편집',
+    ])
+    expect(screen.getByText('Q1 문항을 Q2 자리로 옮겼어요')).toHaveAttribute('role', 'status')
+    // 옮긴 문항이 계속 선택된 상태
+    expect(screen.getByRole('complementary', { name: 'Q2 문항 설정' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^Q3 / }))
+    await user.click(screen.getByRole('button', { name: 'Q3 문항 메뉴' }))
+    expect(await screen.findByRole('menuitem', { name: '아래로 이동' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    await user.click(screen.getByRole('menuitem', { name: '위로 이동' }))
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q3 자기소개를 해 주세요 편집',
+    ])
+  })
+
+  it('문항 카드를 끌어 다른 문항 아래에 놓으면 그 자리로 이동', async () => {
+    const user = setupWithDate()
+    renderForm()
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '통합 모집' }))
+    await clickNext(user)
+
+    const [firstItem, , thirdItem] = within(
+      screen.getByRole('list', { name: '지원서 문항' }),
+    ).getAllByRole('listitem')
+    const firstCard = firstItem?.querySelector('[draggable="true"]')
+    if (!firstCard || !thirdItem) {
+      throw new Error('문항 카드 없음')
+    }
+    // jsdom은 DragEvent가 없어 전달 데이터·포인터 위치를 직접 지정
+    const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
+    vi.spyOn(thirdItem, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: 0, height: 100 }),
+    )
+    const dragOverLowerHalf = createEvent.dragOver(thirdItem, { dataTransfer })
+    Object.defineProperty(dragOverLowerHalf, 'clientY', { value: 80 })
+
+    fireEvent.dragStart(firstCard, { dataTransfer })
+    fireEvent(thirdItem, dragOverLowerHalf)
+    fireEvent.drop(thirdItem, { dataTransfer })
+
+    expect(getQuestionCards()).toEqual([
+      'Q1 지원 동기를 작성해 주세요 편집',
+      'Q2 지원 분야와 관련된 경험을 알려 주세요 편집',
+      'Q3 자기소개를 해 주세요 편집',
+    ])
+  })
+
   it('면접 공고는 지원서 양식 다음 면접 시간 설정, 발표일 사이 날짜와 면접 가능 기간 표시', async () => {
     const user = setupWithDate()
     renderForm(true)
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
+    await clickNext(user)
 
     expect(screen.getByRole('heading', { name: '면접 일정' })).toBeInTheDocument()
     expect(screen.getByText('면접 가능 기간: 10/23 (금) ~ 10/27 (화)')).toBeInTheDocument()
@@ -523,8 +738,8 @@ describe('PostingCreateForm', () => {
     renderForm(false)
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
+    await clickNext(user)
 
     expect(screen.getByText('게시할 준비가 끝났어요')).toBeInTheDocument()
     expect(screen.getByText(/공고 게시 시 10\/1\(목\) 00:00 부터/)).toBeInTheDocument()
@@ -567,8 +782,8 @@ describe('PostingCreateForm', () => {
     renderForm(true)
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
+    await clickNext(user)
 
     await user.click(screen.getByRole('button', { name: '2026년 10월 23일 금요일' }))
     await user.click(screen.getByRole('button', { name: '2026년 10월 26일 월요일' }))
@@ -579,11 +794,11 @@ describe('PostingCreateForm', () => {
     await user.keyboard('{Enter}')
 
     const pickDocumentResultDate = async (dayLabel: string) => {
-      await user.click(screen.getByRole('button', { name: /모집 일정$/ }))
-      await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+      await clickStep(user, screen.getByRole('button', { name: /모집 일정$/ }))
+      await user.click(screen.getByRole('button', { name: /^서류 결과 발표일/ }))
       await user.click(await screen.findByRole('button', { name: dayLabel }))
       for (let count = 0; count < 3; count += 1) {
-        await user.click(screen.getByRole('button', { name: '다음' }))
+        await clickNext(user)
       }
     }
 
@@ -614,8 +829,8 @@ describe('PostingCreateForm', () => {
     renderForm(true)
     await goToMethodStep(user)
     await user.click(screen.getByRole('radio', { name: '통합 모집' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
+    await clickNext(user)
 
     const pickMenuItem = async (trigger: RegExp, item: string) => {
       await user.click(screen.getByRole('button', { name: trigger }))
@@ -631,16 +846,16 @@ describe('PostingCreateForm', () => {
     await user.keyboard('{Enter}')
     await pickMenuItem(/^면접당 최대 지원자 수/, '1명')
     await pickMenuItem(/^같은 시간 면접실 수/, '2개')
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
     expect(screen.getByRole('button', { name: '공고 게시' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /모집 일정$/ }))
+    await clickStep(user, screen.getByRole('button', { name: /모집 일정$/ }))
     expect(screen.getByRole('button', { name: /검토 및 게시$/ })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /^서류 결과 및 면접 일정 발표일/ }))
+    await user.click(screen.getByRole('button', { name: /^서류 결과 발표일/ }))
     await user.click(await screen.findByRole('button', { name: '2026년 10월 23일 금요일' }))
 
     expect(screen.queryByRole('button', { name: /검토 및 게시$/ })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /면접 시간 설정$/ }))
+    await clickStep(user, screen.getByRole('button', { name: /면접 시간 설정$/ }))
     expect(screen.getByRole('group', { name: '면접 날짜' })).toHaveTextContent('면접 날짜0 / 5일')
   })
 
@@ -651,7 +866,7 @@ describe('PostingCreateForm', () => {
     await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
     await addPosition(user, '디자인팀')
     await addPosition(user, '개발팀')
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
 
     expect(screen.getByRole('tab', { name: '디자인팀' })).toHaveAttribute('aria-selected', 'true')
     await user.click(screen.getByRole('button', { name: '파일 또는 URL 문항 추가' }))
@@ -671,15 +886,61 @@ describe('PostingCreateForm', () => {
     await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
     await addPosition(user, '디자인팀')
     await addPosition(user, '개발팀')
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
     await user.click(screen.getByRole('button', { name: '파일 또는 URL 문항 추가' }))
     expect(getQuestionCards()).toHaveLength(4)
 
-    await user.click(screen.getByRole('button', { name: /모집 방식/ }))
+    await clickStep(user, screen.getByRole('button', { name: /모집 방식/ }))
     await user.click(screen.getByRole('button', { name: '디자인팀 삭제' }))
-    await user.click(screen.getByRole('button', { name: '다음' }))
+    await clickNext(user)
 
     expect(screen.getByRole('tab', { name: '개발팀' })).toHaveAttribute('aria-selected', 'true')
     expect(getQuestionCards()).toHaveLength(3)
+  })
+
+  it('게시하면 완료 안내 후 운영진 홈으로 이동', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+
+    await confirmPublish(user)
+
+    expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
+    expect(push).toHaveBeenCalledWith('/manage')
+  })
+
+  it('서버 게시 검사에 걸리면 팝업을 닫고 해당 단계로 이동해 안내', async () => {
+    server.use(
+      publishError('POSTING_400', [
+        { field: 'questionsStep', message: '지원서 문항을 1개 이상 추가해주세요.' },
+      ]),
+    )
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+
+    await confirmPublish(user)
+
+    expect(await screen.findByText('게시하기 전에 확인해 주세요')).toBeInTheDocument()
+    expect(screen.getByText('지원서 문항을 1개 이상 추가해주세요.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByText(/지원서 양식/, { selector: 'li span' }).closest('li')).toHaveAttribute(
+      'aria-current',
+      'step',
+    )
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('이용권이 없으면 안내하고 검토 단계에 머묾', async () => {
+    server.use(publishError('ORG_402'))
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+
+    await confirmPublish(user)
+
+    expect(await screen.findByText('이용권이 있어야 공고를 게시할 수 있어요')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '공고 게시' })).toBeInTheDocument()
+    expect(push).not.toHaveBeenCalled()
   })
 })

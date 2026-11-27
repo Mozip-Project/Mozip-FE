@@ -8,6 +8,13 @@ const SEOUL_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 })
 
+const SEOUL_TIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Seoul',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
 const MINUTE_MS = 60 * 1000
 const HOUR_MS = 60 * MINUTE_MS
 const DAY_MS = 24 * HOUR_MS
@@ -54,6 +61,16 @@ function getUtcTimeOfIsoDate(isoDate: string) {
 
 function getSeoulIsoDate(date: Date) {
   return SEOUL_DATE_FORMATTER.format(date)
+}
+
+// 한국 시각 HH:mm
+function getSeoulTime(date: Date) {
+  return SEOUL_TIME_FORMATTER.format(date)
+}
+
+// 한국 날짜·시각을 서버 DateTime 형식(+09:00)으로
+function toSeoulDateTime(isoDate: string, time: string) {
+  return `${isoDate}T${time}:00+09:00`
 }
 
 // 시각과 무관한 달력 일수 차이, 형식이 다르면 NaN
@@ -147,4 +164,6 @@ export {
   formatYearMonth,
   getDaysBetween,
   getSeoulIsoDate,
+  getSeoulTime,
+  toSeoulDateTime,
 }

@@ -104,6 +104,9 @@ describe('PostingManageHomeContent', () => {
       await screen.findByRole('heading', { name: 'UXUX 15기 운영진 추가 모집' }),
     ).toBeInTheDocument()
     expect(screen.getAllByText('일정 미정')).toHaveLength(2)
+    expect(
+      screen.getByRole('link', { name: 'UXUX 15기 운영진 추가 모집 공고 이어서 작성하기' }),
+    ).toHaveAttribute('href', '/manage/postings/3/edit')
 
     await user.click(screen.getByRole('button', { name: 'UXUX 15기 운영진 추가 모집 메뉴' }))
     await user.click(await screen.findByRole('menuitem', { name: '공고 삭제' }))

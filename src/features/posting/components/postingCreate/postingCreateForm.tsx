@@ -5,8 +5,14 @@ import { useForm, useWatch } from 'react-hook-form'
 import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
-import { SaveStatus, type SaveState } from '@/components/ui/SaveStatus/saveStatus'
+import { SaveStatus } from '@/components/ui/SaveStatus/saveStatus'
 import { StepList } from '@/components/ui/StepList/stepList'
+import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
+import {
+  usePostingDraftSave,
+  type SavedPostingDraft,
+} from '@/features/posting/hooks/usePostingDraftSave'
+import { usePostingPublish } from '@/features/posting/hooks/usePostingPublish'
 import {
   EMPTY_POSTING_CREATE,
   type PostingCreateValues,
@@ -58,33 +64,76 @@ function getStepSchema(stepId: StepId | undefined, hasInterview: boolean) {
   }
 }
 
-type PostingCreateFormProps = {
-  hasInterview: boolean
+// 이어서 작성할 때 탭으로 갈 수 있는 단계: 입력 조건을 처음 통과하지 못한 단계까지
+function getInitialFurthestIndex(
+  steps: PostingCreateStep[],
+  values: PostingCreateValues,
+  hasInterview: boolean,
+) {
+  const firstIncompleteIndex = steps.findIndex(
+    ({ id }) => getStepSchema(id, hasInterview)?.safeParse(values).success === false,
+  )
+  return firstIncompleteIndex === -1 ? steps.length - 1 : firstIncompleteIndex
 }
 
-function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
+type PostingCreateFormProps = {
+  hasInterview: boolean
+  savedOrganizationId: string | undefined
+  defaultValues?: PostingCreateValues
+  // 이어서 작성할 때 불러온 공고, 없으면 첫 저장에서 공고 생성
+  savedDraft?: SavedPostingDraft
+}
+
+function PostingCreateForm({
+  hasInterview,
+  savedOrganizationId,
+  defaultValues = EMPTY_POSTING_CREATE,
+  savedDraft,
+}: PostingCreateFormProps) {
+  // 입력 칸 안내 문구는 지원서 작성과 같이 칸을 벗어난 뒤부터 표시
   const { control, register, getValues, setValue } = useForm<PostingCreateValues>({
-    defaultValues: EMPTY_POSTING_CREATE,
+    defaultValues,
+    mode: 'onTouched',
   })
   const values = useWatch({ control })
   const [recruitType, positions] = useWatch({ control, name: ['recruitType', 'positions'] })
-  const [stepIndex, setStepIndex] = useState(0)
-  const [furthestIndex, setFurthestIndex] = useState(0)
-  const [saveState, setSaveState] = useState<SaveState>({ status: 'idle' })
-  const { showToast } = useToast()
   const steps = getPostingCreateSteps(hasInterview)
+  const [stepIndex, setStepIndex] = useState(0)
+  const [furthestIndex, setFurthestIndex] = useState(() =>
+    savedDraft ? getInitialFurthestIndex(steps, defaultValues, hasInterview) : 0,
+  )
+  const { showToast } = useToast()
+  const { currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
+  const { postingId, saveState, isSaving, canSave, saveStep } = usePostingDraftSave({
+    organizationId: currentOrganizationId,
+    hasInterview,
+    savedDraft,
+  })
   const currentStepId = steps[stepIndex]?.id
   const canGoNext = getStepSchema(currentStepId, hasInterview)?.safeParse(values).success ?? false
   const positionNames = getPositionNames({ recruitType, positions })
   const isReviewStep = currentStepId === 'review'
 
-  // TODO: 임시 저장 API 연결 후 저장 성공 응답 시점·서버 저장 시각으로 교체
-  function handleTemporarySave() {
-    setSaveState({ status: 'saved', savedAt: new Date() })
-    showToast({
-      title: '임시 저장되었습니다',
-      description: '공고 관리 탭에서 언제든 이어 쓸 수 있어요',
-    })
+  // 검토 단계는 입력이 없어 저장할 값 없음
+  async function saveCurrentStep() {
+    if (!currentStepId || currentStepId === 'review') {
+      return true
+    }
+    return saveStep(currentStepId, getValues())
+  }
+
+  // 첫 저장이 공고 생성이라 제목이 있어야 저장 가능
+  async function handleTemporarySave() {
+    if (!postingId && !getValues('title').trim()) {
+      showToast({ title: '공고 제목을 입력하면 임시 저장할 수 있어요', icon: 'info' })
+      return
+    }
+    if (await saveCurrentStep()) {
+      showToast({
+        title: '임시 저장되었습니다',
+        description: '공고 관리 탭에서 언제든 이어 쓸 수 있어요',
+      })
+    }
   }
 
   // 검사할 스키마가 없는 단계는 통과
@@ -127,11 +176,26 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
     window.scrollTo({ top: 0 })
   }
 
-  function handleNext() {
-    if (canGoNext && !isReviewStep) {
-      moveToStep(stepIndex + 1)
+  // 저장에 실패하면 현재 단계에 머묾
+  async function saveAndMoveToStep(index: number) {
+    if (isSaving) {
+      return
+    }
+    if (await saveCurrentStep()) {
+      moveToStep(index)
     }
   }
+
+  function handleNext() {
+    if (canGoNext && !isReviewStep) {
+      void saveAndMoveToStep(stepIndex + 1)
+    }
+  }
+
+  const { publish, isPublishing } = usePostingPublish({
+    stepIds: steps.map(({ id }) => id),
+    onInvalidStep: (stepId) => moveToStep(steps.findIndex(({ id }) => id === stepId)),
+  })
 
   function handleEditStep(stepId: EditableStepId) {
     moveToStep(steps.findIndex((step) => step.id === stepId))
@@ -143,13 +207,21 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
         title="공고 작성"
         actions={
           <div className="flex items-center gap-gap-m">
-            <Button variant="secondary" size="m" onClick={handleTemporarySave}>
+            <Button
+              variant="secondary"
+              size="m"
+              disabled={!canSave || isSaving}
+              onClick={() => void handleTemporarySave()}
+            >
               임시 저장
             </Button>
             {isReviewStep ? (
-              <PostingPublishDialog />
+              <PostingPublishDialog
+                isPublishing={isPublishing}
+                onPublish={() => publish(postingId)}
+              />
             ) : (
-              <Button size="m" disabled={!canGoNext} onClick={handleNext}>
+              <Button size="m" disabled={!canGoNext || !canSave || isSaving} onClick={handleNext}>
                 다음
                 <ArrowRightIcon aria-hidden />
               </Button>
@@ -162,7 +234,11 @@ function PostingCreateForm({ hasInterview }: PostingCreateFormProps) {
           label="공고 작성 단계"
           steps={steps}
           currentIndex={stepIndex}
-          stepSelection={{ furthestIndex, isStepComplete, onSelect: moveToStep }}
+          stepSelection={{
+            furthestIndex,
+            isStepComplete,
+            onSelect: (index) => void saveAndMoveToStep(index),
+          }}
         />
         <SaveStatus {...saveState} />
       </div>

@@ -145,12 +145,6 @@ type DocumentResultApplicantPage = {
   totals: DocumentResultTotals
 }
 
-type DocumentResultOverview = {
-  hasInterview: boolean
-  // null은 확정 전
-  confirmedAt: string | null
-}
-
 // 결과 안내 메시지는 합격·불합격 두 종류만 발송
 type ResultNoticeTarget = Extract<DocumentResult, 'pass' | 'fail'>
 
@@ -360,7 +354,6 @@ export type {
   DocumentResult,
   DocumentResultApplicant,
   DocumentResultApplicantPage,
-  DocumentResultOverview,
   DocumentResultQuery,
   DocumentResultSort,
   DocumentResultTotals,

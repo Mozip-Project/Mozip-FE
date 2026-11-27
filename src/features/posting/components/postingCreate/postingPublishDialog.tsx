@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import MegaphoneIcon from '@/assets/icons/megaphone.svg'
 import { Button } from '@/components/ui/Button/button'
 import {
@@ -11,9 +12,30 @@ import {
   DialogTrigger,
 } from '@/components/ui/Dialog/dialog'
 
-function PostingPublishDialog() {
+type PostingPublishDialogProps = {
+  isPublishing: boolean
+  // 성공하면 화면을 떠나고, 실패하면 false를 받아 팝업을 닫고 안내를 보여 줌
+  onPublish: () => Promise<boolean>
+}
+
+function PostingPublishDialog({ isPublishing, onPublish }: PostingPublishDialogProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  // 게시 요청 중에는 닫지 않음
+  function handleOpenChange(nextOpen: boolean) {
+    if (!isPublishing) {
+      setIsOpen(nextOpen)
+    }
+  }
+
+  async function handlePublish() {
+    if (!(await onPublish())) {
+      setIsOpen(false)
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="m">공고 게시</Button>
       </DialogTrigger>
@@ -25,12 +47,13 @@ function PostingPublishDialog() {
         />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary">취소</Button>
+            <Button variant="secondary" disabled={isPublishing}>
+              취소
+            </Button>
           </DialogClose>
-          {/* TODO: 공고 게시 API 연결 후 성공 시 이동·실패 안내 처리 */}
-          <DialogClose asChild>
-            <Button>게시하기</Button>
-          </DialogClose>
+          <Button disabled={isPublishing} onClick={() => void handlePublish()}>
+            {isPublishing ? '게시 중' : '게시하기'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

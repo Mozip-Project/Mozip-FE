@@ -35,4 +35,19 @@ function insertTextAt(text: string, insertion: string, start: number, end: numbe
   }
 }
 
-export { getTextLength, insertTextAt, trimTextBeforeCaret }
+const HANGUL_SYLLABLE_START = 0xac00
+const HANGUL_SYLLABLE_COUNT = 11172
+const HANGUL_FINAL_COUNT = 28
+const HANGUL_FINAL_RIEUL_INDEX = 8
+
+// 받침 없음·ㄹ 받침·한글이 아닌 끝 글자는 '로', 그 외 받침은 '으로'
+function withDirectionParticle(word: string) {
+  const offset = (word.trimEnd().at(-1)?.charCodeAt(0) ?? 0) - HANGUL_SYLLABLE_START
+  const isHangulSyllable = offset >= 0 && offset < HANGUL_SYLLABLE_COUNT
+  const finalIndex = offset % HANGUL_FINAL_COUNT
+  const needsEuro = isHangulSyllable && finalIndex !== 0 && finalIndex !== HANGUL_FINAL_RIEUL_INDEX
+
+  return `${word}${needsEuro ? '으로' : '로'}`
+}
+
+export { getTextLength, insertTextAt, trimTextBeforeCaret, withDirectionParticle }

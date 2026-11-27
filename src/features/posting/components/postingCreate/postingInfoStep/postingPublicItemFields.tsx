@@ -4,7 +4,11 @@ import { flushSync } from 'react-dom'
 import { Controller, type Control } from 'react-hook-form'
 import { TextField } from '@/components/ui/TextField/textField'
 import type { PostingCreateValues } from '@/features/posting/schemas/postingCreateValues'
-import type { PublicItem } from '@/features/posting/schemas/postingInfoSchema'
+import {
+  POSTING_INFO_MAX_LENGTH,
+  validateOptionInput,
+  type PublicItem,
+} from '@/features/posting/schemas/postingInfoSchema'
 import { formatThousands, getCaretAfterDigits, toDigits } from '@/utils/number'
 import { PostingOptionGroup, type PostingOption } from './postingOptionGroup'
 import type { ChangeEvent, ComponentProps } from 'react'
@@ -36,11 +40,15 @@ function PostingPublicItemFields({ control }: PostingPublicItemFieldsProps) {
                 <Controller
                   name="region"
                   control={control}
-                  render={({ field: regionField }) => (
+                  rules={{ validate: (value) => validateOptionInput('region', value) }}
+                  render={({ field: regionField, fieldState }) => (
                     <TextField
                       className="min-w-0 flex-1"
                       label="활동 지역"
                       placeholder="활동 지역을 입력해 주세요"
+                      maxLength={POSTING_INFO_MAX_LENGTH.region}
+                      aria-invalid={fieldState.invalid}
+                      helper={fieldState.error?.message}
                       {...regionField}
                     />
                   )}
@@ -50,8 +58,15 @@ function PostingPublicItemFields({ control }: PostingPublicItemFieldsProps) {
                 <Controller
                   name="fee"
                   control={control}
-                  render={({ field: { value, onChange, ...feeField } }) => (
-                    <PostingFeeField value={value} onValueChange={onChange} {...feeField} />
+                  rules={{ validate: (value) => validateOptionInput('fee', value) }}
+                  render={({ field: { value, onChange, ...feeField }, fieldState }) => (
+                    <PostingFeeField
+                      value={value}
+                      onValueChange={onChange}
+                      aria-invalid={fieldState.invalid}
+                      helper={fieldState.error?.message}
+                      {...feeField}
+                    />
                   )}
                 />
               )}
@@ -63,7 +78,7 @@ function PostingPublicItemFields({ control }: PostingPublicItemFieldsProps) {
   )
 }
 
-type PostingFeeFieldProps = Omit<ComponentProps<'input'>, 'value' | 'onChange'> & {
+type PostingFeeFieldProps = Omit<ComponentProps<typeof TextField>, 'value' | 'onChange'> & {
   value: string
   onValueChange: (digits: string) => void
 }

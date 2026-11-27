@@ -48,6 +48,7 @@ fragment MyAccountFields on Me {
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }

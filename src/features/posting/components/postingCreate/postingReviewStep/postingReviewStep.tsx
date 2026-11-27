@@ -63,7 +63,7 @@ function PostingReviewStep({ values, hasInterview, onEditStep }: PostingReviewSt
 }
 
 function PostingPreview({ values, hasInterview }: Omit<PostingReviewStepProps, 'onEditStep'>) {
-  const thumbnailSrc = useObjectUrl(values.mainImage) ?? undefined
+  const thumbnailSrc = useObjectUrl(values.mainImage) ?? values.savedMainImageUrl ?? undefined
   const daysLeft = values.recruitEndDate
     ? getDaysBetween(getTodayIsoDate(), values.recruitEndDate)
     : null
@@ -90,6 +90,7 @@ function PostingPreview({ values, hasInterview }: Omit<PostingReviewStepProps, '
             )
           }
           tags={getPreviewTags(values, hasInterview)}
+          isThumbnailUnoptimized
           thumbnailSrc={thumbnailSrc}
         />
       </div>

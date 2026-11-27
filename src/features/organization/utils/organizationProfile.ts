@@ -86,13 +86,14 @@ function toOrganizationProfileValues(
   }
 }
 
-// TODO: 로고 업로드(presigned URL) 연결 전까지 logoFileKey는 null로 기존 로고 유지
+// 서버는 logoUrl을 그대로 덮어써 기존 로고도 그 주소를 다시 보냄, 새 로고는 업로드 후 주소로 교체
 function toUpdateOrganizationInput(
   values: OrganizationProfileValues,
   isStudentCouncilOrganization: boolean,
+  logoUrl: string | null,
 ): UpdateOrganizationInput {
   return {
-    logoFileKey: null,
+    logoUrl,
     tagline: values.introduction.trim(),
     // 학생회는 화면에 활동 분야가 없어 빈 배열
     fields: isStudentCouncilOrganization

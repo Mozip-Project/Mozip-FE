@@ -85,6 +85,7 @@ describe('AccountSettingsContent', () => {
               id: 'user-1',
               phone: '01012345678',
               name: '김모집',
+              profileImageUrl: null,
               school: null,
               schoolVerification: { schoolName: '직접입력대학교', email: null, school: null },
               memberships: [],

@@ -4,10 +4,11 @@ import type { AccountEditValues } from '@/features/mypage/schemas/accountEditSch
 
 type ProfileImageSectionProps = {
   control: Control<AccountEditValues>
+  // 서버에 저장된 프로필 이미지, 새로 고른 이미지를 초기화하면 이 이미지로 복귀
+  savedImageUrl: string | null
 }
 
-// TODO: 서버에 저장된 프로필 이미지 표시, 초기화 시 그 이미지로 복귀
-function ProfileImageSection({ control }: ProfileImageSectionProps) {
+function ProfileImageSection({ control, savedImageUrl }: ProfileImageSectionProps) {
   const { field } = useController({ control, name: 'profileImage' })
 
   return (
@@ -15,6 +16,7 @@ function ProfileImageSection({ control }: ProfileImageSectionProps) {
       <ImageUploadField
         value={field.value}
         onChange={field.onChange}
+        savedImageUrl={savedImageUrl}
         label="프로필 이미지"
         title={<h2 className="text-headline1 font-semibold text-neutral">프로필</h2>}
       />

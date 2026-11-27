@@ -32,6 +32,13 @@ export type ApplicationSort =
   | 'SUBMITTED_ASC'
   | 'SUBMITTED_DESC';
 
+/** 면접관 자동 배정 기준 (포지션 없는 모집은 자동 배정 없이 직접 추가) */
+export type AssignRule =
+  /** 팀 상관없이 운영진 전체 */
+  | 'ALL_MEMBERS'
+  /** 지원 포지션과 같은 팀 운영진 */
+  | 'SAME_TEAM';
+
 /** 명세에 정의 없이 'fileKey 또는 url'만 있어 두 필드로 둠, 백엔드 확인 필요 */
 export type AttachmentInput = {
   fileKey?: string | null | undefined;
@@ -101,6 +108,19 @@ export type FinalResult =
   | 'FAIL'
   | 'PASS'
   | 'PENDING';
+
+export type InterviewMethod =
+  | 'ONLINE'
+  | 'ONSITE';
+
+export type InterviewTimeRangeInput = {
+  closedSlots?: Array<string> | null | undefined;
+  date: string;
+  endTime: string;
+  /** null = 포지션 없는 모집 또는 전체 공통 */
+  positionId?: string | number | null | undefined;
+  startTime: string;
+};
 
 export type MemberRole =
   | 'OPERATOR'
@@ -203,6 +223,60 @@ export type OrganizationType =
   | 'CLUB'
   | 'STUDENT_COUNCIL';
 
+export type PositionInput = {
+  /** null = 모집 인원 미정, 1 이상 */
+  headcount?: number | null | undefined;
+  /** 최대 50자 */
+  name: string;
+  sortOrder: number;
+  teamId?: string | number | null | undefined;
+};
+
+/**
+ * 보내지 않거나 null이면 기존 값 유지
+ * 단, semester·region·fee·eligibilityNote·activityStartedOn·activityEndedOn은 생략하면 유지, null이면 지움
+ */
+export type PostingDraftInput = {
+  activityEndedOn?: string | null | undefined;
+  activityStartedOn?: string | null | undefined;
+  allowEnrolled?: boolean | null | undefined;
+  allowOnLeave?: boolean | null | undefined;
+  assignRule?: AssignRule | null | undefined;
+  /** 0분 이상 */
+  breakMinutes?: number | null | undefined;
+  content?: string | null | undefined;
+  docScorePerQuestion?: boolean | null | undefined;
+  /** 최대 200자 */
+  eligibilityNote?: string | null | undefined;
+  /** 최대 50자 */
+  fee?: string | null | undefined;
+  hasInterview?: boolean | null | undefined;
+  /** 최대 5장, 통째로 교체 */
+  images?: Array<PostingImageInput> | null | undefined;
+  interviewMethod?: InterviewMethod | null | undefined;
+  /** 1분 이상 */
+  interviewMinutes?: number | null | undefined;
+  /** 통째로 교체, 같은 날짜 안에서 겹치면 COMMON_400 */
+  interviewTimeRanges?: Array<InterviewTimeRangeInput> | null | undefined;
+  /** 1명 이상 */
+  maxApplicantsPerInterview?: number | null | undefined;
+  /** 1개 이상 */
+  maxParallelInterviews?: number | null | undefined;
+  noPosition?: boolean | null | undefined;
+  /** 통째로 교체, 저장할 때마다 포지션 id가 새로 생김 */
+  positions?: Array<PositionInput> | null | undefined;
+  /** 통째로 교체 */
+  questions?: Array<QuestionInput> | null | undefined;
+  recruitEndAt?: string | null | undefined;
+  recruitStartAt?: string | null | undefined;
+  /** 최대 100자 */
+  region?: string | null | undefined;
+  /** 최대 20자 */
+  semester?: string | null | undefined;
+  /** 최대 100자 */
+  title?: string | null | undefined;
+};
+
 export type PostingFilter = {
   /** 마감 3일 이내 */
   closingSoon?: boolean | null | undefined;
@@ -212,6 +286,13 @@ export type PostingFilter = {
   /** 명세는 하나, 여러 개 선택이라 배열로 요청 중(백엔드 확인 전 가정) */
   organizationType?: Array<OrganizationType> | null | undefined;
   schoolId?: string | number | null | undefined;
+};
+
+export type PostingImageInput = {
+  /** 여러 장에 true면 COMMON_400, 하나도 없으면 첫 번째 사진 */
+  isRepresentative?: boolean | null | undefined;
+  sortOrder: number;
+  url: string;
 };
 
 export type PostingSort =
@@ -228,6 +309,29 @@ export type PostingStatus =
   | 'FINAL_RESULT'
   | 'INTERVIEW'
   | 'RECRUITING';
+
+export type QuestionInput = {
+  /** 최대 500자 */
+  description?: string | null | undefined;
+  /** TEXT 글자 수 제한, 1 이상 */
+  maxLength?: number | null | undefined;
+  options?: QuestionOptionsInput | null | undefined;
+  /** null = 공통 문항, 같은 저장 이후의 포지션 id */
+  positionId?: string | number | null | undefined;
+  required: boolean;
+  sortOrder: number;
+  /** 최대 200자 */
+  title: string;
+  type: QuestionType;
+};
+
+/** 해당 유형 값만 채움 */
+export type QuestionOptionsInput = {
+  choices?: Array<string> | null | undefined;
+  columns?: Array<string> | null | undefined;
+  maxFiles?: number | null | undefined;
+  maxRows?: number | null | undefined;
+};
 
 export type QuestionType =
   | 'ACTIVITY'
@@ -260,8 +364,8 @@ export type UpdateOrganizationInput = {
   keywords: Array<string>;
   /** 1개 이상 */
   links: Array<OrganizationLinkInput>;
-  /** 업로드 후 받은 key, null이면 기존 로고 유지 */
-  logoFileKey?: string | null | undefined;
+  /** 업로드한 fileUrl, null·빈 문자열이면 기본 이미지로 초기화. 기존 로고를 유지하려면 그 주소를 다시 보냄 */
+  logoUrl?: string | null | undefined;
   /** 최대 40자 */
   tagline: string;
 };
@@ -405,6 +509,31 @@ export type DeletePostingMutationVariables = Exact<{
 
 export type DeletePostingMutation = { deletePosting: boolean };
 
+export type PostingDraftFieldsFragment = { id: string, status: PostingStatus, hasInterview: boolean, updatedAt: string, title: string, region: string | null, fee: string | null, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, content: string | null, recruitStartAt: string | null, recruitEndAt: string | null, activityStartedOn: string | null, activityEndedOn: string | null, noPosition: boolean, interviewMinutes: number | null, breakMinutes: number | null, maxApplicantsPerInterview: number | null, maxParallelInterviews: number | null, organization: { id: string }, images: Array<{ id: string, url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ id: string, date: string, startTime: string, endTime: string }> };
+
+export type PostingDraftQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PostingDraftQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, updatedAt: string, title: string, region: string | null, fee: string | null, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, content: string | null, recruitStartAt: string | null, recruitEndAt: string | null, activityStartedOn: string | null, activityEndedOn: string | null, noPosition: boolean, interviewMinutes: number | null, breakMinutes: number | null, maxApplicantsPerInterview: number | null, maxParallelInterviews: number | null, organization: { id: string }, images: Array<{ id: string, url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ id: string, date: string, startTime: string, endTime: string }> } };
+
+export type SavePostingDraftMutationVariables = Exact<{
+  organizationId: string | number;
+  id?: string | number | null | undefined;
+  input: PostingDraftInput;
+}>;
+
+
+export type SavePostingDraftMutation = { savePostingDraft: { id: string, status: PostingStatus, hasInterview: boolean, updatedAt: string, title: string, region: string | null, fee: string | null, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, content: string | null, recruitStartAt: string | null, recruitEndAt: string | null, activityStartedOn: string | null, activityEndedOn: string | null, noPosition: boolean, interviewMinutes: number | null, breakMinutes: number | null, maxApplicantsPerInterview: number | null, maxParallelInterviews: number | null, organization: { id: string }, images: Array<{ id: string, url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ id: string, date: string, startTime: string, endTime: string }> } };
+
+export type PublishPostingMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type PublishPostingMutation = { publishPosting: { id: string, status: PostingStatus } };
+
 export type PostingApplicationFormQueryVariables = Exact<{
   id: string | number;
 }>;
@@ -444,7 +573,7 @@ export type RecruitmentPostingQueryVariables = Exact<{
 }>;
 
 
-export type RecruitmentPostingQuery = { posting: { id: string, status: PostingStatus, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null, docScorePerQuestion: boolean | null } };
+export type RecruitmentPostingQuery = { posting: { id: string, title: string, status: PostingStatus, recruitEndAt: string | null, docResultAt: string | null, hasInterview: boolean, noPosition: boolean, docResultConfirmedAt: string | null, docScorePerQuestion: boolean | null } };
 
 export type PostingApplicationsQueryVariables = Exact<{
   postingId: string | number;
@@ -588,21 +717,21 @@ export type MeQuery = { me: { id: string, lastOrganization: { id: string } | nul
 export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyAccountQuery = { me: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type MyAccountQuery = { me: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type UpdateNotificationSettingsMutationVariables = Exact<{
   input: NotificationSettingsInput;
 }>;
 
 
-export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type UpdateNotificationSettingsMutation = { updateNotificationSettings: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type UpdateProfileMutationVariables = Exact<{
   input: UpdateProfileInput;
 }>;
 
 
-export type UpdateProfileMutation = { updateProfile: { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
+export type UpdateProfileMutation = { updateProfile: { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } } };
 
 export type RequestPhoneChangeMutationVariables = Exact<{
   phone: string;
@@ -626,7 +755,7 @@ export type ChangePasswordMutationVariables = Exact<{
 
 export type ChangePasswordMutation = { changePassword: boolean };
 
-export type MyAccountFieldsFragment = { id: string, phone: string, name: string, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
+export type MyAccountFieldsFragment = { id: string, phone: string, name: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null, memberships: Array<{ id: string, role: MemberRole, organization: { id: string, name: string }, team: { name: string } | null }>, notificationSettings: { notifyResult: boolean, notifyScrap: boolean, notifyOperator: boolean, marketingAgreed: boolean } };
 
 export type WithdrawMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -741,6 +870,62 @@ export const ManagedPostingFieldsFragmentDoc = new TypedDocumentString(`
   bumpRank
 }
     `, {"fragmentName":"ManagedPostingFields"}) as unknown as TypedDocumentString<ManagedPostingFieldsFragment, unknown>;
+export const PostingDraftFieldsFragmentDoc = new TypedDocumentString(`
+    fragment PostingDraftFields on Posting {
+  id
+  status
+  hasInterview
+  updatedAt
+  organization {
+    id
+  }
+  title
+  images {
+    id
+    url
+    isRepresentative
+    sortOrder
+  }
+  region
+  fee
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  content
+  recruitStartAt
+  recruitEndAt
+  activityStartedOn
+  activityEndedOn
+  noPosition
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    position {
+      id
+    }
+    type
+    title
+    description
+    required
+    maxLength
+    sortOrder
+  }
+  interviewMinutes
+  breakMinutes
+  interviewTimeRanges {
+    id
+    date
+    startTime
+    endTime
+  }
+  maxApplicantsPerInterview
+  maxParallelInterviews
+}
+    `, {"fragmentName":"PostingDraftFields"}) as unknown as TypedDocumentString<PostingDraftFieldsFragment, unknown>;
 export const MyDocEvaluationFieldsFragmentDoc = new TypedDocumentString(`
     fragment MyDocEvaluationFields on DocEvaluation {
   id
@@ -907,6 +1092,7 @@ export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1241,6 +1427,134 @@ export const DeletePostingDocument = new TypedDocumentString(`
   deletePosting(id: $id)
 }
     `) as unknown as TypedDocumentString<DeletePostingMutation, DeletePostingMutationVariables>;
+export const PostingDraftDocument = new TypedDocumentString(`
+    query PostingDraft($id: ID!) {
+  posting(id: $id) {
+    ...PostingDraftFields
+  }
+}
+    fragment PostingDraftFields on Posting {
+  id
+  status
+  hasInterview
+  updatedAt
+  organization {
+    id
+  }
+  title
+  images {
+    id
+    url
+    isRepresentative
+    sortOrder
+  }
+  region
+  fee
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  content
+  recruitStartAt
+  recruitEndAt
+  activityStartedOn
+  activityEndedOn
+  noPosition
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    position {
+      id
+    }
+    type
+    title
+    description
+    required
+    maxLength
+    sortOrder
+  }
+  interviewMinutes
+  breakMinutes
+  interviewTimeRanges {
+    id
+    date
+    startTime
+    endTime
+  }
+  maxApplicantsPerInterview
+  maxParallelInterviews
+}`) as unknown as TypedDocumentString<PostingDraftQuery, PostingDraftQueryVariables>;
+export const SavePostingDraftDocument = new TypedDocumentString(`
+    mutation SavePostingDraft($organizationId: ID!, $id: ID, $input: PostingDraftInput!) {
+  savePostingDraft(organizationId: $organizationId, id: $id, input: $input) {
+    ...PostingDraftFields
+  }
+}
+    fragment PostingDraftFields on Posting {
+  id
+  status
+  hasInterview
+  updatedAt
+  organization {
+    id
+  }
+  title
+  images {
+    id
+    url
+    isRepresentative
+    sortOrder
+  }
+  region
+  fee
+  allowEnrolled
+  allowOnLeave
+  eligibilityNote
+  content
+  recruitStartAt
+  recruitEndAt
+  activityStartedOn
+  activityEndedOn
+  noPosition
+  positions {
+    id
+    name
+    sortOrder
+  }
+  questions {
+    id
+    position {
+      id
+    }
+    type
+    title
+    description
+    required
+    maxLength
+    sortOrder
+  }
+  interviewMinutes
+  breakMinutes
+  interviewTimeRanges {
+    id
+    date
+    startTime
+    endTime
+  }
+  maxApplicantsPerInterview
+  maxParallelInterviews
+}`) as unknown as TypedDocumentString<SavePostingDraftMutation, SavePostingDraftMutationVariables>;
+export const PublishPostingDocument = new TypedDocumentString(`
+    mutation PublishPosting($id: ID!) {
+  publishPosting(id: $id) {
+    id
+    status
+  }
+}
+    `) as unknown as TypedDocumentString<PublishPostingMutation, PublishPostingMutationVariables>;
 export const PostingApplicationFormDocument = new TypedDocumentString(`
     query PostingApplicationForm($id: ID!) {
   posting(id: $id) {
@@ -1350,7 +1664,10 @@ export const RecruitmentPostingDocument = new TypedDocumentString(`
     query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
     id
+    title
     status
+    recruitEndAt
+    docResultAt
     hasInterview
     noPosition
     docResultConfirmedAt
@@ -1813,6 +2130,7 @@ export const MyAccountDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1851,6 +2169,7 @@ export const UpdateNotificationSettingsDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
@@ -1889,6 +2208,7 @@ export const UpdateProfileDocument = new TypedDocumentString(`
   id
   phone
   name
+  profileImageUrl
   school {
     name
   }
