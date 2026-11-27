@@ -99,14 +99,33 @@ const SAMPLE_TIMETABLE_INTERVIEWERS: TimetableInterviewer[] = [
   { id: 'member-10', name: '나지우', teamName: '기획팀', isRepresentative: false },
 ]
 
+const INTERVIEWERS_PER_INTERVIEW = 2
+
+// 시연용, 지원 포지션과 같은 팀 운영진을 돌아가며 배정
+function getSampleInterviewerIds(positionName: string, order: number) {
+  const teamMemberIds = SAMPLE_TIMETABLE_INTERVIEWERS.filter(
+    ({ teamName }) => teamName === `${positionName}팀`,
+  ).map(({ id }) => id)
+
+  const start = order % teamMemberIds.length
+
+  return [...teamMemberIds.slice(start), ...teamMemberIds.slice(0, start)].slice(
+    0,
+    INTERVIEWERS_PER_INTERVIEW,
+  )
+}
+
 const SAMPLE_INTERVIEWS: TimetableInterview[] = SAMPLE_ASSIGNMENTS.map(
-  ([applicantId, , , date, time, track]) => ({
+  ([applicantId, , positionName, date, time, track], index) => ({
     id: `interview-${applicantId}`,
     date,
     time,
     track,
     applicantIds: [applicantId],
-    interviewerIds: [],
+    interviewerIds: getSampleInterviewerIds(
+      positionName,
+      SAMPLE_ASSIGNMENTS.slice(0, index).filter(([, , name]) => name === positionName).length,
+    ),
     location: null,
   }),
 )

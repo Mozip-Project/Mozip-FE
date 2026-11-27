@@ -380,27 +380,27 @@ describe('PostingCreateForm', () => {
     expect(feeInput.selectionStart).toBe(3)
   })
 
-  it('제목 없이 임시 저장을 누르면 저장하지 않고 제목 입력 안내', async () => {
+  it('공고 제목이 비어 있거나 공백뿐이면 임시 저장 비활성', async () => {
     const user = userEvent.setup()
     renderForm()
     const saveButton = screen.getByRole('button', { name: '임시 저장' })
+    const titleInput = screen.getByRole('textbox', { name: /공고 제목/ })
+
+    expect(saveButton).toBeDisabled()
+
+    await user.type(titleInput, '   ')
+    expect(saveButton).toBeDisabled()
+
+    await user.type(titleInput, 'UXUX 15기 모집')
     await waitFor(() => expect(saveButton).toBeEnabled())
-
-    await user.click(saveButton)
-
-    expect(
-      await screen.findByText('공고 제목을 입력하면 임시 저장할 수 있어요'),
-    ).toBeInTheDocument()
-    expect(screen.queryByText('저장 완료')).not.toBeInTheDocument()
   })
 
   it('임시 저장하면 공고가 만들어지고 편집 주소로 바뀌며 저장 시각 표시와 안내 토스트', async () => {
     const user = userEvent.setup()
     renderForm()
     const saveButton = screen.getByRole('button', { name: '임시 저장' })
-    await waitFor(() => expect(saveButton).toBeEnabled())
-
     await user.type(screen.getByRole('textbox', { name: /공고 제목/ }), 'UXUX 14기 신입 부원 모집')
+    await waitFor(() => expect(saveButton).toBeEnabled())
     await user.click(saveButton)
 
     expect(await screen.findByText('임시 저장되었습니다')).toBeInTheDocument()

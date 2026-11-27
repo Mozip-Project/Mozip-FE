@@ -83,7 +83,7 @@ describe('PostingMethodStep', () => {
     expect(input).toHaveAccessibleDescription('이미 추가한 포지션이에요')
   })
 
-  it('추가한 포지션이 목록에 쌓이고 삭제하면 빈 상태로 돌아감', async () => {
+  it('추가한 포지션이 목록에 쌓이고 팀 설정 안내는 숨김, 모두 삭제하면 빈 상태로 돌아감', async () => {
     const user = userEvent.setup()
     render(<MethodStepHarness />)
     await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
@@ -99,9 +99,11 @@ describe('PostingMethodStep', () => {
         .map((item) => item.textContent),
     ).toEqual(['디자인팀', '개발팀'])
     expect(screen.queryByText('추가한 포지션이 없어요')).not.toBeInTheDocument()
+    expect(screen.queryByText('팀 설정에 등록된 포지션이 없어요')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '디자인팀 삭제' }))
     await user.click(screen.getByRole('button', { name: '개발팀 삭제' }))
     expect(screen.getByText('추가한 포지션이 없어요')).toBeInTheDocument()
+    expect(screen.getByText('팀 설정에 등록된 포지션이 없어요')).toBeInTheDocument()
   })
 })
