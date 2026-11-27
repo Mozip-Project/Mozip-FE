@@ -1,5 +1,5 @@
 import { delay, HttpResponse } from 'msw'
-import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
+import { MOZIP_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_REVIEW_PAGE_SIZE } from '@/features/recruitment/types'
 import type {
   ApplicationSort,
@@ -129,7 +129,7 @@ const documentReviewHandlers = [
                     ? null
                     : {
                         name:
-                          UXUX_POSITIONS.find(({ id }) => id === application.positionId)?.name ??
+                          MOZIP_POSITIONS.find(({ id }) => id === application.positionId)?.name ??
                           '',
                       },
                   submittedAt: application.submittedAt,
@@ -144,7 +144,7 @@ const documentReviewHandlers = [
             },
             positionCounts: sample.noPosition
               ? []
-              : UXUX_POSITIONS.map((position) => ({
+              : MOZIP_POSITIONS.map((position) => ({
                   position: { id: position.id, name: position.name },
                   count: searched.filter(({ positionId }) => positionId === position.id).length,
                 })),
@@ -191,7 +191,7 @@ const documentReviewHandlers = [
     const detail = getApplicationDetailSample(application.sampleId)
     const position = sample.noPosition
       ? undefined
-      : UXUX_POSITIONS.find(({ id }) => id === application.positionId)
+      : MOZIP_POSITIONS.find(({ id }) => id === application.positionId)
 
     return HttpResponse.json({
       data: {

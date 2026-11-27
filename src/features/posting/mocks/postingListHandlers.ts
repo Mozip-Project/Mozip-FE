@@ -18,7 +18,7 @@ import { MOZIP_POSTING_TITLE } from './organizationPostingSamples'
 import {
   POSTING_SAMPLE_ID,
   SAMPLE_POSTING_IMAGE_URL,
-  UXUX_POSITIONS,
+  MOZIP_POSITIONS,
 } from './postingDetailHandlers'
 
 type PostingCard = PostingsQuery['postings']['items'][number]
@@ -47,7 +47,7 @@ const POSTING_CARD_SAMPLES = [
     daysUntilEnd: 1,
     fields: ['IT_DEV', 'STARTUP_BUSINESS'],
     schoolId: null,
-    positions: UXUX_POSITIONS,
+    positions: MOZIP_POSITIONS,
   },
 ] satisfies PostingCardSample[]
 

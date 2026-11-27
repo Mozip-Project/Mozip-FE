@@ -1,5 +1,5 @@
 import { delay, HttpResponse } from 'msw'
-import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
+import { MOZIP_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import type {
   MessageDeliveryStatus,
   MessageTarget,
@@ -157,7 +157,7 @@ function buildResultMessages(
             position: sample.noPosition
               ? null
               : {
-                  name: UXUX_POSITIONS.find(({ id }) => id === application.positionId)?.name ?? '',
+                  name: MOZIP_POSITIONS.find(({ id }) => id === application.positionId)?.name ?? '',
                 },
           },
           ...emailFields,

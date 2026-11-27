@@ -1,5 +1,5 @@
 import { delay, HttpResponse } from 'msw'
-import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
+import { MOZIP_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import {
   getEvaluationSummary,
   getPostingApplications,
@@ -75,7 +75,7 @@ function getApplicationCase(postingId: string): ApplicationCase | null {
       id: application.id,
       name: application.name,
       position: hasPositions
-        ? (UXUX_POSITIONS.find((item) => item.id === application.positionId) ?? null)
+        ? (MOZIP_POSITIONS.find((item) => item.id === application.positionId) ?? null)
         : null,
       ...getResults(
         posting.status,
@@ -146,7 +146,7 @@ const applicantManagementHandlers = [
               })),
             totalCount: searched.length,
             positionCounts: found.hasPositions
-              ? UXUX_POSITIONS.map((position) => ({
+              ? MOZIP_POSITIONS.map((position) => ({
                   position,
                   count: searched.filter((item) => item.position?.id === position.id).length,
                 }))

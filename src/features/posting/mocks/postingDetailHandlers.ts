@@ -2,7 +2,6 @@ import { delay, HttpResponse } from 'msw'
 import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import type { PostingQuery, PostingQueryVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
-import { MOCK_ORGANIZATION_LOGO_URL, MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import { fetchServerPostingDetail, toServerErrorBody } from './demoServerPostings'
@@ -23,14 +22,7 @@ type RecruitmentOffset = {
 
 // 전체 공고 카드·지원서 작성 샘플과 같은 id
 const POSTING_SAMPLE_ID = {
-  open: 'uxux-14',
-  upcoming: 'uxux-14-upcoming',
-  closed: 'uxux-14-closed',
-  partiallyApplied: 'uxux-14-partially-applied',
-  fullyApplied: 'uxux-14-fully-applied',
-  missingInfo: 'uxux-14-missing-info',
-  photoRequired: 'uxux-14-photo-required',
-  supporters: 'uxux-supporters',
+  open: 'mozip-team',
   direct: 'sw-council-staff',
   directApplied: 'sw-council-staff-applied',
   directUpcoming: 'sw-council-staff-upcoming',
@@ -47,33 +39,11 @@ const RECRUITMENT_PERIOD_DAYS = 14
 // 전체 공고 카드와 같은 마감일
 const RECRUITMENT_OFFSET = {
   open: { endInDays: 1 },
-  partiallyApplied: { endInDays: 2 },
   direct: { endInDays: 3 },
-  fullyApplied: { endInDays: 5 },
-  missingInfo: { endInDays: 9 },
-  photoRequired: { endInDays: 10 },
-  supporters: { endInDays: 12 },
   directApplied: { endInDays: 14 },
   upcoming: { startInDays: 3, endInDays: 17 },
   closed: { endInDays: -1 },
 } satisfies Record<string, RecruitmentOffset>
-
-const UXUX_CONTENT_HTML = [
-  '<h2>UXUX는 이런 동아리예요</h2>',
-  '<p>성균관대 UI/UX 디자인 동아리예요. 매 학기 실제 서비스를 함께 기획하고 디자인하며, 디자이너 · 개발자 · 기획자가 한 팀으로 프로젝트를 진행해요.</p>',
-  '<h2>이런 활동을 해요</h2>',
-  '<ul>',
-  '<li><p><strong>정기 세션</strong> 매주 목요일 19:00, 신촌 · 온라인 병행</p></li>',
-  '<li><p><strong>팀 프로젝트</strong> 디자이너 · 개발자 · 기획자가 한 팀</p></li>',
-  '<li><p><strong>데모데이</strong> 학기 말 프로젝트 결과 공유</p></li>',
-  '</ul>',
-  '<h2>이런 분을 찾아요</h2>',
-  '<ul>',
-  '<li><p>사용자 입장에서 문제를 고민하는 걸 <em>좋아하는</em> 분</p></li>',
-  '<li><p>매주 목요일 정기 세션에 참여할 수 있는 분</p></li>',
-  '<li><p>한 학기 동안 팀 프로젝트를 끝까지 함께할 분</p></li>',
-  '</ul>',
-].join('')
 
 const MOZIP_CONTENT_HTML = [
   '<h2>MOZIP.은 이런 팀이에요</h2>',
@@ -102,19 +72,6 @@ const SW_COUNCIL_CONTENT_HTML = [
   '</ul>',
 ].join('')
 
-const UXUX_ORGANIZATION = {
-  name: MOCK_ORGANIZATION_NAME,
-  type: 'CLUB',
-  logoUrl: MOCK_ORGANIZATION_LOGO_URL,
-  tagline: '성균관대 UI/UX 디자인 동아리 14기 모집',
-  keywords: ['UX', '디자인', '피그마', '프로토타이핑'],
-  fields: ['IT_DEV', 'DESIGN_MEDIA'],
-  links: [
-    { id: 'uxux-instagram', url: 'https://www.instagram.com/uxux_official' },
-    { id: 'uxux-notion', url: 'https://uxux.notion.site' },
-  ],
-} satisfies PostingResponse['organization']
-
 const MOZIP_ORGANIZATION = {
   name: 'MOZIP.',
   type: 'CLUB',
@@ -135,14 +92,19 @@ const SW_COUNCIL_ORGANIZATION = {
   links: [{ id: 'sw-council-site', url: 'https://example.com/sw-council' }],
 } satisfies PostingResponse['organization']
 
-const UXUX_POSITIONS = [
+const MOZIP_POSITIONS = [
   { id: 'design', name: '디자인', sortOrder: 0 },
   { id: 'development', name: '개발', sortOrder: 1 },
   { id: 'planning', name: '기획', sortOrder: 2 },
 ] satisfies PostingResponse['positions']
 
-const UXUX_QUESTIONS = [
-  { id: 'motivation', title: 'UXUX에 지원한 동기를 작성해 주세요.', sortOrder: 0, position: null },
+const MOZIP_QUESTIONS = [
+  {
+    id: 'motivation',
+    title: 'MOZIP. 팀에 지원한 동기를 작성해 주세요.',
+    sortOrder: 0,
+    position: null,
+  },
   {
     id: 'conflict',
     title: '팀 프로젝트에서 갈등을 해결한 경험을 알려 주세요.',
@@ -169,24 +131,6 @@ const UXUX_QUESTIONS = [
   },
 ] satisfies PostingResponse['questions']
 
-const MOZIP_QUESTIONS = UXUX_QUESTIONS.map((question) =>
-  question.id === 'motivation'
-    ? { ...question, title: 'MOZIP. 팀에 지원한 동기를 작성해 주세요.' }
-    : question,
-) satisfies PostingResponse['questions']
-
-// 전체 공고와 운영진 서류 평가 시연 공고가 같이 쓰는 MOZIP. 팀 모집 내용
-const MOZIP_POSTING_OVERRIDES = {
-  title: MOZIP_POSTING_TITLE,
-  content: MOZIP_CONTENT_HTML,
-  eligibilityNote: '학년 · 전공 무관',
-  region: '서울 · 온라인 병행',
-  fee: '없음',
-  questions: MOZIP_QUESTIONS,
-  organization: MOZIP_ORGANIZATION,
-  otherActivePostings: [],
-} satisfies Partial<PostingResponse>
-
 // 면접·포지션 없는 서류 결과 안내 시연 공고, 확인 안 된 자격·지역·회비는 비움
 const KUSITMS_POSTING_OVERRIDES = {
   content: [
@@ -203,7 +147,7 @@ const KUSITMS_POSTING_OVERRIDES = {
   region: null,
   fee: null,
   images: [],
-  questions: UXUX_QUESTIONS.filter(({ position }) => position === null).map((question) =>
+  questions: MOZIP_QUESTIONS.filter(({ position }) => position === null).map((question) =>
     question.id === 'motivation'
       ? { ...question, title: '큐시즘에 지원한 동기를 작성해 주세요.' }
       : question,
@@ -235,19 +179,8 @@ function getRecruitmentPeriod(today: string, { startInDays, endInDays }: Recruit
   }
 }
 
-function getUxuxActivePostings(today: string, currentId: string) {
-  return [
-    { id: ID.open, title: 'UXUX 14기 신입 부원 모집', offset: RECRUITMENT_OFFSET.open },
-    { id: ID.supporters, title: '홍보 서포터즈 모집', offset: RECRUITMENT_OFFSET.supporters },
-  ]
-    .filter(({ id }) => id !== currentId)
-    .map(({ id, title, offset }) => {
-      const { recruitStartAt, recruitEndAt } = getRecruitmentPeriod(today, offset)
-      return { id, title, recruitStartAt, recruitEndAt }
-    })
-}
-
-function createUxuxPosting(
+// 전체 공고와 운영진 서류 평가 시연 공고가 같이 쓰는 MOZIP. 팀 모집 내용
+function createMozipPosting(
   id: string,
   today: string,
   offset: RecruitmentOffset,
@@ -257,15 +190,15 @@ function createUxuxPosting(
 
   return {
     id,
-    title: 'UXUX 14기 신입 부원 모집',
-    content: UXUX_CONTENT_HTML,
+    title: MOZIP_POSTING_TITLE,
+    content: MOZIP_CONTENT_HTML,
     noPosition: false,
     hasInterview: true,
     allowEnrolled: true,
     allowOnLeave: true,
-    eligibilityNote: '1~3학년, 졸업 예정자 가능',
-    region: '신촌 · 온라인 병행',
-    fee: '학기당 30,000원',
+    eligibilityNote: '학년 · 전공 무관',
+    region: '서울 · 온라인 병행',
+    fee: '없음',
     recruitStartAt,
     recruitEndAt,
     docResultAt: toSeoulDateTime(addDaysToIsoDate(endDate, 3), '18:00:00'),
@@ -277,11 +210,11 @@ function createUxuxPosting(
         sortOrder: 0,
       },
     ],
-    positions: UXUX_POSITIONS,
-    questions: UXUX_QUESTIONS,
+    positions: MOZIP_POSITIONS,
+    questions: MOZIP_QUESTIONS,
     interviewTimeRanges: [6, 7, 8].map((days) => ({ date: addDaysToIsoDate(endDate, days) })),
-    organization: UXUX_ORGANIZATION,
-    otherActivePostings: getUxuxActivePostings(today, id),
+    organization: MOZIP_ORGANIZATION,
+    otherActivePostings: [],
     ...overrides,
   }
 }
@@ -340,7 +273,7 @@ function createOrganizationPosting(
     return undefined
   }
 
-  return createUxuxPosting(
+  return createMozipPosting(
     id,
     today,
     { endInDays },
@@ -348,12 +281,11 @@ function createOrganizationPosting(
       title,
       hasInterview,
       noPosition,
-      positions: noPosition ? [] : UXUX_POSITIONS,
+      positions: noPosition ? [] : MOZIP_POSITIONS,
       questions: noPosition
-        ? UXUX_QUESTIONS.filter(({ position }) => position === null)
-        : UXUX_QUESTIONS,
+        ? MOZIP_QUESTIONS.filter(({ position }) => position === null)
+        : MOZIP_QUESTIONS,
       ...(hasInterview ? {} : { interviewTimeRanges: [] }),
-      ...(id === ORGANIZATION_POSTING_ID.docReview ? MOZIP_POSTING_OVERRIDES : {}),
       ...(id === ORGANIZATION_POSTING_ID.noInterviewResult ? KUSITMS_POSTING_OVERRIDES : {}),
     },
   )
@@ -367,49 +299,9 @@ function createPostingSample(postingId: string, today: string): PostingResponse 
   }
 
   switch (postingId) {
-    // 전체 공고에 보이는 시연용 공고, 포지션·문항 id는 UXUX 샘플과 같음
+    // 전체 공고에 보이는 시연용 공고
     case ID.open:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.open, MOZIP_POSTING_OVERRIDES)
-    case ID.partiallyApplied:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.partiallyApplied)
-    case ID.fullyApplied:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.fullyApplied)
-    case ID.photoRequired:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.photoRequired)
-    case ID.upcoming:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.upcoming)
-    case ID.closed:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.closed)
-    // 미입력 항목·이미지 없음 확인용
-    case ID.missingInfo:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.missingInfo, {
-        eligibilityNote: null,
-        region: null,
-        fee: null,
-        finalResultAt: null,
-        images: [],
-      })
-    case ID.supporters:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.supporters, {
-        title: '홍보 서포터즈 모집',
-        noPosition: true,
-        hasInterview: false,
-        eligibilityNote: null,
-        region: '신촌',
-        fee: null,
-        docResultAt: null,
-        finalResultAt: null,
-        positions: [],
-        questions: [
-          {
-            id: 'motivation',
-            title: '홍보 서포터즈에 지원한 동기를 작성해 주세요.',
-            sortOrder: 0,
-            position: null,
-          },
-        ],
-        interviewTimeRanges: [],
-      })
+      return createMozipPosting(postingId, today, RECRUITMENT_OFFSET.open)
     case ID.direct:
       return createSwCouncilPosting(postingId, today, RECRUITMENT_OFFSET.direct)
     case ID.directApplied:
@@ -454,5 +346,5 @@ export {
   POSTING_SAMPLE_ID,
   postingDetailHandlers,
   SAMPLE_POSTING_IMAGE_URL,
-  UXUX_POSITIONS,
+  MOZIP_POSITIONS,
 }

@@ -1,9 +1,9 @@
 import type { PostingStatus } from '@/gql/graphql'
 
-// 운영진 홈·공고 관리 상세·지원자 관리 MSW가 같이 쓰는 단체 1(UXUX) 공고, 전체 공고 목록에는 없음
+// 운영진 홈·공고 관리 상세·지원자 관리 MSW가 같이 쓰는 단체 1 공고, 전체 공고 목록에는 없음
 const ORGANIZATION_POSTING_ID = {
-  docReview: 'uxux-14-doc-review',
-  noInterviewResult: 'uxux-14-no-interview-result',
+  docReview: 'mozip-team-doc-review',
+  noInterviewResult: 'kusitms-34-no-interview-result',
 } as const
 
 type OrganizationPostingSample = {
