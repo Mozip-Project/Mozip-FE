@@ -155,6 +155,14 @@ describe('toPostingDetail', () => {
     expect(toPostingDetail({ ...BASE_RESPONSE, allowOnLeave: false }).eligibility).toBe('대학생')
   })
 
+  it('숫자만 있는 회비는 천 단위 쉼표, 다른 형식은 그대로', () => {
+    expect(toPostingDetail({ ...BASE_RESPONSE, fee: '20000' }).membershipFee).toBe('20,000')
+    expect(toPostingDetail({ ...BASE_RESPONSE, fee: '학기당 30,000원' }).membershipFee).toBe(
+      '학기당 30,000원',
+    )
+    expect(toPostingDetail(BASE_RESPONSE).membershipFee).toBeNull()
+  })
+
   it('재학·휴학 모두 허용하지 않으면 직접 입력한 자격만, 둘 다 없으면 null', () => {
     const noStatus = { ...BASE_RESPONSE, allowEnrolled: false, allowOnLeave: false }
 

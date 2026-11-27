@@ -11,6 +11,7 @@ import {
   getDaysBetween,
   getSeoulIsoDate,
 } from '@/utils/date'
+import { formatThousands } from '@/utils/number'
 
 type PostingResponse = PostingQuery['posting']
 
@@ -59,6 +60,11 @@ function getPostingRecruitmentPhase(
 function toSeoulDate(dateTime: string | null) {
   const time = dateTime ? Date.parse(dateTime) : Number.NaN
   return Number.isNaN(time) ? null : getSeoulIsoDate(new Date(time))
+}
+
+// 작성 폼은 숫자만 저장, 다른 형식으로 들어온 값은 그대로 표시
+function formatFee(fee: string | null) {
+  return fee && /^\d+$/.test(fee) ? formatThousands(fee) : fee
 }
 
 function getEligibility({
@@ -137,7 +143,7 @@ function toPostingDetail(posting: PostingResponse): PostingDetail {
     interviewPeriod: posting.hasInterview ? getInterviewPeriod(posting.interviewTimeRanges) : null,
     eligibility: getEligibility(posting),
     activityArea: posting.region,
-    membershipFee: posting.fee,
+    membershipFee: formatFee(posting.fee),
     recruitmentStartsAt: posting.recruitStartAt,
     recruitmentEndsAt: posting.recruitEndAt,
     documentResultDate: toSeoulDate(posting.docResultAt),

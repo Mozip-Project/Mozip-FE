@@ -42,7 +42,7 @@ async function saveInfoReadyDraft() {
       title: 'UXUX 15기 신입 부원 모집',
       content: '<p>함께해요</p>',
       allowEnrolled: true,
-      images: [{ url: 'https://cdn.test/main.png', sortOrder: 0, isRepresentative: true }],
+      images: [{ fileKey: 'posting_image/main.png', sortOrder: 0, isRepresentative: true }],
     },
   })
   return id
