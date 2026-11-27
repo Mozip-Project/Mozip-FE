@@ -124,7 +124,7 @@ describe('toPostingsVariables', () => {
 
   it('조건이 없으면 필터 값 없이 최신순 첫 페이지(서버 0부터)', () => {
     expect(toPostingsVariables(BASE_QUERY, 9)).toEqual({
-      filter: { keyword: undefined, organizationType: undefined, fields: undefined },
+      filter: { keyword: undefined, organizationTypes: undefined, fields: undefined },
       sort: 'LATEST',
       page: 0,
       size: 9,
@@ -170,7 +170,7 @@ describe('toPostingsVariables', () => {
       9,
     )
 
-    expect(filter).toHaveProperty('organizationType', ['CLUB', 'STUDENT_COUNCIL'])
+    expect(filter).toHaveProperty('organizationTypes', ['CLUB', 'STUDENT_COUNCIL'])
   })
 
   it('교내 공고는 아직 보내지 않음', () => {
@@ -201,6 +201,6 @@ describe('toPostingsVariables', () => {
       9,
     )
 
-    expect(filter).toEqual({ keyword: undefined, organizationType: undefined, fields: undefined })
+    expect(filter).toEqual({ keyword: undefined, organizationTypes: undefined, fields: undefined })
   })
 })

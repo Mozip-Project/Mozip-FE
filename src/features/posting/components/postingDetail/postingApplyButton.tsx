@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTrigger,
 } from '@/components/ui/Dialog/dialog'
+import { ServerPostingUnsupportedButton } from '@/features/posting/components/demoServerPosting/serverPostingUnsupportedButton'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
 import { useMeQuery } from '@/features/user/api/queries'
 
@@ -19,6 +21,11 @@ type PostingApplyButtonProps = {
 
 function PostingApplyButton({ postingId }: PostingApplyButtonProps) {
   const { isSuccess: isLoggedIn } = useMeQuery()
+
+  // 시연 모드의 실서버 공고는 지원서 작성이 서버에 없어 안내만 (전시회 후 삭제)
+  if (isServerPosting(postingId)) {
+    return <ServerPostingUnsupportedButton size="m">지원하기</ServerPostingUnsupportedButton>
+  }
 
   if (isLoggedIn) {
     return (

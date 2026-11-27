@@ -7,8 +7,9 @@ const ORGANIZATION_POSTING_ID = {
   interview: 'uxux-14-interview',
   finalResult: 'uxux-14-final-result',
   noInterviewResult: 'uxux-14-no-interview-result',
-  draft: '3',
-  ended: '4',
+  // 시연 모드에서 함께 보이는 실서버 공고(숫자 id)와 겹치지 않도록 문자 id 사용
+  draft: 'uxux-15-staff-draft',
+  ended: 'uxux-13-ended',
 } as const
 
 type OrganizationPostingSample = {

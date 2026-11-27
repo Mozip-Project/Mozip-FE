@@ -1,9 +1,16 @@
 import { delay, HttpResponse } from 'msw'
+import { toServerErrorBody } from '@/features/posting/mocks/demoServerPostings'
 import { getManagedPostingSample } from '@/features/posting/mocks/managedPostingHandlers'
 import { findOrganizationPostingSample } from '@/features/posting/mocks/organizationPostingSamples'
-import type { RecruitmentPostingQuery, RecruitmentPostingQueryVariables } from '@/gql/graphql'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
+import {
+  RecruitmentPostingDocument,
+  type RecruitmentPostingQuery,
+  type RecruitmentPostingQueryVariables,
+} from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
+import { requestServerGraphQL } from '@/mocks/serverGraphql'
 
 // 지원자 관리·서류 평가·서류 평가 취합·LNB가 같이 쓰는 공고 정보, 상태는 운영진 홈 공고 상태를 따름
 const recruitmentPostingHandlers = [
@@ -12,6 +19,17 @@ const recruitmentPostingHandlers = [
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
       const postingId = String(variables.id)
+      // 시연 모드의 실서버 공고는 LNB 등에 실서버 값 표시 (전시회 후 삭제)
+      if (isServerPosting(postingId)) {
+        try {
+          return HttpResponse.json({
+            data: await requestServerGraphQL(RecruitmentPostingDocument, { id: postingId }),
+          })
+        } catch (error) {
+          return HttpResponse.json(toServerErrorBody(error))
+        }
+      }
+
       const posting = getManagedPostingSample(postingId)
       const sample = findOrganizationPostingSample(postingId)
 
