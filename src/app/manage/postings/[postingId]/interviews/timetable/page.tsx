@@ -1,12 +1,9 @@
-import { Suspense } from 'react'
 import { InterviewTimetableContent } from '@/features/recruitment/components/organizer/interviewTimetable/interviewTimetableContent'
 
-export default function InterviewTimetablePage({
-  params,
-}: PageProps<'/manage/postings/[postingId]/interviews/timetable'>) {
+export default function InterviewTimetablePage() {
   return (
-    <Suspense>
-      <InterviewTimetableContent params={params} />
-    </Suspense>
+    <div className="flex page-min-height flex-col gap-gap-xl">
+      <InterviewTimetableContent />
+    </div>
   )
 }
