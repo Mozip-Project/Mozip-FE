@@ -1,12 +1,18 @@
 import { Sidebar, type SidebarItem } from '@/components/ui/Sidebar/sidebar'
+import { MY_PAGE_PATHS, type MyPageMode } from '@/features/mypage/utils/myPageRoutes'
 
-const MY_PAGE_NAV_ITEMS = [
-  { label: '계정 설정', href: '/manage/mypage' },
-  { label: '알림 설정', href: '/manage/mypage/notifications' },
-] satisfies SidebarItem[]
+type MyPageNavProps = {
+  mode: MyPageMode
+}
 
-function MyPageNav() {
-  return <Sidebar title="마이페이지" items={MY_PAGE_NAV_ITEMS} />
+function MyPageNav({ mode }: MyPageNavProps) {
+  const paths = MY_PAGE_PATHS[mode]
+  const items = [
+    { label: '계정 설정', href: paths.accountSettings },
+    { label: '알림 설정', href: paths.notificationSettings },
+  ] satisfies SidebarItem[]
+
+  return <Sidebar title="마이페이지" items={items} />
 }
 
 export { MyPageNav }
