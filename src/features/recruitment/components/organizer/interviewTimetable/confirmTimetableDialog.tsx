@@ -13,20 +13,25 @@ import type { ReactElement } from 'react'
 
 type ConfirmTimetableDialogProps = {
   trigger: ReactElement
+  title: string
+  description: string
   // 면접 기간·인원 요약
   summary: string
   onConfirm: () => void
 }
 
-function ConfirmTimetableDialog({ trigger, summary, onConfirm }: ConfirmTimetableDialogProps) {
+function ConfirmTimetableDialog({
+  trigger,
+  title,
+  description,
+  summary,
+  onConfirm,
+}: ConfirmTimetableDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
-        <DialogHeader
-          title="타임테이블을 확정할까요?"
-          description="확정한 뒤에도 수정할 수 있어요."
-        />
+        <DialogHeader title={title} description={description} />
         <DialogSummary>
           <DialogSummaryRow label="면접">{summary}</DialogSummaryRow>
         </DialogSummary>

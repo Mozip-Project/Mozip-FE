@@ -1,6 +1,6 @@
 import PlusIcon from '@/assets/icons/plus.svg'
 import { Button } from '@/components/ui/Button/button'
-import type { ActiveMove } from '@/features/recruitment/hooks/useInterviewTimetable'
+import type { ActiveMove, TimetableMode } from '@/features/recruitment/hooks/useInterviewTimetable'
 import type {
   InterviewTimetable,
   TimetableApplicant,
@@ -29,7 +29,7 @@ type TimetableGridProps = {
   applicantsById: Map<string, TimetableApplicant>
   interviewers: TimetableInterviewer[]
   availableSlotKeys: Set<string>
-  isReadOnly: boolean
+  mode: TimetableMode
   recentLocations: string[]
   activeMove: ActiveMove | null
   moveActions: TimetableMoveActions
@@ -45,7 +45,7 @@ function TimetableGrid({
   applicantsById,
   interviewers,
   availableSlotKeys,
-  isReadOnly,
+  mode,
   recentLocations,
   activeMove,
   moveActions,
@@ -83,7 +83,7 @@ function TimetableGrid({
             <TimetableTrackHeader
               key={track}
               trackLabel={getTrackLabel(track)}
-              isReadOnly={isReadOnly}
+              mode={mode}
               locationLabel={getTrackLocationLabel(
                 timetable.interviews.filter(
                   (interview) => interview.date === day.date && interview.track === track,
@@ -93,7 +93,7 @@ function TimetableGrid({
               onLocationApply={(location) => onTrackLocationChange(track, location)}
             />
           ))}
-          {!isReadOnly && (
+          {mode === 'assign' && (
             <span className={ADD_COLUMN_CLASS}>
               <Button variant="tertiary" size="s" onClick={onAddTrack}>
                 <PlusIcon aria-hidden />
@@ -131,7 +131,7 @@ function TimetableGrid({
                   )}
                   interviewerOptions={interview ? getInterviewerOptions(interview) : []}
                   isAvailable={availableSlotKeys.has(getSlotKey(slot))}
-                  isReadOnly={isReadOnly}
+                  mode={mode}
                   recentLocations={recentLocations}
                   activeMove={activeMove}
                   moveActions={moveActions}
@@ -148,7 +148,7 @@ function TimetableGrid({
                 />
               )
             })}
-            {!isReadOnly && <span aria-hidden className={ADD_COLUMN_CLASS} />}
+            {mode === 'assign' && <span aria-hidden className={ADD_COLUMN_CLASS} />}
           </div>
         ))}
       </div>

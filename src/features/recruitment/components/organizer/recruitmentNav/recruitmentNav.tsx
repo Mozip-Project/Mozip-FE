@@ -13,6 +13,7 @@ import { getRecruitmentDday } from '@/features/posting/utils/recruitmentDday'
 import { useRecruitmentPostingQuery } from '@/features/recruitment/api/organizer/queries'
 import {
   getDocumentReviewPath,
+  getInterviewTimetablePath,
   getPostingManageDetailPath,
   POSTING_CREATE_PATH,
 } from '@/features/recruitment/utils/recruitmentRoutes'
@@ -114,6 +115,9 @@ function getCurrentSection(postingId: string, pathname: string): LnbSection | nu
   }
   if (getActivePathMatch(pathname, getDocumentReviewPath(postingId))) {
     return 'documents'
+  }
+  if (getActivePathMatch(pathname, getInterviewTimetablePath(postingId))) {
+    return 'interviews'
   }
   return null
 }

@@ -6,14 +6,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover/popover'
+import type { TimetableMode } from '@/features/recruitment/hooks/useInterviewTimetable'
 import { cn } from '@/lib/utils'
 import { LocationPopoverContent } from './locationPopoverContent'
 import { FOCUS_RING_CLASS, POPOVER_BELOW_OFFSET_PX } from './timetableStyles'
 
 type TimetableTrackHeaderProps = {
   trackLabel: string
-  // 확정 후 보기 모드에서만 장소 입력
-  isReadOnly: boolean
+  mode: TimetableMode
   // 모두 같으면 장소명, 섞이면 가장 많은 장소 외 n곳, 없으면 null
   locationLabel: string | null
   recentLocations: string[]
@@ -22,7 +22,7 @@ type TimetableTrackHeaderProps = {
 
 function TimetableTrackHeader({
   trackLabel,
-  isReadOnly,
+  mode,
   locationLabel,
   recentLocations,
   onLocationApply,
@@ -31,7 +31,8 @@ function TimetableTrackHeader({
   const locationTitle = `${trackLabel} 장소 한 번에 입력`
   const title = <span className="text-label1 font-semibold text-neutral">{trackLabel}</span>
 
-  if (!isReadOnly) {
+  // 장소는 확정 후에만
+  if (mode === 'assign') {
     return <span className="flex min-w-56 flex-1 items-center gap-gap-s">{title}</span>
   }
 

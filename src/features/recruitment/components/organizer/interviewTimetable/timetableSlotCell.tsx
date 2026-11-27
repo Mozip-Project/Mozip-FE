@@ -1,5 +1,5 @@
 import PlusIcon from '@/assets/icons/plus.svg'
-import type { ActiveMove } from '@/features/recruitment/hooks/useInterviewTimetable'
+import type { ActiveMove, TimetableMode } from '@/features/recruitment/hooks/useInterviewTimetable'
 import { useTimetableDropTarget } from '@/features/recruitment/hooks/useTimetableDrag'
 import type {
   TimetableApplicant,
@@ -21,7 +21,7 @@ type TimetableSlotCellProps = {
   interviewers: TimetableInterviewer[]
   interviewerOptions: InterviewerOption[]
   isAvailable: boolean
-  isReadOnly: boolean
+  mode: TimetableMode
   recentLocations: string[]
   activeMove: ActiveMove | null
   moveActions: TimetableMoveActions
@@ -38,7 +38,7 @@ function TimetableSlotCell({
   interviewers,
   interviewerOptions,
   isAvailable,
-  isReadOnly,
+  mode,
   recentLocations,
   activeMove,
   moveActions,
@@ -63,7 +63,7 @@ function TimetableSlotCell({
             applicants={applicants}
             interviewers={interviewers}
             interviewerOptions={interviewerOptions}
-            isReadOnly={isReadOnly}
+            mode={mode}
             isDropTarget={isOver}
             recentLocations={recentLocations}
             moveActions={moveActions}
