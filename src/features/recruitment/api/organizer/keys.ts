@@ -37,6 +37,9 @@ const recruitmentKeys = {
 
   resultMessages: (postingId: string) =>
     [...recruitmentKeys.all(postingId), 'resultMessages'] as const,
+  // 발송 중 폴링용, 전체 조회와 분리
+  resultMessageProgress: (postingId: string) =>
+    [...recruitmentKeys.all(postingId), 'resultMessageProgress'] as const,
 }
 
 export { recruitmentKeys }
