@@ -2,6 +2,9 @@ import type { DocResult, FinalResult } from '@/gql/graphql'
 
 const DOCUMENT_REVIEW_PAGE_SIZE = 10
 
+// 지원서 상세 조회에서 지원서가 없을 때의 에러 코드
+const APPLICATION_NOT_FOUND_CODE = 'APPLICATION_404'
+
 const DOCUMENT_REVIEW_STATUSES = ['all', 'pending', 'done'] as const
 const DOCUMENT_REVIEW_POSITIONS = ['design', 'development', 'planning'] as const
 const DOCUMENT_REVIEW_SORTS = ['submittedDesc', 'submittedAsc', 'nameAsc', 'nameDesc'] as const
@@ -318,8 +321,26 @@ type ApplicantProfile = {
   email: string | null
 }
 
+// 내 지원 카드, passed·failed는 3단계 결과(면접 있으면 서류, 없으면 최종)를 받은 상태
+type MyApplicationStage = 'submitted' | 'docReview' | 'passed' | 'failed'
+
+type MyApplication = {
+  id: string
+  postingTitle: string
+  // 포지션 없는 모집이면 null
+  positionName: string | null
+  organizationName: string
+  hasInterview: boolean
+  submittedAt: string
+  stage: MyApplicationStage
+  // 3단계 결과 발표일, 운영진이 정하기 전이면 null
+  resultDate: string | null
+  interviewAt: string | null
+}
+
 export {
   APPLICANT_ALL_POSITIONS_TAB,
+  APPLICATION_NOT_FOUND_CODE,
   APPLICANT_MANAGEMENT_PAGE_SIZE,
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_SORT_LABEL,
@@ -363,6 +384,8 @@ export type {
   DocumentReviewStatus,
   InterviewRecruitmentStage,
   ManagedApplicant,
+  MyApplication,
+  MyApplicationStage,
   RecipientDelivery,
   RecruitmentBoardQuery,
   RecruitmentProgress,

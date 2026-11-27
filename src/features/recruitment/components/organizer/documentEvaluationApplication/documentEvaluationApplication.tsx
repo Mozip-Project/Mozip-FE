@@ -1,22 +1,12 @@
 'use client'
 
 import FileTextIcon from '@/assets/icons/fileText.svg'
-import { Badge } from '@/components/ui/Badge/badge'
 import { EmptyState } from '@/components/ui/EmptyState/emptyState'
+import { ApplicationAnswerCards } from '@/features/recruitment/components/applicationAnswerCards/applicationAnswerCards'
+import { AvailabilityCard } from '@/features/recruitment/components/applicationAnswerCards/availabilityCard'
 import { DocumentEvaluationApplicationSkeleton } from '@/features/recruitment/components/organizer/documentEvaluation/documentEvaluationSkeleton'
 import { useDocumentEvaluationApplication } from '@/features/recruitment/hooks/useDocumentEvaluationApplication'
-import { ActivityTable } from './activityTable'
-import { AnswerContent } from './answerContent'
 import { ApplicantInfoCard } from './applicantInfoCard'
-import { AvailabilityCard } from './availabilityCard'
-import { FileLinkList } from './fileLinkList'
-
-type QuestionHeaderContent = {
-  number: number
-  title: string
-  required: boolean
-  description: string | null
-}
 
 type DocumentEvaluationApplicationProps = {
   postingId: string
@@ -68,46 +58,10 @@ function DocumentEvaluationApplication({
         // TODO: 제출 시점 프로필에 이메일 추가 요청 필요
         email={null}
       />
-      {application.questionCards.map((card) => (
-        <section
-          key={card.id}
-          className="flex min-w-70 flex-col gap-gap-l rounded-l border border-neutral-muted bg-layer-default p-padding-xl"
-        >
-          <div className="flex flex-col items-start gap-gap-s break-words">
-            <Badge tone="brand" variant="weak">
-              Q{card.header.number}
-            </Badge>
-            <h3 className="text-body1 font-semibold text-neutral">
-              {card.header.title}
-              {card.header.required && (
-                <>
-                  <span aria-hidden className="ml-gap-xs align-top text-label1 text-critical">
-                    *
-                  </span>
-                  <span className="sr-only">필수</span>
-                </>
-              )}
-            </h3>
-            {card.header.description && (
-              <p className="text-label2 font-normal text-neutral-subtle">
-                {card.header.description}
-              </p>
-            )}
-          </div>
-          <hr className="border-neutral-subtle" />
-          {card.type === 'text' && (
-            <AnswerContent answer={card.answer} maxLength={card.maxLength} />
-          )}
-          {card.type === 'activity' && (
-            <ActivityTable columns={card.columns} activities={card.activities} />
-          )}
-          {card.type === 'fileLink' && <FileLinkList attachments={card.attachments} />}
-        </section>
-      ))}
+      <ApplicationAnswerCards questionCards={application.questionCards} />
       <AvailabilityCard slots={application.availableSlots} />
     </>
   )
 }
 
 export { DocumentEvaluationApplication }
-export type { QuestionHeaderContent }

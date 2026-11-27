@@ -133,20 +133,67 @@ const FILE_LINK_QUESTION_IDS = ['work-files', 'reference-links'] as const
 // 활동 경험(선택)을 비운 지원자, 백엔드처럼 비운 문항은 answers에서 뺌
 const SKIPPED_ANSWER_APPLICANT_ID = '4'
 
+// 기본 샘플이 답한 두 문항만 필수, 나머지 서술형은 선택이라 안 쓴 지원자는 미응답 카드
+const TEXT_QUESTION_SETTING: Partial<Record<string, { title: string; maxLength: number }>> = {
+  ...Object.fromEntries(
+    LONG_FORM_DETAIL_SAMPLE.answers.map(({ id, question, maxLength }) => [
+      id,
+      { title: question, maxLength },
+    ]),
+  ),
+  ...Object.fromEntries(
+    EVALUATION_DETAIL_SAMPLE.answers.map(({ id, question, maxLength }) => [
+      id,
+      { title: question, maxLength },
+    ]),
+  ),
+}
+const REQUIRED_TEXT_QUESTION_IDS = EVALUATION_DETAIL_SAMPLE.answers.map(({ id }) => id)
+
+const ACTIVITY_QUESTION = {
+  title: '활동 경험을 입력해 주세요.',
+  description: '최근 활동부터 최대 3개까지 입력해 주세요.',
+  required: false,
+  maxLength: null,
+  options: {
+    activityFields: ['NAME' as const, 'PERIOD' as const, 'ROLE' as const, 'ACHIEVEMENT' as const],
+  },
+}
+const FILE_LINK_QUESTION_TITLES = [
+  '작업물 파일을 첨부해 주세요.',
+  '참고할 수 있는 링크를 첨부해 주세요.',
+]
+
 // 모든 샘플 공고가 같은 공통 문항 사용
 const SAMPLE_POSTING_QUESTIONS: PostingQuestionsQuery['posting']['questions'] = [
   ...SAMPLE_TEXT_QUESTION_IDS.map((id, index) => ({
     id,
     type: 'TEXT' as const,
+    title: TEXT_QUESTION_SETTING[id]?.title ?? id,
+    description: null,
+    required: REQUIRED_TEXT_QUESTION_IDS.includes(id),
+    maxLength: TEXT_QUESTION_SETTING[id]?.maxLength ?? null,
     sortOrder: index,
     position: null,
+    options: null,
   })),
-  { id: ACTIVITY_QUESTION_ID, type: 'ACTIVITY', sortOrder: ACTIVITY_SORT_ORDER, position: null },
+  {
+    ...ACTIVITY_QUESTION,
+    id: ACTIVITY_QUESTION_ID,
+    type: 'ACTIVITY',
+    sortOrder: ACTIVITY_SORT_ORDER,
+    position: null,
+  },
   ...FILE_LINK_QUESTION_IDS.map((id, index) => ({
     id,
     type: 'FILE_LINK' as const,
+    title: FILE_LINK_QUESTION_TITLES[index] ?? id,
+    description: null,
+    required: true,
+    maxLength: null,
     sortOrder: FILE_LINK_SORT_ORDER + index,
     position: null,
+    options: null,
   })),
 ]
 
@@ -171,51 +218,33 @@ function getSampleAnswers(applicantId: string) {
   const activityAnswer = {
     id: ACTIVITY_QUESTION_ID,
     question: {
+      ...ACTIVITY_QUESTION,
       id: ACTIVITY_QUESTION_ID,
       type: 'ACTIVITY' as const,
-      title: '활동 경험을 입력해 주세요.',
-      description: '최근 활동부터 최대 3개까지 입력해 주세요.',
-      required: false,
-      maxLength: null,
       sortOrder: ACTIVITY_SORT_ORDER,
-      options: {
-        activityFields: [
-          'NAME' as const,
-          'PERIOD' as const,
-          'ROLE' as const,
-          'ACHIEVEMENT' as const,
-        ],
-      },
     },
     content: JSON.stringify(detail.activities),
     attachments: [],
   }
-  const fileLinkAnswers = [
-    {
-      id: FILE_LINK_QUESTION_IDS[0],
-      title: '작업물 파일을 첨부해 주세요.',
-      attachments: detail.files,
-    },
-    {
-      id: FILE_LINK_QUESTION_IDS[1],
-      title: '참고할 수 있는 링크를 첨부해 주세요.',
-      attachments: detail.links,
-    },
-  ].map(({ id, title, attachments }, index) => ({
-    id,
-    question: {
+  const fileLinkAnswers = [detail.files, detail.links].map((attachments, index) => {
+    const id = FILE_LINK_QUESTION_IDS[index] ?? String(index)
+
+    return {
       id,
-      type: 'FILE_LINK' as const,
-      title,
-      description: null,
-      required: true,
-      maxLength: null,
-      sortOrder: FILE_LINK_SORT_ORDER + index,
-      options: null,
-    },
-    content: null,
-    attachments,
-  }))
+      question: {
+        id,
+        type: 'FILE_LINK' as const,
+        title: FILE_LINK_QUESTION_TITLES[index] ?? id,
+        description: null,
+        required: true,
+        maxLength: null,
+        sortOrder: FILE_LINK_SORT_ORDER + index,
+        options: null,
+      },
+      content: null,
+      attachments,
+    }
+  })
 
   const answers = [...textAnswers, activityAnswer, ...fileLinkAnswers]
   return applicantId === SKIPPED_ANSWER_APPLICANT_ID

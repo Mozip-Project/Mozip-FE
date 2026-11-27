@@ -60,6 +60,24 @@ function createAnswer(
   }
 }
 
+function createPostingQuestion(
+  id: string,
+  question: Partial<PostingQuestion> = {},
+): PostingQuestion {
+  return {
+    id,
+    type: 'TEXT',
+    title: id,
+    description: null,
+    required: true,
+    maxLength: 300,
+    sortOrder: 0,
+    position: null,
+    options: null,
+    ...question,
+  }
+}
+
 type ResponseOptions = {
   profileSnapshot?: unknown
   position?: ApplicationDetail['position']
@@ -95,12 +113,7 @@ function respondWithAnswers(
         data: {
           posting: {
             id: POSTING_ID,
-            questions: postingQuestions.map(({ id, type, sortOrder, position }) => ({
-              id,
-              type,
-              sortOrder,
-              position,
-            })),
+            questions: postingQuestions,
           },
         },
       }),
@@ -143,21 +156,21 @@ describe('useDocumentEvaluationApplication (MSW)', () => {
     expect(result.current.application?.questionCards).toEqual([
       {
         type: 'text',
-        id: 'motivation',
+        id: 'question-motivation',
         header: { number: 1, title: 'motivation', required: false, description: null },
         answer: '',
         maxLength: 300,
       },
       {
         type: 'activity',
-        id: 'activity',
+        id: 'question-activity',
         header: { number: 2, title: 'activity', required: true, description: '최대 3개' },
         columns: ['name', 'period', 'role'],
         activities,
       },
       {
         type: 'fileLink',
-        id: 'portfolio',
+        id: 'question-portfolio',
         header: { number: 3, title: 'portfolio', required: true, description: null },
         attachments: [
           {
@@ -185,7 +198,7 @@ describe('useDocumentEvaluationApplication (MSW)', () => {
       },
       {
         type: 'text',
-        id: 'strength',
+        id: 'question-strength',
         header: { number: 4, title: 'strength', required: true, description: null },
         answer: '꼼꼼함',
         maxLength: 500,
@@ -201,7 +214,7 @@ describe('useDocumentEvaluationApplication (MSW)', () => {
     ])
   })
 
-  it('비운 문항은 answers에 없어 번호를 건너뛰고, 다른 포지션·미지원 유형 문항은 번호에서 뺌', async () => {
+  it('비운 문항은 미응답 카드로 만들고, 다른 포지션·미지원 유형 문항은 카드와 번호에서 뺌', async () => {
     const answers = [
       createAnswer('motivation', { sortOrder: 0 }, { content: '지원 동기' }),
       createAnswer('design-tool', { sortOrder: 4 }, { content: 'Figma' }),
@@ -209,19 +222,36 @@ describe('useDocumentEvaluationApplication (MSW)', () => {
     respondWithAnswers(answers, {
       position: { id: 'design', name: '디자인' },
       postingQuestions: [
-        { id: 'question-motivation', type: 'TEXT', sortOrder: 0, position: null },
-        { id: 'question-choice', type: 'SINGLE_CHOICE', sortOrder: 1, position: null },
-        { id: 'question-dev-stack', type: 'TEXT', sortOrder: 2, position: { id: 'development' } },
-        { id: 'question-skipped', type: 'ACTIVITY', sortOrder: 3, position: null },
-        { id: 'question-design-tool', type: 'TEXT', sortOrder: 4, position: { id: 'design' } },
+        createPostingQuestion('question-motivation', { sortOrder: 0 }),
+        createPostingQuestion('question-choice', { type: 'SINGLE_CHOICE', sortOrder: 1 }),
+        createPostingQuestion('question-dev-stack', {
+          sortOrder: 2,
+          position: { id: 'development' },
+        }),
+        createPostingQuestion('question-skipped', {
+          type: 'ACTIVITY',
+          required: false,
+          sortOrder: 3,
+        }),
+        createPostingQuestion('question-design-tool', { sortOrder: 4, position: { id: 'design' } }),
       ],
     })
     const { result } = renderApplication('application-1')
     await waitFor(() => expect(result.current.application).toBeDefined())
 
-    expect(result.current.application?.questionCards.map(({ header }) => header.number)).toEqual([
-      1, 3,
+    expect(
+      result.current.application?.questionCards.map(({ id, header }) => [header.number, id]),
+    ).toEqual([
+      [1, 'question-motivation'],
+      [2, 'question-skipped'],
+      [3, 'question-design-tool'],
     ])
+    expect(result.current.application?.questionCards[1]).toMatchObject({
+      type: 'activity',
+      header: { required: false },
+      activities: [],
+    })
+    // 점수는 답한 문항만
     expect(result.current.application?.scoreQuestions).toEqual([
       { id: 'question-motivation', number: 1, label: 'motivation' },
       { id: 'question-design-tool', number: 3, label: 'design-tool' },
