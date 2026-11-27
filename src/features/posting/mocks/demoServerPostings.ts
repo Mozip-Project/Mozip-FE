@@ -61,15 +61,31 @@ function toServerErrorBody(error: unknown) {
 
 const EMPTY_POSTING_PAGE = { totalCount: 0, items: [] } satisfies PostingsQuery['postings']
 
-// 같은 필터·정렬로 첫 페이지만 조회, 실패해도 샘플은 보이도록 빈 결과
-async function fetchServerPostingPage(
-  variables: PostingsQueryVariables,
-): Promise<PostingsQuery['postings']> {
+type PostingPage = PostingsQuery['postings']
+
+// 같은 필터·정렬·페이지로 조회, 실패해도 샘플은 보이도록 빈 결과
+async function fetchServerPostingPage(variables: PostingsQueryVariables): Promise<PostingPage> {
   try {
-    const { postings } = await requestServerGraphQL(PostingsDocument, { ...variables, page: 0 })
+    const { postings } = await requestServerGraphQL(PostingsDocument, variables)
     return postings
   } catch {
     return EMPTY_POSTING_PAGE
+  }
+}
+
+// 실서버 공고 전체 뒤에 샘플이 이어지는 목록으로 보고 요청한 페이지만큼 샘플 채움
+function mergeServerPostingPage(
+  serverPage: PostingPage,
+  samples: readonly PostingPage['items'][number][],
+  page: number,
+  size: number,
+): PostingPage {
+  const sampleStart = Math.max(page * size - serverPage.totalCount, 0)
+  const sampleEnd = Math.max((page + 1) * size - serverPage.totalCount, 0)
+
+  return {
+    totalCount: serverPage.totalCount + samples.length,
+    items: [...serverPage.items, ...samples.slice(sampleStart, sampleEnd)],
   }
 }
 
@@ -77,6 +93,7 @@ export {
   EMPTY_POSTING_PAGE,
   fetchServerPostingDetail,
   fetchServerPostingPage,
+  mergeServerPostingPage,
   mergeServerPostings,
   toServerErrorBody,
 }
