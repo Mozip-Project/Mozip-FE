@@ -35,9 +35,11 @@ const SORT_OPTIONS = getBoardSortOptions(DOCUMENT_REVIEW_SORTS, DOCUMENT_REVIEW_
 function DocumentReviewContent() {
   const { postingId } = useParams<{ postingId: string }>()
   const query = parseDocumentReviewQuery(useSearchParams())
-  const { data, isError, isPlaceholderData, startReviewHref } = useDocumentReview(postingId, query)
+  const { data, hasPositions, isError, isPlaceholderData, startReviewHref } = useDocumentReview(
+    postingId,
+    query,
+  )
   const positionOptions = data?.positionOptions ?? []
-  const hasPositions = data?.hasPositions ?? true
 
   function handlePageNavigate(href: Route) {
     window.history.pushState(null, '', href)
@@ -152,6 +154,7 @@ function DocumentReviewContentFallback() {
       tabsLabel="평가 상태"
       sortOptions={SORT_OPTIONS}
       positionOptions={[]}
+      canFilterPosition={false}
       currentPage={1}
       totalPages={0}
       isPending={false}

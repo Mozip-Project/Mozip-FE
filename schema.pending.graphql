@@ -383,7 +383,6 @@ input PostingDraftInput {
   "통째로 교체, 저장할 때마다 포지션 id가 새로 생김"
   positions: [PositionInput!]
   hasInterview: Boolean
-  interviewMethod: InterviewMethod
   "1분 이상"
   interviewMinutes: Int
   "0분 이상"

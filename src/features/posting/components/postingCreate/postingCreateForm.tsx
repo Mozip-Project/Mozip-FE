@@ -100,7 +100,12 @@ function PostingCreateForm({
     mode: 'onTouched',
   })
   const values = useWatch({ control })
-  const [recruitType, positions] = useWatch({ control, name: ['recruitType', 'positions'] })
+  const [recruitType, positions, title] = useWatch({
+    control,
+    name: ['recruitType', 'positions', 'title'],
+  })
+  // 서버가 제목 없는 공고를 저장하지 않아 제목이 있어야 임시 저장
+  const hasTitle = title.trim() !== ''
   const steps = getPostingCreateSteps(hasInterview)
   const {
     stepIndex: requestedStepIndex,
@@ -158,12 +163,7 @@ function PostingCreateForm({
     return true
   }
 
-  // 첫 저장이 공고 생성이라 제목이 있어야 저장 가능
   async function handleTemporarySave() {
-    if (!postingId && !getValues('title').trim()) {
-      showToast({ title: '공고 제목을 입력하면 임시 저장할 수 있어요', icon: 'info' })
-      return
-    }
     const isSaved = await saveUnsavedSteps()
     // 저장 뒤에도 계속 고칠 수 있어 보고 있는 단계는 유지
     if (currentStepId && currentStepId !== 'review') {
@@ -274,7 +274,7 @@ function PostingCreateForm({
                 <Button
                   variant="secondary"
                   size="m"
-                  disabled={!canSave || isSaving}
+                  disabled={!canSave || !hasTitle || isSaving}
                   onClick={() => void handleTemporarySave()}
                 >
                   임시 저장

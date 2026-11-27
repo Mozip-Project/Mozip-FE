@@ -223,7 +223,7 @@ function hasUnknownPosition(input: PostingDraftInput, posting: PostingDraftField
   )
 }
 
-// 명세의 게시 필수 단계 검사. 면접 방식(interviewMethod)은 작성 화면에 없어 검사 제외 (백엔드 확인 중)
+// 명세의 게시 필수 단계 검사
 function getPublishFieldErrors(posting: PostingDraftFieldsFragment, now: Date) {
   const errors: PublishFieldError[] = []
   const { recruitStartAt, recruitEndAt, activityStartedOn, activityEndedOn } = posting

@@ -114,10 +114,6 @@ export type FinalResult =
   | 'PASS'
   | 'PENDING';
 
-export type InterviewMethod =
-  | 'ONLINE'
-  | 'ONSITE';
-
 export type InterviewTimeRangeInput = {
   closedSlots?: Array<string> | null | undefined;
   date: string;
@@ -254,7 +250,6 @@ export type PostingDraftInput = {
   hasInterview?: boolean | null | undefined;
   /** 최대 5장, 통째로 교체 */
   images?: Array<PostingImageInput> | null | undefined;
-  interviewMethod?: InterviewMethod | null | undefined;
   /** 1분 이상 */
   interviewMinutes?: number | null | undefined;
   /** 통째로 교체, 같은 날짜 안에서 겹치면 COMMON_400 */

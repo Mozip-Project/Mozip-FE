@@ -36,7 +36,9 @@ function PostingPositionFields({ control }: PostingPositionFieldsProps) {
         <h2 id={titleId} className="text-heading2 font-semibold text-neutral">
           모집 포지션
         </h2>
-        <InlineNotice tone="critical">팀 설정에 등록된 포지션이 없어요</InlineNotice>
+        {fields.length === 0 && (
+          <InlineNotice tone="critical">팀 설정에 등록된 포지션이 없어요</InlineNotice>
+        )}
       </div>
       {fields.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-gap-s rounded-l bg-neutral-weak p-padding-xxl">

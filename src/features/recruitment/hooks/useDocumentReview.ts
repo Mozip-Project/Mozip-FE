@@ -119,6 +119,8 @@ function useDocumentReview(postingId: string, query: DocumentReviewQuery) {
 
   return {
     data,
+    // 목록 조회 전·실패에도 통합 모집이면 포지션 필터를 숨기도록 공고 정보로 판단
+    hasPositions: posting ? !posting.noPosition : false,
     isError,
     isPlaceholderData: applicationsQuery.isPlaceholderData,
     startReviewHref:
