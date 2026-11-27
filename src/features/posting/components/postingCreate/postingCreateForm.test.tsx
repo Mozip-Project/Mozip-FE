@@ -424,7 +424,7 @@ describe('PostingCreateForm', () => {
     expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
       'UXUX 14기 신입 부원 모집',
     )
-    expect(window.location.search).toBe('')
+    expect(window.location.search).toBe('?step=info')
 
     window.history.forward()
     expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()

@@ -65,7 +65,7 @@ afterAll(() => {
 })
 
 describe('PostingDraftEditContent', () => {
-  it('저장된 작성 중 공고를 1단계부터 저장 값으로 열고 저장 시각 표시', async () => {
+  it('저장된 작성 중 공고를 저장 값으로 열고 저장 시각 표시', async () => {
     renderContent(ORGANIZATION_POSTING_ID.draft)
 
     expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
@@ -75,21 +75,26 @@ describe('PostingDraftEditContent', () => {
     expect(screen.getByText('저장 완료')).toBeInTheDocument()
   })
 
-  it('입력 조건을 처음 통과하지 못한 단계까지만 탭으로 이동 가능', async () => {
+  it('입력 조건을 처음 통과하지 못한 단계에서 열고 그 단계까지만 탭으로 이동 가능', async () => {
     const postingId = await saveInfoReadyDraft()
+    window.history.replaceState(null, '', `/manage/postings/${postingId}/edit`)
     renderContent(postingId)
 
-    const stepList = await screen.findByRole('list', { name: '공고 작성 단계' })
-    expect(within(stepList).getByRole('button', { name: /모집 일정/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+    expect(window.location.search).toBe('?step=schedule')
+    const stepList = screen.getByRole('list', { name: '공고 작성 단계' })
+    expect(within(stepList).getByRole('button', { name: /공고 정보/ })).toBeInTheDocument()
     expect(within(stepList).queryByRole('button', { name: /모집 방식/ })).not.toBeInTheDocument()
   })
 
   it('주소의 단계로 열고, 아직 갈 수 없는 단계 주소면 이어 쓸 단계로 연다', async () => {
     const postingId = await saveInfoReadyDraft()
-    window.history.replaceState(null, '', `/manage/postings/${postingId}/edit?step=schedule`)
+    window.history.replaceState(null, '', `/manage/postings/${postingId}/edit?step=info`)
     const { unmount } = renderContent(postingId)
 
-    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
+      'UXUX 15기 신입 부원 모집',
+    )
     unmount()
 
     window.history.replaceState(null, '', `/manage/postings/${postingId}/edit?step=review`)
