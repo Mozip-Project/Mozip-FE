@@ -1,6 +1,9 @@
 // 정답 클릭 영역 표시 속성, 값은 행동 이름
 const SCENARIO_TARGET_ATTRIBUTE = 'data-track-target'
 
+// 정답 요소를 끌어다 놓는 영역 표시 속성, 값은 행동 이름
+const SCENARIO_DROP_ATTRIBUTE = 'data-track-drop'
+
 // 입력은 정답·오클릭 어느 쪽도 아님 (기획 결정)
 const INPUT_SELECTOR =
   'input, textarea, select, label, [contenteditable="true"], [role="textbox"], [role="combobox"]'
@@ -40,6 +43,12 @@ function getScenarioClick(element: Element): ScenarioClick {
   return { type: 'miss' }
 }
 
+function getScenarioDropAction(element: Element) {
+  return (
+    element.closest(`[${SCENARIO_DROP_ATTRIBUTE}]`)?.getAttribute(SCENARIO_DROP_ATTRIBUTE) ?? null
+  )
+}
+
 // 오클릭 위치 구분용, 화면 글자는 개인정보가 섞일 수 있어 태그·역할·data-slot만
 function describeElement(element: Element) {
   const role = element.getAttribute('role')
@@ -48,5 +57,5 @@ function describeElement(element: Element) {
   return [element.tagName.toLowerCase(), role, slot].filter(Boolean).join(' ')
 }
 
-export { describeElement, getScenarioClick, SCENARIO_TARGET_ATTRIBUTE }
+export { describeElement, getScenarioClick, getScenarioDropAction }
 export type { ScenarioClick }

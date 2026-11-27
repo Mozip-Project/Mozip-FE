@@ -13,6 +13,8 @@
 - 시연 측정은 root layout의 `ScenarioTracker` 하나가 맡습니다. 단계 진입(`scenario_step_viewed`), 정답 클릭(`scenario_action`, 직전 정답 이후 시간·오클릭 수·첫 클릭 성공), 오클릭(`scenario_misclick`)을 보냅니다.
 - 정답 영역은 화면 코드에 `data-track-target="행동이름"` 속성만 붙입니다. 오클릭은 정답이 아닌 버튼·링크·메뉴 같은 조작 요소를 누른 것만 세고, 입력칸·라벨과 글자·빈 공간 클릭은 세지 않습니다.
 - 운영진 홈 [새 공고 만들기]를 누르면 새 익명 방문자로 바꿉니다.
+- 드래그 배치는 클릭이 없어, 정답 요소를 집을 때(`dragstart`)와 `data-track-drop` 영역에 놓을 때(`drop`)를 정답으로 기록합니다.
+- 보드에서 읽기 쉽도록 `step`·`action`과 함께 한글 이름 `step_label`·`action_label`을 보냅니다. 이름 표는 `src/features/analytics/utils/scenarioLabel.ts` 한 곳에서 관리합니다.
 - 이름·이메일·지원 내용 등 개인정보와 화면 글자는 보내지 않고, 위치 정보(IP) 수집도 끕니다.
 
 ## 근거

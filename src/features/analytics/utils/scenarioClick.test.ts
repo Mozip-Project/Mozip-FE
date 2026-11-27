@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeElement, getScenarioClick } from './scenarioClick'
+import { describeElement, getScenarioClick, getScenarioDropAction } from './scenarioClick'
 
 function render(html: string) {
   document.body.innerHTML = html
@@ -51,6 +51,17 @@ describe('getScenarioClick', () => {
     render('<div data-slot="popover-content"><p id="text">최근 쓴 장소</p></div>')
 
     expect(getScenarioClick(query('#text'))).toEqual({ type: 'ignored' })
+  })
+})
+
+describe('getScenarioDropAction', () => {
+  it('놓는 영역 안이면 그 영역의 행동 이름, 밖이면 null', () => {
+    render(
+      '<div data-track-drop="timetable_slot_assign"><span id="slot">빈 칸</span></div><p id="out">밖</p>',
+    )
+
+    expect(getScenarioDropAction(query('#slot'))).toBe('timetable_slot_assign')
+    expect(getScenarioDropAction(query('#out'))).toBeNull()
   })
 })
 

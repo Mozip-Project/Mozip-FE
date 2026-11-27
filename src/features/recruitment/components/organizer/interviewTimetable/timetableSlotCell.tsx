@@ -55,7 +55,11 @@ function TimetableSlotCell({
   const canJoinBySelect = activeMove?.mode === 'select' && interview && !isOwnInterview
 
   return (
-    <div {...dropTargetProps} className="relative flex min-w-56 flex-1">
+    <div
+      {...dropTargetProps}
+      data-track-drop="timetable_slot_assign"
+      className="relative flex min-w-56 flex-1"
+    >
       {interview ? (
         <>
           <TimetableSlotCard
