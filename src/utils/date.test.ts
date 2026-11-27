@@ -9,6 +9,7 @@ import {
   formatRelativeTime,
   formatRemainingTime,
   formatSavedTime,
+  formatSeoulDateTime,
   formatYearMonth,
   getDaysBetween,
   getSeoulIsoDate,
@@ -158,5 +159,16 @@ describe('formatMonthDay', () => {
   it('앞자리 0 없이 월/일 표시', () => {
     expect(formatMonthDay('2026-10-01')).toBe('10/1')
     expect(formatMonthDay('2026-01-15T09:00')).toBe('1/15')
+  })
+})
+
+describe('formatSeoulDateTime', () => {
+  it('시간대 표기와 무관하게 한국 시각으로 표시', () => {
+    expect(formatSeoulDateTime('2026-10-21T13:00:00+09:00')).toBe('10/21 (수) 13:00')
+    expect(formatSeoulDateTime('2026-10-21T04:00:00Z')).toBe('10/21 (수) 13:00')
+  })
+
+  it('UTC로 전날인 시각도 한국 날짜로 표시', () => {
+    expect(formatSeoulDateTime('2026-10-09T15:30:00Z')).toBe('10/10 (토) 00:30')
   })
 })
