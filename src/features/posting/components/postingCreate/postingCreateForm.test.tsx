@@ -13,9 +13,36 @@ import { PostingCreateForm } from './postingCreateForm'
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
-}))
+// Next처럼 history 호출과 뒤로가기를 useSearchParams에 반영
+const LOCATION_CHANGE_EVENT = 'test:locationchange'
+
+function subscribeToLocation(onChange: () => void) {
+  window.addEventListener('popstate', onChange)
+  window.addEventListener(LOCATION_CHANGE_EVENT, onChange)
+  return () => {
+    window.removeEventListener('popstate', onChange)
+    window.removeEventListener(LOCATION_CHANGE_EVENT, onChange)
+  }
+}
+
+vi.mock('next/navigation', async () => {
+  const { useSyncExternalStore } = await import('react')
+  return {
+    useRouter: () => ({ push }),
+    useSearchParams: () =>
+      new URLSearchParams(useSyncExternalStore(subscribeToLocation, () => window.location.search)),
+  }
+})
+
+function notifyHistoryCalls() {
+  for (const method of ['pushState', 'replaceState'] as const) {
+    const original = window.history[method].bind(window.history)
+    vi.spyOn(window.history, method).mockImplementation((...args) => {
+      original(...args)
+      window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT))
+    })
+  }
+}
 
 // jsdom 미지원
 class ResizeObserverStub {
@@ -162,6 +189,7 @@ describe('PostingCreateForm', () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
     // jsdom 미지원
     Element.prototype.scrollIntoView = vi.fn()
+    notifyHistoryCalls()
   })
 
   afterEach(() => {
@@ -381,6 +409,43 @@ describe('PostingCreateForm', () => {
     expect(await screen.findByText('저장하지 못했어요')).toBeInTheDocument()
     expect(screen.getByText('공고를 저장할 수 없습니다.')).toBeInTheDocument()
     expect(screen.getByText(/공고 정보/).closest('li')).toHaveAttribute('aria-current', 'step')
+  })
+
+  it('단계를 옮기면 주소에 기록하고 뒤로가기·앞으로가기로 단계 이동', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await fillInfoStep(user)
+    await clickNext(user)
+
+    expect(window.location.pathname).toMatch(/^\/manage\/postings\/.+\/edit$/)
+    expect(window.location.search).toBe('?step=schedule')
+
+    window.history.back()
+    expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
+      'UXUX 14기 신입 부원 모집',
+    )
+    expect(window.location.search).toBe('')
+
+    window.history.forward()
+    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+  })
+
+  it('뒤로가기로 포지션을 추가하고 앞으로가기로 돌아와도 포지션에 맞춰 문항 정리', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+    await clickNext(user)
+    expect(screen.getByRole('tab', { name: '디자인팀' })).toBeInTheDocument()
+
+    window.history.back()
+    expect(await screen.findByRole('heading', { name: '모집 유형' })).toBeInTheDocument()
+    await addPosition(user, '개발팀')
+    window.history.forward()
+
+    await user.click(await screen.findByRole('tab', { name: '개발팀' }))
+    expect(getQuestionCards()).toHaveLength(3)
   })
 
   it.each([

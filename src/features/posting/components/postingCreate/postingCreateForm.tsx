@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffectEvent, useLayoutEffect, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import { Button } from '@/components/ui/Button/button'
@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { SaveStatus } from '@/components/ui/SaveStatus/saveStatus'
 import { StepList } from '@/components/ui/StepList/stepList'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
+import { usePostingCreateStep } from '@/features/posting/hooks/usePostingCreateStep'
 import {
   usePostingDraftSave,
   type SavedPostingDraft,
@@ -98,10 +99,17 @@ function PostingCreateForm({
   const values = useWatch({ control })
   const [recruitType, positions] = useWatch({ control, name: ['recruitType', 'positions'] })
   const steps = getPostingCreateSteps(hasInterview)
-  const [stepIndex, setStepIndex] = useState(0)
-  const [furthestIndex, setFurthestIndex] = useState(() =>
-    savedDraft ? getInitialFurthestIndex(steps, defaultValues, hasInterview) : 0,
-  )
+  const {
+    stepIndex: requestedStepIndex,
+    furthestIndex,
+    moveToStep,
+  } = usePostingCreateStep({
+    steps,
+    initialFurthestIndex: () =>
+      savedDraft ? getInitialFurthestIndex(steps, defaultValues, hasInterview) : 0,
+  })
+  // 정리 전 값으로 지원서 양식·면접 시간 화면이 먼저 그려지지 않도록 정리를 마친 단계만 표시
+  const [stepIndex, setStepIndex] = useState(requestedStepIndex)
   const { showToast } = useToast()
   const { currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
   const { postingId, saveState, isSaving, canSave, saveStep } = usePostingDraftSave({
@@ -162,7 +170,11 @@ function PostingCreateForm({
     )
   }
 
-  function moveToStep(index: number) {
+  // 앞 단계에서 지원서 양식·면접 시간 단계로 넘어갈 때 정리, 처음 열 때는 불러온 값 그대로
+  const showRequestedStep = useEffectEvent((index: number) => {
+    if (index === stepIndex) {
+      return
+    }
     const formIndex = steps.findIndex((step) => step.id === 'form')
     if (stepIndex < formIndex && index >= formIndex) {
       syncQuestionSets()
@@ -172,9 +184,14 @@ function PostingCreateForm({
       syncInterviewSchedule()
     }
     setStepIndex(index)
-    setFurthestIndex(Math.max(furthestIndex, index))
     window.scrollTo({ top: 0 })
-  }
+  })
+
+  // 단계 클릭·다음 버튼·앞으로가기·뒤로가기 모두 주소가 바뀐 뒤 화면에 그려지기 전 처리
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- 주소(외부 값) 변경 후 그리기 전에 정리해야 해서 사용
+    showRequestedStep(requestedStepIndex)
+  }, [requestedStepIndex])
 
   // 저장에 실패하면 현재 단계에 머묾
   async function saveAndMoveToStep(index: number) {

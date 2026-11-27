@@ -20,7 +20,8 @@ function getStepHref(stepId: string | null) {
 
 type UsePostingCreateStepParams = {
   steps: PostingCreateStep[]
-  initialFurthestIndex: number
+  // 처음 한 번만 계산하도록 함수도 받음
+  initialFurthestIndex: number | (() => number)
 }
 
 function usePostingCreateStep({ steps, initialFurthestIndex }: UsePostingCreateStepParams) {

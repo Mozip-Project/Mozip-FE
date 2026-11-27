@@ -11,6 +11,7 @@ import { PostingDraftEditContent } from './postingDraftEditContent'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
 }))
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -24,7 +25,7 @@ class ResizeObserverStub {
 
 function renderContent(postingId: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  render(
+  return render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <PostingDraftEditContent postingId={postingId} savedOrganizationId={MOCK_ORGANIZATION_ID} />
@@ -55,6 +56,7 @@ beforeAll(() => {
 afterEach(() => {
   resetManagedPostings()
   resetPostingDrafts()
+  window.history.replaceState(null, '', '/')
 })
 
 afterAll(() => {
@@ -80,6 +82,21 @@ describe('PostingDraftEditContent', () => {
     const stepList = await screen.findByRole('list', { name: '공고 작성 단계' })
     expect(within(stepList).getByRole('button', { name: /모집 일정/ })).toBeInTheDocument()
     expect(within(stepList).queryByRole('button', { name: /모집 방식/ })).not.toBeInTheDocument()
+  })
+
+  it('주소의 단계로 열고, 아직 갈 수 없는 단계 주소면 이어 쓸 단계로 연다', async () => {
+    const postingId = await saveInfoReadyDraft()
+    window.history.replaceState(null, '', `/manage/postings/${postingId}/edit?step=schedule`)
+    const { unmount } = renderContent(postingId)
+
+    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+    unmount()
+
+    window.history.replaceState(null, '', `/manage/postings/${postingId}/edit?step=review`)
+    renderContent(postingId)
+
+    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+    expect(window.location.search).toBe('?step=schedule')
   })
 
   it('게시된 공고는 이어서 작성할 수 없음', async () => {
