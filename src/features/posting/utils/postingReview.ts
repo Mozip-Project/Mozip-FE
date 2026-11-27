@@ -85,21 +85,5 @@ function formatRecruitStart(date: string, time: string | null) {
   return `${formatMonthDayWithWeekday(date).replace(' (', '(')} ${time ?? getDefaultTime('start')}`
 }
 
-function getPreviewTags(values: PostingCreateValues, hasInterview: boolean) {
-  return [
-    hasInterview ? '면접 있음' : '면접 없음',
-    ...(values.publicItems.includes('fee') ? [`회비 ${formatFee(values.fee)}`] : []),
-    ...(values.publicItems.includes('region') && values.region.trim()
-      ? [values.region.trim()]
-      : []),
-  ]
-}
-
-export {
-  formatRecruitStart,
-  getPostingInfoRows,
-  getPreviewTags,
-  getQualificationText,
-  getScheduleItems,
-}
+export { formatRecruitStart, getPostingInfoRows, getQualificationText, getScheduleItems }
 export type { ReviewRow, ScheduleItem }

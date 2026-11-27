@@ -22,10 +22,11 @@ function useSendNoticeMutation() {
   return useMutation({ mutationKey: SEND_NOTICE_MUTATION_KEY, mutationFn: sendNotice })
 }
 
-function useManagedPostingQuery(postingId: string) {
+// 아직 저장하지 않은 공고(null)는 요청 보류
+function useManagedPostingQuery(postingId: string | null) {
   return useQuery({
-    queryKey: managedPostingKeys.detail(postingId),
-    queryFn: () => getManagedPosting(postingId),
+    queryKey: managedPostingKeys.detail(postingId ?? ''),
+    queryFn: postingId ? () => getManagedPosting(postingId) : skipToken,
   })
 }
 
