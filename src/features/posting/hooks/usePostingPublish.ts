@@ -3,12 +3,10 @@ import { usePublishPostingMutation } from '@/features/posting/api/organizer/quer
 import type { PostingCreateStep } from '@/features/posting/utils/postingCreateSteps'
 import type { DraftStepId } from '@/features/posting/utils/postingDraftInput'
 import { getFirstPublishErrorStepId } from '@/features/posting/utils/postingPublishError'
+import { getPostingManageDetailPath } from '@/features/recruitment/utils/recruitmentRoutes'
 import { ApiError } from '@/lib/apiError'
 import { useToast } from '@/providers/toastProvider'
-import type { Route } from 'next'
 
-// 게시 직후 이동할 운영진 홈
-const OPERATOR_HOME_PATH = '/manage' satisfies Route
 const PUBLISH_FAILED_MESSAGE = '잠시 후 다시 시도해 주세요'
 
 type UsePostingPublishParams = {
@@ -53,7 +51,7 @@ function usePostingPublish({ stepIds, onInvalidStep }: UsePostingPublishParams) 
     }
   }
 
-  // 성공하면 운영진 홈으로 이동, 실패하면 false
+  // 성공하면 게시한 공고의 관리 화면으로 이동, 실패하면 false
   async function publish(postingId: string | null) {
     if (!postingId) {
       showToast({ title: '공고를 먼저 저장해 주세요', icon: 'info' })
@@ -63,7 +61,7 @@ function usePostingPublish({ stepIds, onInvalidStep }: UsePostingPublishParams) 
     try {
       await mutateAsync(postingId)
       showToast({ title: '공고를 게시했어요' })
-      router.push(OPERATOR_HOME_PATH)
+      router.push(getPostingManageDetailPath(postingId))
       return true
     } catch (error) {
       showPublishError(error)
