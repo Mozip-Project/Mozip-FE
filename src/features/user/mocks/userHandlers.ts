@@ -14,10 +14,15 @@ import type {
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
+import { isMockLoggedIn, setMockLoggedIn } from './mockLogin'
+import type { GraphQLResponseBody } from 'msw/graphql'
 
 // 이름은 모두 가상, 단체 1은 대표자·단체 2는 운영진으로 소속
+const MY_NAME = '김모집'
+
 const ME_SAMPLE = {
   id: 'user-1',
+  name: MY_NAME,
   lastOrganization: { id: MOCK_ORGANIZATION_ID },
   memberships: [
     { role: 'REPRESENTATIVE', organization: { id: MOCK_ORGANIZATION_ID, name: 'UXUX' } },
@@ -30,7 +35,7 @@ function createInitialAccount(): MyAccountFieldsFragment {
   return {
     id: 'user-1',
     phone: '01012345678',
-    name: '김모집',
+    name: MY_NAME,
     profileImageUrl: null,
     school: { name: '모집대학교' },
     schoolVerification: {
@@ -98,7 +103,15 @@ function applyNotificationSettings(input: NotificationSettingsInput) {
 const userHandlers = [
   graphqlApi.query<MeQuery, MeQueryVariables>('Me', async () => {
     await delay(MOCK_RESPONSE_DELAY_MS)
-    return HttpResponse.json({ data: { me: ME_SAMPLE } })
+    if (!isMockLoggedIn()) {
+      // 명세: 쿠키 없이 보호 필드를 부르면 COMMON_401
+      return HttpResponse.json<GraphQLResponseBody<never>>({
+        errors: [{ message: '인증이 필요합니다.', extensions: { code: 'COMMON_401' } }],
+        data: null,
+      })
+    }
+    // 정보 수정으로 바뀐 이름 반영
+    return HttpResponse.json({ data: { me: { ...ME_SAMPLE, name: account.name } } })
   }),
 
   graphqlApi.query<MyAccountQuery, MyAccountQueryVariables>('MyAccount', async () => {
@@ -125,6 +138,7 @@ const userHandlers = [
   // 엔드포인트 origin과 관계없이 처리, 실제 쿠키는 지우지 않음
   http.post('*/auth/logout', async () => {
     await delay(MOCK_RESPONSE_DELAY_MS)
+    setMockLoggedIn(false)
     return HttpResponse.json({
       success: true,
       code: 'OK',

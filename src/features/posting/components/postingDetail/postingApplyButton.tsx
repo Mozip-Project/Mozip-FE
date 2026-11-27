@@ -14,6 +14,7 @@ import { ServerPostingUnsupportedButton } from '@/features/posting/components/de
 import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { getPostingApplyPath } from '@/features/posting/utils/postingRoutes'
 import { useMeQuery } from '@/features/user/api/queries'
+import { useMockLogin } from '@/features/user/hooks/useMockLogin'
 
 type PostingApplyButtonProps = {
   postingId: string
@@ -21,13 +22,14 @@ type PostingApplyButtonProps = {
 
 function PostingApplyButton({ postingId }: PostingApplyButtonProps) {
   const { isSuccess: isLoggedIn } = useMeQuery()
-
-  // 시연 모드의 실서버 공고는 지원서 작성이 서버에 없어 안내만 (전시회 후 삭제)
-  if (isServerPosting(postingId)) {
-    return <ServerPostingUnsupportedButton size="m">지원하기</ServerPostingUnsupportedButton>
-  }
+  const loginAsMockUser = useMockLogin()
 
   if (isLoggedIn) {
+    // 시연 모드의 실서버 공고는 지원서 작성이 서버에 없어 안내만 (전시회 후 삭제)
+    if (isServerPosting(postingId)) {
+      return <ServerPostingUnsupportedButton size="m">지원하기</ServerPostingUnsupportedButton>
+    }
+
     return (
       <Button asChild size="m">
         <Link href={getPostingApplyPath(postingId)}>지원하기</Link>
@@ -52,8 +54,8 @@ function PostingApplyButton({ postingId }: PostingApplyButtonProps) {
             <Button variant="secondary">취소</Button>
           </DialogClose>
 
-          {/* TODO: 로그인 화면 생기면 로그인 경로로 연결 */}
-          <Button>로그인</Button>
+          {/* TODO: 로그인 화면 생기면 로그인 경로로 연결, 임시로 MSW me 응답만 성공으로 전환 */}
+          <Button onClick={loginAsMockUser}>로그인</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
