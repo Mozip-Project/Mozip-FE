@@ -2,6 +2,8 @@
 
 import { useRef, useState, type DragEvent, type MouseEvent, type ReactNode } from 'react'
 import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form'
+import ArrowDownIcon from '@/assets/icons/arrowDown.svg'
+import ArrowUpIcon from '@/assets/icons/arrowUp.svg'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import InfoIcon from '@/assets/icons/info.svg'
 import TrashIcon from '@/assets/icons/trash.svg'
@@ -328,12 +330,14 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
                             disabled={index === 0}
                             onSelect={() => moveQuestion(index, index - 1)}
                           >
+                            <ArrowUpIcon aria-hidden />
                             위로 이동
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={isLast}
                             onSelect={() => moveQuestion(index, index + 1)}
                           >
+                            <ArrowDownIcon aria-hidden />
                             아래로 이동
                           </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => remove(index)}>
