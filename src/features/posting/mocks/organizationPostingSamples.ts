@@ -30,7 +30,7 @@ const ID = ORGANIZATION_POSTING_ID
 const ORGANIZATION_POSTING_SAMPLES = [
   {
     id: ID.recruiting,
-    title: '서류 모집 중 확인하자...',
+    title: 'UXUX 14기 운영진 모집',
     status: 'RECRUITING',
     hasInterview: false,
     noPosition: false,
@@ -40,7 +40,7 @@ const ORGANIZATION_POSTING_SAMPLES = [
   },
   {
     id: ID.docReview,
-    title: '서류 평가 진행 중이래',
+    title: 'UXUX 14기 신입 부원 모집',
     status: 'DOC_REVIEW',
     hasInterview: true,
     noPosition: false,
@@ -50,7 +50,7 @@ const ORGANIZATION_POSTING_SAMPLES = [
   },
   {
     id: ID.interview,
-    title: '면접 진행하고 있는 거래...',
+    title: 'UXUX 14기 프로젝트 팀원 모집',
     status: 'INTERVIEW',
     hasInterview: true,
     noPosition: false,
@@ -60,7 +60,7 @@ const ORGANIZATION_POSTING_SAMPLES = [
   },
   {
     id: ID.finalResult,
-    title: '면접 결과까지 확정!!!!',
+    title: 'UXUX 14기 상반기 정기 모집',
     status: 'FINAL_RESULT',
     hasInterview: true,
     noPosition: false,
@@ -71,7 +71,7 @@ const ORGANIZATION_POSTING_SAMPLES = [
   // 면접·파트 없는 모집의 결과 확정
   {
     id: ID.noInterviewResult,
-    title: '얘는 면접 없는 거...',
+    title: 'UXUX 14기 스터디원 모집',
     status: 'DOC_RESULT_NOTICE',
     hasInterview: false,
     noPosition: true,

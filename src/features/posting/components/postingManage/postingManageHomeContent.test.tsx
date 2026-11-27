@@ -53,9 +53,9 @@ describe('PostingManageHomeContent', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'UXUX' })).toBeInTheDocument()
     expect(
-      await screen.findByRole('heading', { name: '서류 모집 중 확인하자...' }),
+      await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '서류 평가 진행 중이래' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 신입 부원 모집' })).toBeInTheDocument()
     expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '작성 중 1' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '종료된 공고 1' })).toBeInTheDocument()
@@ -65,13 +65,13 @@ describe('PostingManageHomeContent', () => {
     renderHome()
 
     expect(
-      await screen.findByRole('button', { name: '서류 모집 중 확인하자... UP하기' }),
+      await screen.findByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }),
     ).toBeInTheDocument()
     expect(screen.getByText('최신순 18위')).toBeInTheDocument()
     // 서류 평가 중인 공고의 서버 순위(24위)는 표시하지 않음
     expect(screen.queryByText('최신순 24위')).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: '서류 평가 진행 중이래 UP하기' }),
+      screen.queryByRole('button', { name: 'UXUX 14기 신입 부원 모집 UP하기' }),
     ).not.toBeInTheDocument()
   })
 
@@ -79,7 +79,7 @@ describe('PostingManageHomeContent', () => {
     const user = userEvent.setup()
     renderHome()
 
-    await user.click(await screen.findByRole('button', { name: '서류 모집 중 확인하자... UP하기' }))
+    await user.click(await screen.findByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }))
     const dialog = await screen.findByRole('dialog')
     const useButton = within(dialog).getByRole('button', { name: '1회 사용하기' })
     await waitFor(() => expect(useButton).toBeEnabled())
@@ -89,7 +89,7 @@ describe('PostingManageHomeContent', () => {
     expect(await screen.findByText('최신순 1위')).toBeInTheDocument()
     // 잔여가 0회면 팝업은 열리되 사용 버튼만 비활성
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: '서류 모집 중 확인하자... UP하기' }))
+    await user.click(screen.getByRole('button', { name: 'UXUX 14기 운영진 모집 UP하기' }))
     const zeroDialog = await screen.findByRole('dialog')
     expect(within(zeroDialog).getByRole('button', { name: '1회 사용하기' })).toBeDisabled()
     // 정확히 '0회'인 요소만 찾아 '0회 -> 0회'가 아님을 확인
@@ -131,7 +131,7 @@ describe('PostingManageHomeContent', () => {
     )
     const user = userEvent.setup()
     renderHome()
-    await screen.findByRole('heading', { name: '서류 모집 중 확인하자...' })
+    await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' })
 
     await user.click(screen.getByRole('tab', { name: /종료된 공고/ }))
 
@@ -151,7 +151,7 @@ describe('PostingManageHomeContent', () => {
 
     // 탭은 숫자와 함께 처음 나타남
     expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '서류 모집 중 확인하자...' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
     expect(screen.queryByRole('status', { name: '운영진 홈 불러오는 중' })).not.toBeInTheDocument()
   })
 
@@ -178,14 +178,14 @@ describe('PostingManageHomeContent', () => {
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('탭 숫자와 UP 잔여 횟수를 불러오지 못했어요')
-    expect(screen.getByRole('heading', { name: '서류 모집 중 확인하자...' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
 
     server.resetHandlers()
     await user.click(within(alert).getByRole('button', { name: '다시 시도' }))
 
     expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '서류 모집 중 확인하자...' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
   })
 
   it('목록 조회에 계속 실패하면 오류 안내, 서버가 회복되면 다시 시도로 복구', async () => {
@@ -205,7 +205,7 @@ describe('PostingManageHomeContent', () => {
     await user.click(retryButton)
 
     expect(
-      await screen.findByRole('heading', { name: '서류 모집 중 확인하자...' }),
+      await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' }),
     ).toBeInTheDocument()
   })
 })
