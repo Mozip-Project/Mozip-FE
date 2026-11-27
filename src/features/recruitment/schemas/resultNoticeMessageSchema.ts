@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+const RESULT_NOTICE_SUBJECT_MAX_LENGTH = 100
 const RESULT_NOTICE_BODY_MAX_LENGTH = 1000
 
 // 공백만 입력한 경우도 빈 값으로 처리, 입력값 자체는 바꾸지 않도록 trim 변환 대신 검사만
@@ -23,6 +24,7 @@ type ResultNoticeFormValues = z.infer<typeof resultNoticeFormSchema>
 export {
   isFilled,
   RESULT_NOTICE_BODY_MAX_LENGTH,
+  RESULT_NOTICE_SUBJECT_MAX_LENGTH,
   resultNoticeFormSchema,
   resultNoticeMessageSchema,
 }

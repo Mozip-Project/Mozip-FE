@@ -140,6 +140,27 @@ describe('requestGraphQL', () => {
     })
   })
 
+  it('같은 코드 안의 원인 extensions.reason을 담는다', async () => {
+    server.use(
+      graphqlApi.query('Health', () =>
+        HttpResponse.json({
+          errors: [
+            {
+              message: '발송할 수 없습니다.',
+              extensions: { code: 'MESSAGE_422', reason: 'TIMETABLE_NOT_CONFIRMED' },
+            },
+          ],
+          data: null,
+        }),
+      ),
+    )
+
+    await expect(requestGraphQL(HealthDocument)).rejects.toMatchObject({
+      code: 'MESSAGE_422',
+      reason: 'TIMETABLE_NOT_CONFIRMED',
+    })
+  })
+
   it('REST 형식 검증 실패는 data의 입력별 메시지를 담고, 없으면 빈 목록이다', async () => {
     server.use(
       http.post(GRAPHQL_ENDPOINT, () =>

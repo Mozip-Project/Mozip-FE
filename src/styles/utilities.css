@@ -118,6 +118,8 @@
   --animate-skeleton-delayed-show: skeleton-delayed-show 0s linear 300ms both;
   /* 로딩 중 이전 목록을 300ms 뒤 숨김 */
   --animate-skeleton-delayed-hide: skeleton-delayed-hide 0s linear 300ms both;
+  /* 10s 동안 90%까지, 끝으로 갈수록 느리게 */
+  --animate-progress-estimate: progress-estimate 10s ease-out both;
 
   @keyframes skeleton-shimmer {
     from {
@@ -134,6 +136,15 @@
     }
     to {
       visibility: visible;
+    }
+  }
+
+  @keyframes progress-estimate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(-10%);
     }
   }
 

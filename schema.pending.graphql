@@ -61,6 +61,8 @@ extend type Query {
     sort: DocSummarySort
     page: Int = 1
   ): DocEvaluationSummaryPage!
+  "결과 안내: 합격자·불합격자 탭을 한 번에. type은 DOC_RESULT(FINAL_RESULT는 화면 나오면), NOTICE면 COMMON_400, 서류 결과 확정 전이면 MESSAGE_409"
+  resultMessages(postingId: ID!, type: MessageType!): ResultMessages!
 }
 
 enum DocResultTab {
@@ -334,6 +336,22 @@ type Mutation {
   confirmDocResult(postingId: ID!): ConfirmDocResultPayload!
   "submit false는 자동 저장(DRAFT, 빈 값 허용), true는 저장 버튼(SAVED, 의견·문항별 점수 필수). 확정 후 EVALUATION_423, 검증 실패 COMMON_400"
   saveDocEvaluation(input: SaveDocEvaluationInput!, submit: Boolean!): SaveDocEvaluationPayload!
+  "결과 안내 초안, (공고, type, target)마다 하나라 있으면 덮어씀. 제목 1~100자·본문 1~1,000자 아니면 COMMON_400, 확정 전이거나 SENDING·SENT면 MESSAGE_409. 변수는 글자 그대로 저장"
+  saveMessage(
+    postingId: ID!
+    type: MessageType!
+    "DOC_RESULT·FINAL_RESULT는 PASS / FAIL, NOTICE는 ALL"
+    target: MessageTarget!
+    subject: String!
+    body: String!
+  ): Message!
+  "대상마다 DRAFT 초안과 받는 사람 1명 이상 필요. 같은 대상 두 번 MESSAGE_409, 큐 적재 실패면 롤백 후 에러, 합격 본문 면접 변수인데 타임테이블 미확정·미배정이면 MESSAGE_422(extensions.reason: TIMETABLE_NOT_CONFIRMED / INTERVIEW_NOT_ASSIGNED). 응답은 발송 시작 직후 상태, 이후 resultMessages 폴링"
+  sendMessages(postingId: ID!, type: MessageType!, targets: [MessageTarget!]!): ResultMessages!
+}
+
+# 명세의 발송 중 상태, 개발 서버 스키마엔 아직 없어 백엔드 확인 필요
+extend enum MessageStatus {
+  SENDING
 }
 
 """
@@ -576,4 +594,69 @@ type PostingCard {
   scrapped: Boolean!
   "카드 태그로 표시, 포지션 없는 모집은 빈 배열"
   positions: [Position]!
+}
+
+type ResultMessages {
+  "docResultConfirmedAt, hasInterview, timetableConfirmedAt, interviewTimeRanges({면접 기간} 미리보기)"
+  posting: Posting!
+  pass: ResultMessagePanel!
+  fail: ResultMessagePanel!
+}
+
+type ResultMessagePanel {
+  target: MessageTarget!
+  "저장된 초안 또는 발송한 메시지, null = 아직 안 열어본 탭(메시지 미확인)"
+  message: Message
+  "기본 문구, 처음 열 때와 초기화. 면접 변수를 쓸 수 있으면 면접 일정 문구"
+  template: MessageTemplate!
+  "NAME, POSITION + 합격자 패널이고 면접 공고 타임테이블 확정이면 INTERVIEW_* 3개"
+  variables: [MessageVariable!]!
+  "탭 숫자, 0이면 빈 화면·발송 조건에서 제외"
+  recipientCount: Int!
+  "이메일 경고를 뺀 수"
+  sendableCount: Int!
+  "SUCCESS + FAILED, 발송 중 진행률 분자"
+  processedCount: Int!
+  "SUCCESS"
+  deliveredCount: Int!
+  "FAILED"
+  failedCount: Int!
+  "전원, 이름 정렬. 처음 5명·더 보기·접기는 프론트"
+  recipients: [Recipient!]!
+}
+
+enum MessageVariable {
+  NAME
+  "포지션 없는 모집은 안 줌"
+  POSITION
+  INTERVIEW_PERIOD
+  INTERVIEW_AT
+  INTERVIEW_LOCATION
+}
+
+type MessageTemplate {
+  subject: String!
+  body: String!
+}
+
+type Recipient {
+  "id, user.name, position.name"
+  application: Application!
+  "user.contactEmail, null = MISSING"
+  email: String
+  "null = 정상, 있으면 발송에서 빠짐"
+  emailWarning: EmailWarning
+  "SUSPICIOUS_DOMAIN일 때만"
+  suggestedDomain: String
+  "합격자 패널 + 타임테이블 확정 후만, null = 미배정"
+  interview: Interview
+  "null = 아직 안 보냄(발송 전이거나 경고로 빠짐)"
+  delivery: MessageDelivery
+}
+
+enum EmailWarning {
+  "흔한 도메인과 편집 거리 1 이내"
+  SUSPICIOUS_DOMAIN
+  "연락 이메일 없음"
+  MISSING
 }

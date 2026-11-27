@@ -27,6 +27,11 @@ const MISSING_FIELD_LABEL = {
   both: '메일 제목과 본문',
 } satisfies Record<ResultNoticeMissingField, string>
 
+const SINGLE_TARGET_MESSAGE = {
+  pass: '모두 합격이라 합격 메시지만 발송하면 돼요.',
+  fail: '모두 불합격이라 불합격 메시지만 발송하면 돼요.',
+} satisfies Record<ResultNoticeTarget, string>
+
 function getMissingInputMessage(missingField: ResultNoticeMissingField) {
   return `${MISSING_FIELD_LABEL[missingField]}을 입력하면 발송할 수 있어요.`
 }
@@ -85,30 +90,27 @@ function getSummaryBarContent(
   const totalCount = sendCounts.pass + sendCounts.fail
 
   switch (state.type) {
-    // 불합격자 없는 경우
-    case 'allPassed': {
-      const passSendButton = (
-        <Button
-          size="m"
-          disabled={state.missingField !== null}
-          onClick={() => onSendRequest(['pass'])}
-        >
-          {RESULT_NOTICE_TARGET_LABEL.pass} {sendCounts.pass}명에게 발송하기
+    // 한쪽 받는 사람이 없는 경우
+    case 'singleTarget': {
+      const { target, missingField } = state
+      const sendButton = (
+        <Button size="m" disabled={missingField !== null} onClick={() => onSendRequest([target])}>
+          {RESULT_NOTICE_TARGET_LABEL[target]} {sendCounts[target]}명에게 발송하기
         </Button>
       )
 
-      if (state.missingField && currentTarget === 'pass') {
+      if (missingField && currentTarget === target) {
         return {
           status: 'blocked',
-          message: getMissingInputMessage(state.missingField),
-          actions: passSendButton,
+          message: getMissingInputMessage(missingField),
+          actions: sendButton,
         }
       }
 
       return {
         status: 'ready',
-        message: '모두 합격이라 합격 메시지만 발송하면 돼요.',
-        actions: passSendButton,
+        message: SINGLE_TARGET_MESSAGE[target],
+        actions: sendButton,
       }
     }
 

@@ -6,7 +6,6 @@ import type { ResultNoticeFormValues } from '@/features/recruitment/schemas/resu
 import {
   RESULT_NOTICE_TARGET_LABEL,
   type ResultNoticeDeliverySummary,
-  type ResultNoticeKind,
   type ResultNoticeRecipient,
   type ResultNoticeTarget,
   type ResultNoticeTargetSendResult,
@@ -28,30 +27,12 @@ const MESSAGE_TITLE = {
   fail: '불합격 안내 메시지',
 } satisfies Record<ResultNoticeTarget, string>
 
-const DOCUMENT_NOTICE_VARIABLES = [
-  '이름',
-  '포지션',
-] as const satisfies readonly ResultNoticeVariable[]
-
-const INTERVIEW_NOTICE_VARIABLES = [
-  ...DOCUMENT_NOTICE_VARIABLES,
-  '면접 기간',
-  '면접 일시',
-  '면접 장소',
-] as const satisfies readonly ResultNoticeVariable[]
-
-// 면접 정보는 타임테이블 대상인 합격자 메시지에만
-function getNoticeVariables(kind: ResultNoticeKind, target: ResultNoticeTarget) {
-  return kind === 'interview' && target === 'pass'
-    ? INTERVIEW_NOTICE_VARIABLES
-    : DOCUMENT_NOTICE_VARIABLES
-}
-
 type ResultNoticePanelProps = {
-  kind: ResultNoticeKind
   target: ResultNoticeTarget
   organizationName: string
   interviewPeriod?: string
+  // 서버가 정한 변수 칩, 면접 정보는 타임테이블 확정 후 합격자 메시지에만
+  variables: readonly ResultNoticeVariable[]
   recipients: readonly ResultNoticeRecipient[]
   control: Control<ResultNoticeFormValues>
   onMessageReset: () => void
@@ -61,10 +42,10 @@ type ResultNoticePanelProps = {
 }
 
 function ResultNoticePanel({
-  kind,
   target,
   organizationName,
   interviewPeriod,
+  variables,
   recipients,
   control,
   onMessageReset,
@@ -96,7 +77,12 @@ function ResultNoticePanel({
         <RecipientCard
           targetLabel={targetLabel}
           recipients={sendResult.recipients}
-          deliverySummary={getDeliverySummary(sendResult.recipients)}
+          deliverySummary={{
+            ...getDeliverySummary(sendResult.recipients),
+            ...(sendResult.sendingDeliveredCount !== undefined && {
+              deliveredCount: sendResult.sendingDeliveredCount,
+            }),
+          }}
           recipientFocusRequest={recipientFocusRequest}
         />
       </>
@@ -111,7 +97,7 @@ function ResultNoticePanel({
             title={MESSAGE_TITLE[target]}
             subject={subjectField.value}
             body={bodyField.value}
-            variables={getNoticeVariables(kind, target)}
+            variables={variables}
             onSubjectChange={subjectField.onChange}
             onBodyChange={bodyField.onChange}
             onSubjectBlur={subjectField.onBlur}

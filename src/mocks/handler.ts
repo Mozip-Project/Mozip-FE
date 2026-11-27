@@ -11,6 +11,7 @@ import { applicationFormHandlers } from '@/features/recruitment/mocks/applicatio
 import { documentResultHandlers } from '@/features/recruitment/mocks/documentResultHandlers'
 import { documentReviewHandlers } from '@/features/recruitment/mocks/documentReviewHandlers'
 import { recruitmentPostingHandlers } from '@/features/recruitment/mocks/recruitmentPostingHandlers'
+import { resultNoticeHandlers } from '@/features/recruitment/mocks/resultNoticeHandlers'
 import { accountEditHandlers } from '@/features/user/mocks/accountEditHandlers'
 import { userHandlers } from '@/features/user/mocks/userHandlers'
 import { fileUploadHandlers, profileImageUploadHandlers } from './fileUploadHandlers'
@@ -35,6 +36,7 @@ const handlers: AnyHandler[] = [
   ...applicantManagementHandlers,
   ...documentReviewHandlers,
   ...documentResultHandlers,
+  ...resultNoticeHandlers,
   // 시연 모드는 공고 작성이 실제 서버로 가서 업로드도 실제 presigned-url 사용, 서버에 없는 프로필 사진만 MSW
   ...(isPostingDemoMode ? profileImageUploadHandlers : fileUploadHandlers),
 ]
