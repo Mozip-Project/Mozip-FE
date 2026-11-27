@@ -1,5 +1,10 @@
 import { delay, HttpResponse } from 'msw'
+import {
+  fetchServerApplicationForm,
+  toServerErrorBody,
+} from '@/features/posting/mocks/demoServerPostings'
 import { createPostingSample } from '@/features/posting/mocks/postingDetailHandlers'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { getMockAccount } from '@/features/user/mocks/userHandlers'
 import type {
   AnswerInput,
@@ -57,7 +62,18 @@ const applicationFormHandlers = [
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
       // ID 입력은 string | number로 생성되어 문자열로 통일
-      const posting = createApplicationFormSample(String(variables.id))
+      const postingId = String(variables.id)
+      // 시연 모드의 실서버 공고는 실서버 지원서 양식 (전시회 후 삭제)
+      if (isServerPosting(postingId)) {
+        try {
+          return HttpResponse.json({
+            data: { posting: await fetchServerApplicationForm(postingId) },
+          })
+        } catch (error) {
+          return HttpResponse.json(toServerErrorBody(error))
+        }
+      }
+      const posting = createApplicationFormSample(postingId)
 
       if (!posting) {
         return HttpResponse.json({

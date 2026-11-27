@@ -485,6 +485,13 @@ export type DemoServerPostingDetailQueryVariables = Exact<{
 
 export type DemoServerPostingDetailQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> } } };
 
+export type DemoServerApplicationFormQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DemoServerApplicationFormQuery = { posting: { id: string, title: string, noPosition: boolean, hasInterview: boolean, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string, startTime: string, endTime: string, closedSlots: Array<string>, position: { id: string } | null }> } };
+
 export type ManagedPostingFieldsFragment = { id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null, bumpRank: number | null };
 
 export type OrganizationPostingsQueryVariables = Exact<{
@@ -747,7 +754,7 @@ export type ResultMessageRecipientFieldsFragment = { email: string | null, email
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { id: string, name: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string } }> } };
+export type MeQuery = { me: { id: string, name: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string, logoUrl: string | null } }> } };
 
 export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1414,6 +1421,42 @@ export const DemoServerPostingDetailDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<DemoServerPostingDetailQuery, DemoServerPostingDetailQueryVariables>;
+export const DemoServerApplicationFormDocument = new TypedDocumentString(`
+    query DemoServerApplicationForm($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    noPosition
+    hasInterview
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      type
+      title
+      description
+      required
+      maxLength
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+      startTime
+      endTime
+      closedSlots
+      position {
+        id
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<DemoServerApplicationFormQuery, DemoServerApplicationFormQueryVariables>;
 export const OrganizationPostingsDocument = new TypedDocumentString(`
     query OrganizationPostings($organizationId: ID!, $status: [PostingStatus!]) {
   organizationPostings(organizationId: $organizationId, status: $status) {
@@ -2297,6 +2340,7 @@ export const MeDocument = new TypedDocumentString(`
       organization {
         id
         name
+        logoUrl
       }
     }
   }

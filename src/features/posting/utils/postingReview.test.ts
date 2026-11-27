@@ -6,7 +6,6 @@ import {
 import {
   formatRecruitStart,
   getPostingInfoRows,
-  getPreviewTags,
   getQualificationText,
   getScheduleItems,
 } from './postingReview'
@@ -64,14 +63,5 @@ describe('postingReview', () => {
   it('게시 안내 시작 일시는 시간 미선택이면 00:00', () => {
     expect(formatRecruitStart('2026-10-01', null)).toBe('10/1(목) 00:00')
     expect(formatRecruitStart('2026-10-01', '09:30')).toBe('10/1(목) 09:30')
-  })
-
-  it('미리보기 태그', () => {
-    expect(getPreviewTags(VALUES, true)).toEqual([
-      '면접 있음',
-      '회비 30,000원',
-      '신촌, 온라인 병행',
-    ])
-    expect(getPreviewTags({ ...VALUES, publicItems: [] }, false)).toEqual(['면접 없음'])
   })
 })

@@ -201,18 +201,25 @@ function roundToTenth(value: number) {
   return Math.round(value * 10) / 10
 }
 
-// 다른 운영진 두 명의 의견·평균은 샘플 값에서 내 처음 의견을 뺀 것, 내가 저장 완료해야 평가 완료
-function getEvaluationSummary(application: PostingApplication, status: PostingStatus) {
-  if (status === 'DRAFT' || status === 'RECRUITING') {
-    return {
-      docResult: 'PENDING' as const,
-      averageScore: null,
-      opinionCounts: { pass: 0, hold: 0, fail: 0, notEvaluated: EVALUATOR_COUNT },
-      evaluationComplete: false,
-    }
+// 모집 중에는 다른 운영진 두 명이 아직 평가 전이라 내 평가만 반영
+function hasOtherEvaluations(status: PostingStatus) {
+  switch (status) {
+    case 'DRAFT':
+    case 'RECRUITING':
+      return false
+    case 'DOC_REVIEW':
+    case 'DOC_RESULT_NOTICE':
+    case 'INTERVIEW':
+    case 'FINAL_RESULT':
+    case 'ENDED':
+      return true
   }
+}
 
+// 다른 운영진 두 명의 의견·평균은 샘플 값에서 내 처음 의견을 뺀 것, 세 명 모두 저장 완료해야 평가 완료
+function getEvaluationSummary(application: PostingApplication, status: PostingStatus) {
   const { sample } = application
+  const isOthersEvaluated = hasOtherEvaluations(status)
   const myInitialOpinion = getMyInitialOpinion(sample)
   const mine = getMyEvaluation(application, status)
   const mySavedOpinion =
@@ -221,10 +228,12 @@ function getEvaluationSummary(application: PostingApplication, status: PostingSt
     pass: 0,
     hold: 0,
     fail: 0,
-    notEvaluated: mySavedOpinion ? 0 : 1,
+    notEvaluated: (isOthersEvaluated ? 0 : OTHER_EVALUATOR_COUNT) + (mySavedOpinion ? 0 : 1),
   }
   SAMPLE_OPINIONS.forEach((opinion) => {
-    const otherCount = sample.opinionCounts[opinion] - (opinion === myInitialOpinion ? 1 : 0)
+    const otherCount = isOthersEvaluated
+      ? sample.opinionCounts[opinion] - (opinion === myInitialOpinion ? 1 : 0)
+      : 0
     opinionCounts[opinion] = otherCount + (opinion === mySavedOpinion ? 1 : 0)
   })
 
@@ -233,18 +242,27 @@ function getEvaluationSummary(application: PostingApplication, status: PostingSt
     mySavedOpinion && myScores.length > 0
       ? myScores.reduce((sum, { score }) => sum + score, 0) / myScores.length
       : null
-  const averageScore =
-    myAverage === null
-      ? sample.averageScore
-      : roundToTenth((sample.averageScore * OTHER_EVALUATOR_COUNT + myAverage) / EVALUATOR_COUNT)
-
-  const evaluationComplete = mySavedOpinion !== null
+  const evaluationComplete = isOthersEvaluated && mySavedOpinion !== null
   return {
     docResult: getDocResult(application, status, evaluationComplete),
-    averageScore,
+    averageScore: getAverageScore(sample, myAverage, isOthersEvaluated),
     opinionCounts,
     evaluationComplete,
   }
+}
+
+function getAverageScore(
+  sample: SampleApplicant,
+  myAverage: number | null,
+  isOthersEvaluated: boolean,
+) {
+  if (!isOthersEvaluated) {
+    return myAverage === null ? null : roundToTenth(myAverage)
+  }
+  if (myAverage === null) {
+    return sample.averageScore
+  }
+  return roundToTenth((sample.averageScore * OTHER_EVALUATOR_COUNT + myAverage) / EVALUATOR_COUNT)
 }
 
 // 평가 중에는 처음부터 평가를 마친 지원자만 샘플 결과, 새로 평가를 마친 지원자는 결과 선택 전

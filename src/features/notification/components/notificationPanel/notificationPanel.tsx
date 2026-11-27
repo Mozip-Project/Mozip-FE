@@ -52,7 +52,7 @@ function NotificationPanel({ settingsHref, defaultOpen }: NotificationPanelProps
           aria-label="알림"
           className="size-10 text-neutral data-pointer-focus:focus-visible:outline-none"
         >
-          <BellIcon aria-hidden className="size-4.5" />
+          <BellIcon aria-hidden className="size-7" />
         </Button>
       </PopoverTrigger>
       <PopoverContent

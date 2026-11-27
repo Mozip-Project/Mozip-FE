@@ -1,9 +1,11 @@
 import { ClientError } from 'graphql-request'
 import {
+  DemoServerApplicationFormDocument,
   DemoServerPostingDetailDocument,
   PostingsDocument,
   type DemoServerOrganizationPostingsQuery,
   type ManagedPostingFieldsFragment,
+  type PostingApplicationFormQuery,
   type PostingsQuery,
   type PostingsQueryVariables,
 } from '@/gql/graphql'
@@ -50,6 +52,32 @@ async function fetchServerPostingDetail(postingId: string) {
   return { ...posting, otherActivePostings: [] }
 }
 
+// 서버에 없는 파일 문항 설정은 파일·링크 모두 받는 것으로, 프로필 사진은 받지 않는 것으로 채움
+async function fetchServerApplicationForm(
+  postingId: string,
+): Promise<PostingApplicationFormQuery['posting']> {
+  const { posting } = await requestServerGraphQL(DemoServerApplicationFormDocument, {
+    id: postingId,
+  })
+  return {
+    ...posting,
+    profilePhotoRequired: false,
+    questions: posting.questions.map((question) => ({
+      ...question,
+      options:
+        question.type === 'FILE_LINK'
+          ? {
+              activityFields: null,
+              maxEntries: null,
+              acceptFile: true,
+              acceptLink: true,
+              fileTypes: ['PDF', 'IMAGE', 'PPT', 'MP4'],
+            }
+          : null,
+    })),
+  }
+}
+
 // 없는 공고(POSTING_404) 등 서버 오류 코드를 그대로 전달, 네트워크 실패는 COMMON_500
 function toServerErrorBody(error: unknown) {
   const errors =
@@ -91,6 +119,7 @@ function mergeServerPostingPage(
 
 export {
   EMPTY_POSTING_PAGE,
+  fetchServerApplicationForm,
   fetchServerPostingDetail,
   fetchServerPostingPage,
   mergeServerPostingPage,

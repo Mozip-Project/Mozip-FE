@@ -70,3 +70,39 @@ query DemoServerPostingDetail($id: ID!) {
     }
   }
 }
+
+# 지원서 양식 필드에서 서버에 없는 profilePhotoRequired·문항 유형별 설정 제외 (전시회 후 삭제)
+query DemoServerApplicationForm($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    noPosition
+    hasInterview
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      type
+      title
+      description
+      required
+      maxLength
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+      startTime
+      endTime
+      closedSlots
+      position {
+        id
+      }
+    }
+  }
+}

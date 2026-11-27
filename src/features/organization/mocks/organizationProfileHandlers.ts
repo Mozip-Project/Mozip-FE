@@ -10,7 +10,11 @@ import type {
   UpdateOrganizationMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
-import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
+import {
+  MOCK_ORGANIZATION_ID,
+  MOCK_ORGANIZATION_LOGO_URL,
+  MOCK_ORGANIZATION_NAME,
+} from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 // 명세 검증 규칙
@@ -20,20 +24,16 @@ const LINK_URL_MAX_LENGTH = 500
 // 쿼리에서 limit을 넘기지 않아 명세 기본값 사용
 const DEFAULT_SUGGESTION_LIMIT = 5
 
-// 외부 이미지 호스트 없이 기존 로고 표시를 확인하기 위한 인라인 SVG
-const SAMPLE_LOGO_URL =
-  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240"%3E%3Crect width="240" height="240" fill="%23e8f0ff"/%3E%3Ctext x="120" y="140" font-size="64" text-anchor="middle" fill="%23356af5"%3EUX%3C/text%3E%3C/svg%3E'
-
 // 단체 ID는 내 정보(me) MSW의 소속 단체와 같음, 단체 2는 로고·학교 없는 연합 학생회
 function createInitialOrganizations(): Record<string, OrganizationProfileFieldsFragment> {
   return {
     [MOCK_ORGANIZATION_ID]: {
       id: MOCK_ORGANIZATION_ID,
-      name: 'UXUX',
+      name: MOCK_ORGANIZATION_NAME,
       type: 'CLUB',
       scope: 'CAMPUS',
       school: { name: '과학기술연합대학원대학교' },
-      logoUrl: SAMPLE_LOGO_URL,
+      logoUrl: MOCK_ORGANIZATION_LOGO_URL,
       tagline: '사용자 경험을 연구하고 만드는 동아리',
       fields: ['DESIGN_MEDIA', 'IT_DEV'],
       keywords: ['UX', '디자인', '프로토타이핑'],

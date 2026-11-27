@@ -20,6 +20,21 @@ type PostingSummaryRow = {
   value: string
 }
 
+// 핵심 정보·일정 행에 쓰는 값, 작성 중 미리보기도 같은 행 사용
+type PostingSummarySource = Pick<
+  PostingDetail,
+  | 'positions'
+  | 'hasInterview'
+  | 'interviewPeriod'
+  | 'eligibility'
+  | 'activityArea'
+  | 'membershipFee'
+  | 'recruitmentStartsAt'
+  | 'recruitmentEndsAt'
+  | 'documentResultDate'
+  | 'finalResultDate'
+>
+
 const FINAL_RESULT_PENDING_LABEL = '추후 안내'
 
 // 서버 문항이 아니라 면접 있는 모집에 프론트가 추가
@@ -167,7 +182,7 @@ function formatResultDate(date: string | null) {
   return date ? formatMonthDayWithWeekday(date) : FINAL_RESULT_PENDING_LABEL
 }
 
-function getPostingFactRows(detail: PostingDetail): PostingSummaryRow[] {
+function getPostingFactRows(detail: PostingSummarySource): PostingSummaryRow[] {
   const rows = [
     { label: '모집 포지션', value: detail.positions.map(({ name }) => name).join(', ') },
     { label: '면접', value: detail.hasInterview ? '있음' : '없음' },
@@ -179,7 +194,7 @@ function getPostingFactRows(detail: PostingDetail): PostingSummaryRow[] {
   return rows.filter(hasValue)
 }
 
-function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
+function getPostingScheduleRows(detail: PostingSummarySource): PostingSummaryRow[] {
   const { recruitmentStartsAt, recruitmentEndsAt, interviewPeriod } = detail
   const recruitmentPeriod = {
     label: '모집 기간',
@@ -214,5 +229,12 @@ function getPostingScheduleRows(detail: PostingDetail): PostingSummaryRow[] {
   ].filter(hasValue)
 }
 
-export { getPostingFactRows, getPostingRecruitmentPhase, getPostingScheduleRows, toPostingDetail }
-export type { PostingSummaryRow }
+export {
+  getEligibility,
+  getPostingFactRows,
+  getPostingRecruitmentPhase,
+  getPostingScheduleRows,
+  INTERVIEW_AVAILABILITY_QUESTION,
+  toPostingDetail,
+}
+export type { PostingSummaryRow, PostingSummarySource }

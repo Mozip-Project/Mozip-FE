@@ -19,7 +19,6 @@ import {
   QUESTION_MAX_LENGTH,
   type PostingQuestionType,
 } from '@/features/posting/schemas/postingFormSchema'
-import { cn } from '@/lib/utils'
 import { toDigits } from '@/utils/number'
 import { toggleInOrder } from '@/utils/toggleInOrder'
 import { NumberStepper } from './numberStepper'
@@ -50,7 +49,6 @@ type PostingQuestionSettingsProps = {
   questionIndex: number
   type: PostingQuestionType
   shouldFocusTitle?: boolean
-  className?: string
 }
 
 function PostingQuestionSettings({
@@ -59,7 +57,6 @@ function PostingQuestionSettings({
   questionIndex,
   type,
   shouldFocusTitle = false,
-  className,
 }: PostingQuestionSettingsProps) {
   const name: QuestionName = `questionSets.${setIndex}.questions.${questionIndex}`
   const { label, Icon } = QUESTION_TYPE_META[type]
@@ -74,10 +71,7 @@ function PostingQuestionSettings({
   return (
     <aside
       aria-label={`Q${questionIndex + 1} 문항 설정`}
-      className={cn(
-        'flex w-100 shrink-0 flex-col gap-gap-xl rounded-xl border border-neutral-muted bg-layer-default p-padding-xl shadow-floating',
-        className,
-      )}
+      className="flex w-100 shrink-0 flex-col gap-gap-xl rounded-xl border border-neutral-muted bg-layer-default p-padding-xl shadow-floating"
     >
       <div className="flex items-center gap-2.5">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-brand-weak text-brand">
