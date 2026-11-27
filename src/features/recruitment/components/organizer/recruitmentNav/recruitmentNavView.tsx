@@ -55,12 +55,12 @@ function RecruitmentNavView({
           {...toStatusProps(postingStatus && getPostingStageStatus(postingStatus))}
         >
           <li>
-            <LnbSubItem label="공고 관리" path="postings" />
-          </li>
-          <li>
             <PostingStartDialog>
               <LnbSubButton isCurrent={isCreatingPosting}>공고 작성</LnbSubButton>
             </PostingStartDialog>
+          </li>
+          <li>
+            <LnbSubItem label="공고 관리" path="postings" />
           </li>
         </LnbStageGroup>
       </li>
