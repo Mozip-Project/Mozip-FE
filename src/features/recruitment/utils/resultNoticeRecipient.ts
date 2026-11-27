@@ -9,7 +9,7 @@ import {
 import type { EmailWarning, ResultMessageRecipientFieldsFragment } from '@/gql/graphql'
 import { formatDateTimeWithWeekday } from '@/utils/date'
 
-// TODO: 주소 없음·추천 도메인 없는 경고 문구 디자이너 확인, Figma엔 'gmail.com이 맞나요?'만 있음
+// TODO: 주소 없음·추천 도메인 없음 경고 문구 디자이너 확인
 const MISSING_EMAIL_MESSAGE = '연락 이메일이 없어요'
 const SUSPICIOUS_EMAIL_MESSAGE = '이메일 주소를 확인해 주세요'
 
@@ -44,7 +44,7 @@ function getEmailWarningMessage(warning: EmailWarning, suggestedDomain: string |
   }
 }
 
-// 이메일 경고가 있으면 발송에서 빠져 전달 결과보다 경고를 표시
+// 이메일 경고가 전달 결과보다 우선
 function toRecipientDelivery({
   emailWarning,
   suggestedDomain,
