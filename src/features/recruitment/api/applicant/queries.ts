@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   getApplicantProfile,
+  getMyApplications,
   getPostingMyApplications,
+  getSubmittedApplication,
   saveApplicationDraft,
   submitApplication,
 } from './api'
@@ -23,6 +25,22 @@ function usePostingMyApplicationsQuery(postingId: string) {
   })
 }
 
+// 지원서를 제출하고 돌아오면 바로 보이도록 들어올 때마다 다시 조회
+function useMyApplicationsQuery() {
+  return useQuery({
+    queryKey: applicantApplicationKeys.mine,
+    queryFn: getMyApplications,
+    refetchOnMount: 'always',
+  })
+}
+
+function useSubmittedApplicationQuery(applicationId: string) {
+  return useQuery({
+    queryKey: applicantApplicationKeys.submitted(applicationId),
+    queryFn: () => getSubmittedApplication(applicationId),
+  })
+}
+
 // 임시 저장·제출을 보낸 순서대로 처리해 늦게 도착한 이전 저장이 최신 내용을 덮지 않도록 처리
 const APPLICATION_SAVE_SCOPE = { id: 'application-save' }
 
@@ -37,7 +55,9 @@ function useSubmitApplicationMutation() {
 
 export {
   useApplicantProfileQuery,
+  useMyApplicationsQuery,
   usePostingMyApplicationsQuery,
   useSaveApplicationDraftMutation,
   useSubmitApplicationMutation,
+  useSubmittedApplicationQuery,
 }

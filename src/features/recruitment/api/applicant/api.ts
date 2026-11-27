@@ -1,9 +1,11 @@
 import {
   ApplicantProfileDocument,
+  MyApplicationsDocument,
   PostingApplicationFormDocument,
   PostingMyApplicationsDocument,
   SaveApplicationDraftDocument,
   SubmitApplicationDocument,
+  SubmittedApplicationDocument,
   type SaveApplicationDraftMutationVariables,
 } from '@/gql/graphql'
 import { requestGraphQL } from '@/lib/graphqlClient'
@@ -35,10 +37,22 @@ async function submitApplication(variables: SaveApplicationDraftMutationVariable
   return data.submitApplication
 }
 
+async function getMyApplications() {
+  const data = await requestGraphQL(MyApplicationsDocument)
+  return data.myApplications
+}
+
+async function getSubmittedApplication(applicationId: string) {
+  const data = await requestGraphQL(SubmittedApplicationDocument, { id: applicationId })
+  return data.application
+}
+
 export {
   getApplicantProfile,
+  getMyApplications,
   getPostingApplicationForm,
   getPostingMyApplications,
+  getSubmittedApplication,
   saveApplicationDraft,
   submitApplication,
 }
