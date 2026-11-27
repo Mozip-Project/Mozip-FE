@@ -52,7 +52,8 @@ function usePostingDraftSave({
   savedDraft,
 }: UsePostingDraftSaveParams) {
   const [postingId, setPostingId] = useState(savedDraft?.id ?? null)
-  const [savedPositions, setSavedPositions] = useState(savedDraft?.positions ?? [])
+  // 게시 전 여러 단계를 이어 저장할 때 앞 저장의 포지션 id를 바로 쓰도록 ref 사용
+  const savedPositionsRef = useRef(savedDraft?.positions ?? [])
   const [saveState, setSaveState] = useState<SaveState>(
     savedDraft ? { status: 'saved', savedAt: new Date(savedDraft.updatedAt) } : { status: 'idle' },
   )
@@ -85,7 +86,10 @@ function usePostingDraftSave({
       let posting = await mutateAsync({
         organizationId,
         id: postingId,
-        input: toDraftStepInput(stepId, values, hasInterview, { savedPositions, mainImageUrl }),
+        input: toDraftStepInput(stepId, values, hasInterview, {
+          savedPositions: savedPositionsRef.current,
+          mainImageUrl,
+        }),
       })
       if (!postingId) {
         setPostingId(posting.id)
@@ -93,7 +97,7 @@ function usePostingDraftSave({
       }
       // 다시 연결하는 요청이 실패해도 다음 저장이 새 포지션 id를 쓰도록 먼저 반영
       const savedPositionsAfterSave = getSavedPositions(posting)
-      setSavedPositions(savedPositionsAfterSave)
+      savedPositionsRef.current = savedPositionsAfterSave
       // 포지션이 새 id로 바뀌어 연결이 끊긴 문항을 새 id로 다시 저장
       if (hasDetachedQuestions(posting)) {
         posting = await mutateAsync({

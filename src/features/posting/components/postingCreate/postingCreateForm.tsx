@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffectEvent, useLayoutEffect, useState } from 'react'
+import { useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import { Button } from '@/components/ui/Button/button'
@@ -29,6 +29,7 @@ import {
   getPostingCreateSteps,
   type PostingCreateStep,
 } from '@/features/posting/utils/postingCreateSteps'
+import type { DraftStepId } from '@/features/posting/utils/postingDraftInput'
 import { getPositionNames } from '@/features/posting/utils/postingPositions'
 import {
   DEFAULT_QUESTION_TITLES,
@@ -110,6 +111,8 @@ function PostingCreateForm({
   })
   // 정리 전 값으로 지원서 양식·면접 시간 화면이 먼저 그려지지 않도록 정리를 마친 단계만 표시
   const [stepIndex, setStepIndex] = useState(requestedStepIndex)
+  // 보고 있는 단계와 뒤로가기·앞으로가기로 저장 없이 떠난 단계, 게시·임시 저장 전에 저장
+  const unsavedStepIdsRef = useRef(new Set<DraftStepId>())
   const { showToast } = useToast()
   const { currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
   const { postingId, saveState, isSaving, canSave, saveStep } = usePostingDraftSave({
@@ -127,7 +130,28 @@ function PostingCreateForm({
     if (!currentStepId || currentStepId === 'review') {
       return true
     }
-    return saveStep(currentStepId, getValues())
+    if (!(await saveStep(currentStepId, getValues()))) {
+      return false
+    }
+    unsavedStepIdsRef.current.delete(currentStepId)
+    return true
+  }
+
+  // 포지션 id를 앞 단계 저장 결과로 맞추도록 단계 순서대로 저장, 실패하면 그 단계로 이동
+  async function saveUnsavedSteps() {
+    for (const [index, { id }] of steps.entries()) {
+      if (id === 'review' || !unsavedStepIdsRef.current.has(id)) {
+        continue
+      }
+      if (!(await saveStep(id, getValues()))) {
+        if (index !== stepIndex) {
+          moveToStep(index)
+        }
+        return false
+      }
+      unsavedStepIdsRef.current.delete(id)
+    }
+    return true
   }
 
   // 첫 저장이 공고 생성이라 제목이 있어야 저장 가능
@@ -136,7 +160,12 @@ function PostingCreateForm({
       showToast({ title: '공고 제목을 입력하면 임시 저장할 수 있어요', icon: 'info' })
       return
     }
-    if (await saveCurrentStep()) {
+    const isSaved = await saveUnsavedSteps()
+    // 저장 뒤에도 계속 고칠 수 있어 보고 있는 단계는 유지
+    if (currentStepId && currentStepId !== 'review') {
+      unsavedStepIdsRef.current.add(currentStepId)
+    }
+    if (isSaved) {
       showToast({
         title: '임시 저장되었습니다',
         description: '공고 관리 탭에서 언제든 이어 쓸 수 있어요',
@@ -172,6 +201,10 @@ function PostingCreateForm({
 
   // 앞 단계에서 지원서 양식·면접 시간 단계로 넘어갈 때 정리, 처음 열 때는 불러온 값 그대로
   const showRequestedStep = useEffectEvent((index: number) => {
+    const requestedStepId = steps[index]?.id
+    if (requestedStepId && requestedStepId !== 'review') {
+      unsavedStepIdsRef.current.add(requestedStepId)
+    }
     if (index === stepIndex) {
       return
     }
@@ -214,6 +247,14 @@ function PostingCreateForm({
     onInvalidStep: (stepId) => moveToStep(steps.findIndex(({ id }) => id === stepId)),
   })
 
+  // 화면의 최신 값이 게시되도록 저장 없이 떠난 단계부터 저장
+  async function handlePublish() {
+    if (!(await saveUnsavedSteps())) {
+      return false
+    }
+    return publish(postingId)
+  }
+
   function handleEditStep(stepId: EditableStepId) {
     moveToStep(steps.findIndex((step) => step.id === stepId))
   }
@@ -234,8 +275,8 @@ function PostingCreateForm({
             </Button>
             {isReviewStep ? (
               <PostingPublishDialog
-                isPublishing={isPublishing}
-                onPublish={() => publish(postingId)}
+                isPublishing={isSaving || isPublishing}
+                onPublish={handlePublish}
               />
             ) : (
               <Button size="m" disabled={!canGoNext || !canSave || isSaving} onClick={handleNext}>

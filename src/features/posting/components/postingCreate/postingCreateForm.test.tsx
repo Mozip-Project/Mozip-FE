@@ -5,6 +5,7 @@ import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
 import { resetPostingDrafts } from '@/features/posting/mocks/postingDraftHandlers'
+import type { SavePostingDraftMutation, SavePostingDraftMutationVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
@@ -138,6 +139,26 @@ function publishError(code: string, fieldErrors?: { field: string; message: stri
       data: null,
     }),
   )
+}
+
+// 응답은 기본 handler에 맡기고 저장·게시 요청 순서와 저장한 문항 제목만 기록
+function recordPostingRequests() {
+  const requests: { operation: string; questionTitles?: string[] }[] = []
+  server.use(
+    graphqlApi.mutation<SavePostingDraftMutation, SavePostingDraftMutationVariables>(
+      'SavePostingDraft',
+      ({ variables }) => {
+        requests.push({
+          operation: 'SavePostingDraft',
+          questionTitles: variables.input.questions?.map(({ title }) => title),
+        })
+      },
+    ),
+    graphqlApi.mutation('PublishPosting', () => {
+      requests.push({ operation: 'PublishPosting' })
+    }),
+  )
+  return requests
 }
 
 async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
@@ -972,6 +993,49 @@ describe('PostingCreateForm', () => {
 
     expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
     expect(push).toHaveBeenCalledWith('/manage')
+  })
+
+  it('뒤로가기로 고치고 앞으로가기로 돌아와 게시하면 고친 단계를 저장한 뒤 게시', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+    const requests = recordPostingRequests()
+
+    window.history.back()
+    await user.click(await screen.findByRole('button', { name: /^Q2 / }))
+    const titleInput = within(
+      screen.getByRole('complementary', { name: 'Q2 문항 설정' }),
+    ).getByRole('textbox', { name: /질문/ })
+    await user.clear(titleInput)
+    await user.type(titleInput, '가장 몰입했던 경험')
+    window.history.forward()
+    expect(await screen.findByRole('button', { name: '공고 게시' })).toBeInTheDocument()
+    expect(requests).toEqual([])
+
+    await confirmPublish(user)
+
+    expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
+    expect(requests.map(({ operation }) => operation)).toEqual([
+      'SavePostingDraft',
+      'PublishPosting',
+    ])
+    expect(requests[0]?.questionTitles).toContain('가장 몰입했던 경험')
+  })
+
+  it('뒤로가기로 떠난 단계도 임시 저장에 포함', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+    const requests = recordPostingRequests()
+
+    window.history.back()
+    await screen.findByRole('button', { name: /^Q2 / })
+    window.history.back()
+    expect(await screen.findByRole('heading', { name: '모집 유형' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '임시 저장' }))
+
+    expect(await screen.findByText('임시 저장되었습니다')).toBeInTheDocument()
+    expect(requests).toHaveLength(2)
   })
 
   it('서버 게시 검사에 걸리면 팝업을 닫고 해당 단계로 이동해 안내', async () => {
