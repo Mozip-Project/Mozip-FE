@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover/popover'
+import type { TimetableMode } from '@/features/recruitment/hooks/useInterviewTimetable'
 import type {
   TimetableApplicant,
   TimetableInterview,
@@ -27,8 +28,7 @@ type TimetableSlotCardProps = {
   applicants: TimetableApplicant[]
   interviewers: TimetableInterviewer[]
   interviewerOptions: InterviewerOption[]
-  // 확정 후 보기 모드, 이동·면접관 편집 없이 장소 입력만
-  isReadOnly: boolean
+  mode: TimetableMode
   isDropTarget: boolean
   recentLocations: string[]
   moveActions: TimetableMoveActions
@@ -36,13 +36,13 @@ type TimetableSlotCardProps = {
   onLocationChange: (location: string) => void
 }
 
-// 배정 중에는 카드를 누르면 면접관 편집, 보기 모드에서는 장소 칩을 누르면 장소 변경
+// 배정·수정 중에는 카드를 누르면 면접관 편집, 보기 모드에서는 장소 칩을 누르면 장소 변경
 function TimetableSlotCard({
   interview,
   applicants,
   interviewers,
   interviewerOptions,
-  isReadOnly,
+  mode,
   isDropTarget,
   recentLocations,
   moveActions,
@@ -52,7 +52,9 @@ function TimetableSlotCard({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const [singleApplicant] = applicants
   const isGroup = applicants.length > 1
-  const hasHandle = !isReadOnly
+  const isLocationEditable = mode === 'view'
+  const hasHandle = !isLocationEditable
+  const showsLocation = mode !== 'assign'
   const applicantNames = applicants.map(({ name }) => name).join(', ')
   const interviewerNames = interviewers.map(({ name }) => name).join(', ')
   const isHighlighted =
@@ -68,7 +70,7 @@ function TimetableSlotCard({
           className={cn(
             '@container relative flex h-full min-w-0 flex-1 gap-gap-s rounded-m border bg-layer-default p-2.75',
             isHighlighted ? SELECTED_BORDER_CLASS : 'border-neutral-muted',
-            (isDropTarget || (isReadOnly && isPopoverOpen)) && 'bg-brand-weak',
+            (isDropTarget || (isLocationEditable && isPopoverOpen)) && 'bg-brand-weak',
           )}
         >
           {hasHandle && !isGroup && singleApplicant && (
@@ -111,7 +113,7 @@ function TimetableSlotCard({
                 isGroup && hasHandle && 'pl-6',
               )}
             >
-              {isReadOnly ? (
+              {isLocationEditable ? (
                 <>
                   {interviewers.length > 0 && <InterviewerNames names={interviewerNames} />}
                   <PopoverTrigger asChild>
@@ -145,11 +147,22 @@ function TimetableSlotCard({
                   </button>
                 </PopoverTrigger>
               )}
+              {/* 수정 중 장소는 보기만, 장소 변경은 보기 모드에서 */}
+              {showsLocation && !isLocationEditable && (
+                <span
+                  className={cn(
+                    'text-caption1 font-medium text-neutral-subtle',
+                    !interview.location && DASHED_CHIP_CLASS,
+                  )}
+                >
+                  {interview.location ?? '장소 입력'}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </PopoverAnchor>
-      {isReadOnly ? (
+      {isLocationEditable ? (
         <PopoverContent
           aria-label="면접 장소 변경"
           sideOffset={POPOVER_BELOW_OFFSET_PX}

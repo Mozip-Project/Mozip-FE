@@ -23,6 +23,9 @@ import {
 // drag: 끄는 중, select: 칩·핸들을 눌러 고른 뒤 칸을 눌러 배정
 type TimetableMoveMode = 'drag' | 'select'
 
+// assign: 확정 전 배정, view: 확정 후 보기·장소 입력, edit: 확정 후 수정
+type TimetableMode = 'assign' | 'view' | 'edit'
+
 type ActiveMove = {
   item: TimetableMoveItem
   mode: TimetableMoveMode
@@ -36,6 +39,13 @@ function isSameMoveItem(a: TimetableMoveItem, b: TimetableMoveItem) {
   )
 }
 
+function getTimetableMode(isConfirmed: boolean, isEditing: boolean): TimetableMode {
+  if (!isConfirmed) {
+    return 'assign'
+  }
+  return isEditing ? 'edit' : 'view'
+}
+
 type UseInterviewTimetableOptions = {
   initialTimetable: InterviewTimetable
   applicants: TimetableApplicant[]
@@ -47,6 +57,8 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
   const [selectedDate, setSelectedDate] = useState(initialTimetable.days[0]?.date ?? '')
   const [activeMove, setActiveMove] = useState<ActiveMove | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
+  // 수정 시작 시점의 타임테이블, 수정 취소 시 되돌림
+  const [editSnapshot, setEditSnapshot] = useState<InterviewTimetable | null>(null)
   const isSelecting = activeMove?.mode === 'select'
 
   const applicantsById = new Map(applicants.map((applicant) => [applicant.id, applicant]))
@@ -138,14 +150,23 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
       setTimetable((current) => setInterviewLocation(current, interviewId, location)),
     changeTrackLocation: (date: string, track: number, location: string) =>
       setTimetable((current) => setTrackLocation(current, date, track, location)),
-    isConfirmed,
-    // TODO: 타임테이블 확정 API 연결
+    mode: getTimetableMode(isConfirmed, editSnapshot !== null),
+    // TODO: 타임테이블 확정·다시 확정 API 연결
     confirm: () => {
       setActiveMove(null)
       setIsConfirmed(true)
+      setEditSnapshot(null)
+    },
+    startEdit: () => setEditSnapshot(timetable),
+    cancelEdit: () => {
+      if (editSnapshot) {
+        setTimetable(editSnapshot)
+      }
+      setActiveMove(null)
+      setEditSnapshot(null)
     },
   }
 }
 
 export { useInterviewTimetable }
-export type { ActiveMove, TimetableMoveMode }
+export type { ActiveMove, TimetableMode, TimetableMoveMode }

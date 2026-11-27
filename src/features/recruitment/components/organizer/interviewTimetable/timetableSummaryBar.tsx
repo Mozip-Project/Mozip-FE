@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button/button'
 import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
 import { Toast, ToastProvider, ToastViewport } from '@/components/ui/Toast/toast'
+import type { TimetableMode } from '@/features/recruitment/hooks/useInterviewTimetable'
 import { getInterviewResultNoticePath } from '@/features/recruitment/utils/recruitmentRoutes'
 import { ConfirmTimetableDialog } from './confirmTimetableDialog'
 
@@ -69,9 +70,27 @@ function BlockedActionButton({
   )
 }
 
+// 처음 확정과 수정 후 다시 확정의 버튼·모달·토스트 문구
+const CONFIRM_COPY = {
+  assign: {
+    action: '확정하기',
+    readyMessage: '모두 준비됐어요. 확정하면 지원자에게 일정을 안내할 수 있어요.',
+    dialogTitle: '타임테이블을 확정할까요?',
+    dialogDescription: '확정한 뒤에도 수정할 수 있어요.',
+    toast: '타임테이블을 확정했어요',
+  },
+  edit: {
+    action: '다시 확정하기',
+    readyMessage: '모두 준비됐어요. 다시 확정하면 지원자에게 일정을 안내할 수 있어요.',
+    dialogTitle: '수정한 내용으로 다시 확정할까요?',
+    dialogDescription: '확정한 뒤에도 다시 수정할 수 있어요.',
+    toast: '수정한 내용으로 다시 확정했어요',
+  },
+} satisfies Record<Exclude<TimetableMode, 'view'>, object>
+
 type TimetableSummaryBarProps = {
   postingId: string
-  isConfirmed: boolean
+  mode: TimetableMode
   unassignedCount: number
   missingInterviewerCount: number
   missingLocationCount: number
@@ -82,26 +101,28 @@ type TimetableSummaryBarProps = {
 
 function TimetableSummaryBar({
   postingId,
-  isConfirmed,
+  mode,
   unassignedCount,
   missingInterviewerCount,
   missingLocationCount,
   summary,
   onConfirm,
 }: TimetableSummaryBarProps) {
-  const [isConfirmedToastOpen, setIsConfirmedToastOpen] = useState(false)
+  // 닫히는 동안에도 문구가 남도록 마지막 문구와 열림 상태를 따로 둠
+  const [toast, setToast] = useState({ title: '', isOpen: false })
   const blocker = getConfirmBlocker(unassignedCount, missingInterviewerCount)
+  const copy = mode === 'view' ? null : CONFIRM_COPY[mode]
 
-  function handleConfirm() {
+  function handleConfirm(title: string) {
     onConfirm()
-    setIsConfirmedToastOpen(true)
+    setToast({ title, isOpen: true })
   }
 
   return (
     <ToastProvider>
       {/* 토스트를 하단 바 기준으로 두기 위해 고정 위치를 감싸는 쪽에 둠 */}
       <div className="page-bottom-bar">
-        {isConfirmed && missingLocationCount > 0 && (
+        {mode === 'view' && missingLocationCount > 0 && (
           <SummaryBar
             status="blocked"
             actions={
@@ -115,7 +136,7 @@ function TimetableSummaryBar({
             장소를 입력하지 않은 면접이 있어요. 모든 면접에 장소를 입력해 주세요.
           </SummaryBar>
         )}
-        {isConfirmed && missingLocationCount === 0 && (
+        {mode === 'view' && missingLocationCount === 0 && (
           <SummaryBar
             status="next"
             actions={
@@ -130,32 +151,34 @@ function TimetableSummaryBar({
             모든 면접에 장소를 입력했어요. 서류 결과와 면접 정보를 안내해 주세요.
           </SummaryBar>
         )}
-        {!isConfirmed && (
+        {copy && (
           <SummaryBar
             status={blocker ? 'blocked' : 'ready'}
             actions={
               blocker ? (
                 <BlockedActionButton
-                  label="확정하기"
+                  label={copy.action}
                   reasonTitle={blocker.reasonTitle}
                   reasonDescription={blocker.reasonDescription}
                 />
               ) : (
                 <ConfirmTimetableDialog
+                  title={copy.dialogTitle}
+                  description={copy.dialogDescription}
                   summary={summary}
-                  onConfirm={handleConfirm}
-                  trigger={<Button size="m">확정하기</Button>}
+                  onConfirm={() => handleConfirm(copy.toast)}
+                  trigger={<Button size="m">{copy.action}</Button>}
                 />
               )
             }
           >
-            {blocker?.message ?? '모두 준비됐어요. 확정하면 지원자에게 일정을 안내할 수 있어요.'}
+            {blocker?.message ?? copy.readyMessage}
           </SummaryBar>
         )}
         <Toast
-          title="타임테이블을 확정했어요"
-          open={isConfirmedToastOpen}
-          onOpenChange={setIsConfirmedToastOpen}
+          title={toast.title}
+          open={toast.isOpen}
+          onOpenChange={(isOpen) => setToast((current) => ({ ...current, isOpen }))}
         />
         {/* Figma 하단 바 위 20px */}
         <ToastViewport className="absolute bottom-full mb-5 px-0" />
