@@ -345,6 +345,56 @@ type MyApplication = {
   interviewAt: string | null
 }
 
+type TimetableSlotTime = {
+  date: string
+  time: string
+}
+
+type TimetableSlot = TimetableSlotTime & {
+  // 같은 시간에 동시에 진행하는 면접 열, 1부터
+  track: number
+}
+
+type TimetableApplicant = {
+  id: string
+  name: string
+  positionName: string | null
+  availableTimes: TimetableSlotTime[]
+}
+
+type TimetableInterviewer = {
+  id: string
+  name: string
+  teamName: string | null
+  isRepresentative: boolean
+}
+
+type TimetableInterview = TimetableSlot & {
+  id: string
+  applicantIds: string[]
+  interviewerIds: string[]
+}
+
+type TimetableDay = {
+  date: string
+  times: string[]
+  trackCount: number
+}
+
+type InterviewTimetable = {
+  days: TimetableDay[]
+  interviews: TimetableInterview[]
+  unassignedApplicantIds: string[]
+}
+
+// 옮길 지원자와 출발 면접, 미배정 바에서 출발하면 null
+type TimetableMoveItem = {
+  applicantIds: string[]
+  fromInterviewId: string | null
+}
+
+type TimetableMoveTarget = { type: 'slot'; slot: TimetableSlot } | { type: 'unassigned' }
+
 export {
   APPLICANT_ALL_POSITIONS_TAB,
   APPLICATION_NOT_FOUND_CODE,
@@ -392,6 +442,7 @@ export type {
   DocumentReviewSort,
   DocumentReviewStatus,
   InterviewRecruitmentStage,
+  InterviewTimetable,
   ManagedApplicant,
   MyApplication,
   MyApplicationStage,
@@ -410,4 +461,12 @@ export type {
   ResultNoticeTarget,
   ResultNoticeVariable,
   ResultNoticeVariableValues,
+  TimetableApplicant,
+  TimetableDay,
+  TimetableInterview,
+  TimetableInterviewer,
+  TimetableMoveItem,
+  TimetableMoveTarget,
+  TimetableSlot,
+  TimetableSlotTime,
 }

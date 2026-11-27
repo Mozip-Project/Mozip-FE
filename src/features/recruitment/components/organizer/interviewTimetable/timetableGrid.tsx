@@ -1,0 +1,144 @@
+import BuildingIcon from '@/assets/icons/building.svg'
+import PlusIcon from '@/assets/icons/plus.svg'
+import { Button } from '@/components/ui/Button/button'
+import type { ActiveMove } from '@/features/recruitment/hooks/useInterviewTimetable'
+import type {
+  InterviewTimetable,
+  TimetableApplicant,
+  TimetableDay,
+  TimetableInterview,
+  TimetableInterviewer,
+} from '@/features/recruitment/types'
+import {
+  findInterviewAt,
+  getBusyInterviewers,
+  getSlotKey,
+  getTrackLabel,
+} from '@/features/recruitment/utils/interviewTimetable'
+import { TimetableSlotCell } from './timetableSlotCell'
+import type { InterviewerOption } from './interviewerPopoverContent'
+import type { TimetableMoveActions } from './timetableMoveActions'
+
+const TIME_COLUMN_CLASS = 'w-14 shrink-0'
+const ADD_COLUMN_CLASS = 'flex w-23.75 shrink-0 justify-end'
+
+type TimetableGridProps = {
+  day: TimetableDay
+  timetable: InterviewTimetable
+  applicantsById: Map<string, TimetableApplicant>
+  interviewers: TimetableInterviewer[]
+  availableSlotKeys: Set<string>
+  isReadOnly: boolean
+  activeMove: ActiveMove | null
+  moveActions: TimetableMoveActions
+  onAddTrack: () => void
+  onInterviewersChange: (interviewId: string, interviewerIds: string[]) => void
+}
+
+function TimetableGrid({
+  day,
+  timetable,
+  applicantsById,
+  interviewers,
+  availableSlotKeys,
+  isReadOnly,
+  activeMove,
+  moveActions,
+  onAddTrack,
+  onInterviewersChange,
+}: TimetableGridProps) {
+  const tracks = Array.from({ length: day.trackCount }, (_, index) => index + 1)
+
+  function getInterviewerOptions(interview: TimetableInterview): InterviewerOption[] {
+    const busyInterviewers = getBusyInterviewers(timetable, interview)
+
+    return interviewers
+      .filter(({ id }) => !interview.interviewerIds.includes(id))
+      .map((interviewer) => {
+        const busyInterview = busyInterviewers.get(interviewer.id)
+        return {
+          interviewer,
+          busyReason: busyInterview
+            ? `${busyInterview.time} ${getTrackLabel(busyInterview.track)} 면접에 있어요`
+            : null,
+        }
+      })
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-l border border-neutral-muted bg-layer-default">
+      <div className="w-max min-w-full">
+        <div className="flex items-center gap-gap-s bg-neutral-weak px-padding-m py-padding-s">
+          <span className={`${TIME_COLUMN_CLASS} text-caption1 font-medium text-neutral-subtle`}>
+            시간
+          </span>
+          {tracks.map((track) => (
+            <span key={track} className="flex min-w-56 flex-1 items-center gap-gap-s">
+              <span className="text-label1 font-semibold text-neutral">{getTrackLabel(track)}</span>
+              {isReadOnly && (
+                // TODO: 열 장소 한 번에 입력은 확정 후 장소 입력 단계에서 연결
+                <span className="flex items-center gap-gap-xs rounded-full border border-dashed border-neutral-muted bg-layer-default py-padding-xxs pr-padding-s pl-padding-xs text-caption1 font-medium text-neutral-subtle">
+                  <BuildingIcon aria-hidden className="size-4 shrink-0" />
+                  장소 한 번에 입력
+                </span>
+              )}
+            </span>
+          ))}
+          {!isReadOnly && (
+            <span className={ADD_COLUMN_CLASS}>
+              <Button variant="tertiary" size="s" onClick={onAddTrack}>
+                <PlusIcon aria-hidden />
+                면접 추가
+              </Button>
+            </span>
+          )}
+        </div>
+        {day.times.map((time) => (
+          <div
+            key={time}
+            className="flex items-stretch gap-gap-s border-t border-neutral-subtle px-padding-m py-padding-xs"
+          >
+            <span
+              className={`${TIME_COLUMN_CLASS} self-center text-label1 font-medium text-neutral-muted`}
+            >
+              {time}
+            </span>
+            {tracks.map((track) => {
+              const slot = { date: day.date, time, track }
+              const interview = findInterviewAt(timetable.interviews, slot)
+
+              return (
+                <TimetableSlotCell
+                  key={track}
+                  slot={slot}
+                  slotLabel={`${time} ${getTrackLabel(track)}`}
+                  interview={interview}
+                  applicants={(interview?.applicantIds ?? []).flatMap((id) => {
+                    const applicant = applicantsById.get(id)
+                    return applicant ? [applicant] : []
+                  })}
+                  interviewers={interviewers.filter(({ id }) =>
+                    interview?.interviewerIds.includes(id),
+                  )}
+                  interviewerOptions={interview ? getInterviewerOptions(interview) : []}
+                  isAvailable={availableSlotKeys.has(getSlotKey(slot))}
+                  isReadOnly={isReadOnly}
+                  activeMove={activeMove}
+                  moveActions={moveActions}
+                  onInterviewersChange={(interviewerIds) => {
+                    if (interview) {
+                      onInterviewersChange(interview.id, interviewerIds)
+                    }
+                  }}
+                />
+              )
+            })}
+            {!isReadOnly && <span aria-hidden className={ADD_COLUMN_CLASS} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export { TimetableGrid }
