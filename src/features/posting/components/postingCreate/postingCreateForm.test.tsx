@@ -5,6 +5,7 @@ import { HttpResponse } from 'msw'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
 import { resetPostingDrafts } from '@/features/posting/mocks/postingDraftHandlers'
+import type { SavePostingDraftMutation, SavePostingDraftMutationVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
@@ -13,9 +14,36 @@ import { PostingCreateForm } from './postingCreateForm'
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }))
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
-}))
+// Next처럼 history 호출과 뒤로가기를 useSearchParams에 반영
+const LOCATION_CHANGE_EVENT = 'test:locationchange'
+
+function subscribeToLocation(onChange: () => void) {
+  window.addEventListener('popstate', onChange)
+  window.addEventListener(LOCATION_CHANGE_EVENT, onChange)
+  return () => {
+    window.removeEventListener('popstate', onChange)
+    window.removeEventListener(LOCATION_CHANGE_EVENT, onChange)
+  }
+}
+
+vi.mock('next/navigation', async () => {
+  const { useSyncExternalStore } = await import('react')
+  return {
+    useRouter: () => ({ push }),
+    useSearchParams: () =>
+      new URLSearchParams(useSyncExternalStore(subscribeToLocation, () => window.location.search)),
+  }
+})
+
+function notifyHistoryCalls() {
+  for (const method of ['pushState', 'replaceState'] as const) {
+    const original = window.history[method].bind(window.history)
+    vi.spyOn(window.history, method).mockImplementation((...args) => {
+      original(...args)
+      window.dispatchEvent(new Event(LOCATION_CHANGE_EVENT))
+    })
+  }
+}
 
 // jsdom 미지원
 class ResizeObserverStub {
@@ -113,6 +141,26 @@ function publishError(code: string, fieldErrors?: { field: string; message: stri
   )
 }
 
+// 응답은 기본 handler에 맡기고 저장·게시 요청 순서와 저장한 문항 제목만 기록
+function recordPostingRequests() {
+  const requests: { operation: string; questionTitles?: string[] }[] = []
+  server.use(
+    graphqlApi.mutation<SavePostingDraftMutation, SavePostingDraftMutationVariables>(
+      'SavePostingDraft',
+      ({ variables }) => {
+        requests.push({
+          operation: 'SavePostingDraft',
+          questionTitles: variables.input.questions?.map(({ title }) => title),
+        })
+      },
+    ),
+    graphqlApi.mutation('PublishPosting', () => {
+      requests.push({ operation: 'PublishPosting' })
+    }),
+  )
+  return requests
+}
+
 async function goToMethodStep(user: ReturnType<typeof userEvent.setup>) {
   await fillInfoStep(user)
   await clickNext(user)
@@ -162,6 +210,7 @@ describe('PostingCreateForm', () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
     // jsdom 미지원
     Element.prototype.scrollIntoView = vi.fn()
+    notifyHistoryCalls()
   })
 
   afterEach(() => {
@@ -381,6 +430,43 @@ describe('PostingCreateForm', () => {
     expect(await screen.findByText('저장하지 못했어요')).toBeInTheDocument()
     expect(screen.getByText('공고를 저장할 수 없습니다.')).toBeInTheDocument()
     expect(screen.getByText(/공고 정보/).closest('li')).toHaveAttribute('aria-current', 'step')
+  })
+
+  it('단계를 옮기면 주소에 기록하고 뒤로가기·앞으로가기로 단계 이동', async () => {
+    const user = userEvent.setup()
+    renderForm()
+    await fillInfoStep(user)
+    await clickNext(user)
+
+    expect(window.location.pathname).toMatch(/^\/manage\/postings\/.+\/edit$/)
+    expect(window.location.search).toBe('?step=schedule')
+
+    window.history.back()
+    expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
+      'UXUX 14기 신입 부원 모집',
+    )
+    expect(window.location.search).toBe('?step=info')
+
+    window.history.forward()
+    expect(await screen.findByRole('heading', { name: '모집 일정' })).toBeInTheDocument()
+  })
+
+  it('뒤로가기로 포지션을 추가하고 앞으로가기로 돌아와도 포지션에 맞춰 문항 정리', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToMethodStep(user)
+    await user.click(screen.getByRole('radio', { name: '포지션별 모집' }))
+    await addPosition(user, '디자인팀')
+    await clickNext(user)
+    expect(screen.getByRole('tab', { name: '디자인팀' })).toBeInTheDocument()
+
+    window.history.back()
+    expect(await screen.findByRole('heading', { name: '모집 유형' })).toBeInTheDocument()
+    await addPosition(user, '개발팀')
+    window.history.forward()
+
+    await user.click(await screen.findByRole('tab', { name: '개발팀' }))
+    expect(getQuestionCards()).toHaveLength(3)
   })
 
   it.each([
@@ -907,6 +993,49 @@ describe('PostingCreateForm', () => {
 
     expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
     expect(push).toHaveBeenCalledWith('/manage')
+  })
+
+  it('뒤로가기로 고치고 앞으로가기로 돌아와 게시하면 고친 단계를 저장한 뒤 게시', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+    const requests = recordPostingRequests()
+
+    window.history.back()
+    await user.click(await screen.findByRole('button', { name: /^Q2 / }))
+    const titleInput = within(
+      screen.getByRole('complementary', { name: 'Q2 문항 설정' }),
+    ).getByRole('textbox', { name: /질문/ })
+    await user.clear(titleInput)
+    await user.type(titleInput, '가장 몰입했던 경험')
+    window.history.forward()
+    expect(await screen.findByRole('button', { name: '공고 게시' })).toBeInTheDocument()
+    expect(requests).toEqual([])
+
+    await confirmPublish(user)
+
+    expect(await screen.findByText('공고를 게시했어요')).toBeInTheDocument()
+    expect(requests.map(({ operation }) => operation)).toEqual([
+      'SavePostingDraft',
+      'PublishPosting',
+    ])
+    expect(requests[0]?.questionTitles).toContain('가장 몰입했던 경험')
+  })
+
+  it('뒤로가기로 떠난 단계도 임시 저장에 포함', async () => {
+    const user = setupWithDate()
+    renderForm(false)
+    await goToReviewStep(user)
+    const requests = recordPostingRequests()
+
+    window.history.back()
+    await screen.findByRole('button', { name: /^Q2 / })
+    window.history.back()
+    expect(await screen.findByRole('heading', { name: '모집 유형' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '임시 저장' }))
+
+    expect(await screen.findByText('임시 저장되었습니다')).toBeInTheDocument()
+    expect(requests).toHaveLength(2)
   })
 
   it('서버 게시 검사에 걸리면 팝업을 닫고 해당 단계로 이동해 안내', async () => {
