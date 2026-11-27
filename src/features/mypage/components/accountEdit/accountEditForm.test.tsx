@@ -14,13 +14,20 @@ import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { AccountEditForm } from './accountEditForm'
 
+const BACK_LINK = { href: '/manage/mypage', label: '계정 설정' } as const
+
 function renderAccountEditForm() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
 
   render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AccountEditForm name="김모집" maskedPhone="010-****-5678" profileImageUrl={null} />
+        <AccountEditForm
+          name="김모집"
+          maskedPhone="010-****-5678"
+          profileImageUrl={null}
+          backLink={BACK_LINK}
+        />
       </ToastProvider>
     </QueryClientProvider>,
   )
@@ -321,7 +328,12 @@ describe('AccountEditForm 저장', () => {
       return (
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <AccountEditForm name={name} maskedPhone="010-****-5678" profileImageUrl={null} />
+            <AccountEditForm
+              name={name}
+              maskedPhone="010-****-5678"
+              profileImageUrl={null}
+              backLink={BACK_LINK}
+            />
           </ToastProvider>
         </QueryClientProvider>
       )

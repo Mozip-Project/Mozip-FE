@@ -115,9 +115,8 @@ function ProfileCard({
               icon={null}
               title="번호가 바뀌었나요?"
               action={
-                // TODO: 지원자 마이페이지 경로 생기면 교체(지금은 운영진 영역에만 있음)
                 <Link
-                  href="/manage/mypage"
+                  href="/mypage"
                   className="flex shrink-0 items-center gap-gap-xs rounded-s text-label1 font-semibold whitespace-nowrap text-neutral-muted outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
                 >
                   마이페이지로 이동

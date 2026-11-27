@@ -10,7 +10,7 @@ import type {
   MarkNotificationsReadMutationVariables,
   NotificationsQuery,
   NotificationsQueryVariables,
-  NotificationTab,
+  Role,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { server } from '@/mocks/server'
@@ -28,15 +28,15 @@ function createTestQueryClient() {
 // 패널을 다시 열면 hook이 같은 queryClient로 다시 마운트됨
 function renderNotificationPanelHook(
   queryClient = createTestQueryClient(),
-  tab: NotificationTab | undefined = undefined,
+  role: Role | undefined = undefined,
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   }
 
   const { result, rerender, unmount } = renderHook(
-    (props: { tab: NotificationTab | undefined }) => useNotificationPanel(props.tab),
-    { wrapper: Wrapper, initialProps: { tab } },
+    (props: { role: Role | undefined }) => useNotificationPanel(props.role),
+    { wrapper: Wrapper, initialProps: { role } },
   )
   return { result, rerender, unmount, queryClient }
 }
@@ -47,11 +47,7 @@ function countNotificationsRequests() {
   server.use(
     graphqlApi.query('Notifications', () => {
       count += 1
-      return HttpResponse.json({
-        data: {
-          notifications: { content: [], totalCount: 0 },
-        },
-      })
+      return HttpResponse.json({ data: { notifications: [] } })
     }),
   )
   return () => count
@@ -199,7 +195,7 @@ describe('useNotificationPanel', () => {
       throw new Error('샘플에 읽은 알림과 읽지 않은 알림이 모두 필요합니다.')
     }
 
-    const unreadCountBefore = result.current.unreadCount?.all ?? 0
+    const unreadCountBefore = result.current.unreadCount ?? 0
 
     act(() => result.current.markAsRead(read))
     act(() => result.current.markAsRead(unread))
@@ -207,7 +203,7 @@ describe('useNotificationPanel', () => {
     await waitFor(() =>
       expect(result.current.notifications?.find(({ id }) => id === unread.id)?.isRead).toBe(true),
     )
-    expect(result.current.unreadCount?.all).toBe(unreadCountBefore - 1)
+    expect(result.current.unreadCount).toBe(unreadCountBefore - 1)
     expect(markReadRequests).toEqual([[unread.id]])
   })
 
@@ -232,7 +228,7 @@ describe('useNotificationPanel', () => {
     const isUnreadMarkedInCache = () =>
       queryClient
         .getQueryData<NotificationListData>(ALL_TAB_KEY)
-        ?.pages.flatMap(({ content }) => content)
+        ?.pages.flat()
         .find(({ id }) => id === unread.id)?.isRead
     await waitFor(() => expect(isUnreadMarkedInCache()).toBe(true))
 
@@ -281,7 +277,7 @@ describe('useNotificationPanel', () => {
     })
     const unreadCountBefore = result.current.unreadCount
 
-    rerender({ tab: 'APPLICANT' })
+    rerender({ role: 'APPLICANT' })
 
     expect(result.current.notifications).toBeUndefined()
     expect(result.current.isLoading).toBe(true)

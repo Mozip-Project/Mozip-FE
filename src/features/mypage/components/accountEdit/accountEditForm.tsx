@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import { useForm, useWatch, type UseFormSetError } from 'react-hook-form'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
@@ -24,8 +24,6 @@ import { PasswordSection } from './passwordSection'
 import { PhoneSection } from './phoneSection'
 import { ProfileImageSection } from './profileImageSection'
 
-const ACCOUNT_EDIT_BACK_LINK = { href: '/manage/mypage', label: '계정 설정' } as const
-
 const WRONG_CURRENT_PASSWORD_CODE = 'AUTH_001'
 const UNVERIFIED_PHONE_CODE = 'USER_403'
 // 서버 fieldErrors의 field 중 화면에 입력 칸이 있는 것
@@ -35,6 +33,7 @@ type AccountEditFormProps = {
   name: string
   maskedPhone: string
   profileImageUrl: string | null
+  backLink: ComponentProps<typeof PageHeader>['backLink']
 }
 
 function createEmptyValues(name: string): AccountEditValues {
@@ -69,7 +68,7 @@ function applyServerFieldErrors(error: Error, setError: UseFormSetError<AccountE
   return fieldErrors.length > 0
 }
 
-function AccountEditForm({ name, maskedPhone, profileImageUrl }: AccountEditFormProps) {
+function AccountEditForm({ name, maskedPhone, profileImageUrl, backLink }: AccountEditFormProps) {
   const { showToast } = useToast()
   const changePassword = useChangePasswordMutation()
   const updateProfile = useUpdateProfileMutation()
@@ -187,7 +186,7 @@ function AccountEditForm({ name, maskedPhone, profileImageUrl }: AccountEditForm
       <StickyTopBar className="pb-gap-l after:opacity-100 after:transition-none">
         <PageHeader
           title="정보 수정"
-          backLink={ACCOUNT_EDIT_BACK_LINK}
+          backLink={backLink}
           actions={
             <Button type="submit" size="m" disabled={!canSave}>
               저장
@@ -215,4 +214,4 @@ function AccountEditForm({ name, maskedPhone, profileImageUrl }: AccountEditForm
   )
 }
 
-export { ACCOUNT_EDIT_BACK_LINK, AccountEditForm }
+export { AccountEditForm }
