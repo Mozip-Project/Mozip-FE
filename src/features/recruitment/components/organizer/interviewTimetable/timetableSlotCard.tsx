@@ -13,11 +13,16 @@ import { TimetableDragHandle } from './timetableDragHandle'
 import { FOCUS_RING_CLASS, SELECTED_BORDER_CLASS } from './timetableStyles'
 import type { TimetableMoveActions } from './timetableMoveActions'
 
+const DASHED_CHIP_CLASS =
+  'rounded-full border border-dashed border-neutral-muted px-padding-xs py-padding-xxs'
+
 type TimetableSlotCardProps = {
   interview: TimetableInterview
   applicants: TimetableApplicant[]
   interviewers: TimetableInterviewer[]
   interviewerOptions: InterviewerOption[]
+  // 확정 후 보기 모드, 이동·면접관 편집 없이 장소 입력만 표시
+  isReadOnly: boolean
   isDropTarget: boolean
   moveActions: TimetableMoveActions
   onInterviewersChange: (interviewerIds: string[]) => void
@@ -29,6 +34,7 @@ function TimetableSlotCard({
   applicants,
   interviewers,
   interviewerOptions,
+  isReadOnly,
   isDropTarget,
   moveActions,
   onInterviewersChange,
@@ -36,9 +42,9 @@ function TimetableSlotCard({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const [singleApplicant] = applicants
   const isGroup = applicants.length > 1
+  const hasHandle = !isReadOnly
   const applicantNames = applicants.map(({ name }) => name).join(', ')
-  const interviewerSummary =
-    interviewers.length > 0 ? interviewers.map(({ name }) => name).join(', ') : '면접관 추가'
+  const interviewerNames = interviewers.map(({ name }) => name).join(', ')
   const isHighlighted =
     isPopoverOpen ||
     isDropTarget ||
@@ -53,7 +59,7 @@ function TimetableSlotCard({
         isDropTarget && 'bg-brand-weak',
       )}
     >
-      {!isGroup && singleApplicant && (
+      {hasHandle && !isGroup && singleApplicant && (
         <TimetableDragHandle
           applicant={singleApplicant}
           item={{ applicantIds: interview.applicantIds, fromInterviewId: interview.id }}
@@ -69,11 +75,13 @@ function TimetableSlotCard({
 
               return (
                 <li key={applicant.id} className="flex min-w-0 items-center gap-gap-s">
-                  <TimetableDragHandle
-                    applicant={applicant}
-                    item={item}
-                    moveActions={moveActions}
-                  />
+                  {hasHandle && (
+                    <TimetableDragHandle
+                      applicant={applicant}
+                      item={item}
+                      moveActions={moveActions}
+                    />
+                  )}
                   <TimetableApplicantName
                     applicant={applicant}
                     isDimmed={moveActions.isMoving(item)}
@@ -85,41 +93,65 @@ function TimetableSlotCard({
         ) : (
           singleApplicant && <TimetableApplicantName applicant={singleApplicant} />
         )}
-        <div className={cn('flex min-h-6.5 flex-wrap items-center gap-gap-m', isGroup && 'pl-6')}>
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              {/* after로 카드 전체를 누를 수 있는 영역으로 확장 */}
-              <button
-                type="button"
-                aria-label={`${applicantNames} 면접관: ${interviewerSummary}`}
-                className={cn(
-                  'flex min-w-0 cursor-pointer items-center gap-gap-xxs rounded-full border px-padding-xs py-padding-xxs text-caption1 font-medium text-neutral-subtle',
-                  'after:absolute after:inset-0 after:rounded-m',
-                  interviewers.length > 0
-                    ? 'border-transparent'
-                    : 'border-dashed border-neutral-muted',
-                  FOCUS_RING_CLASS,
-                )}
+        <div
+          className={cn(
+            'flex min-h-6.5 flex-wrap items-center gap-gap-m',
+            isGroup && hasHandle && 'pl-6',
+          )}
+        >
+          {isReadOnly ? (
+            <>
+              {interviewers.length > 0 && <InterviewerNames names={interviewerNames} />}
+              {/* TODO: 장소 입력 팝오버는 확정 후 장소 입력 단계에서 연결 */}
+              <span
+                className={cn(DASHED_CHIP_CLASS, 'text-caption1 font-medium text-neutral-subtle')}
               >
-                <UsersIcon aria-hidden className="size-4 shrink-0" />
-                <span className="truncate">{interviewerSummary}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              aria-label={`${applicantNames} 면접관 편집`}
-              className="w-100 p-padding-xl"
-            >
-              <InterviewerPopoverContent
-                applicants={applicants}
-                interviewers={interviewers}
-                options={interviewerOptions}
-                onInterviewersChange={onInterviewersChange}
-              />
-            </PopoverContent>
-          </Popover>
+                장소 입력
+              </span>
+            </>
+          ) : (
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+              <PopoverTrigger asChild>
+                {/* after로 카드 전체를 누를 수 있는 영역으로 확장 */}
+                <button
+                  type="button"
+                  aria-label={`${applicantNames} 면접관: ${interviewerNames || '면접관 추가'}`}
+                  className={cn(
+                    'flex min-w-0 cursor-pointer rounded-full',
+                    'after:absolute after:inset-0 after:rounded-m',
+                    interviewers.length === 0 && DASHED_CHIP_CLASS,
+                    FOCUS_RING_CLASS,
+                  )}
+                >
+                  <InterviewerNames names={interviewerNames || '면접관 추가'} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                aria-label={`${applicantNames} 면접관 편집`}
+                className="w-100 p-padding-xl"
+              >
+                <InterviewerPopoverContent
+                  applicants={applicants}
+                  interviewers={interviewers}
+                  options={interviewerOptions}
+                  onInterviewersChange={onInterviewersChange}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
     </div>
+  )
+}
+
+// Figma 배정된 면접관은 테두리·여백 없이 아이콘과 이름만
+function InterviewerNames({ names }: { names: string }) {
+  return (
+    <span className="flex min-w-0 items-center gap-gap-xxs text-caption1 font-medium text-neutral-subtle">
+      <UsersIcon aria-hidden className="size-4 shrink-0" />
+      <span className="truncate">{names}</span>
+    </span>
   )
 }
 

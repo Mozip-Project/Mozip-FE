@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { Tabs, TabsContent } from '@/components/ui/Tabs/tabs'
 import { useInterviewTimetable } from '@/features/recruitment/hooks/useInterviewTimetable'
@@ -10,7 +11,7 @@ import {
   SAMPLE_TIMETABLE_INTERVIEWERS,
 } from '@/features/recruitment/mocks/interviewTimetableSample'
 import {
-  canConfirmTimetable,
+  formatTimetableSummary,
   getAssignedCount,
 } from '@/features/recruitment/utils/interviewTimetable'
 import { RegenerateTimetableDialog } from './regenerateTimetableDialog'
@@ -30,7 +31,8 @@ function InterviewTimetableContent() {
     activeMove,
     availableSlotKeys,
     datesWithAvailableSlot,
-    datesWithUnassignedApplicants,
+    blockedDates,
+    missingInterviewerCount,
     startDrag,
     toggleSelect,
     cancelMove,
@@ -39,6 +41,8 @@ function InterviewTimetableContent() {
     addTrack,
     changeInterviewers,
     regenerate,
+    isConfirmed,
+    confirm,
   } = useInterviewTimetable({
     initialTimetable: SAMPLE_INTERVIEW_TIMETABLE,
     applicants: SAMPLE_TIMETABLE_APPLICANTS,
@@ -58,17 +62,29 @@ function InterviewTimetableContent() {
 
   // 옮기는 중에는 다른 날짜 중 놓을 수 있는 날짜를 표시, 보고 있는 날짜는 원래 상태 유지
   function getDateStatus(date: string): TimetableDateStatus | null {
+    if (isConfirmed) {
+      return null
+    }
     if (activeMove && date !== selectedDate && datesWithAvailableSlot.has(date)) {
       return 'available'
     }
-    return datesWithUnassignedApplicants.has(date) ? 'blocked' : null
+    return blockedDates.has(date) ? 'blocked' : null
   }
 
   return (
     <>
       <PageHeader
         title="면접 타임테이블"
-        actions={<RegenerateTimetableDialog onRegenerate={regenerate} />}
+        actions={
+          isConfirmed ? (
+            // TODO: 확정 후 수정 단계에서 수정 모드 연결
+            <Button variant="secondary" size="m">
+              수정하기
+            </Button>
+          ) : (
+            <RegenerateTimetableDialog onRegenerate={regenerate} />
+          )
+        }
       />
       <Tabs value={selectedDate} onValueChange={selectDate} className="flex flex-col gap-gap-xl">
         <TimetableDateTabList
@@ -82,11 +98,13 @@ function InterviewTimetableContent() {
           interviewRuleLabel={`면접 ${SAMPLE_INTERVIEW_RULE.interviewMinutes}분 · 쉬는 시간 ${SAMPLE_INTERVIEW_RULE.breakMinutes}분`}
           onDateChange={selectDate}
         />
-        <UnassignedBar
-          applicants={unassignedApplicants}
-          activeMove={activeMove}
-          moveActions={moveActions}
-        />
+        {!isConfirmed && (
+          <UnassignedBar
+            applicants={unassignedApplicants}
+            activeMove={activeMove}
+            moveActions={moveActions}
+          />
+        )}
         {/* 다른 날짜로 끌고 가도 출발 카드가 남아 있어야 dragend가 와서 모두 렌더링 */}
         {timetable.days.map((day) => (
           <TabsContent
@@ -101,6 +119,7 @@ function InterviewTimetableContent() {
               applicantsById={applicantsById}
               interviewers={SAMPLE_TIMETABLE_INTERVIEWERS}
               availableSlotKeys={availableSlotKeys}
+              isReadOnly={isConfirmed}
               activeMove={activeMove}
               moveActions={moveActions}
               onAddTrack={() => addTrack(day.date)}
@@ -109,7 +128,13 @@ function InterviewTimetableContent() {
           </TabsContent>
         ))}
       </Tabs>
-      <TimetableSummaryBar canConfirm={canConfirmTimetable(timetable)} />
+      <TimetableSummaryBar
+        isConfirmed={isConfirmed}
+        unassignedCount={unassignedApplicants.length}
+        missingInterviewerCount={missingInterviewerCount}
+        summary={formatTimetableSummary(timetable)}
+        onConfirm={confirm}
+      />
     </>
   )
 }

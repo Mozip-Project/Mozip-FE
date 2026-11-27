@@ -11,7 +11,7 @@ type TimetableDateStatus = 'available' | 'blocked'
 
 const DATE_STATUS = {
   available: { tone: 'positive', label: '배정 가능한 칸 있음' },
-  blocked: { tone: 'critical', label: '미배정 지원자 있음' },
+  blocked: { tone: 'critical', label: '확정 전 남은 항목 있음' },
 } as const satisfies Record<TimetableDateStatus, { tone: 'positive' | 'critical'; label: string }>
 
 type TimetableDateTab = {
