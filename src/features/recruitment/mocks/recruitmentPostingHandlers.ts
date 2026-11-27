@@ -15,7 +15,7 @@ const recruitmentPostingHandlers = [
       const posting = getManagedPostingSample(postingId)
       const sample = findOrganizationPostingSample(postingId)
 
-      if (!posting || !sample) {
+      if (!posting) {
         return HttpResponse.json({
           errors: [{ message: '공고를 찾을 수 없습니다.', extensions: { code: 'POSTING_404' } }],
           data: null,
@@ -33,7 +33,8 @@ const recruitmentPostingHandlers = [
             recruitEndAt,
             docResultAt,
             hasInterview,
-            noPosition: sample.noPosition,
+            // 공고 작성 MSW로 새로 만든 공고는 샘플이 없어 포지션 있음으로 응답
+            noPosition: sample?.noPosition ?? false,
             docResultConfirmedAt,
             // 평가 패널 점수 문항 확인용으로 모든 샘플 공고가 문항별 점수 사용
             docScorePerQuestion: true,

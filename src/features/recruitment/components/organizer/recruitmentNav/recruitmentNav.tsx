@@ -5,7 +5,10 @@ import { Suspense } from 'react'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { useOrganizationPostingsQuery } from '@/features/posting/api/organizer/queries'
 import { MANAGED_POSTING_TAB_STATUSES } from '@/features/posting/utils/managedPosting'
-import { getPostingEditPath } from '@/features/posting/utils/postingCreateRoute'
+import {
+  getPostingEditPath,
+  parsePostingEditPath,
+} from '@/features/posting/utils/postingCreateRoute'
 import { getRecruitmentDday } from '@/features/posting/utils/recruitmentDday'
 import { useRecruitmentPostingQuery } from '@/features/recruitment/api/organizer/queries'
 import {
@@ -19,8 +22,8 @@ import { EmptyRecruitmentNavView, RecruitmentNavView, type LnbSection } from './
 import { RecruitPickerDialog } from './recruitPickerDialog'
 import { RecruitSwitcher } from './recruitSwitcher'
 
-// TODO: 공고 선택 전 문구 디자인 확정 후 교체
-const UNSELECTED_RECRUIT_NAME = '공고를 선택해 주세요'
+// 공고 작성에서 제목을 처음 저장하기 전
+const UNSELECTED_RECRUIT_NAME = '진행 중인 모집이 없어요'
 
 function RecruitmentNavPlaceholder() {
   return (
@@ -47,8 +50,9 @@ function RecruitmentNav({ savedOrganizationId }: RecruitmentNavProps) {
 }
 
 function RecruitmentNavByPosting({ savedOrganizationId }: RecruitmentNavProps) {
-  const { postingId } = useParams<{ postingId?: string }>()
+  const params = useParams<{ postingId?: string }>()
   const pathname = usePathname()
+  const postingId = params.postingId ?? parsePostingEditPath(pathname)
   const isHydrated = useIsHydrated()
   const { currentOrganizationId } = useCurrentOrganization(savedOrganizationId)
 
