@@ -8,13 +8,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   images: {
-    // picsum은 MSW 목데이터 썸네일용, 업로드 이미지 호스트는 환경마다 달라 환경 변수로
-    remotePatterns: [
-      { protocol: 'https', hostname: 'picsum.photos', pathname: '/seed/**', search: '' },
-      ...(uploadImageHostname
-        ? [{ protocol: 'https' as const, hostname: uploadImageHostname, pathname: '/**' }]
-        : []),
-    ],
+    // 업로드 이미지 호스트는 환경마다 달라 환경 변수로
+    remotePatterns: uploadImageHostname
+      ? [{ protocol: 'https', hostname: uploadImageHostname, pathname: '/**' }]
+      : [],
   },
   turbopack: {
     rules: {
