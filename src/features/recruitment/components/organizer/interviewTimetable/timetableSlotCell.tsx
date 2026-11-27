@@ -46,18 +46,34 @@ function TimetableSlotCell({
     () => moveActions.onMoveTo({ type: 'slot', slot }),
   )
 
+  const canJoinBySelect = activeMove?.mode === 'select' && interview && !isOwnInterview
+
   return (
-    <div {...dropTargetProps} className="flex min-w-56 flex-1">
+    <div {...dropTargetProps} className="relative flex min-w-56 flex-1">
       {interview ? (
-        <TimetableSlotCard
-          interview={interview}
-          applicants={applicants}
-          interviewers={interviewers}
-          interviewerOptions={interviewerOptions}
-          isDropTarget={isOver}
-          moveActions={moveActions}
-          onInterviewersChange={onInterviewersChange}
-        />
+        <>
+          <TimetableSlotCard
+            interview={interview}
+            applicants={applicants}
+            interviewers={interviewers}
+            interviewerOptions={interviewerOptions}
+            isDropTarget={isOver}
+            moveActions={moveActions}
+            onInterviewersChange={onInterviewersChange}
+          />
+          {/* 키보드·터치로도 그룹 면접을 만들 수 있게 선택 중에만 카드를 덮는 배정 버튼 */}
+          {canJoinBySelect && (
+            <button
+              type="button"
+              aria-label={`${slotLabel}에 함께 배정`}
+              onClick={() => moveActions.onMoveTo({ type: 'slot', slot })}
+              className={cn(
+                'absolute inset-0 z-2 cursor-pointer rounded-m hover:ring-2 hover:ring-(--border-color-brand-solid) hover:ring-inset',
+                FOCUS_RING_CLASS,
+              )}
+            />
+          )}
+        </>
       ) : (
         <TimetableEmptySlot
           slotLabel={slotLabel}

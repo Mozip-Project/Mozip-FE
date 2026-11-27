@@ -123,7 +123,11 @@ function InterviewerList({ applicants, interviewers, onAdd, onRemove }: Intervie
                 <button
                   type="button"
                   aria-label={`${interviewer.name} 면접관에서 빼기`}
-                  onClick={() => onRemove(interviewer.id)}
+                  onClick={() => {
+                    onRemove(interviewer.id)
+                    // 누른 줄이 사라져도 팝오버 안에 focus가 남도록 항상 있는 추가 버튼으로 이동
+                    addButtonRef.current?.focus()
+                  }}
                   className={cn(
                     'flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-s text-neutral-subtle hover:bg-transparent-pressed',
                     FOCUS_RING_CLASS,

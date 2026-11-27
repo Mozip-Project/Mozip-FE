@@ -113,7 +113,11 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
     changeInterviewers: (interviewId: string, interviewerIds: string[]) =>
       setTimetable((current) => setInterviewers(current, interviewId, interviewerIds)),
     // TODO: 다시 생성 API 연결, 지금은 처음 생성한 배정으로 되돌림
-    regenerate: () => setTimetable((current) => keepAddedTracks(initialTimetable, current)),
+    regenerate: () => {
+      // 옛 배정 기준으로 고른 이동이 새 배정에 적용되지 않도록 취소
+      setActiveMove(null)
+      setTimetable((current) => keepAddedTracks(initialTimetable, current))
+    },
   }
 }
 
