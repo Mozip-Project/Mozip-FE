@@ -9,6 +9,7 @@ import {
   getApplicantManagementPath,
   getDocumentResultPath,
   getDocumentReviewPath,
+  getInterviewTimetablePath,
   getPostingManageDetailPath,
   POSTING_CREATE_PATH,
 } from '@/features/recruitment/utils/recruitmentRoutes'
@@ -26,6 +27,7 @@ const POSTING_PATH = {
   postings: getPostingManageDetailPath,
   documents: getDocumentReviewPath,
   'documents/summary': getDocumentResultPath,
+  'interviews/timetable': getInterviewTimetablePath,
 } satisfies Record<string, (postingId: string) => Route>
 
 // 서버 렌더링 메뉴에서도 쓰도록 함수 대신 키로 전달
@@ -39,6 +41,7 @@ function getLnbSubItemHrefs(postingId: string | undefined): Partial<Record<LnbSu
     postings: POSTING_PATH.postings(postingId),
     documents: POSTING_PATH.documents(postingId),
     'documents/summary': POSTING_PATH['documents/summary'](postingId),
+    'interviews/timetable': POSTING_PATH['interviews/timetable'](postingId),
   }
 }
 

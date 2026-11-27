@@ -103,6 +103,13 @@ function formatDateTimeWithWeekday(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()} (${weekday}) ${formatTime(date)}`
 }
 
+// 한국 시각 기준 10/21 (수) 13:00
+function formatSeoulDateTime(isoDateTime: string) {
+  const date = new Date(isoDateTime)
+
+  return `${formatMonthDayWithWeekday(getSeoulIsoDate(date))} ${getSeoulTime(date)}`
+}
+
 function formatSavedTime(savedAt: Date, now: Date) {
   return isSameLocalDate(savedAt, now) ? formatTime(savedAt) : formatDateTimeWithWeekday(savedAt)
 }
@@ -161,6 +168,7 @@ export {
   formatRelativeTime,
   formatRemainingTime,
   formatSavedTime,
+  formatSeoulDateTime,
   formatYearMonth,
   getDaysBetween,
   getSeoulIsoDate,

@@ -150,16 +150,23 @@ query DocEvaluationApplicationDetail($id: ID!) {
   }
 }
 
-# 서류 평가하기 문항 번호용, 답하지 않은 문항은 지원서 answers에서 빠져 공고 문항으로 매김
+# 서류 평가하기 문항 카드용, 답하지 않은 문항은 지원서 answers에서 빠져 공고 문항으로 카드와 번호 구성
 query PostingQuestions($id: ID!) {
   posting(id: $id) {
     id
     questions {
       id
       type
+      title
+      description
+      required
+      maxLength
       sortOrder
       position {
         id
+      }
+      options {
+        activityFields
       }
     }
   }

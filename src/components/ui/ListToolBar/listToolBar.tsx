@@ -9,6 +9,8 @@ type ListToolBarTab<TValue extends string> = {
   value: TValue
   label: string
   count?: number | null
+  // 아직 열 수 없는 탭, 골라도 탭과 스크롤 위치 유지
+  isUnavailable?: boolean
 }
 
 type ListToolBarProps<TValue extends string> = {
@@ -42,7 +44,8 @@ function ListToolBar<TValue extends string>({
   function handleValueChange(nextValue: string) {
     const nextTab = tabs.find((tab) => tab.value === nextValue)
 
-    if (!nextTab) {
+    // 열 수 없는 탭은 focus만으로 선택되지 않게 클릭·Enter에서만 따로 알림
+    if (!nextTab || nextTab.isUnavailable) {
       return
     }
 
@@ -60,7 +63,12 @@ function ListToolBar<TValue extends string>({
     >
       <TabsList aria-label={tabsLabel} className="self-end">
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value} count={tab.count}>
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            count={tab.count}
+            onClick={tab.isUnavailable ? () => onValueChange(tab.value) : undefined}
+          >
             {tab.label}
           </TabsTrigger>
         ))}

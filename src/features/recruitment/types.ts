@@ -2,6 +2,9 @@ import type { DocResult, FinalResult } from '@/gql/graphql'
 
 const DOCUMENT_REVIEW_PAGE_SIZE = 10
 
+// 지원서 상세 조회에서 지원서가 없을 때의 에러 코드
+const APPLICATION_NOT_FOUND_CODE = 'APPLICATION_404'
+
 const DOCUMENT_REVIEW_STATUSES = ['all', 'pending', 'done'] as const
 const DOCUMENT_REVIEW_POSITIONS = ['design', 'development', 'planning'] as const
 const DOCUMENT_REVIEW_SORTS = ['submittedDesc', 'submittedAsc', 'nameAsc', 'nameDesc'] as const
@@ -325,8 +328,78 @@ type ApplicantProfile = {
   email: string | null
 }
 
+// 내 지원 카드, passed·failed는 3단계 결과(면접 있으면 서류, 없으면 최종)를 받은 상태
+type MyApplicationStage = 'submitted' | 'docReview' | 'passed' | 'failed'
+
+type MyApplication = {
+  id: string
+  postingTitle: string
+  // 포지션 없는 모집이면 null
+  positionName: string | null
+  organizationName: string
+  hasInterview: boolean
+  submittedAt: string
+  stage: MyApplicationStage
+  // 3단계 결과 발표일, 운영진이 정하기 전이면 null
+  resultDate: string | null
+  interviewAt: string | null
+}
+
+type TimetableSlotTime = {
+  date: string
+  time: string
+}
+
+type TimetableSlot = TimetableSlotTime & {
+  // 같은 시간에 동시에 진행하는 면접 열, 1부터
+  track: number
+}
+
+type TimetableApplicant = {
+  id: string
+  name: string
+  positionName: string | null
+  availableTimes: TimetableSlotTime[]
+}
+
+type TimetableInterviewer = {
+  id: string
+  name: string
+  teamName: string | null
+  isRepresentative: boolean
+}
+
+type TimetableInterview = TimetableSlot & {
+  id: string
+  applicantIds: string[]
+  interviewerIds: string[]
+  // 확정 후 입력, 그룹 면접은 칸 하나로 공유
+  location: string | null
+}
+
+type TimetableDay = {
+  date: string
+  times: string[]
+  trackCount: number
+}
+
+type InterviewTimetable = {
+  days: TimetableDay[]
+  interviews: TimetableInterview[]
+  unassignedApplicantIds: string[]
+}
+
+// 옮길 지원자와 출발 면접, 미배정 바에서 출발하면 null
+type TimetableMoveItem = {
+  applicantIds: string[]
+  fromInterviewId: string | null
+}
+
+type TimetableMoveTarget = { type: 'slot'; slot: TimetableSlot } | { type: 'unassigned' }
+
 export {
   APPLICANT_ALL_POSITIONS_TAB,
+  APPLICATION_NOT_FOUND_CODE,
   APPLICANT_MANAGEMENT_PAGE_SIZE,
   DOCUMENT_RESULT_PAGE_SIZE,
   DOCUMENT_RESULT_SORT_LABEL,
@@ -371,7 +444,10 @@ export type {
   DocumentReviewSort,
   DocumentReviewStatus,
   InterviewRecruitmentStage,
+  InterviewTimetable,
   ManagedApplicant,
+  MyApplication,
+  MyApplicationStage,
   RecipientDelivery,
   RecruitmentBoardQuery,
   RecruitmentProgress,
@@ -387,4 +463,12 @@ export type {
   ResultNoticeTarget,
   ResultNoticeVariable,
   ResultNoticeVariableValues,
+  TimetableApplicant,
+  TimetableDay,
+  TimetableInterview,
+  TimetableInterviewer,
+  TimetableMoveItem,
+  TimetableMoveTarget,
+  TimetableSlot,
+  TimetableSlotTime,
 }
