@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import UsersIcon from '@/assets/icons/users.svg'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover/popover'
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/Popover/popover'
 import type {
   TimetableApplicant,
   TimetableInterview,
@@ -8,9 +13,10 @@ import type {
 } from '@/features/recruitment/types'
 import { cn } from '@/lib/utils'
 import { InterviewerPopoverContent, type InterviewerOption } from './interviewerPopoverContent'
+import { LocationPopoverContent } from './locationPopoverContent'
 import { TimetableApplicantName } from './timetableApplicantName'
 import { TimetableDragHandle } from './timetableDragHandle'
-import { FOCUS_RING_CLASS, SELECTED_BORDER_CLASS } from './timetableStyles'
+import { FOCUS_RING_CLASS, POPOVER_BELOW_OFFSET_PX, SELECTED_BORDER_CLASS } from './timetableStyles'
 import type { TimetableMoveActions } from './timetableMoveActions'
 
 const DASHED_CHIP_CLASS =
@@ -21,14 +27,16 @@ type TimetableSlotCardProps = {
   applicants: TimetableApplicant[]
   interviewers: TimetableInterviewer[]
   interviewerOptions: InterviewerOption[]
-  // 확정 후 보기 모드, 이동·면접관 편집 없이 장소 입력만 표시
+  // 확정 후 보기 모드, 이동·면접관 편집 없이 장소 입력만
   isReadOnly: boolean
   isDropTarget: boolean
+  recentLocations: string[]
   moveActions: TimetableMoveActions
   onInterviewersChange: (interviewerIds: string[]) => void
+  onLocationChange: (location: string) => void
 }
 
-// 카드 아무 곳이나 누르면 면접관 편집, 핸들을 잡으면 이동
+// 배정 중에는 카드를 누르면 면접관 편집, 보기 모드에서는 장소 칩을 누르면 장소 변경
 function TimetableSlotCard({
   interview,
   applicants,
@@ -36,8 +44,10 @@ function TimetableSlotCard({
   interviewerOptions,
   isReadOnly,
   isDropTarget,
+  recentLocations,
   moveActions,
   onInterviewersChange,
+  onLocationChange,
 }: TimetableSlotCardProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const [singleApplicant] = applicants
@@ -50,98 +60,125 @@ function TimetableSlotCard({
     isDropTarget ||
     moveActions.isMoving({ applicantIds: interview.applicantIds, fromInterviewId: interview.id })
 
-  // Figma는 테두리를 안쪽에 그려 78px, 테두리 1px만큼 padding을 줄여 같은 높이 유지
   return (
-    <div
-      className={cn(
-        '@container relative flex h-full min-w-0 flex-1 gap-gap-s rounded-m border bg-layer-default p-2.75',
-        isHighlighted ? SELECTED_BORDER_CLASS : 'border-neutral-muted',
-        isDropTarget && 'bg-brand-weak',
-      )}
-    >
-      {hasHandle && !isGroup && singleApplicant && (
-        <TimetableDragHandle
-          applicant={singleApplicant}
-          item={{ applicantIds: interview.applicantIds, fromInterviewId: interview.id }}
-          moveActions={moveActions}
-        />
-      )}
-      <div className="flex min-w-0 flex-1 flex-col gap-gap-s">
-        {isGroup ? (
-          // Figma 이름 칸 160px 2열, 두 열이 안 들어가면 1열
-          <ul className="grid grid-cols-1 gap-x-gap-l gap-y-gap-xs @min-[21rem]:grid-cols-[repeat(2,10rem)]">
-            {applicants.map((applicant) => {
-              const item = { applicantIds: [applicant.id], fromInterviewId: interview.id }
-
-              return (
-                <li key={applicant.id} className="flex min-w-0 items-center gap-gap-s">
-                  {hasHandle && (
-                    <TimetableDragHandle
-                      applicant={applicant}
-                      item={item}
-                      moveActions={moveActions}
-                    />
-                  )}
-                  <TimetableApplicantName
-                    applicant={applicant}
-                    isDimmed={moveActions.isMoving(item)}
-                  />
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          singleApplicant && <TimetableApplicantName applicant={singleApplicant} />
-        )}
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+      <PopoverAnchor asChild>
+        {/* Figma는 테두리를 안쪽에 그려 78px, 테두리 1px만큼 padding을 줄여 같은 높이 유지 */}
         <div
           className={cn(
-            'flex min-h-6.5 flex-wrap items-center gap-gap-m',
-            isGroup && hasHandle && 'pl-6',
+            '@container relative flex h-full min-w-0 flex-1 gap-gap-s rounded-m border bg-layer-default p-2.75',
+            isHighlighted ? SELECTED_BORDER_CLASS : 'border-neutral-muted',
+            (isDropTarget || (isReadOnly && isPopoverOpen)) && 'bg-brand-weak',
           )}
         >
-          {isReadOnly ? (
-            <>
-              {interviewers.length > 0 && <InterviewerNames names={interviewerNames} />}
-              {/* TODO: 장소 입력 팝오버는 확정 후 장소 입력 단계에서 연결 */}
-              <span
-                className={cn(DASHED_CHIP_CLASS, 'text-caption1 font-medium text-neutral-subtle')}
-              >
-                장소 입력
-              </span>
-            </>
-          ) : (
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                {/* after로 카드 전체를 누를 수 있는 영역으로 확장 */}
-                <button
-                  type="button"
-                  aria-label={`${applicantNames} 면접관: ${interviewerNames || '면접관 추가'}`}
-                  className={cn(
-                    'flex min-w-0 cursor-pointer rounded-full',
-                    'after:absolute after:inset-0 after:rounded-m',
-                    interviewers.length === 0 && DASHED_CHIP_CLASS,
-                    FOCUS_RING_CLASS,
-                  )}
-                >
-                  <InterviewerNames names={interviewerNames || '면접관 추가'} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                aria-label={`${applicantNames} 면접관 편집`}
-                className="w-100 p-padding-xl"
-              >
-                <InterviewerPopoverContent
-                  applicants={applicants}
-                  interviewers={interviewers}
-                  options={interviewerOptions}
-                  onInterviewersChange={onInterviewersChange}
-                />
-              </PopoverContent>
-            </Popover>
+          {hasHandle && !isGroup && singleApplicant && (
+            <TimetableDragHandle
+              applicant={singleApplicant}
+              item={{ applicantIds: interview.applicantIds, fromInterviewId: interview.id }}
+              moveActions={moveActions}
+            />
           )}
+          <div className="flex min-w-0 flex-1 flex-col gap-gap-s">
+            {isGroup ? (
+              // Figma 이름 칸 160px 2열, 두 열이 안 들어가면 1열
+              <ul className="grid grid-cols-1 gap-x-gap-l gap-y-gap-xs @min-[21rem]:grid-cols-[repeat(2,10rem)]">
+                {applicants.map((applicant) => {
+                  const item = { applicantIds: [applicant.id], fromInterviewId: interview.id }
+
+                  return (
+                    <li key={applicant.id} className="flex min-w-0 items-center gap-gap-s">
+                      {hasHandle && (
+                        <TimetableDragHandle
+                          applicant={applicant}
+                          item={item}
+                          moveActions={moveActions}
+                        />
+                      )}
+                      <TimetableApplicantName
+                        applicant={applicant}
+                        isDimmed={moveActions.isMoving(item)}
+                      />
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              singleApplicant && <TimetableApplicantName applicant={singleApplicant} />
+            )}
+            <div
+              className={cn(
+                'flex min-h-6.5 flex-wrap items-center gap-gap-m',
+                isGroup && hasHandle && 'pl-6',
+              )}
+            >
+              {isReadOnly ? (
+                <>
+                  {interviewers.length > 0 && <InterviewerNames names={interviewerNames} />}
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`${applicantNames} 면접 장소: ${interview.location ?? '입력 전'}`}
+                      className={cn(
+                        'cursor-pointer text-caption1 font-medium text-neutral-subtle',
+                        interview.location ? 'rounded-xs' : DASHED_CHIP_CLASS,
+                        FOCUS_RING_CLASS,
+                      )}
+                    >
+                      {interview.location ?? '장소 입력'}
+                    </button>
+                  </PopoverTrigger>
+                </>
+              ) : (
+                <PopoverTrigger asChild>
+                  {/* after로 카드 전체를 누를 수 있는 영역으로 확장 */}
+                  <button
+                    type="button"
+                    aria-label={`${applicantNames} 면접관: ${interviewerNames || '면접관 추가'}`}
+                    className={cn(
+                      'flex min-w-0 cursor-pointer rounded-full',
+                      'after:absolute after:inset-0 after:rounded-m',
+                      interviewers.length === 0 && DASHED_CHIP_CLASS,
+                      FOCUS_RING_CLASS,
+                    )}
+                  >
+                    <InterviewerNames names={interviewerNames || '면접관 추가'} />
+                  </button>
+                </PopoverTrigger>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </PopoverAnchor>
+      {isReadOnly ? (
+        <PopoverContent
+          sideOffset={POPOVER_BELOW_OFFSET_PX}
+          className="w-(--radix-popover-trigger-width) border-neutral-muted p-padding-l"
+        >
+          <LocationPopoverContent
+            title="면접 장소 변경"
+            initialLocation={interview.location ?? ''}
+            recentLocations={recentLocations}
+            onApply={(location) => {
+              onLocationChange(location)
+              setIsPopoverOpen(false)
+            }}
+          />
+        </PopoverContent>
+      ) : (
+        <PopoverContent
+          aria-label={`${applicantNames} 면접관 편집`}
+          sideOffset={POPOVER_BELOW_OFFSET_PX}
+          className="w-100 p-padding-xl"
+        >
+          <InterviewerPopoverContent
+            applicants={applicants}
+            interviewers={interviewers}
+            options={interviewerOptions}
+            onInterviewersChange={onInterviewersChange}
+          />
+        </PopoverContent>
+      )}
+    </Popover>
   )
 }
 

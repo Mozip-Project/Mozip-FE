@@ -1,5 +1,6 @@
 'use client'
 
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button/button'
 import { PageHeader } from '@/components/ui/PageHeader/pageHeader'
 import { Tabs, TabsContent } from '@/components/ui/Tabs/tabs'
@@ -23,6 +24,7 @@ import type { TimetableMoveActions } from './timetableMoveActions'
 
 // TODO: 타임테이블 API 확정 후 샘플 대신 조회 결과 사용, 조회 중 스켈레톤(Figma 4312:150103) 추가
 function InterviewTimetableContent() {
+  const { postingId } = useParams<{ postingId: string }>()
   const {
     timetable,
     applicantsById,
@@ -41,6 +43,10 @@ function InterviewTimetableContent() {
     addTrack,
     changeInterviewers,
     regenerate,
+    missingLocationCount,
+    usedLocations,
+    changeInterviewLocation,
+    changeTrackLocation,
     isConfirmed,
     confirm,
   } = useInterviewTimetable({
@@ -120,18 +126,25 @@ function InterviewTimetableContent() {
               interviewers={SAMPLE_TIMETABLE_INTERVIEWERS}
               availableSlotKeys={availableSlotKeys}
               isReadOnly={isConfirmed}
+              recentLocations={usedLocations}
               activeMove={activeMove}
               moveActions={moveActions}
               onAddTrack={() => addTrack(day.date)}
               onInterviewersChange={changeInterviewers}
+              onInterviewLocationChange={changeInterviewLocation}
+              onTrackLocationChange={(track, location) =>
+                changeTrackLocation(day.date, track, location)
+              }
             />
           </TabsContent>
         ))}
       </Tabs>
       <TimetableSummaryBar
+        postingId={postingId}
         isConfirmed={isConfirmed}
         unassignedCount={unassignedApplicants.length}
         missingInterviewerCount={missingInterviewerCount}
+        missingLocationCount={missingLocationCount}
         summary={formatTimetableSummary(timetable)}
         onConfirm={confirm}
       />

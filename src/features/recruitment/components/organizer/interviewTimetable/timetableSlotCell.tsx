@@ -22,9 +22,11 @@ type TimetableSlotCellProps = {
   interviewerOptions: InterviewerOption[]
   isAvailable: boolean
   isReadOnly: boolean
+  recentLocations: string[]
   activeMove: ActiveMove | null
   moveActions: TimetableMoveActions
   onInterviewersChange: (interviewerIds: string[]) => void
+  onLocationChange: (location: string) => void
 }
 
 // 빈 칸에 놓으면 배정, 배정된 칸에 놓으면 그룹 면접
@@ -37,9 +39,11 @@ function TimetableSlotCell({
   interviewerOptions,
   isAvailable,
   isReadOnly,
+  recentLocations,
   activeMove,
   moveActions,
   onInterviewersChange,
+  onLocationChange,
 }: TimetableSlotCellProps) {
   const isOwnInterview =
     interview !== undefined && activeMove?.item.fromInterviewId === interview.id
@@ -61,8 +65,10 @@ function TimetableSlotCell({
             interviewerOptions={interviewerOptions}
             isReadOnly={isReadOnly}
             isDropTarget={isOver}
+            recentLocations={recentLocations}
             moveActions={moveActions}
             onInterviewersChange={onInterviewersChange}
+            onLocationChange={onLocationChange}
           />
           {/* 키보드·터치로도 그룹 면접을 만들 수 있게 선택 중에만 카드를 덮는 배정 버튼 */}
           {canJoinBySelect && (

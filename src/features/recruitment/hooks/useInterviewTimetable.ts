@@ -11,9 +11,13 @@ import {
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
   getInterviewsWithoutInterviewers,
+  getInterviewsWithoutLocation,
+  getUsedLocations,
   keepAddedTracks,
   moveApplicants,
+  setInterviewLocation,
   setInterviewers,
+  setTrackLocation,
 } from '@/features/recruitment/utils/interviewTimetable'
 
 // drag: 끄는 중, select: 칩·핸들을 눌러 고른 뒤 칸을 눌러 배정
@@ -127,6 +131,13 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
       setActiveMove(null)
       setTimetable((current) => keepAddedTracks(initialTimetable, current))
     },
+    missingLocationCount: getInterviewsWithoutLocation(timetable).length,
+    usedLocations: getUsedLocations(timetable),
+    // TODO: 면접 장소 저장 API 연결
+    changeInterviewLocation: (interviewId: string, location: string) =>
+      setTimetable((current) => setInterviewLocation(current, interviewId, location)),
+    changeTrackLocation: (date: string, track: number, location: string) =>
+      setTimetable((current) => setTrackLocation(current, date, track, location)),
     isConfirmed,
     // TODO: 타임테이블 확정 API 연결
     confirm: () => {
