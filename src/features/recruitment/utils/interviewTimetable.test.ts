@@ -14,9 +14,14 @@ import {
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
   getInterviewsWithoutInterviewers,
+  getInterviewsWithoutLocation,
+  getTrackLocationLabel,
+  getUsedLocations,
   keepAddedTracks,
   moveApplicants,
+  setInterviewLocation,
   setInterviewers,
+  setTrackLocation,
 } from './interviewTimetable'
 
 const DAY_1 = '2026-10-21'
@@ -31,6 +36,7 @@ function createInterview(
     track: 1,
     applicantIds: [],
     interviewerIds: [],
+    location: null,
     ...overrides,
   }
 }
@@ -231,6 +237,57 @@ describe('getBusyInterviewers', () => {
     const [interview] = timetable.interviews
 
     expect(interview && [...getBusyInterviewers(timetable, interview).keys()]).toEqual(['host'])
+  })
+})
+
+describe('면접 장소', () => {
+  it('면접 장소 변경은 그 면접에만 반영', () => {
+    const result = setInterviewLocation(createTimetable(), 'a', '명륜관 33101')
+
+    expect(result.interviews.map(({ location }) => location)).toEqual(['명륜관 33101', null])
+  })
+
+  it('한 번에 입력은 같은 날짜·열의 면접 장소를 모두 덮어씀', () => {
+    const timetable = createTimetable({
+      interviews: [
+        createInterview({ id: 'a', applicantIds: ['kim'], location: '공학관' }),
+        createInterview({ id: 'b', time: '13:25', applicantIds: ['lee'] }),
+        createInterview({ id: 'c', track: 2, applicantIds: ['park'] }),
+      ],
+    })
+
+    expect(
+      setTrackLocation(timetable, DAY_1, 1, '명륜관').interviews.map(({ location }) => location),
+    ).toEqual(['명륜관', '명륜관', null])
+  })
+
+  it('머리글은 모두 같으면 장소명, 섞이면 가장 많은 장소 외 n곳, 없으면 null', () => {
+    const at = (location: string | null) => createInterview({ id: String(location), location })
+
+    expect(getTrackLocationLabel([at('명륜관'), at('명륜관')])).toBe('명륜관')
+    expect(getTrackLocationLabel([at('공학관'), at('명륜관'), at('명륜관'), at('학생회관')])).toBe(
+      '명륜관 외 2곳',
+    )
+    expect(getTrackLocationLabel([at(null)])).toBeNull()
+  })
+
+  it('최근 쓴 장소는 날짜·시간 순서대로 중복 없이', () => {
+    const timetable = createTimetable({
+      interviews: [
+        createInterview({ id: 'b', date: DAY_2, location: '학생회관' }),
+        createInterview({ id: 'a', time: '13:25', location: '명륜관' }),
+        createInterview({ id: 'c', location: '공학관' }),
+        createInterview({ id: 'd', track: 2, location: '명륜관' }),
+      ],
+    })
+
+    expect(getUsedLocations(timetable)).toEqual(['공학관', '명륜관', '학생회관'])
+  })
+
+  it('장소가 없는 면접만 반환', () => {
+    const result = setInterviewLocation(createTimetable(), 'a', '명륜관')
+
+    expect(getInterviewsWithoutLocation(result).map(({ id }) => id)).toEqual(['b'])
   })
 })
 

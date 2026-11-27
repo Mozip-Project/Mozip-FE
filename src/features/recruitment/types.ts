@@ -353,6 +353,8 @@ type TimetableInterview = TimetableSlot & {
   id: string
   applicantIds: string[]
   interviewerIds: string[]
+  // 확정 후 입력, 그룹 면접은 칸 하나로 공유
+  location: string | null
 }
 
 type TimetableDay = {
