@@ -289,10 +289,11 @@ export type PostingFilter = {
 };
 
 export type PostingImageInput = {
+  /** presigned-url 업로드 응답의 fileKey */
+  fileKey: string;
   /** 여러 장에 true면 COMMON_400, 하나도 없으면 첫 번째 사진 */
   isRepresentative?: boolean | null | undefined;
   sortOrder: number;
-  url: string;
 };
 
 export type PostingSort =

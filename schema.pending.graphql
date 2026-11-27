@@ -401,7 +401,8 @@ input PostingDraftInput {
 }
 
 input PostingImageInput {
-  url: String!
+  "presigned-url 업로드 응답의 fileKey"
+  fileKey: String!
   sortOrder: Int!
   "여러 장에 true면 COMMON_400, 하나도 없으면 첫 번째 사진"
   isRepresentative: Boolean = false

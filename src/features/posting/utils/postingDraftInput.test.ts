@@ -50,11 +50,11 @@ describe('toDraftStepInput', () => {
   it('공고 정보: 새로 업로드한 이미지는 대표 이미지 한 장으로 전송', () => {
     const input = toDraftStepInput('info', values({}), true, {
       ...EMPTY_CONTEXT,
-      mainImageUrl: 'https://cdn/main.png',
+      mainImageFileKey: 'posting_image/main.png',
     })
 
     expect(input.images).toEqual([
-      { url: 'https://cdn/main.png', sortOrder: 0, isRepresentative: true },
+      { fileKey: 'posting_image/main.png', sortOrder: 0, isRepresentative: true },
     ])
   })
 

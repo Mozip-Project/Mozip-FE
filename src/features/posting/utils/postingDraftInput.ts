@@ -27,8 +27,8 @@ const QUESTION_TYPE_INPUT = {
 } satisfies Record<PostingQuestion['type'], QuestionType | null>
 
 type DraftInputContext = {
-  // 새로 업로드한 대표 이미지 주소. 없으면 images를 보내지 않아 서버 값 유지
-  mainImageUrl?: string
+  // 새로 업로드한 대표 이미지의 fileKey. 없으면 images를 보내지 않아 서버 값 유지
+  mainImageFileKey?: string
   // 최근 저장 응답의 포지션, 문항 묶음과 같은 순서
   savedPositions: readonly SavedPosition[]
 }
@@ -43,9 +43,9 @@ function toOptionalNumber(value: string | null) {
 }
 
 // 새 이미지는 대표 한 장, 저장된 이미지만 있으면 생략해 서버 값 유지, 둘 다 없으면 빈 배열로 삭제
-function toImagesInput(values: PostingCreateValues, mainImageUrl?: string) {
-  if (mainImageUrl) {
-    return { images: [{ url: mainImageUrl, sortOrder: 0, isRepresentative: true }] }
+function toImagesInput(values: PostingCreateValues, mainImageFileKey?: string) {
+  if (mainImageFileKey) {
+    return { images: [{ fileKey: mainImageFileKey, sortOrder: 0, isRepresentative: true }] }
   }
   return values.savedMainImageUrl ? {} : { images: [] }
 }
@@ -55,7 +55,7 @@ function toImagesInput(values: PostingCreateValues, mainImageUrl?: string) {
 function toInfoInput(
   values: PostingCreateValues,
   hasInterview: boolean,
-  mainImageUrl?: string,
+  mainImageFileKey?: string,
 ): PostingDraftInput {
   return {
     title: values.title.trim(),
@@ -68,7 +68,7 @@ function toInfoInput(
       ? toNullableText(values.customQualification)
       : null,
     hasInterview,
-    ...toImagesInput(values, mainImageUrl),
+    ...toImagesInput(values, mainImageFileKey),
   }
 }
 
@@ -191,7 +191,7 @@ function toDraftStepInput(
 ): PostingDraftInput {
   switch (stepId) {
     case 'info':
-      return toInfoInput(values, hasInterview, context.mainImageUrl)
+      return toInfoInput(values, hasInterview, context.mainImageFileKey)
     case 'schedule':
       return toScheduleInput(values)
     case 'method':
