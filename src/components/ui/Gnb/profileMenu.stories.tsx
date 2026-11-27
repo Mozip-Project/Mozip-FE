@@ -20,14 +20,14 @@ export const Default: Story = {
         myPageHref="/"
         applicationsHref="/"
         switchModeHref="/"
-        logoutHref="/"
+        onLogout={() => {}}
       />
       <ProfileMenu
         name="김모집"
         mode="organizer"
         myPageHref="/"
         switchModeHref="/"
-        logoutHref="/"
+        onLogout={() => {}}
       />
     </div>
   ),
