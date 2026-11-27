@@ -68,7 +68,7 @@ describe('ManagedPostingCard 시연 모드', () => {
   })
 
   it('샘플 공고는 그대로 UP 팝업과 지원자 관리 링크', async () => {
-    const id = ORGANIZATION_POSTING_ID.recruiting
+    const id = ORGANIZATION_POSTING_ID.docReview
     const user = renderCard(recruitingPosting(id))
 
     expect(screen.getByRole('link', { name: `모집 ${id} 지원자 확인하기` })).toHaveAttribute(

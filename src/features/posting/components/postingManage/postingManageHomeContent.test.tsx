@@ -2,10 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse } from 'msw'
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
-import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  resetManagedPostings,
+  saveManagedPosting,
+} from '@/features/posting/mocks/managedPostingHandlers'
+import type { ManagedPostingFieldsFragment } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { server } from '@/mocks/server'
 import { ToastProvider } from '@/providers/toastProvider'
 import { PostingManageHomeContent } from './postingManageHomeContent'
@@ -16,6 +20,48 @@ class ResizeObserverStub {
   unobserve() {}
   disconnect() {}
 }
+
+const DRAFT_POSTING_ID = 'draft-posting'
+
+// 기본 샘플(서류 평가·서류 결과 안내)에 없는 상태의 공고, 맨 앞이 지원 접수 중
+const SEEDED_POSTINGS = [
+  {
+    id: 'ended-posting',
+    title: 'UXUX 13기 신입 부원 모집',
+    status: 'ENDED',
+    hasInterview: false,
+    publishedAt: '2026-01-01T00:00:00+09:00',
+    recruitEndAt: '2026-01-15T23:59:59+09:00',
+    docResultConfirmedAt: '2026-01-18T18:00:00+09:00',
+    docResultAt: '2026-01-18T18:00:00+09:00',
+    finalResultAt: null,
+    bumpRank: null,
+  },
+  {
+    id: DRAFT_POSTING_ID,
+    title: 'UXUX 15기 운영진 추가 모집',
+    status: 'DRAFT',
+    hasInterview: false,
+    publishedAt: null,
+    recruitEndAt: null,
+    docResultConfirmedAt: null,
+    docResultAt: null,
+    finalResultAt: null,
+    bumpRank: null,
+  },
+  {
+    id: 'recruiting-posting',
+    title: 'UXUX 14기 운영진 모집',
+    status: 'RECRUITING',
+    hasInterview: false,
+    publishedAt: '2026-01-01T00:00:00+09:00',
+    recruitEndAt: '2099-01-15T23:59:59+09:00',
+    docResultConfirmedAt: null,
+    docResultAt: '2099-01-18T18:00:00+09:00',
+    finalResultAt: null,
+    bumpRank: 18,
+  },
+] satisfies ManagedPostingFieldsFragment[]
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -38,6 +84,12 @@ beforeAll(() => {
   vi.stubGlobal('ResizeObserver', ResizeObserverStub)
 })
 
+beforeEach(() => {
+  for (const posting of SEEDED_POSTINGS) {
+    saveManagedPosting(MOCK_ORGANIZATION_ID, posting)
+  }
+})
+
 afterEach(() => {
   resetManagedPostings()
 })
@@ -55,8 +107,8 @@ describe('PostingManageHomeContent', () => {
     expect(
       await screen.findByRole('heading', { name: 'UXUX 14기 운영진 모집' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'UXUX 14기 신입 부원 모집' })).toBeInTheDocument()
-    expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'MOZIP. 함께 만들 팀원 모집' })).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: '진행 중 3' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '작성 중 1' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '종료된 공고 1' })).toBeInTheDocument()
   })
@@ -71,7 +123,7 @@ describe('PostingManageHomeContent', () => {
     // 서류 평가 중인 공고의 서버 순위(24위)는 표시하지 않음
     expect(screen.queryByText('최신순 24위')).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'UXUX 14기 신입 부원 모집 UP하기' }),
+      screen.queryByRole('button', { name: 'MOZIP. 함께 만들 팀원 모집 UP하기' }),
     ).not.toBeInTheDocument()
   })
 
@@ -107,7 +159,7 @@ describe('PostingManageHomeContent', () => {
     expect(screen.getAllByText('일정 미정')).toHaveLength(2)
     expect(
       screen.getByRole('link', { name: 'UXUX 15기 운영진 추가 모집 공고 이어서 작성하기' }),
-    ).toHaveAttribute('href', `/manage/postings/${ORGANIZATION_POSTING_ID.draft}/edit`)
+    ).toHaveAttribute('href', `/manage/postings/${DRAFT_POSTING_ID}/edit`)
 
     await user.click(screen.getByRole('button', { name: 'UXUX 15기 운영진 추가 모집 메뉴' }))
     await user.click(await screen.findByRole('menuitem', { name: '공고 삭제' }))
@@ -150,7 +202,7 @@ describe('PostingManageHomeContent', () => {
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
 
     // 탭은 숫자와 함께 처음 나타남
-    expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: '진행 중 3' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
     expect(screen.queryByRole('status', { name: '운영진 홈 불러오는 중' })).not.toBeInTheDocument()
   })
@@ -183,7 +235,7 @@ describe('PostingManageHomeContent', () => {
     server.resetHandlers()
     await user.click(within(alert).getByRole('button', { name: '다시 시도' }))
 
-    expect(await screen.findByRole('tab', { name: '진행 중 5' })).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: '진행 중 3' })).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'UXUX 14기 운영진 모집' })).toBeInTheDocument()
   })

@@ -44,20 +44,20 @@ describe('PostingManageDetailContent', () => {
     renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'UXUX 14기 신입 부원 모집' }),
+      await screen.findByRole('heading', { level: 1, name: 'MOZIP. 함께 만들 팀원 모집' }),
     ).toBeInTheDocument()
     const detailCard = screen.getByRole('region', { name: '공고 상세 내용' })
     expect(within(detailCard).getByText('디자인, 개발, 기획')).toBeInTheDocument()
     expect(within(detailCard).getByText('있음')).toBeInTheDocument()
     expect(within(detailCard).getByText('면접 기간')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'UXUX 14기 신입 부원 모집' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'MOZIP. 함께 만들 팀원 모집' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '공지 보내기' }))
     expect(await screen.findByRole('button', { name: '48명에게 보내기' })).toBeInTheDocument()
   })
 
   it('비면접 공고는 면접 없음, 면접 기간 행 없음', async () => {
-    renderDetail(ORGANIZATION_POSTING_ID.recruiting)
+    renderDetail(ORGANIZATION_POSTING_ID.noInterviewResult)
 
     const detailCard = await screen.findByRole('region', { name: '공고 상세 내용' })
     expect(within(detailCard).getByText('없음')).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('PostingManageDetailContent', () => {
     await user.click(retryButton)
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'UXUX 14기 신입 부원 모집' }),
+      await screen.findByRole('heading', { level: 1, name: 'MOZIP. 함께 만들 팀원 모집' }),
     ).toBeInTheDocument()
   })
 
@@ -148,10 +148,10 @@ describe('PostingManageDetailContent', () => {
       ),
     )
     const user = userEvent.setup()
-    renderDetail(ORGANIZATION_POSTING_ID.recruiting)
+    renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     await user.click(await screen.findByRole('button', { name: '공지 보내기' }))
-    await user.click(await screen.findByRole('button', { name: '12명에게 보내기' }))
+    await user.click(await screen.findByRole('button', { name: '48명에게 보내기' }))
 
     const dialog = screen.getByRole('dialog')
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(

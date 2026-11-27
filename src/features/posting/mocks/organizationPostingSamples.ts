@@ -2,14 +2,8 @@ import type { PostingStatus } from '@/gql/graphql'
 
 // 운영진 홈·공고 관리 상세·지원자 관리 MSW가 같이 쓰는 단체 1(UXUX) 공고, 전체 공고 목록에는 없음
 const ORGANIZATION_POSTING_ID = {
-  recruiting: 'uxux-14-staff',
   docReview: 'uxux-14-doc-review',
-  interview: 'uxux-14-interview',
-  finalResult: 'uxux-14-final-result',
   noInterviewResult: 'uxux-14-no-interview-result',
-  // 시연 모드에서 함께 보이는 실서버 공고(숫자 id)와 겹치지 않도록 문자 id 사용
-  draft: 'uxux-15-staff-draft',
-  ended: 'uxux-13-ended',
 } as const
 
 type OrganizationPostingSample = {
@@ -27,20 +21,13 @@ type OrganizationPostingSample = {
 
 const ID = ORGANIZATION_POSTING_ID
 
+// 전체 공고의 시연용 공고와 같은 제목
+const MOZIP_POSTING_TITLE = 'MOZIP. 함께 만들 팀원 모집'
+
 const ORGANIZATION_POSTING_SAMPLES = [
   {
-    id: ID.recruiting,
-    title: 'UXUX 14기 운영진 모집',
-    status: 'RECRUITING',
-    hasInterview: false,
-    noPosition: false,
-    endInDays: 7,
-    bumpRank: 18,
-    applicantCount: 12,
-  },
-  {
     id: ID.docReview,
-    title: 'UXUX 14기 신입 부원 모집',
+    title: MOZIP_POSTING_TITLE,
     status: 'DOC_REVIEW',
     hasInterview: true,
     noPosition: false,
@@ -48,57 +35,16 @@ const ORGANIZATION_POSTING_SAMPLES = [
     bumpRank: 24,
     applicantCount: 48,
   },
-  {
-    id: ID.interview,
-    title: 'UXUX 14기 프로젝트 팀원 모집',
-    status: 'INTERVIEW',
-    hasInterview: true,
-    noPosition: false,
-    endInDays: -6,
-    bumpRank: 30,
-    applicantCount: 30,
-  },
-  {
-    id: ID.finalResult,
-    title: 'UXUX 14기 상반기 정기 모집',
-    status: 'FINAL_RESULT',
-    hasInterview: true,
-    noPosition: false,
-    endInDays: -14,
-    bumpRank: 35,
-    applicantCount: 24,
-  },
   // 면접·파트 없는 모집의 결과 확정
   {
     id: ID.noInterviewResult,
-    title: 'UXUX 14기 스터디원 모집',
+    title: '한국대학생IT경영학회 큐시즘 34기 학회원 모집',
     status: 'DOC_RESULT_NOTICE',
     hasInterview: false,
     noPosition: true,
     endInDays: -5,
     bumpRank: 40,
     applicantCount: 18,
-  },
-  {
-    id: ID.draft,
-    title: 'UXUX 15기 운영진 추가 모집',
-    status: 'DRAFT',
-    hasInterview: false,
-    noPosition: false,
-    endInDays: null,
-    bumpRank: null,
-    applicantCount: 0,
-  },
-  // 공지 발송 불가(MESSAGE_422) 확인용 지원자 0명 공고
-  {
-    id: ID.ended,
-    title: 'UXUX 13기 신입 부원 모집',
-    status: 'ENDED',
-    hasInterview: false,
-    noPosition: false,
-    endInDays: -40,
-    bumpRank: null,
-    applicantCount: 0,
   },
 ] satisfies OrganizationPostingSample[]
 
@@ -128,6 +74,7 @@ function isDocumentResultConfirmed(status: PostingStatus): boolean {
 export {
   findOrganizationPostingSample,
   isDocumentResultConfirmed,
+  MOZIP_POSTING_TITLE,
   ORGANIZATION_POSTING_ID,
   ORGANIZATION_POSTING_SAMPLES,
 }

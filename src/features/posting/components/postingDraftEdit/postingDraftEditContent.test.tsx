@@ -3,7 +3,6 @@ import { render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { publishPosting, savePostingDraft } from '@/features/posting/api/organizer/api'
 import { resetManagedPostings } from '@/features/posting/mocks/managedPostingHandlers'
-import { ORGANIZATION_POSTING_ID } from '@/features/posting/mocks/organizationPostingSamples'
 import { resetPostingDrafts } from '@/features/posting/mocks/postingDraftHandlers'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { ToastProvider } from '@/providers/toastProvider'
@@ -66,7 +65,11 @@ afterAll(() => {
 
 describe('PostingDraftEditContent', () => {
   it('저장된 작성 중 공고를 저장 값으로 열고 저장 시각 표시', async () => {
-    renderContent(ORGANIZATION_POSTING_ID.draft)
+    const { id } = await savePostingDraft({
+      organizationId: MOCK_ORGANIZATION_ID,
+      input: { title: 'UXUX 15기 운영진 추가 모집' },
+    })
+    renderContent(id)
 
     expect(await screen.findByRole('textbox', { name: /공고 제목/ })).toHaveValue(
       'UXUX 15기 운영진 추가 모집',

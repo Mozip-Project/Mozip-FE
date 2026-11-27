@@ -7,6 +7,8 @@ import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import { fetchServerPostingDetail, toServerErrorBody } from './demoServerPostings'
 import {
   findOrganizationPostingSample,
+  MOZIP_POSTING_TITLE,
+  ORGANIZATION_POSTING_ID,
   type OrganizationPostingSample,
 } from './organizationPostingSamples'
 
@@ -35,6 +37,9 @@ const POSTING_SAMPLE_ID = {
 } as const
 
 const ID = POSTING_SAMPLE_ID
+
+// 외부 이미지 요청 없이 보이도록 앱의 OG 이미지(1200×630) 사용
+const SAMPLE_POSTING_IMAGE_URL = '/opengraph-image.png'
 
 const RECRUITMENT_PERIOD_DAYS = 14
 
@@ -69,6 +74,23 @@ const UXUX_CONTENT_HTML = [
   '</ul>',
 ].join('')
 
+const MOZIP_CONTENT_HTML = [
+  '<h2>MOZIP.은 이런 팀이에요</h2>',
+  '<p>동아리 · 학회 · 학생회의 공고 탐색부터 지원, 서류 · 면접 평가, 최종 선발까지 한 곳에서 이어지는 통합 모집 플랫폼을 만들고 있어요. 흩어진 모집 과정을 하나로 모으는 일을 함께할 팀원을 찾아요.</p>',
+  '<h2>이런 일을 함께해요</h2>',
+  '<ul>',
+  '<li><p><strong>기획</strong> 지원자와 운영진의 모집 흐름을 정리하고 기능 우선순위를 정해요</p></li>',
+  '<li><p><strong>디자인</strong> 공고 탐색부터 평가까지 이어지는 화면과 디자인 시스템을 만들어요</p></li>',
+  '<li><p><strong>개발</strong> 공고 · 지원서 · 평가 · 면접 일정 기능을 구현해요</p></li>',
+  '</ul>',
+  '<h2>이런 분을 찾아요</h2>',
+  '<ul>',
+  '<li><p>동아리 · 학회 모집을 준비하거나 지원하면서 <em>불편했던 경험</em>이 있는 분</p></li>',
+  '<li><p>기획 · 디자인 · 개발이 한 팀으로 일하는 방식을 좋아하는 분</p></li>',
+  '<li><p>만든 서비스를 실제 사용자에게 선보일 때까지 함께할 분</p></li>',
+  '</ul>',
+].join('')
+
 const SW_COUNCIL_CONTENT_HTML = [
   '<h2>소프트웨어학과 학생회는 이런 일을 해요</h2>',
   '<p>학과 행사를 기획 · 운영하고 학우들의 의견을 학과에 전달해요.<br>이번 학기 함께할 집행부원을 추가로 모집해요.</p>',
@@ -90,6 +112,16 @@ const UXUX_ORGANIZATION = {
     { id: 'uxux-instagram', url: 'https://www.instagram.com/uxux_official' },
     { id: 'uxux-notion', url: 'https://uxux.notion.site' },
   ],
+} satisfies PostingResponse['organization']
+
+const MOZIP_ORGANIZATION = {
+  name: 'MOZIP.',
+  type: 'CLUB',
+  logoUrl: null,
+  tagline: '지원부터 선발까지, 흩어진 모집 과정을 하나로',
+  keywords: ['모집 플랫폼', '서비스 기획', '프로덕트 디자인', '웹 개발'],
+  fields: ['IT_DEV', 'STARTUP_BUSINESS'],
+  links: [],
 } satisfies PostingResponse['organization']
 
 const SW_COUNCIL_ORGANIZATION = {
@@ -135,6 +167,57 @@ const UXUX_QUESTIONS = [
     position: { id: 'planning' },
   },
 ] satisfies PostingResponse['questions']
+
+const MOZIP_QUESTIONS = UXUX_QUESTIONS.map((question) =>
+  question.id === 'motivation'
+    ? { ...question, title: 'MOZIP. 팀에 지원한 동기를 작성해 주세요.' }
+    : question,
+) satisfies PostingResponse['questions']
+
+// 전체 공고와 운영진 서류 평가 시연 공고가 같이 쓰는 MOZIP. 팀 모집 내용
+const MOZIP_POSTING_OVERRIDES = {
+  title: MOZIP_POSTING_TITLE,
+  content: MOZIP_CONTENT_HTML,
+  eligibilityNote: '학년 · 전공 무관',
+  region: '서울 · 온라인 병행',
+  fee: '없음',
+  questions: MOZIP_QUESTIONS,
+  organization: MOZIP_ORGANIZATION,
+  otherActivePostings: [],
+} satisfies Partial<PostingResponse>
+
+// 면접·포지션 없는 서류 결과 안내 시연 공고, 확인 안 된 자격·지역·회비는 비움
+const KUSITMS_POSTING_OVERRIDES = {
+  content: [
+    '<h2>큐시즘은 이런 학회예요</h2>',
+    '<p>한국대학생IT경영학회 큐시즘은 IT와 경영에 관심 있는 대학생이 모여 함께 배우고, 팀을 이뤄 서비스를 기획하고 만들어 보는 학회예요.</p>',
+    '<h2>이런 분을 찾아요</h2>',
+    '<ul>',
+    '<li><p>IT 서비스를 직접 기획하고 만들어 보고 싶은 분</p></li>',
+    '<li><p>기획 · 디자인 · 개발이 한 팀으로 일하는 경험을 해 보고 싶은 분</p></li>',
+    '<li><p>한 기수 동안 책임감 있게 활동할 분</p></li>',
+    '</ul>',
+  ].join(''),
+  eligibilityNote: null,
+  region: null,
+  fee: null,
+  images: [],
+  questions: UXUX_QUESTIONS.filter(({ position }) => position === null).map((question) =>
+    question.id === 'motivation'
+      ? { ...question, title: '큐시즘에 지원한 동기를 작성해 주세요.' }
+      : question,
+  ),
+  organization: {
+    name: '한국대학생IT경영학회 큐시즘',
+    type: 'ACADEMIC',
+    logoUrl: null,
+    tagline: 'IT와 경영을 함께 배우는 대학생 학회',
+    keywords: ['IT', '경영', '서비스 기획', '팀 프로젝트'],
+    fields: ['ACADEMIC_STUDY', 'IT_DEV'],
+    links: [],
+  },
+  otherActivePostings: [],
+} satisfies Partial<PostingResponse>
 
 function toSeoulDateTime(isoDate: string, time: string) {
   return `${isoDate}T${time}+09:00`
@@ -188,7 +271,7 @@ function createUxuxPosting(
     finalResultAt: toSeoulDateTime(addDaysToIsoDate(endDate, 12), '18:00:00'),
     images: [
       {
-        url: `https://picsum.photos/seed/${id}/1560/780`,
+        url: SAMPLE_POSTING_IMAGE_URL,
         isRepresentative: true,
         sortOrder: 0,
       },
@@ -269,6 +352,8 @@ function createOrganizationPosting(
         ? UXUX_QUESTIONS.filter(({ position }) => position === null)
         : UXUX_QUESTIONS,
       ...(hasInterview ? {} : { interviewTimeRanges: [] }),
+      ...(id === ORGANIZATION_POSTING_ID.docReview ? MOZIP_POSTING_OVERRIDES : {}),
+      ...(id === ORGANIZATION_POSTING_ID.noInterviewResult ? KUSITMS_POSTING_OVERRIDES : {}),
     },
   )
 }
@@ -281,8 +366,9 @@ function createPostingSample(postingId: string, today: string): PostingResponse 
   }
 
   switch (postingId) {
+    // 전체 공고에 보이는 시연용 공고, 포지션·문항 id는 UXUX 샘플과 같음
     case ID.open:
-      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.open)
+      return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.open, MOZIP_POSTING_OVERRIDES)
     case ID.partiallyApplied:
       return createUxuxPosting(postingId, today, RECRUITMENT_OFFSET.partiallyApplied)
     case ID.fullyApplied:
@@ -362,4 +448,10 @@ const postingDetailHandlers = [
   }),
 ]
 
-export { createPostingSample, POSTING_SAMPLE_ID, postingDetailHandlers, UXUX_POSITIONS }
+export {
+  createPostingSample,
+  POSTING_SAMPLE_ID,
+  postingDetailHandlers,
+  SAMPLE_POSTING_IMAGE_URL,
+  UXUX_POSITIONS,
+}

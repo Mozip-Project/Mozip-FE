@@ -15,7 +15,7 @@ import { useResultNoticeMessageSave } from './useResultNoticeMessageSave'
 import type { PropsWithChildren } from 'react'
 
 // 서류 결과를 확정한 공고
-const POSTING_ID = ORGANIZATION_POSTING_ID.interview
+const POSTING_ID = ORGANIZATION_POSTING_ID.noInterviewResult
 const AUTO_SAVE_DELAY_MS = 3000
 // 자동 저장 대기보다 짧게 기다려 보낸 요청이 없는지 확인
 const SHORT_WAIT_MS = 100
