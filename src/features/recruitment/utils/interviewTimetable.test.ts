@@ -6,13 +6,14 @@ import type {
 } from '@/features/recruitment/types'
 import {
   addTrack,
-  canConfirmTimetable,
   formatAvailability,
+  formatTimetableSummary,
   getAssignedCount,
   getAvailableEmptySlotKeys,
   getBusyInterviewers,
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
+  getInterviewsWithoutInterviewers,
   keepAddedTracks,
   moveApplicants,
   setInterviewers,
@@ -207,6 +208,12 @@ describe('getDatesWithUnassignedApplicants', () => {
   })
 })
 
+describe('getInterviewsWithoutInterviewers', () => {
+  it('면접관이 한 명도 없는 면접만 반환', () => {
+    expect(getInterviewsWithoutInterviewers(createTimetable()).map(({ id }) => id)).toEqual(['b'])
+  })
+})
+
 describe('getBusyInterviewers', () => {
   it('같은 시간 다른 면접의 면접관만 반환', () => {
     const timetable = createTimetable({
@@ -274,8 +281,15 @@ describe('그 밖의 타임테이블 계산', () => {
     expect(keepAddedTracks(createTimetable(), current).days[0]?.trackCount).toBe(3)
   })
 
-  it('미배정 지원자가 없어야 확정 가능', () => {
-    expect(canConfirmTimetable(createTimetable())).toBe(false)
-    expect(canConfirmTimetable(createTimetable({ unassignedApplicantIds: [] }))).toBe(true)
+  it('확정 요약은 첫날~마지막 날과 그룹 면접까지 센 인원', () => {
+    expect(formatTimetableSummary(createTimetable())).toBe('10/21 (수) ~ 10/22 (목) · 3명')
+  })
+
+  it('하루짜리 타임테이블은 날짜 하나만 표시', () => {
+    const timetable = createTimetable({
+      days: [{ date: DAY_1, times: ['13:00'], trackCount: 2 }],
+    })
+
+    expect(formatTimetableSummary(timetable)).toBe('10/21 (수) · 3명')
   })
 })

@@ -107,6 +107,11 @@ function getDatesWithUnassignedApplicants(
   return dates
 }
 
+// 면접관이 한 명도 없는 면접, 확정을 막는 항목
+function getInterviewsWithoutInterviewers(timetable: InterviewTimetable) {
+  return timetable.interviews.filter((interview) => interview.interviewerIds.length === 0)
+}
+
 function getBusyInterviewers(timetable: InterviewTimetable, interview: TimetableInterview) {
   const busyInterviewers = new Map<string, TimetableInterview>()
 
@@ -240,20 +245,38 @@ function keepAddedTracks(
   }
 }
 
-function canConfirmTimetable(timetable: InterviewTimetable) {
-  return timetable.unassignedApplicantIds.length === 0
+// 확정 확인 요약, 예) 10/21 (수) ~ 10/23 (금) · 22명
+function formatTimetableSummary(timetable: InterviewTimetable) {
+  const firstDate = timetable.days.at(0)?.date
+  const lastDate = timetable.days.at(-1)?.date
+  const totalCount = timetable.days.reduce(
+    (count, day) => count + getAssignedCount(timetable, day.date),
+    0,
+  )
+
+  if (!firstDate || !lastDate) {
+    return `${totalCount}명`
+  }
+
+  const period =
+    firstDate === lastDate
+      ? formatMonthDayWithWeekday(firstDate)
+      : `${formatMonthDayWithWeekday(firstDate)} ~ ${formatMonthDayWithWeekday(lastDate)}`
+
+  return `${period} · ${totalCount}명`
 }
 
 export {
   addTrack,
-  canConfirmTimetable,
   findInterviewAt,
   formatAvailability,
+  formatTimetableSummary,
   getAssignedCount,
   getAvailableEmptySlotKeys,
   getBusyInterviewers,
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
+  getInterviewsWithoutInterviewers,
   getSlotKey,
   getTrackLabel,
   keepAddedTracks,

@@ -21,6 +21,7 @@ type TimetableSlotCellProps = {
   interviewers: TimetableInterviewer[]
   interviewerOptions: InterviewerOption[]
   isAvailable: boolean
+  isReadOnly: boolean
   activeMove: ActiveMove | null
   moveActions: TimetableMoveActions
   onInterviewersChange: (interviewerIds: string[]) => void
@@ -35,6 +36,7 @@ function TimetableSlotCell({
   interviewers,
   interviewerOptions,
   isAvailable,
+  isReadOnly,
   activeMove,
   moveActions,
   onInterviewersChange,
@@ -57,6 +59,7 @@ function TimetableSlotCell({
             applicants={applicants}
             interviewers={interviewers}
             interviewerOptions={interviewerOptions}
+            isReadOnly={isReadOnly}
             isDropTarget={isOver}
             moveActions={moveActions}
             onInterviewersChange={onInterviewersChange}

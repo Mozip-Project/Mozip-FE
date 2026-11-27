@@ -10,6 +10,7 @@ import {
   getAvailableEmptySlotKeys,
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
+  getInterviewsWithoutInterviewers,
   keepAddedTracks,
   moveApplicants,
   setInterviewers,
@@ -41,6 +42,7 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
   const [timetable, setTimetable] = useState(initialTimetable)
   const [selectedDate, setSelectedDate] = useState(initialTimetable.days[0]?.date ?? '')
   const [activeMove, setActiveMove] = useState<ActiveMove | null>(null)
+  const [isConfirmed, setIsConfirmed] = useState(false)
   const isSelecting = activeMove?.mode === 'select'
 
   const applicantsById = new Map(applicants.map((applicant) => [applicant.id, applicant]))
@@ -49,6 +51,12 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
     return applicant ? [applicant] : []
   })
   const availableSlotKeys = getAvailableEmptySlotKeys(timetable, movingApplicants)
+  const interviewsWithoutInterviewers = getInterviewsWithoutInterviewers(timetable)
+  // 그날 확정을 막는 항목: 미배정 지원자가 가능한 날짜, 면접관 없는 면접이 있는 날짜
+  const blockedDates = new Set([
+    ...getDatesWithUnassignedApplicants(timetable, applicantsById),
+    ...interviewsWithoutInterviewers.map(({ date }) => date),
+  ])
 
   useEffect(() => {
     if (!isSelecting) {
@@ -103,7 +111,8 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
     activeMove,
     availableSlotKeys,
     datesWithAvailableSlot: getDatesOfSlotKeys(timetable, availableSlotKeys),
-    datesWithUnassignedApplicants: getDatesWithUnassignedApplicants(timetable, applicantsById),
+    blockedDates,
+    missingInterviewerCount: interviewsWithoutInterviewers.length,
     startDrag,
     toggleSelect,
     cancelMove,
@@ -117,6 +126,12 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
       // 옛 배정 기준으로 고른 이동이 새 배정에 적용되지 않도록 취소
       setActiveMove(null)
       setTimetable((current) => keepAddedTracks(initialTimetable, current))
+    },
+    isConfirmed,
+    // TODO: 타임테이블 확정 API 연결
+    confirm: () => {
+      setActiveMove(null)
+      setIsConfirmed(true)
     },
   }
 }
