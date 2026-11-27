@@ -204,6 +204,7 @@ function moveApplicants(
     ...target.slot,
     applicantIds: item.applicantIds,
     interviewerIds: [],
+    location: null,
   }
 
   return { ...timetable, unassignedApplicantIds, interviews: [...interviews, newInterview] }
@@ -229,6 +230,66 @@ function setInterviewers(
       interview.id === interviewId ? { ...interview, interviewerIds } : interview,
     ),
   }
+}
+
+function setInterviewLocation(
+  timetable: InterviewTimetable,
+  interviewId: string,
+  location: string,
+): InterviewTimetable {
+  return {
+    ...timetable,
+    interviews: timetable.interviews.map((interview) =>
+      interview.id === interviewId ? { ...interview, location } : interview,
+    ),
+  }
+}
+
+// 열의 모든 면접 장소를 한 번에 바꿈, 따로 정한 장소도 덮어씀
+function setTrackLocation(
+  timetable: InterviewTimetable,
+  date: string,
+  track: number,
+  location: string,
+): InterviewTimetable {
+  return {
+    ...timetable,
+    interviews: timetable.interviews.map((interview) =>
+      interview.date === date && interview.track === track ? { ...interview, location } : interview,
+    ),
+  }
+}
+
+// 모두 같으면 장소명, 섞이면 가장 많은 장소 외 n곳, 없으면 null
+function getTrackLocationLabel(interviews: TimetableInterview[]) {
+  const counts = new Map<string, number>()
+
+  for (const { location } of interviews) {
+    if (location) {
+      counts.set(location, (counts.get(location) ?? 0) + 1)
+    }
+  }
+
+  const [mostUsed] = [...counts.entries()].sort((a, b) => b[1] - a[1])
+
+  if (!mostUsed) {
+    return null
+  }
+
+  return counts.size > 1 ? `${mostUsed[0]} 외 ${counts.size - 1}곳` : mostUsed[0]
+}
+
+// 이 모집에서 쓴 장소, 날짜·시간 순서대로 중복 없이
+function getUsedLocations(timetable: InterviewTimetable) {
+  const sortedInterviews = [...timetable.interviews].sort(
+    (a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time) || a.track - b.track,
+  )
+
+  return [...new Set(sortedInterviews.flatMap(({ location }) => (location ? [location] : [])))]
+}
+
+function getInterviewsWithoutLocation(timetable: InterviewTimetable) {
+  return timetable.interviews.filter((interview) => !interview.location)
 }
 
 // 다시 생성해도 운영진이 추가한 면접 열은 유지
@@ -277,9 +338,14 @@ export {
   getDatesOfSlotKeys,
   getDatesWithUnassignedApplicants,
   getInterviewsWithoutInterviewers,
+  getInterviewsWithoutLocation,
+  getTrackLocationLabel,
+  getUsedLocations,
   getSlotKey,
   getTrackLabel,
   keepAddedTracks,
   moveApplicants,
+  setInterviewLocation,
   setInterviewers,
+  setTrackLocation,
 }

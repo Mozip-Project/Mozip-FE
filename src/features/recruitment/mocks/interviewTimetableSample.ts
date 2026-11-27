@@ -107,6 +107,7 @@ const SAMPLE_INTERVIEWS: TimetableInterview[] = SAMPLE_ASSIGNMENTS.map(
     track,
     applicantIds: [applicantId],
     interviewerIds: [],
+    location: null,
   }),
 )
 

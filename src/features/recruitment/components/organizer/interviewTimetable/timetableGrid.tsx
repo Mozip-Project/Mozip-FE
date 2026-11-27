@@ -1,4 +1,3 @@
-import BuildingIcon from '@/assets/icons/building.svg'
 import PlusIcon from '@/assets/icons/plus.svg'
 import { Button } from '@/components/ui/Button/button'
 import type { ActiveMove } from '@/features/recruitment/hooks/useInterviewTimetable'
@@ -14,8 +13,10 @@ import {
   getBusyInterviewers,
   getSlotKey,
   getTrackLabel,
+  getTrackLocationLabel,
 } from '@/features/recruitment/utils/interviewTimetable'
 import { TimetableSlotCell } from './timetableSlotCell'
+import { TimetableTrackHeader } from './timetableTrackHeader'
 import type { InterviewerOption } from './interviewerPopoverContent'
 import type { TimetableMoveActions } from './timetableMoveActions'
 
@@ -29,10 +30,13 @@ type TimetableGridProps = {
   interviewers: TimetableInterviewer[]
   availableSlotKeys: Set<string>
   isReadOnly: boolean
+  recentLocations: string[]
   activeMove: ActiveMove | null
   moveActions: TimetableMoveActions
   onAddTrack: () => void
   onInterviewersChange: (interviewId: string, interviewerIds: string[]) => void
+  onInterviewLocationChange: (interviewId: string, location: string) => void
+  onTrackLocationChange: (track: number, location: string) => void
 }
 
 function TimetableGrid({
@@ -42,10 +46,13 @@ function TimetableGrid({
   interviewers,
   availableSlotKeys,
   isReadOnly,
+  recentLocations,
   activeMove,
   moveActions,
   onAddTrack,
   onInterviewersChange,
+  onInterviewLocationChange,
+  onTrackLocationChange,
 }: TimetableGridProps) {
   const tracks = Array.from({ length: day.trackCount }, (_, index) => index + 1)
 
@@ -73,16 +80,18 @@ function TimetableGrid({
             시간
           </span>
           {tracks.map((track) => (
-            <span key={track} className="flex min-w-56 flex-1 items-center gap-gap-s">
-              <span className="text-label1 font-semibold text-neutral">{getTrackLabel(track)}</span>
-              {isReadOnly && (
-                // TODO: 열 장소 한 번에 입력은 확정 후 장소 입력 단계에서 연결
-                <span className="flex items-center gap-gap-xs rounded-full border border-dashed border-neutral-muted bg-layer-default py-padding-xxs pr-padding-s pl-padding-xs text-caption1 font-medium text-neutral-subtle">
-                  <BuildingIcon aria-hidden className="size-4 shrink-0" />
-                  장소 한 번에 입력
-                </span>
+            <TimetableTrackHeader
+              key={track}
+              trackLabel={getTrackLabel(track)}
+              isReadOnly={isReadOnly}
+              locationLabel={getTrackLocationLabel(
+                timetable.interviews.filter(
+                  (interview) => interview.date === day.date && interview.track === track,
+                ),
               )}
-            </span>
+              recentLocations={recentLocations}
+              onLocationApply={(location) => onTrackLocationChange(track, location)}
+            />
           ))}
           {!isReadOnly && (
             <span className={ADD_COLUMN_CLASS}>
@@ -123,11 +132,17 @@ function TimetableGrid({
                   interviewerOptions={interview ? getInterviewerOptions(interview) : []}
                   isAvailable={availableSlotKeys.has(getSlotKey(slot))}
                   isReadOnly={isReadOnly}
+                  recentLocations={recentLocations}
                   activeMove={activeMove}
                   moveActions={moveActions}
                   onInterviewersChange={(interviewerIds) => {
                     if (interview) {
                       onInterviewersChange(interview.id, interviewerIds)
+                    }
+                  }}
+                  onLocationChange={(location) => {
+                    if (interview) {
+                      onInterviewLocationChange(interview.id, location)
                     }
                   }}
                 />

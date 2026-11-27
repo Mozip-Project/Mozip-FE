@@ -5,4 +5,7 @@ const SELECTED_BORDER_CLASS =
 const FOCUS_RING_CLASS =
   'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid'
 
-export { FOCUS_RING_CLASS, SELECTED_BORDER_CLASS }
+// Figma 카드·열 머리글 팝오버는 기준 요소 바로 아래 12px
+const POPOVER_BELOW_OFFSET_PX = 12
+
+export { FOCUS_RING_CLASS, POPOVER_BELOW_OFFSET_PX, SELECTED_BORDER_CLASS }
