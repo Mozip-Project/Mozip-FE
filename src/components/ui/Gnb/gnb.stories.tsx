@@ -51,7 +51,7 @@ const PROFILE_MENU_PROPS = {
   name: '김모집',
   myPageHref: toStoryRoute('/mypage'),
   switchModeHref: toStoryRoute('/manage'),
-  logoutHref: toStoryRoute('/'),
+  onLogout: () => {},
 }
 
 // ui가 features를 import하지 않도록 트리거 모양만 표시

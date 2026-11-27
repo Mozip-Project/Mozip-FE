@@ -9,6 +9,7 @@ import type {
   SavePostingDraftMutation,
   SavePostingDraftMutationVariables,
 } from '@/gql/graphql'
+import { getUploadedFileUrl } from '@/mocks/fileUploadHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
@@ -179,9 +180,9 @@ function applyInput(
     recruitStartAt: input.recruitStartAt ?? posting.recruitStartAt,
     recruitEndAt: input.recruitEndAt ?? posting.recruitEndAt,
     images: input.images
-      ? input.images.map(({ url, sortOrder, isRepresentative }) => ({
+      ? input.images.map(({ fileKey, sortOrder, isRepresentative }) => ({
           id: nextId('image'),
-          url,
+          url: getUploadedFileUrl(fileKey),
           sortOrder,
           isRepresentative: isRepresentative ?? false,
         }))

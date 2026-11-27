@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
@@ -29,9 +29,13 @@ afterAll(() => {
 
 // 전시회 후 삭제
 describe('PostingApplyButton 시연 모드', () => {
-  it('실서버 공고의 지원하기는 샘플 공고로 확인하라는 안내', async () => {
+  it('로그인한 뒤 실서버 공고의 지원하기는 샘플 공고로 확인하라는 안내', async () => {
     const user = renderButton('4')
 
+    // 로그인 확인 전에는 로그인 모달 버튼이라 조회가 끝난 뒤 클릭
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '지원하기' })).not.toHaveAttribute('aria-haspopup'),
+    )
     await user.click(screen.getByRole('button', { name: '지원하기' }))
 
     expect(await screen.findByText('시연에서는 샘플 공고로 확인해 주세요')).toBeInTheDocument()

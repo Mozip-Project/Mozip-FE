@@ -1,8 +1,7 @@
-import { StickyTopBar } from '@/components/ui/StickyTopBar/stickyTopBar'
 import { EvaluationPanelHeader } from '@/features/recruitment/components/organizer/documentEvaluationPanel/evaluationPanelHeader'
 import type { ReactNode } from 'react'
 
-// 칩 줄 아래 고정(--sticky-offset: 칩 줄 높이 + 간격), 길면 입력 영역만 패널 안 스크롤
+// 상단 고정 영역 아래 고정(--sticky-offset: 고정 영역 높이 + 간격), 길면 입력 영역만 패널 안 스크롤
 const EVALUATION_PANEL_CLASS =
   'sticky-below-gnb flex max-h-[calc(100dvh-var(--sticky-top)-var(--sticky-offset)-var(--page-padding-bottom))] w-100 shrink-0 flex-col rounded-l border border-neutral-muted bg-layer-default [--sticky-offset:calc(var(--sticky-top-bar-height)+var(--spacing-gap-xl))]'
 
@@ -35,15 +34,13 @@ function Skeleton({ label, className, children }: SkeletonProps) {
 // TODO: 로딩 화면 디자인 확인 필요, 지금은 카드·칸 모양만 대강 잡음
 function DocumentEvaluationChipStripSkeleton() {
   return (
-    <StickyTopBar className="-mb-gap-xl pb-gap-xl">
-      <Skeleton label="지원자 목록을 불러오는 중" className="w-full max-w-page min-w-70">
-        <div className="flex gap-gap-s overflow-hidden">
-          {SKELETON_CHIP_KEYS.map((key) => (
-            <span key={key} className="skeleton-bar h-12 w-50 shrink-0 rounded-m" />
-          ))}
-        </div>
-      </Skeleton>
-    </StickyTopBar>
+    <Skeleton label="지원자 목록을 불러오는 중" className="w-full max-w-page min-w-70">
+      <div className="flex gap-gap-s overflow-hidden">
+        {SKELETON_CHIP_KEYS.map((key) => (
+          <span key={key} className="skeleton-bar h-12 w-50 shrink-0 rounded-m" />
+        ))}
+      </div>
+    </Skeleton>
   )
 }
 

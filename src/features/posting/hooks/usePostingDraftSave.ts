@@ -18,7 +18,7 @@ const UPLOAD_FAILED_MESSAGE = '대표 이미지를 올리지 못했어요. 잠�
 
 type UploadedImage = {
   file: File
-  url: string
+  fileKey: string
 }
 
 // 이어서 작성할 때 불러온 공고
@@ -68,11 +68,11 @@ function usePostingDraftSave({
       return undefined
     }
     if (uploadedImageRef.current?.file === mainImage) {
-      return uploadedImageRef.current.url
+      return uploadedImageRef.current.fileKey
     }
-    const { fileUrl } = await uploadFile(mainImage, 'POSTING_IMAGE')
-    uploadedImageRef.current = { file: mainImage, url: fileUrl }
-    return fileUrl
+    const { fileKey } = await uploadFile(mainImage, 'POSTING_IMAGE')
+    uploadedImageRef.current = { file: mainImage, fileKey }
+    return fileKey
   }
 
   async function saveStep(stepId: DraftStepId, values: PostingCreateValues) {
@@ -82,13 +82,13 @@ function usePostingDraftSave({
 
     setSaveState({ status: 'saving' })
     try {
-      const mainImageUrl = await uploadMainImage(stepId, values.mainImage)
+      const mainImageFileKey = await uploadMainImage(stepId, values.mainImage)
       let posting = await mutateAsync({
         organizationId,
         id: postingId,
         input: toDraftStepInput(stepId, values, hasInterview, {
           savedPositions: savedPositionsRef.current,
-          mainImageUrl,
+          mainImageFileKey,
         }),
       })
       if (!postingId) {

@@ -5,8 +5,7 @@ import { Chip } from '@/components/ui/Chip/chip'
 import { PopoverClose } from '@/components/ui/Popover/popover'
 import { useNotificationPanel } from '@/features/notification/hooks/useNotificationPanel'
 import type { NotificationAudience } from '@/features/notification/types'
-import type { UnreadCount } from '@/features/notification/utils/notificationPage'
-import type { NotificationTab } from '@/gql/graphql'
+import type { Role } from '@/gql/graphql'
 import { useInViewTrigger } from '@/hooks/useInViewTrigger'
 import { NotificationItem } from './notificationItem'
 import { NotificationPanelError } from './notificationPanelError'
@@ -15,14 +14,13 @@ import { NotificationPanelSkeleton } from './notificationPanelSkeleton'
 const LOAD_MORE_SKELETON_ROW_COUNT = 2
 
 const NOTIFICATION_FILTERS = [
-  { value: 'all', label: '전체', tab: undefined, unreadCountKey: 'all' },
-  { value: 'organizer', label: '운영진', tab: 'OPERATOR', unreadCountKey: 'operator' },
-  { value: 'applicant', label: '지원자', tab: 'APPLICANT', unreadCountKey: 'applicant' },
+  { value: 'all', label: '전체', role: undefined },
+  { value: 'organizer', label: '운영진', role: 'OPERATOR' },
+  { value: 'applicant', label: '지원자', role: 'APPLICANT' },
 ] as const satisfies readonly {
   value: NotificationAudience | 'all'
   label: string
-  tab: NotificationTab | undefined
-  unreadCountKey: keyof UnreadCount
+  role: Role | undefined
 }[]
 
 type NotificationFilter = (typeof NOTIFICATION_FILTERS)[number]['value']
@@ -30,7 +28,7 @@ type NotificationFilter = (typeof NOTIFICATION_FILTERS)[number]['value']
 // 패널이 열릴 때만 마운트되어 열 때마다 조회
 function NotificationPanelBody() {
   const [filter, setFilter] = useState<NotificationFilter>('all')
-  const selectedTab = NOTIFICATION_FILTERS.find(({ value }) => value === filter)?.tab
+  const selectedRole = NOTIFICATION_FILTERS.find(({ value }) => value === filter)?.role
   const {
     notifications,
     unreadCount,
@@ -40,7 +38,7 @@ function NotificationPanelBody() {
     isLoadingMore,
     loadMore,
     markAsRead,
-  } = useNotificationPanel(selectedTab)
+  } = useNotificationPanel(selectedRole)
   const loadMoreTriggerRef = useInViewTrigger<HTMLDivElement>(loadMore, canLoadMore)
 
   return (
@@ -50,9 +48,10 @@ function NotificationPanelBody() {
         aria-label="알림 필터"
         className="flex shrink-0 gap-gap-xs border-b border-neutral-subtle px-padding-l py-padding-s"
       >
-        {NOTIFICATION_FILTERS.map(({ value, label, unreadCountKey }) => (
+        {NOTIFICATION_FILTERS.map(({ value, label }) => (
           <Chip key={value} pressed={filter === value} onPressedChange={() => setFilter(value)}>
-            {label} {unreadCount?.[unreadCountKey]}
+            {/* TODO: 탭별 개수가 서버에 생기면 운영진·지원자 칩에도 표시 */}
+            {label} {value === 'all' && unreadCount}
           </Chip>
         ))}
       </div>

@@ -175,10 +175,6 @@ export type NotificationSettingsInput = {
   notifyScrap?: boolean | null | undefined;
 };
 
-export type NotificationTab =
-  | 'APPLICANT'
-  | 'OPERATOR';
-
 /** 알림 탭(지원자/운영진), 알림 설정 토글, 출처 라벨, 이동 화면을 type으로 정함 */
 export type NotificationType =
   | 'DOC_RESULT'
@@ -293,10 +289,11 @@ export type PostingFilter = {
 };
 
 export type PostingImageInput = {
+  /** presigned-url 업로드 응답의 fileKey */
+  fileKey: string;
   /** 여러 장에 true면 COMMON_400, 하나도 없으면 첫 번째 사진 */
   isRepresentative?: boolean | null | undefined;
   sortOrder: number;
-  url: string;
 };
 
 export type PostingSort =
@@ -351,6 +348,11 @@ export type ReportReason =
   | 'FALSE_INFO'
   | 'INAPPROPRIATE';
 
+/** 로그인 후 이동할 홈 */
+export type Role =
+  | 'APPLICANT'
+  | 'OPERATOR';
+
 export type SaveDocEvaluationInput = {
   applicationId: string | number;
   /** 최대 300자 */
@@ -388,20 +390,21 @@ export type UpdateProfileInput = {
 };
 
 export type NotificationsQueryVariables = Exact<{
-  tab?: NotificationTab | null | undefined;
+  role?: Role | null | undefined;
   page?: number | null | undefined;
+  size?: number | null | undefined;
 }>;
 
 
-export type NotificationsQuery = { notifications: { totalCount: number, content: Array<{ id: string, type: NotificationType, title: string, linkUrl: string | null, isRead: boolean, createdAt: string, organization: { name: string } | null }> } };
+export type NotificationsQuery = { notifications: Array<{ id: string, type: NotificationType, title: string, linkUrl: string | null, isRead: boolean, createdAt: string, organization: { name: string } | null }> };
 
 export type NotificationUnreadCountQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NotificationUnreadCountQuery = { notifications: { unreadCount: { all: number, operator: number, applicant: number } } };
+export type NotificationUnreadCountQuery = { me: { id: string, unreadNotificationCount: number } };
 
 export type MarkNotificationsReadMutationVariables = Exact<{
-  ids?: Array<string | number> | string | number | null | undefined;
+  ids: Array<string | number> | string | number;
 }>;
 
 
@@ -749,7 +752,7 @@ export type ResultMessageRecipientFieldsFragment = { email: string | null, email
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { id: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string, logoUrl: string | null } }> } };
+export type MeQuery = { me: { id: string, name: string, lastOrganization: { id: string } | null, memberships: Array<{ role: MemberRole, organization: { id: string, name: string, logoUrl: string | null } }> } };
 
 export type MyAccountQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1160,36 +1163,30 @@ export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
 }
     `, {"fragmentName":"MyAccountFields"}) as unknown as TypedDocumentString<MyAccountFieldsFragment, unknown>;
 export const NotificationsDocument = new TypedDocumentString(`
-    query Notifications($tab: NotificationTab, $page: Int) {
-  notifications(tab: $tab, page: $page) {
-    content {
-      id
-      type
-      title
-      linkUrl
-      isRead
-      createdAt
-      organization {
-        name
-      }
+    query Notifications($role: Role, $page: Int, $size: Int) {
+  notifications(role: $role, page: $page, size: $size) {
+    id
+    type
+    title
+    linkUrl
+    isRead
+    createdAt
+    organization {
+      name
     }
-    totalCount
   }
 }
     `) as unknown as TypedDocumentString<NotificationsQuery, NotificationsQueryVariables>;
 export const NotificationUnreadCountDocument = new TypedDocumentString(`
     query NotificationUnreadCount {
-  notifications {
-    unreadCount {
-      all
-      operator
-      applicant
-    }
+  me {
+    id
+    unreadNotificationCount
   }
 }
     `) as unknown as TypedDocumentString<NotificationUnreadCountQuery, NotificationUnreadCountQueryVariables>;
 export const MarkNotificationsReadDocument = new TypedDocumentString(`
-    mutation MarkNotificationsRead($ids: [ID!]) {
+    mutation MarkNotificationsRead($ids: [ID!]!) {
   markNotificationsRead(ids: $ids)
 }
     `) as unknown as TypedDocumentString<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>;
@@ -2296,6 +2293,7 @@ export const MeDocument = new TypedDocumentString(`
     query Me {
   me {
     id
+    name
     lastOrganization {
       id
     }

@@ -20,16 +20,16 @@ const SWITCH_MODE_LABEL = {
   organizer: '지원자 모드로 전환',
 } satisfies Record<ProfileMenuMode, string>
 
-// TODO: 실제 모드 전환·로그아웃 연결 (인증·계정 구분 방식 결정 후), 현재는 화면 이동만 처리
+// TODO: 실제 모드 전환 연결 (역할 전환 API가 생긴 뒤), 현재는 화면 이동만 처리
 type ProfileMenuProps = {
   name: string
   myPageHref: Route
   switchModeHref: Route
-  logoutHref: Route
+  onLogout: () => void
 } & ({ mode: 'applicant'; applicationsHref: Route } | { mode: 'organizer' })
 
 function ProfileMenu(props: ProfileMenuProps) {
-  const { name, mode, myPageHref, switchModeHref, logoutHref } = props
+  const { name, mode, myPageHref, switchModeHref, onLogout } = props
   const { isPointerFocus, markPointerFocus } = usePointerFocus()
 
   return (
@@ -74,10 +74,10 @@ function ProfileMenu(props: ProfileMenuProps) {
         </div>
 
         <DropdownMenuItem
-          asChild
+          onSelect={onLogout}
           className="h-auto justify-center rounded-none bg-neutral-weak px-0 py-padding-s text-neutral-subtle focus:bg-neutral-weak-pressed"
         >
-          <Link href={logoutHref}>로그아웃</Link>
+          로그아웃
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

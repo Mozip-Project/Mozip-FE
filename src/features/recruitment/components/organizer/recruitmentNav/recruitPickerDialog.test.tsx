@@ -47,7 +47,7 @@ describe('RecruitPickerDialog', () => {
   it('진행 중 공고를 고르면 공고 관리 상세로 이동', async () => {
     const user = await openPicker()
 
-    await user.click(await screen.findByRole('button', { name: /서류 모집 중 확인하자/ }))
+    await user.click(await screen.findByRole('button', { name: /UXUX 14기 운영진 모집/ }))
 
     expect(push).toHaveBeenCalledWith(`/manage/postings/${ORGANIZATION_POSTING_ID.recruiting}`)
   })

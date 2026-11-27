@@ -47,6 +47,17 @@ describe('PostingContentEditor', () => {
     expect(screen.getByText('내용을 입력해 주세요')).toBeInTheDocument()
   })
 
+  it.each(['목록', '제목'])('빈 입력칸에서 %s 버튼을 누르면 안내 문구 숨김', async (toolName) => {
+    const user = userEvent.setup()
+    const handleChange = renderEditor()
+    await screen.findByRole('textbox', { name: '공고 내용' })
+
+    await user.click(getToolButton(toolName))
+
+    await waitFor(() => expect(screen.queryByText('내용을 입력해 주세요')).not.toBeInTheDocument())
+    expect(handleChange).toHaveBeenLastCalledWith('')
+  })
+
   it('누른 툴 버튼만 active, 제목과 목록은 서로 바뀜', async () => {
     const user = userEvent.setup()
     renderEditor()

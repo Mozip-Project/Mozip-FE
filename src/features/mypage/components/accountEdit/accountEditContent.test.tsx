@@ -16,7 +16,7 @@ function renderAccountEdit() {
   render(
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <AccountEditContent />
+        <AccountEditContent mode="organizer" />
       </ToastProvider>
     </QueryClientProvider>,
   )

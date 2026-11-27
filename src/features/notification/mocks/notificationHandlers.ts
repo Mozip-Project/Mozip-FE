@@ -1,6 +1,6 @@
 import { delay, HttpResponse } from 'msw'
 import { getNotificationAudience } from '@/features/notification/utils/notificationEntry'
-import type { NotificationPage, UnreadCount } from '@/features/notification/utils/notificationPage'
+import type { NotificationPage } from '@/features/notification/utils/notificationPage'
 import type {
   MarkNotificationsReadMutation,
   MarkNotificationsReadMutationVariables,
@@ -13,10 +13,12 @@ import { graphqlApi } from '@/mocks/graphqlApi'
 import { MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
-type NotificationItems = NotificationPage['content']
+type NotificationItems = NotificationPage
 
-// 명세 기본 size, 지난 알림은 무한스크롤 확인용으로 기본 목록을 주 단위로 반복
-const PAGE_SIZE = 20
+// 서버 기본 size, 지난 알림은 무한스크롤 확인용으로 기본 목록을 주 단위로 반복
+const DEFAULT_PAGE_SIZE = 20
+// userHandlers의 샘플 회원과 같은 id
+const MOCK_USER_ID = 'user-1'
 const OLDER_ITEM_ROUNDS = 2
 const WEEK_DAYS = 7
 
@@ -154,47 +156,25 @@ function resetNotificationItems() {
   notificationItems = createAllNotificationItems()
 }
 
-function filterByTab(items: NotificationItems, tab: NotificationsQueryVariables['tab']) {
-  if (tab == null) {
+function filterByRole(items: NotificationItems, role: NotificationsQueryVariables['role']) {
+  if (role == null) {
     return items
   }
-  const audience = tab === 'APPLICANT' ? 'applicant' : 'organizer'
+  const audience = role === 'APPLICANT' ? 'applicant' : 'organizer'
   return items.filter((item) => getNotificationAudience(item.type) === audience)
 }
 
-function countUnread(items: NotificationItems): UnreadCount {
-  const unreadItems = items.filter((item) => !item.isRead)
-  const applicant = unreadItems.filter(
-    (item) => getNotificationAudience(item.type) === 'applicant',
-  ).length
-
-  return { all: unreadItems.length, operator: unreadItems.length - applicant, applicant }
-}
-
-function toIdList(ids: MarkNotificationsReadMutationVariables['ids']) {
-  if (ids == null) {
-    return null
-  }
-  return [ids].flat().map(String)
-}
-
 const notificationHandlers = [
-  // tab 생략 시 전체 탭, page는 0부터
+  // role 생략 시 전체 응답, page는 0부터
   graphqlApi.query<NotificationsQuery, NotificationsQueryVariables>(
     'Notifications',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      const tabItems = filterByTab(notificationItems, variables.tab)
-      const start = (variables.page ?? 0) * PAGE_SIZE
+      const roleItems = filterByRole(notificationItems, variables.role)
+      const size = variables.size ?? DEFAULT_PAGE_SIZE
+      const start = (variables.page ?? 0) * size
 
-      return HttpResponse.json({
-        data: {
-          notifications: {
-            content: tabItems.slice(start, start + PAGE_SIZE),
-            totalCount: tabItems.length,
-          },
-        },
-      })
+      return HttpResponse.json({ data: { notifications: roleItems.slice(start, start + size) } })
     },
   ),
 
@@ -202,19 +182,18 @@ const notificationHandlers = [
     'NotificationUnreadCount',
     async () => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      return HttpResponse.json({
-        data: { notifications: { unreadCount: countUnread(notificationItems) } },
-      })
+      const unreadNotificationCount = notificationItems.filter((item) => !item.isRead).length
+
+      return HttpResponse.json({ data: { me: { id: MOCK_USER_ID, unreadNotificationCount } } })
     },
   ),
 
-  // ids 없으면 전체 읽음
   graphqlApi.mutation<MarkNotificationsReadMutation, MarkNotificationsReadMutationVariables>(
     'MarkNotificationsRead',
     ({ variables }) => {
-      const ids = toIdList(variables.ids)
+      const ids = [variables.ids].flat().map(String)
       notificationItems = notificationItems.map((item) =>
-        ids === null || ids.includes(item.id) ? { ...item, isRead: true } : item,
+        ids.includes(item.id) ? { ...item, isRead: true } : item,
       )
       return HttpResponse.json({ data: { markNotificationsRead: true } })
     },

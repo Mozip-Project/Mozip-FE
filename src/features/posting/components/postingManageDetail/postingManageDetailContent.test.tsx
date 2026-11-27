@@ -44,13 +44,13 @@ describe('PostingManageDetailContent', () => {
     renderDetail(ORGANIZATION_POSTING_ID.docReview)
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: '서류 평가 진행 중이래' }),
+      await screen.findByRole('heading', { level: 1, name: 'UXUX 14기 신입 부원 모집' }),
     ).toBeInTheDocument()
     const detailCard = screen.getByRole('region', { name: '공고 상세 내용' })
     expect(within(detailCard).getByText('디자인, 개발, 기획')).toBeInTheDocument()
     expect(within(detailCard).getByText('있음')).toBeInTheDocument()
     expect(within(detailCard).getByText('면접 기간')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '서류 평가 진행 중이래' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'UXUX 14기 신입 부원 모집' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '공지 보내기' }))
     expect(await screen.findByRole('button', { name: '48명에게 보내기' })).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('PostingManageDetailContent', () => {
     await user.click(retryButton)
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: '서류 평가 진행 중이래' }),
+      await screen.findByRole('heading', { level: 1, name: 'UXUX 14기 신입 부원 모집' }),
     ).toBeInTheDocument()
   })
 

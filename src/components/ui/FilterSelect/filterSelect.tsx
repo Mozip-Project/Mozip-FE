@@ -36,7 +36,7 @@ function FilterSelect<TValue extends string>({
           data-slot="filter-select"
           data-pointer-focus={isPointerFocus ? '' : undefined}
           onPointerDown={markPointerFocus}
-          className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-gap-s rounded-m border border-neutral-muted bg-layer-default px-padding-s text-label1 font-medium whitespace-nowrap text-neutral outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid data-pointer-focus:focus-visible:outline-none [&_svg]:size-4 [&_svg]:shrink-0"
+          className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-gap-s rounded-m border border-neutral-muted bg-layer-default px-padding-s text-label1 font-medium whitespace-nowrap text-neutral outline-none hover:bg-layer-default-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid data-pointer-focus:focus-visible:outline-none [&_svg]:size-4 [&_svg]:shrink-0"
         >
           {icon}
           <span className="sr-only">{label} </span>

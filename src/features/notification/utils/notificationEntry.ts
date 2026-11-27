@@ -3,7 +3,7 @@ import type { NotificationsQuery, NotificationType } from '@/gql/graphql'
 import { formatRelativeTime } from '@/utils/date'
 import type { Route } from 'next'
 
-type NotificationItems = NotificationsQuery['notifications']['content']
+type NotificationItems = NotificationsQuery['notifications']
 
 const AUDIENCE_BY_TYPE = {
   POSTING_NOTICE: 'applicant',

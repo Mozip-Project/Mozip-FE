@@ -99,7 +99,7 @@ describe('getManagedPosting', () => {
   it('운영진 홈 공고는 현재 단체 id와 지원자 수를 함께 응답', async () => {
     await expect(getManagedPosting(DOC_REVIEW_ID)).resolves.toMatchObject({
       id: DOC_REVIEW_ID,
-      title: '서류 평가 진행 중이래',
+      title: 'UXUX 14기 신입 부원 모집',
       applicationCount: 48,
       organization: { id: MOCK_ORGANIZATION_ID, name: '한국대학생IT경영학회' },
     })

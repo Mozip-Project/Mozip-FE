@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { NotificationsQuery } from '@/gql/graphql'
 import { toNotificationEntries } from './notificationEntry'
 
-type NotificationItem = NotificationsQuery['notifications']['content'][number]
+type NotificationItem = NotificationsQuery['notifications'][number]
 
 const NOW = new Date(2026, 10, 17, 10, 0)
 

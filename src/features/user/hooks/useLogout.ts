@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { logout } from '@/features/user/api/api'
+import { reserveLogoutNotice } from '@/features/user/utils/logoutNotice'
 
 const LOGGED_OUT_HOME_PATH = '/'
 
@@ -11,7 +12,13 @@ function moveToLoggedOutHome() {
 
 // AUTH_006이면 쿠키가 남아 있어 이동하지 않고 error로 전달
 function useLogout() {
-  return useMutation({ mutationFn: logout, onSuccess: moveToLoggedOutHome })
+  return useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      reserveLogoutNotice()
+      moveToLoggedOutHome()
+    },
+  })
 }
 
 export { moveToLoggedOutHome, useLogout }
