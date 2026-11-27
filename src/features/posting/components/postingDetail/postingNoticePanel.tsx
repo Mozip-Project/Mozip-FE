@@ -5,7 +5,10 @@ import type {
   PostingRichTextRun,
 } from '@/features/posting/types'
 
-type PostingNoticePanelProps = Pick<PostingDetail, 'title' | 'coverImageUrl' | 'content'>
+type PostingNoticePanelProps = Pick<PostingDetail, 'title' | 'coverImageUrl' | 'content'> & {
+  // 작성 중 미리보기처럼 허용 호스트가 아닌 주소(방금 고른 파일 등)도 그대로 표시
+  isCoverImageUnoptimized?: boolean
+}
 
 // 서버가 준 순서 그대로 그리는 정적 본문이라 index key 사용
 function renderRuns(runs: readonly PostingRichTextRun[]) {
@@ -44,7 +47,12 @@ function renderBlock(block: PostingContentBlock, index: number) {
   }
 }
 
-function PostingNoticePanel({ title, coverImageUrl, content }: PostingNoticePanelProps) {
+function PostingNoticePanel({
+  title,
+  coverImageUrl,
+  content,
+  isCoverImageUnoptimized = false,
+}: PostingNoticePanelProps) {
   return (
     <div className="flex flex-col gap-gap-xxl">
       {coverImageUrl && (
@@ -54,6 +62,7 @@ function PostingNoticePanel({ title, coverImageUrl, content }: PostingNoticePane
             alt={`${title} 대표 이미지`}
             fill
             sizes="(min-width: 1280px) 780px, 100vw"
+            unoptimized={isCoverImageUnoptimized}
             className="object-cover"
           />
         </div>

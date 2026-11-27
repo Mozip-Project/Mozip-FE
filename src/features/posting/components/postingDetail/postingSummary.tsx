@@ -1,9 +1,12 @@
-import type { PostingDetail } from '@/features/posting/types'
-import { getPostingFactRows, getPostingScheduleRows } from '@/features/posting/utils/postingDetail'
+import {
+  getPostingFactRows,
+  getPostingScheduleRows,
+  type PostingSummarySource,
+} from '@/features/posting/utils/postingDetail'
 import { PostingInfoRow } from './postingInfoRow'
 
 type PostingSummaryProps = {
-  detail: PostingDetail
+  detail: PostingSummarySource
 }
 
 function PostingSummary({ detail }: PostingSummaryProps) {
