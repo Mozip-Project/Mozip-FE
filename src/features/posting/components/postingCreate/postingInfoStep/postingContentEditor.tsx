@@ -98,10 +98,12 @@ function PostingContentEditor({ value, onChange, labelledBy }: PostingContentEdi
     selector: ({ editor: currentEditor }) =>
       currentEditor && {
         activeTools: EDITOR_TOOLS.map((tool) => tool.isActive(currentEditor)),
-        isEmpty: currentEditor.isEmpty,
+        // 글자 없는 목록·제목도 isEmpty라 빈 문단일 때만 placeholder 표시
+        isBlankParagraph:
+          currentEditor.isEmpty && currentEditor.state.doc.firstChild?.type.name === 'paragraph',
       },
   })
-  const isPlaceholderVisible = editorState ? editorState.isEmpty : value === ''
+  const isPlaceholderVisible = editorState ? editorState.isBlankParagraph : value === ''
 
   return (
     <div className="flex h-63.25 flex-col overflow-hidden rounded-m border border-neutral-muted bg-layer-default transition-colors focus-within:border-neutral-weak motion-reduce:transition-none">
