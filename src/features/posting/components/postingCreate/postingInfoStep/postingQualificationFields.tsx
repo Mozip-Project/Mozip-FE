@@ -41,7 +41,7 @@ function PostingQualificationFields({ control }: PostingQualificationFieldsProps
               render={({ field: customField, fieldState }) => (
                 <TextField
                   label="직접 입력"
-                  placeholder="예) 1~3학년, 졸업 예정자 가능, 타 학교 학생 가능"
+                  placeholder="예) 1~3학년, 졸업 예정자 가능"
                   maxLength={POSTING_INFO_MAX_LENGTH.customQualification}
                   aria-invalid={fieldState.invalid}
                   helper={fieldState.error?.message}

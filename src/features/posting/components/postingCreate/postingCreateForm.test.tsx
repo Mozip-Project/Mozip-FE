@@ -312,10 +312,7 @@ describe('PostingCreateForm', () => {
     expect(customField()).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('checkbox', { name: '직접 입력' }))
-    expect(customField()).toHaveAttribute(
-      'placeholder',
-      '예) 1~3학년, 졸업 예정자 가능, 타 학교 학생 가능',
-    )
+    expect(customField()).toHaveAttribute('placeholder', '예) 1~3학년, 졸업 예정자 가능')
 
     await user.type(screen.getByRole('textbox', { name: '직접 입력' }), '졸업 예정자 가능')
     expect(customField()).toHaveValue('졸업 예정자 가능')
