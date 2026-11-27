@@ -11,6 +11,8 @@ type ApiErrorInit = {
   message: string
   traceId?: string
   fieldErrors?: ApiFieldError[]
+  // 같은 코드 안에서 원인을 나누는 값(extensions.reason)
+  reason?: string
 }
 
 // 백엔드 에러 코드(GraphQL extensions.code, REST code) 보존
@@ -18,13 +20,15 @@ class ApiError extends Error {
   readonly code: string
   readonly traceId?: string
   readonly fieldErrors: readonly ApiFieldError[]
+  readonly reason?: string
 
-  constructor({ code, message, traceId, fieldErrors = [] }: ApiErrorInit) {
+  constructor({ code, message, traceId, fieldErrors = [], reason }: ApiErrorInit) {
     super(message)
     this.name = 'ApiError'
     this.code = code
     this.traceId = traceId
     this.fieldErrors = fieldErrors
+    this.reason = reason
   }
 }
 
@@ -100,6 +104,7 @@ function toApiError(error: unknown) {
       message: readString(graphqlError, 'message') ?? error.message,
       traceId: readString(extensions, 'traceId'),
       fieldErrors: parseFieldErrors(readValue(extensions, 'fieldErrors')),
+      reason: readString(extensions, 'reason'),
     })
   }
 

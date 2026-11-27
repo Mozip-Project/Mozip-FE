@@ -97,6 +97,12 @@ export type DocSummarySort =
   | 'SCORE_ASC'
   | 'SCORE_DESC';
 
+export type EmailWarning =
+  /** 연락 이메일 없음 */
+  | 'MISSING'
+  /** 흔한 도메인과 편집 거리 1 이내 */
+  | 'SUSPICIOUS_DOMAIN';
+
 export type FileType =
   | 'IMAGE'
   | 'MP4'
@@ -124,6 +130,36 @@ export type InterviewTimeRangeInput = {
 export type MemberRole =
   | 'OPERATOR'
   | 'REPRESENTATIVE';
+
+export type MessageDeliveryStatus =
+  | 'FAILED'
+  | 'PENDING'
+  | 'SUCCESS';
+
+export type MessageStatus =
+  | 'DRAFT'
+  | 'SENDING'
+  | 'SENT';
+
+export type MessageTarget =
+  | 'ALL'
+  | 'FAIL'
+  | 'PASS';
+
+/** 지원자 안내 메시지 (공지, 결과 발표), 메일 발송 내역 */
+export type MessageType =
+  | 'DOC_RESULT'
+  | 'FINAL_RESULT'
+  | 'INTERVIEW'
+  | 'NOTICE';
+
+export type MessageVariable =
+  | 'INTERVIEW_AT'
+  | 'INTERVIEW_LOCATION'
+  | 'INTERVIEW_PERIOD'
+  | 'NAME'
+  /** 포지션 없는 모집은 안 줌 */
+  | 'POSITION';
 
 export type MyDocEvaluationStatus =
   /** 자동 저장만 됨, 목록에서는 평가 전 */
@@ -252,8 +288,7 @@ export type PostingFilter = {
   fields?: Array<string> | null | undefined;
   hasInterview?: boolean | null | undefined;
   keyword?: string | null | undefined;
-  /** 명세는 하나, 여러 개 선택이라 배열로 요청 중(백엔드 확인 전 가정) */
-  organizationType?: Array<OrganizationType> | null | undefined;
+  organizationTypes?: Array<OrganizationType> | null | undefined;
   schoolId?: string | number | null | undefined;
 };
 
@@ -430,6 +465,27 @@ export type PostingQueryVariables = Exact<{
 export type PostingQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> } };
 
 export type PostingDetailFieldsFragment = { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> }, otherActivePostings: Array<{ id: string, title: string, recruitStartAt: string | null, recruitEndAt: string | null }> };
+
+export type DemoServerOrganizationPostingsQueryVariables = Exact<{
+  organizationId: string | number;
+}>;
+
+
+export type DemoServerOrganizationPostingsQuery = { organizationPostings: Array<{ id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null }> };
+
+export type DemoServerDeletePostingMutationVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DemoServerDeletePostingMutation = { deletePosting: boolean };
+
+export type DemoServerPostingDetailQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type DemoServerPostingDetailQuery = { posting: { id: string, title: string, content: string | null, noPosition: boolean, hasInterview: boolean, allowEnrolled: boolean, allowOnLeave: boolean, eligibilityNote: string | null, region: string | null, fee: string | null, recruitStartAt: string | null, recruitEndAt: string | null, docResultAt: string | null, finalResultAt: string | null, images: Array<{ url: string, isRepresentative: boolean, sortOrder: number }>, positions: Array<{ id: string, name: string, sortOrder: number }>, questions: Array<{ id: string, title: string, sortOrder: number, position: { id: string } | null }>, interviewTimeRanges: Array<{ date: string }>, organization: { id: string, name: string, type: OrganizationType, logoUrl: string | null, tagline: string | null, keywords: Array<string>, fields: Array<OrganizationField>, links: Array<{ id: string, url: string }> } } };
 
 export type ManagedPostingFieldsFragment = { id: string, title: string, status: PostingStatus, hasInterview: boolean, publishedAt: string | null, recruitEndAt: string | null, docResultConfirmedAt: string | null, docResultAt: string | null, finalResultAt: string | null, bumpRank: number | null };
 
@@ -643,6 +699,52 @@ export type ConfirmDocResultMutationVariables = Exact<{
 
 
 export type ConfirmDocResultMutation = { confirmDocResult: { posting: { id: string, docResultConfirmedAt: string | null } } };
+
+export type ResultMessagesQueryVariables = Exact<{
+  postingId: string | number;
+  type: MessageType;
+}>;
+
+
+export type ResultMessagesQuery = { resultMessages: { posting: { id: string, organization: { name: string }, interviewTimeRanges: Array<{ date: string }> }, pass: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> }, fail: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> } } };
+
+export type ResultMessageProgressQueryVariables = Exact<{
+  postingId: string | number;
+  type: MessageType;
+}>;
+
+
+export type ResultMessageProgressQuery = { resultMessages: { pass: { processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus } | null }, fail: { processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus } | null } } };
+
+export type ResultMessageProgressFieldsFragment = { processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus } | null };
+
+export type SaveMessageMutationVariables = Exact<{
+  postingId: string | number;
+  type: MessageType;
+  target: MessageTarget;
+  subject: string;
+  body: string;
+}>;
+
+
+export type SaveMessageMutation = { saveMessage: { id: string, status: MessageStatus, subject: string, body: string } };
+
+export type SendMessagesMutationVariables = Exact<{
+  postingId: string | number;
+  type: MessageType;
+  targets: Array<MessageTarget> | MessageTarget;
+}>;
+
+
+export type SendMessagesMutation = { sendMessages: { posting: { id: string, organization: { name: string }, interviewTimeRanges: Array<{ date: string }> }, pass: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> }, fail: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> } } };
+
+export type ResultMessagesFieldsFragment = { posting: { id: string, organization: { name: string }, interviewTimeRanges: Array<{ date: string }> }, pass: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> }, fail: { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> } };
+
+export type ResultMessagePanelFieldsFragment = { variables: Array<MessageVariable>, recipientCount: number, sendableCount: number, processedCount: number, deliveredCount: number, failedCount: number, message: { id: string, status: MessageStatus, subject: string, body: string } | null, recipients: Array<{ email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null }> };
+
+export type ResultMessageFieldsFragment = { id: string, status: MessageStatus, subject: string, body: string };
+
+export type ResultMessageRecipientFieldsFragment = { email: string | null, emailWarning: EmailWarning | null, suggestedDomain: string | null, application: { id: string, user: { name: string }, position: { name: string } | null }, interview: { startAt: string, location: string | null } | null, delivery: { status: MessageDeliveryStatus, failReason: string | null } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -876,6 +978,152 @@ export const MyDocEvaluationFieldsFragmentDoc = new TypedDocumentString(`
   updatedAt
 }
     `, {"fragmentName":"MyDocEvaluationFields"}) as unknown as TypedDocumentString<MyDocEvaluationFieldsFragment, unknown>;
+export const ResultMessageProgressFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessageProgressFields on ResultMessagePanel {
+  message {
+    id
+    status
+  }
+  processedCount
+  deliveredCount
+  failedCount
+}
+    `, {"fragmentName":"ResultMessageProgressFields"}) as unknown as TypedDocumentString<ResultMessageProgressFieldsFragment, unknown>;
+export const ResultMessageFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+    `, {"fragmentName":"ResultMessageFields"}) as unknown as TypedDocumentString<ResultMessageFieldsFragment, unknown>;
+export const ResultMessageRecipientFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}
+    `, {"fragmentName":"ResultMessageRecipientFields"}) as unknown as TypedDocumentString<ResultMessageRecipientFieldsFragment, unknown>;
+export const ResultMessagePanelFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessagePanelFields on ResultMessagePanel {
+  message {
+    ...ResultMessageFields
+  }
+  variables
+  recipientCount
+  sendableCount
+  processedCount
+  deliveredCount
+  failedCount
+  recipients {
+    ...ResultMessageRecipientFields
+  }
+}
+    fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}`, {"fragmentName":"ResultMessagePanelFields"}) as unknown as TypedDocumentString<ResultMessagePanelFieldsFragment, unknown>;
+export const ResultMessagesFieldsFragmentDoc = new TypedDocumentString(`
+    fragment ResultMessagesFields on ResultMessages {
+  posting {
+    id
+    organization {
+      name
+    }
+    interviewTimeRanges {
+      date
+    }
+  }
+  pass {
+    ...ResultMessagePanelFields
+  }
+  fail {
+    ...ResultMessagePanelFields
+  }
+}
+    fragment ResultMessagePanelFields on ResultMessagePanel {
+  message {
+    ...ResultMessageFields
+  }
+  variables
+  recipientCount
+  sendableCount
+  processedCount
+  deliveredCount
+  failedCount
+  recipients {
+    ...ResultMessageRecipientFields
+  }
+}
+fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}`, {"fragmentName":"ResultMessagesFields"}) as unknown as TypedDocumentString<ResultMessagesFieldsFragment, unknown>;
 export const MyAccountFieldsFragmentDoc = new TypedDocumentString(`
     fragment MyAccountFields on Me {
   id
@@ -1100,6 +1348,80 @@ export const PostingDocument = new TypedDocumentString(`
     recruitEndAt
   }
 }`) as unknown as TypedDocumentString<PostingQuery, PostingQueryVariables>;
+export const DemoServerOrganizationPostingsDocument = new TypedDocumentString(`
+    query DemoServerOrganizationPostings($organizationId: ID!) {
+  organizationPostings(organizationId: $organizationId) {
+    id
+    title
+    status
+    hasInterview
+    publishedAt
+    recruitEndAt
+    docResultConfirmedAt
+    docResultAt
+    finalResultAt
+  }
+}
+    `) as unknown as TypedDocumentString<DemoServerOrganizationPostingsQuery, DemoServerOrganizationPostingsQueryVariables>;
+export const DemoServerDeletePostingDocument = new TypedDocumentString(`
+    mutation DemoServerDeletePosting($id: ID!) {
+  deletePosting(id: $id)
+}
+    `) as unknown as TypedDocumentString<DemoServerDeletePostingMutation, DemoServerDeletePostingMutationVariables>;
+export const DemoServerPostingDetailDocument = new TypedDocumentString(`
+    query DemoServerPostingDetail($id: ID!) {
+  posting(id: $id) {
+    id
+    title
+    content
+    noPosition
+    hasInterview
+    allowEnrolled
+    allowOnLeave
+    eligibilityNote
+    region
+    fee
+    recruitStartAt
+    recruitEndAt
+    docResultAt
+    finalResultAt
+    images {
+      url
+      isRepresentative
+      sortOrder
+    }
+    positions {
+      id
+      name
+      sortOrder
+    }
+    questions {
+      id
+      title
+      sortOrder
+      position {
+        id
+      }
+    }
+    interviewTimeRanges {
+      date
+    }
+    organization {
+      id
+      name
+      type
+      logoUrl
+      tagline
+      keywords
+      fields
+      links {
+        id
+        url
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<DemoServerPostingDetailQuery, DemoServerPostingDetailQueryVariables>;
 export const OrganizationPostingsDocument = new TypedDocumentString(`
     query OrganizationPostings($organizationId: ID!, $status: [PostingStatus!]) {
   organizationPostings(organizationId: $organizationId, status: $status) {
@@ -1802,6 +2124,174 @@ export const ConfirmDocResultDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ConfirmDocResultMutation, ConfirmDocResultMutationVariables>;
+export const ResultMessagesDocument = new TypedDocumentString(`
+    query ResultMessages($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    ...ResultMessagesFields
+  }
+}
+    fragment ResultMessagesFields on ResultMessages {
+  posting {
+    id
+    organization {
+      name
+    }
+    interviewTimeRanges {
+      date
+    }
+  }
+  pass {
+    ...ResultMessagePanelFields
+  }
+  fail {
+    ...ResultMessagePanelFields
+  }
+}
+fragment ResultMessagePanelFields on ResultMessagePanel {
+  message {
+    ...ResultMessageFields
+  }
+  variables
+  recipientCount
+  sendableCount
+  processedCount
+  deliveredCount
+  failedCount
+  recipients {
+    ...ResultMessageRecipientFields
+  }
+}
+fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}`) as unknown as TypedDocumentString<ResultMessagesQuery, ResultMessagesQueryVariables>;
+export const ResultMessageProgressDocument = new TypedDocumentString(`
+    query ResultMessageProgress($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    pass {
+      ...ResultMessageProgressFields
+    }
+    fail {
+      ...ResultMessageProgressFields
+    }
+  }
+}
+    fragment ResultMessageProgressFields on ResultMessagePanel {
+  message {
+    id
+    status
+  }
+  processedCount
+  deliveredCount
+  failedCount
+}`) as unknown as TypedDocumentString<ResultMessageProgressQuery, ResultMessageProgressQueryVariables>;
+export const SaveMessageDocument = new TypedDocumentString(`
+    mutation SaveMessage($postingId: ID!, $type: MessageType!, $target: MessageTarget!, $subject: String!, $body: String!) {
+  saveMessage(
+    postingId: $postingId
+    type: $type
+    target: $target
+    subject: $subject
+    body: $body
+  ) {
+    ...ResultMessageFields
+  }
+}
+    fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}`) as unknown as TypedDocumentString<SaveMessageMutation, SaveMessageMutationVariables>;
+export const SendMessagesDocument = new TypedDocumentString(`
+    mutation SendMessages($postingId: ID!, $type: MessageType!, $targets: [MessageTarget!]!) {
+  sendMessages(postingId: $postingId, type: $type, targets: $targets) {
+    ...ResultMessagesFields
+  }
+}
+    fragment ResultMessagesFields on ResultMessages {
+  posting {
+    id
+    organization {
+      name
+    }
+    interviewTimeRanges {
+      date
+    }
+  }
+  pass {
+    ...ResultMessagePanelFields
+  }
+  fail {
+    ...ResultMessagePanelFields
+  }
+}
+fragment ResultMessagePanelFields on ResultMessagePanel {
+  message {
+    ...ResultMessageFields
+  }
+  variables
+  recipientCount
+  sendableCount
+  processedCount
+  deliveredCount
+  failedCount
+  recipients {
+    ...ResultMessageRecipientFields
+  }
+}
+fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}`) as unknown as TypedDocumentString<SendMessagesMutation, SendMessagesMutationVariables>;
 export const MeDocument = new TypedDocumentString(`
     query Me {
   me {

@@ -1,8 +1,14 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import {
+  MESSAGE_ALREADY_SENT_CODE,
+  RESULT_NOTICE_POLL_INTERVAL_MS,
+  type ResultNoticeTarget,
+} from '@/features/recruitment/types'
 import type {
   DocEvaluationApplicationsQueryVariables,
   DocEvaluationSummaryQueryVariables,
   DocResult,
+  MessageStatus,
   PostingApplicationsQueryVariables,
 } from '@/gql/graphql'
 import { ApiError } from '@/lib/apiError'
@@ -16,7 +22,11 @@ import {
   getPostingApplications,
   getPostingQuestions,
   getRecruitmentPosting,
+  getResultMessageProgress,
+  getResultMessages,
   saveDocEvaluation,
+  saveResultMessage,
+  sendResultMessages,
   setDocResult,
 } from './api'
 import { recruitmentKeys } from './keys'
@@ -208,6 +218,90 @@ function useConfirmDocResultMutation(postingId: string) {
   })
 }
 
+type ResultMessages = Awaited<ReturnType<typeof getResultMessages>>
+
+type ResultMessageStatuses = Record<
+  ResultNoticeTarget,
+  { message: { status: MessageStatus } | null }
+>
+
+function isSendingMessage(data: ResultMessageStatuses | undefined) {
+  return data?.pass.message?.status === 'SENDING' || data?.fail.message?.status === 'SENDING'
+}
+
+function useResultMessagesQuery(postingId: string) {
+  return useQuery({
+    queryKey: recruitmentKeys.resultMessages(postingId),
+    queryFn: () => getResultMessages(postingId),
+  })
+}
+
+// 전체 조회가 발송 중인 동안 진행률 폴링, 끝난 걸 보면 전체 조회 갱신
+// 이전 발송의 캐시로 건너뛰지 않도록 켜질 때마다 바로 조회, 갱신이 취소돼도 다음 폴링에서 다시 갱신
+function useResultMessageProgressQuery(postingId: string, isSending: boolean) {
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: recruitmentKeys.resultMessageProgress(postingId),
+    queryFn: async () => {
+      const progress = await getResultMessageProgress(postingId)
+      if (!isSendingMessage(progress)) {
+        void queryClient.invalidateQueries({ queryKey: recruitmentKeys.resultMessages(postingId) })
+      }
+      return progress
+    },
+    enabled: isSending,
+    staleTime: 0,
+    refetchInterval: RESULT_NOTICE_POLL_INTERVAL_MS,
+  })
+}
+
+// 초안 저장, 발송과 같은 순서로 처리
+function useSaveResultMessageMutation(postingId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: saveResultMessage,
+    scope: { id: `result-message-${postingId}` },
+    onSuccess: async (message, { target }) => {
+      const queryKey = recruitmentKeys.resultMessages(postingId)
+      await queryClient.cancelQueries({ queryKey })
+      queryClient.setQueryData<ResultMessages>(
+        queryKey,
+        (data) => data && { ...data, [target]: { ...data[target], message } },
+      )
+    },
+    // 다른 운영진이 이미 보냈으면 다시 받아 발송 상태로 전환
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === MESSAGE_ALREADY_SENT_CODE) {
+        void queryClient.invalidateQueries({ queryKey: recruitmentKeys.resultMessages(postingId) })
+      }
+    },
+  })
+}
+
+// 발송, 응답을 캐시에 반영해 진행률 조회 시작
+function useSendResultMessagesMutation(postingId: string) {
+  const queryClient = useQueryClient()
+  const queryKey = recruitmentKeys.resultMessages(postingId)
+
+  return useMutation({
+    mutationFn: (targets: readonly ResultNoticeTarget[]) => sendResultMessages(postingId, targets),
+    scope: { id: `result-message-${postingId}` },
+    // 발송 전 상태로 늦게 끝난 조회가 덮지 않도록 취소 후 반영
+    onSuccess: async (data) => {
+      await queryClient.cancelQueries({ queryKey })
+      queryClient.setQueryData(queryKey, data)
+    },
+    // 이미 발송됐으면 다시 조회
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === MESSAGE_ALREADY_SENT_CODE) {
+        void queryClient.invalidateQueries({ queryKey })
+      }
+    },
+  })
+}
+
 export {
   useConfirmDocResultMutation,
   useDocEvaluationApplicationChipsQuery,
@@ -218,6 +312,10 @@ export {
   usePostingApplicationsQuery,
   usePostingQuestionsQuery,
   useRecruitmentPostingQuery,
+  useResultMessageProgressQuery,
+  useResultMessagesQuery,
   useSaveDocEvaluationMutation,
+  useSaveResultMessageMutation,
+  useSendResultMessagesMutation,
   useSetDocResultsMutation,
 }

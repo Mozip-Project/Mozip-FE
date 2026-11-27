@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
+import { ServerPostingUnsupportedButton } from '@/features/posting/components/demoServerPosting/serverPostingUnsupportedButton'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { getPostingEditPath } from '@/features/posting/utils/postingCreateRoute'
 import type { RecruitmentProgress, RecruitmentStage } from '@/features/recruitment/types'
 import {
@@ -46,6 +48,8 @@ function RecruitmentStageGuide({ postingId, title, progress }: RecruitmentStageG
   const actionLabel = STAGE_ACTION_LABEL[stage]
   const actionHref = getStageActionHref(stage, postingId)
   const accessibleActionLabel = `${title} ${actionLabel}`
+  // 시연 모드의 실서버 공고는 이어서 작성하기만 실서버로, 지원자·평가 화면은 안내만 (전시회 후 삭제)
+  const isUnsupportedServerAction = isServerPosting(postingId) && stage !== 'posting'
 
   return (
     <SummaryBar
@@ -53,11 +57,21 @@ function RecruitmentStageGuide({ postingId, title, progress }: RecruitmentStageG
       shouldAnnounce={false}
       className="border-0 bg-neutral-weak shadow-none"
       actions={
-        <Button asChild variant="secondary" size="m">
-          <Link href={actionHref} aria-label={accessibleActionLabel}>
+        isUnsupportedServerAction ? (
+          <ServerPostingUnsupportedButton
+            variant="secondary"
+            size="m"
+            aria-label={accessibleActionLabel}
+          >
             {actionLabel}
-          </Link>
-        </Button>
+          </ServerPostingUnsupportedButton>
+        ) : (
+          <Button asChild variant="secondary" size="m">
+            <Link href={actionHref} aria-label={accessibleActionLabel}>
+              {actionLabel}
+            </Link>
+          </Button>
+        )
       }
     >
       {getRecruitmentStageGuideMessage(progress)}

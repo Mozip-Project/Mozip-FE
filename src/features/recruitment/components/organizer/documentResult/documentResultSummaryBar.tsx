@@ -4,12 +4,16 @@ import Link from 'next/link'
 import { useRef, useState, type Ref } from 'react'
 import { Button } from '@/components/ui/Button/button'
 import { SummaryBar } from '@/components/ui/SummaryBar/summaryBar'
-import type { DocumentResultTotals } from '@/features/recruitment/types'
+import type { DocumentResultTotals, DocumentReviewQuery } from '@/features/recruitment/types'
 import {
   getDocumentResultNextStepMessage,
   getDocumentResultSummary,
   hasInterviewStepAfterConfirm,
 } from '@/features/recruitment/utils/documentResult'
+import {
+  getDocumentReviewHref,
+  parseDocumentReviewQuery,
+} from '@/features/recruitment/utils/documentReviewQuery'
 import {
   getInterviewTimetablePath,
   getResultNoticePath,
@@ -18,6 +22,11 @@ import { DocumentResultConfirmDialog } from './documentResultConfirmDialog'
 
 // 목록 길이와 관계없이 화면 하단에 고정, 페이지 래퍼의 page-min-height와 함께 사용
 const STICKY_BOTTOM_CLASS = 'page-bottom-bar'
+
+const UNEVALUATED_REVIEW_QUERY = {
+  ...parseDocumentReviewQuery({}),
+  status: 'pending',
+} satisfies DocumentReviewQuery
 
 type DocumentResultSummaryBarProps = {
   postingId: string
@@ -42,6 +51,8 @@ function DocumentResultSummaryBar({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { status, message, canConfirm } = getDocumentResultSummary(totals, visibleHoldCount)
   const hasInterviewStep = hasInterviewStepAfterConfirm(hasInterview, totals.passCount)
+  // 평가가 남았으면 확정 대신 서류 평가 목록의 평가 전 탭으로 안내
+  const hasUnevaluated = totals.totalCount > 0 && !totals.isAllEvaluated
 
   return (
     <>
@@ -64,15 +75,23 @@ function DocumentResultSummaryBar({
           status={status}
           className={STICKY_BOTTOM_CLASS}
           actions={
-            <Button
-              ref={primaryActionRef}
-              size="m"
-              // 저장 전 결과로 확정 요청이 먼저 가지 않도록 저장이 끝날 때까지 막음
-              disabled={!canConfirm || isSaving}
-              onClick={() => setIsDialogOpen(true)}
-            >
-              결과 확정하기
-            </Button>
+            hasUnevaluated ? (
+              <Button asChild size="m">
+                <Link href={getDocumentReviewHref(postingId, UNEVALUATED_REVIEW_QUERY)}>
+                  서류 평가하기
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                ref={primaryActionRef}
+                size="m"
+                // 저장 전 결과로 확정 요청이 먼저 가지 않도록 저장이 끝날 때까지 막음
+                disabled={!canConfirm || isSaving}
+                onClick={() => setIsDialogOpen(true)}
+              >
+                결과 확정하기
+              </Button>
+            )
           }
         >
           {message}

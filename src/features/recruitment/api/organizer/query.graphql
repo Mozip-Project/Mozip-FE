@@ -285,3 +285,113 @@ mutation ConfirmDocResult($postingId: ID!) {
     }
   }
 }
+
+# 결과 안내 합격자·불합격자 탭, 발송 응답도 같은 모양
+query ResultMessages($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    ...ResultMessagesFields
+  }
+}
+
+# 발송 중 진행률만, 받는 사람별 결과는 끝난 뒤 ResultMessages로 다시 받음
+query ResultMessageProgress($postingId: ID!, $type: MessageType!) {
+  resultMessages(postingId: $postingId, type: $type) {
+    pass {
+      ...ResultMessageProgressFields
+    }
+    fail {
+      ...ResultMessageProgressFields
+    }
+  }
+}
+
+fragment ResultMessageProgressFields on ResultMessagePanel {
+  message {
+    id
+    status
+  }
+  processedCount
+  deliveredCount
+  failedCount
+}
+
+mutation SaveMessage(
+  $postingId: ID!
+  $type: MessageType!
+  $target: MessageTarget!
+  $subject: String!
+  $body: String!
+) {
+  saveMessage(postingId: $postingId, type: $type, target: $target, subject: $subject, body: $body) {
+    ...ResultMessageFields
+  }
+}
+
+mutation SendMessages($postingId: ID!, $type: MessageType!, $targets: [MessageTarget!]!) {
+  sendMessages(postingId: $postingId, type: $type, targets: $targets) {
+    ...ResultMessagesFields
+  }
+}
+
+fragment ResultMessagesFields on ResultMessages {
+  posting {
+    id
+    organization {
+      name
+    }
+    interviewTimeRanges {
+      date
+    }
+  }
+  pass {
+    ...ResultMessagePanelFields
+  }
+  fail {
+    ...ResultMessagePanelFields
+  }
+}
+
+fragment ResultMessagePanelFields on ResultMessagePanel {
+  message {
+    ...ResultMessageFields
+  }
+  variables
+  recipientCount
+  sendableCount
+  processedCount
+  deliveredCount
+  failedCount
+  recipients {
+    ...ResultMessageRecipientFields
+  }
+}
+
+fragment ResultMessageFields on Message {
+  id
+  status
+  subject
+  body
+}
+
+fragment ResultMessageRecipientFields on Recipient {
+  application {
+    id
+    user {
+      name
+    }
+    position {
+      name
+    }
+  }
+  email
+  emailWarning
+  suggestedDomain
+  interview {
+    startAt
+    location
+  }
+  delivery {
+    status
+    failReason
+  }
+}

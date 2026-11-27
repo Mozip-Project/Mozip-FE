@@ -142,9 +142,20 @@ type DialogProgressProps = {
   valueText: string
   value: number
   max: number
+  // 다음 값까지 일정 속도로 채우는 시간, 없으면 바로 반영
+  transitionDurationMs?: number
+  // 값을 받기 전에도 90%까지 천천히 채움
+  shouldShowEstimate?: boolean
 }
 
-function DialogProgress({ label, valueText, value, max }: DialogProgressProps) {
+function DialogProgress({
+  label,
+  valueText,
+  value,
+  max,
+  transitionDurationMs,
+  shouldShowEstimate = false,
+}: DialogProgressProps) {
   const percent = max > 0 ? Math.min(value / max, 1) * 100 : 0
 
   return (
@@ -158,12 +169,22 @@ function DialogProgress({ label, valueText, value, max }: DialogProgressProps) {
         max={max}
         aria-label={label}
         aria-valuetext={valueText}
-        className="h-2 w-full overflow-hidden rounded-full bg-neutral-weak"
+        className="relative h-2 w-full overflow-hidden rounded-full bg-neutral-weak"
       >
+        {/* 같은 색 두 겹, 더 찬 쪽 표시 */}
+        {shouldShowEstimate && (
+          <span
+            aria-hidden
+            className="absolute inset-0 animate-progress-estimate rounded-full bg-brand-solid motion-reduce:hidden"
+          />
+        )}
         {/* 런타임 값이라 style 사용 */}
         <ProgressPrimitive.Indicator
-          className="size-full rounded-full bg-brand-solid"
-          style={{ transform: `translateX(-${100 - percent}%)` }}
+          className="relative size-full rounded-full bg-brand-solid transition-transform ease-linear motion-reduce:transition-none"
+          style={{
+            transform: `translateX(-${100 - percent}%)`,
+            transitionDuration: `${transitionDurationMs ?? 0}ms`,
+          }}
         />
       </ProgressPrimitive.Root>
     </div>

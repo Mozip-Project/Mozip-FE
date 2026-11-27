@@ -1,3 +1,4 @@
+import type { ResultNoticeTarget } from '@/features/recruitment/types'
 import {
   ConfirmDocResultDocument,
   DocEvaluationApplicationChipsDocument,
@@ -8,9 +9,14 @@ import {
   PostingApplicationsDocument,
   PostingQuestionsDocument,
   RecruitmentPostingDocument,
+  ResultMessageProgressDocument,
+  ResultMessagesDocument,
+  SaveMessageDocument,
+  SendMessagesDocument,
   SaveDocEvaluationDocument,
   SetDocResultDocument,
   type DocEvaluationApplicationsQueryVariables,
+  type MessageTarget,
   type DocEvaluationSummaryQueryVariables,
   type PostingApplicationsQueryVariables,
   type SaveDocEvaluationMutationVariables,
@@ -73,6 +79,52 @@ async function confirmDocResult(postingId: string) {
   return data.confirmDocResult
 }
 
+const RESULT_MESSAGE_TARGET = {
+  pass: 'PASS',
+  fail: 'FAIL',
+} satisfies Record<ResultNoticeTarget, MessageTarget>
+
+// 최종 결과 안내가 생기면 type 인자 추가
+async function getResultMessages(postingId: string) {
+  const data = await requestGraphQL(ResultMessagesDocument, { postingId, type: 'DOC_RESULT' })
+  return data.resultMessages
+}
+
+// 발송 중 진행률만
+async function getResultMessageProgress(postingId: string) {
+  const data = await requestGraphQL(ResultMessageProgressDocument, {
+    postingId,
+    type: 'DOC_RESULT',
+  })
+  return data.resultMessages
+}
+
+type SaveResultMessageVariables = {
+  postingId: string
+  target: ResultNoticeTarget
+  subject: string
+  body: string
+}
+
+async function saveResultMessage({ target, ...variables }: SaveResultMessageVariables) {
+  const data = await requestGraphQL(SaveMessageDocument, {
+    ...variables,
+    type: 'DOC_RESULT',
+    target: RESULT_MESSAGE_TARGET[target],
+  })
+  return data.saveMessage
+}
+
+// 응답은 발송 시작 직후 상태
+async function sendResultMessages(postingId: string, targets: readonly ResultNoticeTarget[]) {
+  const data = await requestGraphQL(SendMessagesDocument, {
+    postingId,
+    type: 'DOC_RESULT',
+    targets: targets.map((target) => RESULT_MESSAGE_TARGET[target]),
+  })
+  return data.sendMessages
+}
+
 export {
   confirmDocResult,
   getDocEvaluationApplicationChips,
@@ -83,6 +135,10 @@ export {
   getPostingApplications,
   getPostingQuestions,
   getRecruitmentPosting,
+  getResultMessageProgress,
+  getResultMessages,
   saveDocEvaluation,
+  saveResultMessage,
+  sendResultMessages,
   setDocResult,
 }

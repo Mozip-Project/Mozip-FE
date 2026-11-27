@@ -1,4 +1,5 @@
 import { skipToken, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { recruitmentKeys } from '@/features/recruitment/api/organizer/keys'
 import type { ManagedPostingFieldsFragment, PostingStatus } from '@/gql/graphql'
 import {
   bumpPosting,
@@ -93,6 +94,7 @@ function usePostingDraftQuery(postingId: string) {
 }
 
 // 응답이 저장된 공고 전체라 작성 화면 값은 다시 요청하지 않고 바로 교체, 첫 저장이면 작성 중 탭 숫자도 바뀜
+// LNB 공고 제목도 저장한 제목으로 갱신
 function useSavePostingDraftMutation() {
   const queryClient = useQueryClient()
 
@@ -100,7 +102,10 @@ function useSavePostingDraftMutation() {
     mutationFn: savePostingDraft,
     onSuccess: (posting) => {
       queryClient.setQueryData(postingDraftKeys.detail(posting.id), posting)
-      return queryClient.invalidateQueries({ queryKey: managedPostingKeys.all })
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: managedPostingKeys.all }),
+        queryClient.invalidateQueries({ queryKey: recruitmentKeys.posting(posting.id) }),
+      ])
     },
   })
 }

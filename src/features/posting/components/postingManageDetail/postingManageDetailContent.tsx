@@ -1,5 +1,6 @@
 'use client'
 
+import ArrowRightIcon from '@/assets/icons/arrowRight.svg'
 import FileTextIcon from '@/assets/icons/fileText.svg'
 import { Button } from '@/components/ui/Button/button'
 import { Callout } from '@/components/ui/Callout/callout'
@@ -9,6 +10,8 @@ import { OrganizationLoadError } from '@/features/organization/components/organi
 import { COMING_SOON_TOAST } from '@/features/organization/constants'
 import { useCurrentOrganization } from '@/features/organization/hooks/useCurrentOrganization'
 import { useManagedPostingQuery } from '@/features/posting/api/organizer/queries'
+import { ServerPostingUnsupportedButton } from '@/features/posting/components/demoServerPosting/serverPostingUnsupportedButton'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { getPostingRecruitmentPhase, toPostingDetail } from '@/features/posting/utils/postingDetail'
 import { ApiError } from '@/lib/apiError'
 import { useToast } from '@/providers/toastProvider'
@@ -85,12 +88,20 @@ function PostingManageDetailContent({
             <Button variant="secondary" size="m" onClick={() => showToast(COMING_SOON_TOAST)}>
               공고 수정하기
             </Button>
-            <PostingNoticeDialog
-              postingId={posting.id}
-              postingTitle={detail.title}
-              organizationName={detail.organization.name}
-              applicantCount={posting.applicationCount}
-            />
+            {/* 시연 모드의 실서버 공고는 서버에 공지가 없어 안내만 (전시회 후 삭제) */}
+            {isServerPosting(posting.id) ? (
+              <ServerPostingUnsupportedButton size="m">
+                공지 보내기
+                <ArrowRightIcon aria-hidden />
+              </ServerPostingUnsupportedButton>
+            ) : (
+              <PostingNoticeDialog
+                postingId={posting.id}
+                postingTitle={detail.title}
+                organizationName={detail.organization.name}
+                applicantCount={posting.applicationCount}
+              />
+            )}
           </div>
         }
       />

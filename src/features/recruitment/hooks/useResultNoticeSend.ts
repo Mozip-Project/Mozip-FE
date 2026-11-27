@@ -1,21 +1,31 @@
-import { useEffect, useRef, useState } from 'react'
-import { SEND_FAILED_SAMPLE } from '@/features/recruitment/mocks/resultNoticeSample'
+import { useState } from 'react'
 import {
+  useResultMessageProgressQuery,
+  useSendResultMessagesMutation,
+} from '@/features/recruitment/api/organizer/queries'
+import {
+  MESSAGE_ALREADY_SENT_CODE,
   RESULT_NOTICE_TARGETS,
-  type RecipientDelivery,
-  type ResultNoticeMessage,
   type ResultNoticeRecipient,
   type ResultNoticeTarget,
   type ResultNoticeTargetSendResult,
 } from '@/features/recruitment/types'
-import {
-  getDeliverySummary,
-  getSendableRecipients,
-} from '@/features/recruitment/utils/resultNoticeRecipient'
+import { getDeliverySummary } from '@/features/recruitment/utils/resultNoticeRecipient'
+import type { ResultMessagesFieldsFragment } from '@/gql/graphql'
+import { ApiError } from '@/lib/apiError'
+import { useToast } from '@/providers/toastProvider'
+import { isOneOf } from '@/utils/isOneOf'
 
-// TODO: 발송 API 연결 후 발송 요청과 발송 결과 폴링으로 교체, 지금은 한 명씩 보내는 것처럼 표시
-// TODO: 발송 API 연결 시 서버 오류(아무에게도 미발송)면 발송 중 창 닫고 '서류 결과를 발송하지 못했어요. 다시 시도해 주세요.' 토스트
-const MOCK_SEND_INTERVAL_MS = 60
+const SEND_BLOCKED_CODE = 'MESSAGE_422'
+const SEND_FAILED_TITLE = '서류 결과를 발송하지 못했어요. 다시 발송해 주세요.'
+
+// TODO: 면접 변수 발송 불가 안내 디자이너 확인
+const SEND_BLOCKED_TITLE = {
+  TIMETABLE_NOT_CONFIRMED: '면접 타임테이블을 확정한 뒤 발송해 주세요.',
+  INTERVIEW_NOT_ASSIGNED:
+    '면접 시간이 배정되지 않은 합격자가 있어요. 타임테이블에서 배정하거나 면접 변수를 빼 주세요.',
+}
+const SEND_BLOCKED_REASONS = ['TIMETABLE_NOT_CONFIRMED', 'INTERVIEW_NOT_ASSIGNED'] as const
 
 type ResultNoticeSendDialogState = {
   phase: 'confirm' | 'sending' | 'result'
@@ -29,128 +39,132 @@ type ResultNoticeSendProgress = {
 
 type ResultNoticeRecipients = Record<ResultNoticeTarget, readonly ResultNoticeRecipient[]>
 
-// 보낸 대상만 결과가 있음
+// 발송 시작한 대상만
 type ResultNoticeSendResults = Partial<Record<ResultNoticeTarget, ResultNoticeTargetSendResult>>
 
 type FailedRecipientsByTarget = Record<ResultNoticeTarget, ResultNoticeRecipient[]>
 
-// 이메일 확인 필요 인원은 보내지 않아 상태 유지
-function getMockDelivery({ id, delivery }: ResultNoticeRecipient): RecipientDelivery {
-  if (delivery.status === 'emailCheck') {
-    return delivery
-  }
-
-  if (id === SEND_FAILED_SAMPLE.applicantId) {
-    return { status: 'failed', message: SEND_FAILED_SAMPLE.message }
-  }
-
-  return { status: 'delivered' }
-}
-
-function createMockSendResult(
-  recipients: readonly ResultNoticeRecipient[],
-  message: ResultNoticeMessage,
-): ResultNoticeTargetSendResult {
-  return {
-    message,
-    recipients: recipients.map((recipient) => ({
-      ...recipient,
-      delivery: getMockDelivery(recipient),
-    })),
-  }
-}
-
-function useResultNoticeSend(recipients: ResultNoticeRecipients) {
-  const [dialog, setDialog] = useState<ResultNoticeSendDialogState | null>(null)
-  const [progress, setProgress] = useState<ResultNoticeSendProgress | null>(null)
-  const [results, setResults] = useState<ResultNoticeSendResults>({})
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) {
-        clearInterval(timerRef.current)
-      }
-    }
-  }, [])
-
-  function openConfirm(targets: readonly ResultNoticeTarget[]) {
-    setDialog({ phase: 'confirm', targets })
-  }
-
-  function closeDialog() {
-    setDialog(null)
-  }
-
-  function finishSend(
-    targets: readonly ResultNoticeTarget[],
-    messages: Record<ResultNoticeTarget, ResultNoticeMessage>,
+function getSendErrorTitle(error: unknown) {
+  if (
+    error instanceof ApiError &&
+    error.code === SEND_BLOCKED_CODE &&
+    error.reason &&
+    isOneOf(SEND_BLOCKED_REASONS, error.reason)
   ) {
-    setProgress(null)
-    setResults((previous) => {
-      const next = { ...previous }
+    return SEND_BLOCKED_TITLE[error.reason]
+  }
+  return SEND_FAILED_TITLE
+}
 
-      for (const target of targets) {
-        next[target] = createMockSendResult(recipients[target], messages[target])
+type UseResultNoticeSendOptions = {
+  postingId: string
+  notice: ResultMessagesFieldsFragment
+  recipients: ResultNoticeRecipients
+  // 발송 전 초안 저장, 실패하면 false
+  flushSave: () => Promise<boolean>
+}
+
+// 발송 상태는 서버 메시지 상태 기준
+function useResultNoticeSend({
+  postingId,
+  notice,
+  recipients,
+  flushSave,
+}: UseResultNoticeSendOptions) {
+  const { showToast } = useToast()
+  const { mutateAsync: sendMessages } = useSendResultMessagesMutation(postingId)
+  const [dialogState, setDialogState] = useState<ResultNoticeSendDialogState | null>(null)
+  // 초안 저장 ~ 발송 응답 사이
+  const [isStarting, setIsStarting] = useState(false)
+
+  const statuses = {
+    pass: notice.pass.message?.status ?? null,
+    fail: notice.fail.message?.status ?? null,
+  }
+  const sentTargets = RESULT_NOTICE_TARGETS.filter(
+    (target) => statuses[target] === 'SENDING' || statuses[target] === 'SENT',
+  )
+  const sendingTargets = RESULT_NOTICE_TARGETS.filter((target) => statuses[target] === 'SENDING')
+  const isSending = isStarting || sendingTargets.length > 0
+  // 진행 수는 진행률 조회 값 우선
+  const { data: sendProgress } = useResultMessageProgressQuery(postingId, sendingTargets.length > 0)
+
+  // 발송 중 창이 열린 채 끝나면 결과 창
+  const isDialogSendDone =
+    dialogState?.phase === 'sending' &&
+    !isStarting &&
+    dialogState.targets.every((target) => statuses[target] === 'SENT')
+  const dialog: ResultNoticeSendDialogState | null = isDialogSendDone
+    ? { phase: 'result', targets: dialogState.targets }
+    : dialogState
+
+  const progressTargets = dialog?.phase === 'sending' ? dialog.targets : sendingTargets
+  const progress: ResultNoticeSendProgress | null = isSending
+    ? {
+        sentCount: progressTargets.reduce(
+          (sum, target) =>
+            sum + (sendProgress?.[target].processedCount ?? notice[target].processedCount),
+          0,
+        ),
+        totalCount: progressTargets.reduce((sum, target) => sum + notice[target].sendableCount, 0),
       }
+    : null
 
-      return next
-    })
-    // 발송 중 창을 닫았으면 결과 창을 다시 열지 않음
-    setDialog((previous) =>
-      previous?.phase === 'sending' ? { phase: 'result', targets } : previous,
-    )
+  const results: ResultNoticeSendResults = {}
+  for (const target of sentTargets) {
+    const message = notice[target].message
+    if (message) {
+      const sendingDeliveredCount = sendProgress?.[target].deliveredCount
+      results[target] = {
+        message: { subject: message.subject, body: message.body },
+        recipients: [...recipients[target]],
+        ...(statuses[target] === 'SENDING' && { sendingDeliveredCount }),
+      }
+    }
   }
 
-  // 발송 시점의 메시지를 결과에 보관
-  function startSend(messages: Record<ResultNoticeTarget, ResultNoticeMessage>) {
-    if (dialog?.phase !== 'confirm' || timerRef.current !== null) {
-      return
-    }
-
-    const { targets } = dialog
-    const totalCount = targets.reduce(
-      (count, target) => count + getSendableRecipients(recipients[target]).length,
-      0,
-    )
-
-    setDialog({ phase: 'sending', targets })
-
-    if (totalCount === 0) {
-      finishSend(targets, messages)
-      return
-    }
-
-    let sentCount = 0
-    setProgress({ sentCount, totalCount })
-
-    timerRef.current = setInterval(() => {
-      sentCount += 1
-
-      if (sentCount < totalCount) {
-        setProgress({ sentCount, totalCount })
-        return
-      }
-
-      if (timerRef.current !== null) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-
-      finishSend(targets, messages)
-    }, MOCK_SEND_INTERVAL_MS)
-  }
-
-  const sentTargets = RESULT_NOTICE_TARGETS.filter((target) => results[target] !== undefined)
   const failedRecipientsByTarget = {
     pass: getDeliverySummary(results.pass?.recipients ?? []).failedRecipients,
     fail: getDeliverySummary(results.fail?.recipients ?? []).failedRecipients,
   } satisfies FailedRecipientsByTarget
 
+  function openConfirm(targets: readonly ResultNoticeTarget[]) {
+    setDialogState({ phase: 'confirm', targets })
+  }
+
+  function closeDialog() {
+    setDialogState(null)
+  }
+
+  // 남은 초안 저장 후 발송, 이미 발송(409)이면 안내 생략
+  async function startSend() {
+    if (dialogState?.phase !== 'confirm' || isStarting) {
+      return
+    }
+
+    const { targets } = dialogState
+    setDialogState({ phase: 'sending', targets })
+    setIsStarting(true)
+    try {
+      if (!(await flushSave())) {
+        throw new Error('초안을 저장하지 못했습니다.')
+      }
+      await sendMessages(targets)
+    } catch (error) {
+      setDialogState(null)
+      if (!(error instanceof ApiError && error.code === MESSAGE_ALREADY_SENT_CODE)) {
+        showToast({ title: getSendErrorTitle(error), icon: 'alert' })
+      }
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
   return {
     dialog,
     progress,
     results,
+    isSending,
     sentTargets,
     failedRecipientsByTarget,
     openConfirm,
@@ -159,7 +173,7 @@ function useResultNoticeSend(recipients: ResultNoticeRecipients) {
   }
 }
 
-export { MOCK_SEND_INTERVAL_MS, useResultNoticeSend }
+export { useResultNoticeSend }
 export type {
   FailedRecipientsByTarget,
   ResultNoticeRecipients,

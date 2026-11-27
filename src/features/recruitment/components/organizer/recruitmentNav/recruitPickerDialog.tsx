@@ -19,6 +19,7 @@ import { OrganizationLoadError } from '@/features/organization/components/organi
 import { useOrganizationPostingsQuery } from '@/features/posting/api/organizer/queries'
 import { PostingStartDialog } from '@/features/posting/components/postingCreate/postingStartDialog'
 import { MANAGED_POSTING_TAB_STATUSES } from '@/features/posting/utils/managedPosting'
+import { getPostingEditPath } from '@/features/posting/utils/postingCreateRoute'
 import { getRecruitmentDday } from '@/features/posting/utils/recruitmentDday'
 import { getPostingManageDetailPath } from '@/features/recruitment/utils/recruitmentRoutes'
 import type { ManagedPostingFieldsFragment } from '@/gql/graphql'
@@ -110,7 +111,12 @@ function RecruitPickerTabs({ organizationId, currentPostingId, onClose }: Recrui
       return
     }
     showToast({ title: `${withDirectionParticle(posting.title)} 전환했어요` })
-    router.push(getPostingManageDetailPath(posting.id))
+    // 작성 중 공고는 저장된 상태로 이어서 작성
+    router.push(
+      posting.status === 'DRAFT'
+        ? getPostingEditPath(posting.id)
+        : getPostingManageDetailPath(posting.id),
+    )
   }
 
   return (
@@ -181,17 +187,6 @@ function RecruitPickerList({ tab, postings, currentPostingId, onSelect }: Recrui
       {postings.map((posting) => {
         const isCurrent = posting.id === currentPostingId
         const dday = getRecruitmentDday(posting, now)
-
-        // TODO: #130 머지 후 getPostingEditPath로 이동 연결, 그 전에는 404라 선택 막음
-        if (tab === 'draft') {
-          return (
-            <li key={posting.id} className={ROW_CLASS}>
-              <span className="min-w-0 flex-1 truncate text-body1 font-bold text-neutral">
-                {posting.title}
-              </span>
-            </li>
-          )
-        }
 
         return (
           <li key={posting.id}>

@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button/button'
+import { ServerPostingUnsupportedButton } from '@/features/posting/components/demoServerPosting/serverPostingUnsupportedButton'
 import type { ManagedPosting } from '@/features/posting/types'
+import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import { RecruitmentStageGuide } from '@/features/recruitment/components/organizer/recruitmentStage/recruitmentStageGuide'
 import { RecruitmentStepper } from '@/features/recruitment/components/organizer/recruitmentStage/recruitmentStepper'
 import { getPostingManageDetailPath } from '@/features/recruitment/utils/recruitmentRoutes'
@@ -48,14 +50,24 @@ function ManagedPostingActions({ organizationId, posting }: ManagedPostingCardPr
             </p>
           )}
           <div className="flex shrink-0 items-center gap-gap-xs">
-            {upRank !== null && (
-              <PostingUpDialog
-                organizationId={organizationId}
-                postingId={id}
-                title={title}
-                latestRank={upRank}
-              />
-            )}
+            {upRank !== null &&
+              // 시연 모드의 실서버 공고는 서버에 UP이 없어 안내만 (전시회 후 삭제)
+              (isServerPosting(id) ? (
+                <ServerPostingUnsupportedButton
+                  variant="brand"
+                  size="s"
+                  aria-label={`${title} UP하기`}
+                >
+                  UP하기
+                </ServerPostingUnsupportedButton>
+              ) : (
+                <PostingUpDialog
+                  organizationId={organizationId}
+                  postingId={id}
+                  title={title}
+                  latestRank={upRank}
+                />
+              ))}
             <Button asChild variant="secondary" size="s">
               <Link href={getPostingManageDetailPath(id)} aria-label={`${title} 관리하기`}>
                 관리하기

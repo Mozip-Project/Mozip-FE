@@ -187,17 +187,26 @@ type RecipientDelivery =
 // 면접 정보 안내에서만 있음, 확정한 타임테이블 값
 type ResultNoticeInterviewSchedule = {
   dateTime: string
-  place: string
+  // 장소를 정하지 않은 면접 칸은 null
+  place: string | null
 }
 
 type ResultNoticeRecipient = {
   id: string
   name: string
-  position: DocumentReviewPosition
-  email: string
+  // 서버 포지션 이름, 포지션 없는 모집은 null
+  position: string | null
+  // 연락 이메일이 없으면 null
+  email: string | null
   delivery: RecipientDelivery
   interviewSchedule?: ResultNoticeInterviewSchedule
 }
+
+// 발송 중 재조회 간격, 진행 막대 전환 시간과 같음
+const RESULT_NOTICE_POLL_INTERVAL_MS = 2000
+
+// 이미 발송했거나 발송 중인 메시지에 저장·발송 요청
+const MESSAGE_ALREADY_SENT_CODE = 'MESSAGE_409'
 
 // 서류 결과만 안내(취합에서 진입)와 면접 정보까지 안내(타임테이블 확정 후 진입)
 type ResultNoticeKind = 'document' | 'interview'
@@ -208,18 +217,12 @@ const RESULT_NOTICE_SEND_SUBJECT = {
   interview: '서류 결과와 면접 일정을',
 } satisfies Record<ResultNoticeKind, string>
 
-type ResultNoticeOverview = {
-  organizationName: string
-  // 면접 정보 안내에서만 있음
-  interviewPeriod?: string
-  // 확정된 합격·불합격 지원자, 탭 숫자도 이 인원 기준
-  recipients: Record<ResultNoticeTarget, ResultNoticeRecipient[]>
-}
-
 // 대상 하나의 발송 결과, 받는 사람별 전달 상태 포함
 type ResultNoticeTargetSendResult = {
   message: ResultNoticeMessage
   recipients: ResultNoticeRecipient[]
+  // 발송 중이면 받는 사람별 결과 대신 진행률 조회의 전달 수
+  sendingDeliveredCount?: number
 }
 
 // 이메일 확인 필요 인원은 발송 인원에서 제외
@@ -234,8 +237,12 @@ type ResultNoticeMissingField = 'subject' | 'body' | 'both'
 
 // 결과 안내 하단 바 상태
 type ResultNoticeSendState =
-  // 불합격자 0명, 합격 메시지만 확인. 빈 칸이 없으면 missingField는 null
-  | { type: 'allPassed'; missingField: ResultNoticeMissingField | null }
+  // 한쪽 탭 받는 사람 0명, target 메시지만 확인. 빈 칸이 없으면 missingField는 null
+  | {
+      type: 'singleTarget'
+      target: ResultNoticeTarget
+      missingField: ResultNoticeMissingField | null
+    }
   // 불합격자 탭에 들어가기 전(지금 탭은 합격자), 불합격자 탭 진입 시 확인 처리
   | { type: 'reviewPending'; canSendCurrent: boolean }
   // target은 빈 칸이 있는 탭, 지금 탭이 아니면 지금 탭만 발송 가능
@@ -359,6 +366,8 @@ export {
   NO_INTERVIEW_RECRUITMENT_STAGES,
   RESULT_NOTICE_SEND_SUBJECT,
   RESULT_NOTICE_TARGET_LABEL,
+  MESSAGE_ALREADY_SENT_CODE,
+  RESULT_NOTICE_POLL_INTERVAL_MS,
   RESULT_NOTICE_TARGETS,
   RESULT_NOTICE_VARIABLES,
 }
@@ -395,7 +404,6 @@ export type {
   ResultNoticeKind,
   ResultNoticeMessage,
   ResultNoticeMissingField,
-  ResultNoticeOverview,
   ResultNoticeRecipient,
   ResultNoticeTargetSendResult,
   ResultNoticeSendState,

@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/Button/button'
 import { CHIP_SHAPE_CLASS } from '@/components/ui/Chip/chip'
 import { TextArea } from '@/components/ui/TextArea/textArea'
 import { TextField } from '@/components/ui/TextField/textField'
-import { RESULT_NOTICE_BODY_MAX_LENGTH } from '@/features/recruitment/schemas/resultNoticeMessageSchema'
+import {
+  RESULT_NOTICE_BODY_MAX_LENGTH,
+  RESULT_NOTICE_SUBJECT_MAX_LENGTH,
+} from '@/features/recruitment/schemas/resultNoticeMessageSchema'
 import type { ResultNoticeVariable } from '@/features/recruitment/types'
 import { cn } from '@/lib/utils'
 import { getTextLength, insertTextAt } from '@/utils/text'
@@ -99,6 +102,7 @@ function MessageEditor({
         required
         placeholder="메일 제목을 입력해 주세요"
         value={subject}
+        maxLength={RESULT_NOTICE_SUBJECT_MAX_LENGTH}
         onChange={(event) => onSubjectChange(event.target.value)}
         onBlur={onSubjectBlur}
         aria-invalid={subjectError ? true : undefined}

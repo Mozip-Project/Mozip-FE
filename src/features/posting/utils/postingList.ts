@@ -74,7 +74,7 @@ function toPostingsVariables(query: PostingListQuery, size: number): PostingsQue
   return {
     filter: {
       keyword: keyword === '' ? undefined : keyword,
-      organizationType: toFilterInput(
+      organizationTypes: toFilterInput(
         query.activityTypes,
         POSTING_ACTIVITY_TYPES,
         ACTIVITY_TYPE_INPUT,
