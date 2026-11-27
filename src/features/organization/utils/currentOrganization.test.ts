@@ -4,7 +4,7 @@ import { resolveCurrentOrganizationId, toUniqueOrganizations } from './currentOr
 function createMembership(organizationId: string) {
   return {
     role: 'OPERATOR' as const,
-    organization: { id: organizationId, name: `단체 ${organizationId}` },
+    organization: { id: organizationId, name: `단체 ${organizationId}`, logoUrl: null },
   }
 }
 
@@ -53,8 +53,8 @@ describe('toUniqueOrganizations', () => {
     expect(
       toUniqueOrganizations([createMembership('2'), createMembership('1'), createMembership('2')]),
     ).toEqual([
-      { id: '2', name: '단체 2' },
-      { id: '1', name: '단체 1' },
+      { id: '2', name: '단체 2', logoUrl: null },
+      { id: '1', name: '단체 1', logoUrl: null },
     ])
   })
 })

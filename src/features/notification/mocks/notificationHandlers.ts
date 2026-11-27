@@ -10,6 +10,7 @@ import type {
   NotificationUnreadCountQueryVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 
 type NotificationItems = NotificationPage
@@ -39,7 +40,7 @@ function createNotificationItems(): NotificationItems {
       linkUrl: '/manage/organization/members',
       isRead: false,
       createdAt: timeAgo(0),
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
     },
     {
       id: '2',
@@ -57,7 +58,7 @@ function createNotificationItems(): NotificationItems {
       linkUrl: '/manage/organization/members',
       isRead: false,
       createdAt: timeAgo(30 * MINUTE_MS),
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
     },
     {
       id: '4',
@@ -84,7 +85,7 @@ function createNotificationItems(): NotificationItems {
       linkUrl: '/manage/recruitments',
       isRead: true,
       createdAt: timeAgo(DAY_MS),
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
     },
     {
       id: '7',
@@ -102,7 +103,7 @@ function createNotificationItems(): NotificationItems {
       linkUrl: '/manage/recruitments',
       isRead: true,
       createdAt: timeAgo(3 * DAY_MS),
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
     },
     {
       id: '9',
@@ -129,7 +130,7 @@ function createNotificationItems(): NotificationItems {
       linkUrl: '/applications',
       isRead: true,
       createdAt: timeAgo(29 * DAY_MS),
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
     },
   ]
 }

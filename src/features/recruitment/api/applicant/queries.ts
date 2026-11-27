@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   getApplicantProfile,
   getMyApplications,
+  getPostingApplicationForm,
   getPostingMyApplications,
   getSubmittedApplication,
   saveApplicationDraft,
@@ -13,6 +14,14 @@ function useApplicantProfileQuery() {
   return useQuery({
     queryKey: applicantApplicationKeys.profile,
     queryFn: getApplicantProfile,
+  })
+}
+
+// 운영진 공고 미리보기의 지원서 탭용, 지원서 작성 화면은 서버에서 직접 조회
+function usePostingApplicationFormQuery(postingId: string) {
+  return useQuery({
+    queryKey: applicantApplicationKeys.form(postingId),
+    queryFn: () => getPostingApplicationForm(postingId),
   })
 }
 
@@ -56,6 +65,7 @@ function useSubmitApplicationMutation() {
 export {
   useApplicantProfileQuery,
   useMyApplicationsQuery,
+  usePostingApplicationFormQuery,
   usePostingMyApplicationsQuery,
   useSaveApplicationDraftMutation,
   useSubmitApplicationMutation,

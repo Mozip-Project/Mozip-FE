@@ -120,7 +120,7 @@ function DocumentEvaluationForm({
         <EvaluationPanelHeader saveState={saveState} />
       </div>
       <form onSubmit={submitAndMove} className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-col gap-gap-xl overflow-y-auto p-padding-xl">
+        <div className="flex min-h-0 [scrollbar-width:none] flex-col gap-gap-xl overflow-y-auto p-padding-xl [&::-webkit-scrollbar]:hidden">
           <div className="flex flex-col gap-gap-s">
             <p id={opinionLabelId} className="text-label1 font-semibold text-neutral-muted">
               의견

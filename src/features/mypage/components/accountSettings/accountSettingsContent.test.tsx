@@ -71,7 +71,7 @@ describe('AccountSettingsContent', () => {
     expect(screen.getByText('010-****-5678')).toBeInTheDocument()
     expect(screen.getByText('모집대학교')).toBeInTheDocument()
     expect(screen.getByText('mozip@mozip.ac.kr')).toBeInTheDocument()
-    expect(screen.getByText('UXUX')).toBeInTheDocument()
+    expect(screen.getByText('한국대학생IT경영학회')).toBeInTheDocument()
     expect(screen.getByText('대표자')).toBeInTheDocument()
     expect(screen.getByText('멋쟁이개발자')).toBeInTheDocument()
   })

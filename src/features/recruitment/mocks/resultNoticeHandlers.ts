@@ -19,6 +19,7 @@ import type {
   SendMessagesMutationVariables,
 } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { getTextLength } from '@/utils/text'
 import {
@@ -197,7 +198,7 @@ function buildResultMessages(
   return {
     posting: {
       id: posting.id,
-      organization: { name: 'UXUX' },
+      organization: { name: MOCK_ORGANIZATION_NAME },
       interviewTimeRanges: posting.hasInterview ? INTERVIEW_DATES.map((date) => ({ date })) : [],
     },
     pass: toPanel('PASS'),

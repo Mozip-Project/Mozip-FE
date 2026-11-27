@@ -2,6 +2,7 @@ import { delay, HttpResponse } from 'msw'
 import { isServerPosting } from '@/features/posting/utils/demoServerPosting'
 import type { PostingQuery, PostingQueryVariables } from '@/gql/graphql'
 import { graphqlApi } from '@/mocks/graphqlApi'
+import { MOCK_ORGANIZATION_LOGO_URL, MOCK_ORGANIZATION_NAME } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { addDaysToIsoDate, getSeoulIsoDate } from '@/utils/date'
 import { fetchServerPostingDetail, toServerErrorBody } from './demoServerPostings'
@@ -102,9 +103,9 @@ const SW_COUNCIL_CONTENT_HTML = [
 ].join('')
 
 const UXUX_ORGANIZATION = {
-  name: 'UXUX',
+  name: MOCK_ORGANIZATION_NAME,
   type: 'CLUB',
-  logoUrl: null,
+  logoUrl: MOCK_ORGANIZATION_LOGO_URL,
   tagline: '성균관대 UI/UX 디자인 동아리 14기 모집',
   keywords: ['UX', '디자인', '피그마', '프로토타이핑'],
   fields: ['IT_DEV', 'DESIGN_MEDIA'],
