@@ -62,8 +62,12 @@ function RecruitPickerDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="my-auto w-120 items-stretch gap-5 p-7" aria-describedby={undefined}>
-        <div className="flex items-start gap-gap-m">
+      {/* 화면 높이를 넘으면 목록만 안에서 스크롤 */}
+      <DialogContent
+        className="my-auto max-h-full w-120 items-stretch gap-5 p-7"
+        aria-describedby={undefined}
+      >
+        <div className="flex shrink-0 items-start gap-gap-m">
           <DialogTitle className="min-w-0 flex-1 text-heading2 font-bold text-neutral">
             모집 선택
           </DialogTitle>
@@ -80,7 +84,7 @@ function RecruitPickerDialog({
           onClose={() => setIsOpen(false)}
         />
         <PostingStartDialog onNext={() => setIsOpen(false)}>
-          <Button size="l" className="w-full">
+          <Button size="l" className="w-full shrink-0">
             <PlusIcon aria-hidden />새 공고 만들기
           </Button>
         </PostingStartDialog>
@@ -121,6 +125,7 @@ function RecruitPickerTabs({ organizationId, currentPostingId, onClose }: Recrui
 
   return (
     <Tabs
+      className="flex min-h-0 flex-col"
       value={tab}
       onValueChange={(value) => {
         if (isOneOf(PICKER_TABS, value)) {
@@ -128,7 +133,7 @@ function RecruitPickerTabs({ organizationId, currentPostingId, onClose }: Recrui
         }
       }}
     >
-      <TabsList aria-label="모집 상태" className="mb-5">
+      <TabsList aria-label="모집 상태" className="mb-5 shrink-0">
         {PICKER_TABS.map((value) => (
           <TabsTrigger key={value} value={value} count={queries[value].data?.length ?? null}>
             {PICKER_TAB_LABEL[value]}
@@ -139,7 +144,7 @@ function RecruitPickerTabs({ organizationId, currentPostingId, onClose }: Recrui
         const query = queries[value]
 
         return (
-          <TabsContent key={value} value={value}>
+          <TabsContent key={value} value={value} className="min-h-0 overflow-y-auto">
             {query.isError ? (
               <OrganizationLoadError
                 message="모집 목록을 불러오지 못했어요"
@@ -158,6 +163,11 @@ function RecruitPickerTabs({ organizationId, currentPostingId, onClose }: Recrui
       })}
     </Tabs>
   )
+}
+
+// 목록이 길어도 열 때 현재 공고가 보이도록 처리
+function scrollIntoListView(element: HTMLElement | null) {
+  element?.scrollIntoView({ block: 'nearest' })
 }
 
 type RecruitPickerListProps = {
@@ -191,6 +201,7 @@ function RecruitPickerList({ tab, postings, currentPostingId, onSelect }: Recrui
         return (
           <li key={posting.id}>
             <button
+              ref={isCurrent ? scrollIntoListView : undefined}
               type="button"
               aria-current={isCurrent || undefined}
               onClick={() => onSelect(posting)}
