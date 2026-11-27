@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 import ChevronDownIcon from '@/assets/icons/chevronDown.svg'
 import {
   DropdownMenu,
@@ -16,7 +17,7 @@ const LOGO_SIZE_PX = 24
 type OrganizationOption = {
   id: string
   name: string
-  // 없으면 이름 첫 글자 표시
+  // 없거나 불러오지 못하면 이름 첫 글자 표시
   logoUrl?: string | null
 }
 
@@ -40,7 +41,10 @@ function OrganizationSelector({
     (organization) => organization.id === currentOrganizationId,
   )
   const currentName = currentOrganization?.name ?? ''
-  const currentLogoUrl = currentOrganization?.logoUrl
+  // 단체를 바꾸면 다시 시도하도록 실패한 주소를 기억
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null)
+  const logoUrl = currentOrganization?.logoUrl
+  const currentLogoUrl = logoUrl && logoUrl !== failedLogoUrl ? logoUrl : null
   const options = organizations.map(({ id, name }) => ({ value: id, label: name }))
 
   return (
@@ -63,6 +67,7 @@ function OrganizationSelector({
               fill
               sizes={`${LOGO_SIZE_PX}px`}
               className="object-cover"
+              onError={() => setFailedLogoUrl(currentLogoUrl)}
             />
           ) : (
             currentName.slice(0, 1)
