@@ -28,6 +28,7 @@ function TimetableTrackHeader({
   onLocationApply,
 }: TimetableTrackHeaderProps) {
   const [isLocationOpen, setIsLocationOpen] = useState(false)
+  const locationTitle = `${trackLabel} 장소 한 번에 입력`
   const title = <span className="text-label1 font-semibold text-neutral">{trackLabel}</span>
 
   if (!isReadOnly) {
@@ -58,12 +59,13 @@ function TimetableTrackHeader({
         </span>
       </PopoverAnchor>
       <PopoverContent
+        aria-label={locationTitle}
         sideOffset={POPOVER_BELOW_OFFSET_PX}
         className="w-(--radix-popover-trigger-width) border-neutral-muted p-padding-l"
       >
         {/* 처음 열면 입력창은 비어 있고 바로 입력 가능 */}
         <LocationPopoverContent
-          title={`${trackLabel} 장소 한 번에 입력`}
+          title={locationTitle}
           initialLocation=""
           recentLocations={recentLocations}
           onApply={(location) => {

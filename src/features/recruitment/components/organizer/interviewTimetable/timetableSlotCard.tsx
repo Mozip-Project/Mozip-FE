@@ -151,6 +151,7 @@ function TimetableSlotCard({
       </PopoverAnchor>
       {isReadOnly ? (
         <PopoverContent
+          aria-label="면접 장소 변경"
           sideOffset={POPOVER_BELOW_OFFSET_PX}
           className="w-(--radix-popover-trigger-width) border-neutral-muted p-padding-l"
         >
