@@ -1,5 +1,8 @@
 import { Suspense } from 'react'
-import { ResultNoticeContent } from '@/features/recruitment/components/organizer/resultNotice/resultNoticeContent'
+import {
+  ResultNoticeContent,
+  ResultNoticeContentFallback,
+} from '@/features/recruitment/components/organizer/resultNotice/resultNoticeContent'
 import {
   ResultNoticeHeader,
   ResultNoticeHeaderFallback,
@@ -13,7 +16,10 @@ export default function InterviewResultNoticePage({
       <Suspense fallback={<ResultNoticeHeaderFallback kind="interview" />}>
         <ResultNoticeHeader kind="interview" params={params} />
       </Suspense>
-      <ResultNoticeContent kind="interview" />
+      {/* URL의 공고 ID를 읽어 정적 셸엔 스켈레톤만 포함 */}
+      <Suspense fallback={<ResultNoticeContentFallback />}>
+        <ResultNoticeContent kind="interview" />
+      </Suspense>
     </div>
   )
 }

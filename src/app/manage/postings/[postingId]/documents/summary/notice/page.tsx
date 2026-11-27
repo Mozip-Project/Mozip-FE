@@ -1,5 +1,8 @@
 import { Suspense } from 'react'
-import { ResultNoticeContent } from '@/features/recruitment/components/organizer/resultNotice/resultNoticeContent'
+import {
+  ResultNoticeContent,
+  ResultNoticeContentFallback,
+} from '@/features/recruitment/components/organizer/resultNotice/resultNoticeContent'
 import {
   ResultNoticeHeader,
   ResultNoticeHeaderFallback,
@@ -13,7 +16,10 @@ export default function ResultNoticePage({
       <Suspense fallback={<ResultNoticeHeaderFallback kind="document" />}>
         <ResultNoticeHeader kind="document" params={params} />
       </Suspense>
-      <ResultNoticeContent kind="document" />
+      {/* URL의 공고 ID를 읽어 정적 셸엔 스켈레톤만 포함 */}
+      <Suspense fallback={<ResultNoticeContentFallback />}>
+        <ResultNoticeContent kind="document" />
+      </Suspense>
     </div>
   )
 }

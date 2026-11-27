@@ -59,7 +59,7 @@ function ResultNoticeContent({ kind }: ResultNoticeContentProps) {
 }
 
 // TODO: 로딩·실패·확정 전(MESSAGE_409) 화면 디자인 확인
-function ResultNoticeContentFallback({ isError }: { isError: boolean }) {
+function ResultNoticeContentFallback({ isError = false }: { isError?: boolean }) {
   if (isError) {
     return (
       <div role="alert">
@@ -113,7 +113,7 @@ function ResultNoticeTabs({ kind, postingId, notice, recipients }: ResultNoticeT
     currentTarget,
     recipientCounts,
     sendCounts,
-    hasFailRecipients,
+    emptyTarget,
     sendState,
     pendingTargets,
     failedRowFocusRequest,
@@ -166,8 +166,8 @@ function ResultNoticeTabs({ kind, postingId, notice, recipients }: ResultNoticeT
       <div data-sticky-bar-content="">
         {RESULT_NOTICE_TARGETS.map((target) => (
           <TabsContent key={target} value={target} className="flex flex-col gap-gap-m">
-            {target === 'fail' && !hasFailRecipients ? (
-              <AllPassedEmptyState />
+            {target === emptyTarget ? (
+              <EmptyTargetState target={target} />
             ) : (
               <ResultNoticePanel
                 target={target}
@@ -208,14 +208,19 @@ function ResultNoticeTabs({ kind, postingId, notice, recipients }: ResultNoticeT
   )
 }
 
-function AllPassedEmptyState() {
-  return (
-    <EmptyState
-      icon={<UsersIcon className="size-7" />}
-      title="불합격자가 없어요"
-      description="이번 서류 전형은 모두 합격이에요. 합격자 탭에서 합격 안내를 발송해 주세요."
-    />
-  )
+const EMPTY_TARGET_TEXT = {
+  pass: {
+    title: '합격자가 없어요',
+    description: '이번 서류 전형은 모두 불합격이에요. 불합격자 탭에서 불합격 안내를 발송해 주세요.',
+  },
+  fail: {
+    title: '불합격자가 없어요',
+    description: '이번 서류 전형은 모두 합격이에요. 합격자 탭에서 합격 안내를 발송해 주세요.',
+  },
+} satisfies Record<ResultNoticeTarget, { title: string; description: string }>
+
+function EmptyTargetState({ target }: { target: ResultNoticeTarget }) {
+  return <EmptyState icon={<UsersIcon className="size-7" />} {...EMPTY_TARGET_TEXT[target]} />
 }
 
 type ResultNoticeTabsListProps = {
@@ -247,4 +252,4 @@ function ResultNoticeTabsList({ ref, recipientCounts, pendingTargets }: ResultNo
   )
 }
 
-export { ResultNoticeContent }
+export { ResultNoticeContent, ResultNoticeContentFallback }
