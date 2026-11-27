@@ -313,6 +313,8 @@ function PostingCreateForm({
         <PostingReviewStep
           values={getValues()}
           hasInterview={hasInterview}
+          organizationId={currentOrganizationId}
+          postingId={postingId}
           onEditStep={handleEditStep}
         />
       )}
