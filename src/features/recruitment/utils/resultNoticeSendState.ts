@@ -30,7 +30,8 @@ function getMissingField({ subject, body }: ResultNoticeMessage): ResultNoticeMi
 
 type ResultNoticeSendStateInput = {
   currentTarget: ResultNoticeTarget
-  hasFailRecipients: boolean
+  // 받는 사람이 0명인 탭, 없으면 null
+  emptyTarget: ResultNoticeTarget | null
   hasReviewedFailMessage: boolean
   messages: Record<ResultNoticeTarget, ResultNoticeMessage>
   isSending: boolean
@@ -40,7 +41,7 @@ type ResultNoticeSendStateInput = {
 // 발송 중·발송 결과를 먼저, 발송 전이면 불합격 메시지 확인 안내 다음 빈 칸 안내는 지금 탭부터
 function getResultNoticeSendState({
   currentTarget,
-  hasFailRecipients,
+  emptyTarget,
   hasReviewedFailMessage,
   messages,
   isSending,
@@ -50,8 +51,8 @@ function getResultNoticeSendState({
     return { type: 'sending' }
   }
 
-  // 불합격자가 없으면 합격자만 발송 대상
-  const requiredTargets = hasFailRecipients ? RESULT_NOTICE_TARGETS : (['pass'] as const)
+  // 받는 사람이 없는 탭은 발송 대상에서 제외
+  const requiredTargets = RESULT_NOTICE_TARGETS.filter((target) => target !== emptyTarget)
   const unsentTargets = requiredTargets.filter((target) => !sentTargets.includes(target))
   const [unsentTarget] = unsentTargets
 
@@ -67,9 +68,14 @@ function getResultNoticeSendState({
     }
   }
 
-  // 불합격자가 없으면 불합격 메시지 확인, 입력 없이 합격 메시지만 확인
-  if (!hasFailRecipients) {
-    return { type: 'allPassed', missingField: getMissingField(messages.pass) }
+  // 한쪽이 0명이면 불합격 메시지 확인 없이 남은 탭 메시지만 확인
+  const [singleTarget] = requiredTargets
+  if (emptyTarget && singleTarget) {
+    return {
+      type: 'singleTarget',
+      target: singleTarget,
+      missingField: getMissingField(messages[singleTarget]),
+    }
   }
 
   const currentMissingField = getMissingField(messages[currentTarget])

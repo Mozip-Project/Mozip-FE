@@ -234,8 +234,12 @@ type ResultNoticeMissingField = 'subject' | 'body' | 'both'
 
 // 결과 안내 하단 바 상태
 type ResultNoticeSendState =
-  // 불합격자 0명, 합격 메시지만 확인. 빈 칸이 없으면 missingField는 null
-  | { type: 'allPassed'; missingField: ResultNoticeMissingField | null }
+  // 한쪽 탭 받는 사람 0명, target 메시지만 확인. 빈 칸이 없으면 missingField는 null
+  | {
+      type: 'singleTarget'
+      target: ResultNoticeTarget
+      missingField: ResultNoticeMissingField | null
+    }
   // 불합격자 탭에 들어가기 전(지금 탭은 합격자), 불합격자 탭 진입 시 확인 처리
   | { type: 'reviewPending'; canSendCurrent: boolean }
   // target은 빈 칸이 있는 탭, 지금 탭이 아니면 지금 탭만 발송 가능

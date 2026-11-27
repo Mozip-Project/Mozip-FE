@@ -15,7 +15,7 @@ describe('getResultNoticeSendState', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: false,
         messages: { pass: EMPTY, fail: EMPTY },
         ...NOT_SENT,
@@ -27,7 +27,7 @@ describe('getResultNoticeSendState', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: EMPTY, fail: FILLED },
         ...NOT_SENT,
@@ -39,7 +39,7 @@ describe('getResultNoticeSendState', () => {
     const stateOf = (message: ResultNoticeMessage) =>
       getResultNoticeSendState({
         currentTarget: 'fail',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail: message },
         ...NOT_SENT,
@@ -54,7 +54,7 @@ describe('getResultNoticeSendState', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: false,
         messages: { pass: FILLED, fail: EMPTY },
         ...NOT_SENT,
@@ -66,7 +66,7 @@ describe('getResultNoticeSendState', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail: { subject: '', body: '본문' } },
         ...NOT_SENT,
@@ -78,7 +78,7 @@ describe('getResultNoticeSendState', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'fail',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail: FILLED },
         ...NOT_SENT,
@@ -90,24 +90,37 @@ describe('getResultNoticeSendState', () => {
     const stateOf = (pass: ResultNoticeMessage) =>
       getResultNoticeSendState({
         currentTarget: 'fail',
-        hasFailRecipients: false,
+        emptyTarget: 'fail',
         hasReviewedFailMessage: false,
         messages: { pass, fail: EMPTY },
         ...NOT_SENT,
       })
 
-    expect(stateOf(FILLED)).toEqual({ type: 'allPassed', missingField: null })
+    expect(stateOf(FILLED)).toEqual({ type: 'singleTarget', target: 'pass', missingField: null })
     expect(stateOf({ subject: '', body: '본문' })).toEqual({
-      type: 'allPassed',
+      type: 'singleTarget',
+      target: 'pass',
       missingField: 'subject',
     })
+  })
+
+  it('합격자가 없으면 합격 입력 없이 불합격 메시지만 확인', () => {
+    expect(
+      getResultNoticeSendState({
+        currentTarget: 'pass',
+        emptyTarget: 'pass',
+        hasReviewedFailMessage: false,
+        messages: { pass: EMPTY, fail: { subject: '제목', body: '' } },
+        ...NOT_SENT,
+      }),
+    ).toEqual({ type: 'singleTarget', target: 'fail', missingField: 'body' })
   })
 
   it('발송 중이면 입력 상태와 관계없이 발송 중', () => {
     expect(
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail: FILLED },
         isSending: true,
@@ -120,7 +133,7 @@ describe('getResultNoticeSendState', () => {
     const stateOf = (fail: ResultNoticeMessage) =>
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients: true,
+        emptyTarget: null,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail },
         isSending: false,
@@ -135,19 +148,23 @@ describe('getResultNoticeSendState', () => {
     expect(stateOf(EMPTY)).toMatchObject({ canSendUnsent: false })
   })
 
-  it('발송 대상을 모두 보냈으면 모두 발송, 불합격자가 없으면 합격자만 보내도 모두 발송', () => {
-    const stateOf = (hasFailRecipients: boolean, sentTargets: readonly ResultNoticeTarget[]) =>
+  it('발송 대상을 모두 보냈으면 모두 발송, 한쪽이 0명이면 남은 탭만 보내도 모두 발송', () => {
+    const stateOf = (
+      emptyTarget: ResultNoticeTarget | null,
+      sentTargets: readonly ResultNoticeTarget[],
+    ) =>
       getResultNoticeSendState({
         currentTarget: 'pass',
-        hasFailRecipients,
+        emptyTarget,
         hasReviewedFailMessage: true,
         messages: { pass: FILLED, fail: FILLED },
         isSending: false,
         sentTargets,
       })
 
-    expect(stateOf(true, ['pass', 'fail'])).toEqual({ type: 'allSent' })
-    expect(stateOf(false, ['pass'])).toEqual({ type: 'allSent' })
+    expect(stateOf(null, ['pass', 'fail'])).toEqual({ type: 'allSent' })
+    expect(stateOf('fail', ['pass'])).toEqual({ type: 'allSent' })
+    expect(stateOf('pass', ['fail'])).toEqual({ type: 'allSent' })
   })
 })
 

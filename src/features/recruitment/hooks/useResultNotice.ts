@@ -6,7 +6,7 @@ import {
   resultNoticeFormSchema,
   type ResultNoticeFormValues,
 } from '@/features/recruitment/schemas/resultNoticeMessageSchema'
-import type { ResultNoticeTarget } from '@/features/recruitment/types'
+import { RESULT_NOTICE_TARGETS, type ResultNoticeTarget } from '@/features/recruitment/types'
 import {
   getPendingTargets,
   getResultNoticeSendState,
@@ -60,12 +60,12 @@ function useResultNotice({ postingId, notice, recipients }: UseResultNoticeOptio
     pass: notice.pass.sendableCount,
     fail: notice.fail.sendableCount,
   } satisfies Record<ResultNoticeTarget, number>
-  const hasFailRecipients = recipientCounts.fail > 0
+  const emptyTarget = RESULT_NOTICE_TARGETS.find((target) => recipientCounts[target] === 0) ?? null
   const hasReviewedFailMessage = hasOpenedFailTab || notice.fail.message !== null
 
   const sendState = getResultNoticeSendState({
     currentTarget,
-    hasFailRecipients,
+    emptyTarget,
     hasReviewedFailMessage,
     messages: { pass: passMessage, fail: failMessage },
     isSending: sendFlow.isSending,
@@ -112,7 +112,7 @@ function useResultNotice({ postingId, notice, recipients }: UseResultNoticeOptio
     currentTarget,
     recipientCounts,
     sendCounts,
-    hasFailRecipients,
+    emptyTarget,
     sendState,
     pendingTargets,
     failedRowFocusRequest,
