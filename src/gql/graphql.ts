@@ -32,6 +32,11 @@ export type ApplicationSort =
   | 'SUBMITTED_ASC'
   | 'SUBMITTED_DESC';
 
+/** 지원서, 답변, 첨부 */
+export type ApplicationStatus =
+  | 'DRAFT'
+  | 'SUBMITTED';
+
 /** 면접관 자동 배정 기준 (포지션 없는 모집은 자동 배정 없이 직접 추가) */
 export type AssignRule =
   /** 팀 상관없이 운영진 전체 */
@@ -532,6 +537,18 @@ export type ApplicantProfileQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ApplicantProfileQuery = { me: { id: string, name: string, phone: string, profileImageUrl: string | null, school: { name: string } | null, schoolVerification: { schoolName: string | null, email: string | null, school: { name: string } | null } | null } };
 
+export type SubmittedApplicationQueryVariables = Exact<{
+  id: string | number;
+}>;
+
+
+export type SubmittedApplicationQuery = { application: { id: string, submittedAt: string | null, availableTimes: Array<string>, position: { id: string, name: string } | null, posting: { id: string, title: string, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null, options: { activityFields: Array<ActivityField> | null } | null }> }, answers: Array<{ id: string, content: string | null, question: { id: string }, attachments: Array<{ id: string, type: AttachmentType, url: string, fileName: string | null }> }> } };
+
+export type MyApplicationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyApplicationsQuery = { myApplications: Array<{ id: string, status: ApplicationStatus, submittedAt: string | null, docResult: DocResult, finalResult: FinalResult, position: { id: string, name: string } | null, posting: { id: string, title: string, status: PostingStatus, hasInterview: boolean, docResultAt: string | null, finalResultAt: string | null, organization: { name: string } } }> };
+
 export type RecruitmentPostingQueryVariables = Exact<{
   id: string | number;
 }>;
@@ -581,7 +598,7 @@ export type PostingQuestionsQueryVariables = Exact<{
 }>;
 
 
-export type PostingQuestionsQuery = { posting: { id: string, questions: Array<{ id: string, type: QuestionType, sortOrder: number, position: { id: string } | null }> } };
+export type PostingQuestionsQuery = { posting: { id: string, questions: Array<{ id: string, type: QuestionType, title: string, description: string | null, required: boolean, maxLength: number | null, sortOrder: number, position: { id: string } | null, options: { activityFields: Array<ActivityField> | null } | null }> } };
 
 export type MyDocEvaluationQueryVariables = Exact<{
   applicationId: string | number;
@@ -1432,6 +1449,77 @@ export const ApplicantProfileDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ApplicantProfileQuery, ApplicantProfileQueryVariables>;
+export const SubmittedApplicationDocument = new TypedDocumentString(`
+    query SubmittedApplication($id: ID!) {
+  application(id: $id) {
+    id
+    submittedAt
+    availableTimes
+    position {
+      id
+      name
+    }
+    posting {
+      id
+      title
+      questions {
+        id
+        type
+        title
+        description
+        required
+        maxLength
+        sortOrder
+        position {
+          id
+        }
+        options {
+          activityFields
+        }
+      }
+    }
+    answers {
+      id
+      question {
+        id
+      }
+      content
+      attachments {
+        id
+        type
+        url
+        fileName
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<SubmittedApplicationQuery, SubmittedApplicationQueryVariables>;
+export const MyApplicationsDocument = new TypedDocumentString(`
+    query MyApplications {
+  myApplications {
+    id
+    status
+    submittedAt
+    docResult
+    finalResult
+    position {
+      id
+      name
+    }
+    posting {
+      id
+      title
+      status
+      hasInterview
+      docResultAt
+      finalResultAt
+      organization {
+        name
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<MyApplicationsQuery, MyApplicationsQueryVariables>;
 export const RecruitmentPostingDocument = new TypedDocumentString(`
     query RecruitmentPosting($id: ID!) {
   posting(id: $id) {
@@ -1579,9 +1667,16 @@ export const PostingQuestionsDocument = new TypedDocumentString(`
     questions {
       id
       type
+      title
+      description
+      required
+      maxLength
       sortOrder
       position {
         id
+      }
+      options {
+        activityFields
       }
     }
   }

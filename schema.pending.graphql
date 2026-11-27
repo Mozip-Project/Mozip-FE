@@ -47,6 +47,8 @@ extend type Query {
     keyword: String
     sort: ApplicationSort = SUBMITTED_DESC
   ): [DocEvaluationApplicationRow!]!
+  "내 지원: status 생략 시 전체, 만든 시각 최신순, 페이지 없음. docResult·finalResult는 결과 공개 단계 전까지 PENDING"
+  myApplications(status: ApplicationStatus): [Application!]!
   "지원서 상세: 개발 서버에는 있으나 schema:pull 충돌 이슈로 pull 전까지 임시 정의. 본인 또는 그 공고 단체 운영진만"
   application(id: ID!): Application!
   "서류 평가하기 패널: 로그인한 운영진의 그 지원서 평가, 평가 전이면 null. 확정 후에도 그대로 내려줌"
