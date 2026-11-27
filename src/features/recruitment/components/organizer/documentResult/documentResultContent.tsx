@@ -156,6 +156,7 @@ function DocumentResultContentFallback({ isError = false }: { isError?: boolean 
       tabsLabel="최종 결과"
       sortOptions={SORT_OPTIONS}
       positionOptions={[]}
+      canFilterPosition={false}
       isPending={false}
       skeleton={null}
       currentPage={1}
