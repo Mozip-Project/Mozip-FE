@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { ScenarioTracker } from '@/features/analytics/components/scenarioTracker'
 import { MockProvider } from '@/providers/mockProvider'
 import { QueryProvider } from '@/providers/queryProvider'
 import { pretendard } from '@/styles/fonts'
@@ -26,6 +28,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <MockProvider>
           <QueryProvider>{children}</QueryProvider>
         </MockProvider>
+        {/* 주소의 단계 값을 읽어 정적 렌더링 경계 필요 */}
+        <Suspense>
+          <ScenarioTracker />
+        </Suspense>
       </body>
     </html>
   )
