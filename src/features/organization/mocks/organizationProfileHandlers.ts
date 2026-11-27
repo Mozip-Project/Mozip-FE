@@ -37,7 +37,7 @@ function createInitialOrganizations(): Record<string, OrganizationProfileFieldsF
       tagline: '사용자 경험을 연구하고 만드는 동아리',
       fields: ['DESIGN_MEDIA', 'IT_DEV'],
       keywords: ['UX', '디자인', '프로토타이핑'],
-      links: [{ id: 'link-1', url: 'https://instagram.com/uxux' }],
+      links: [{ id: 'link-1', url: 'https://example.com/kusitms' }],
     },
     '2': {
       id: '2',
