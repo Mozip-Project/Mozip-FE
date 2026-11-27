@@ -4,9 +4,9 @@ import {
   useNotificationUnreadCountQuery,
 } from '@/features/notification/api/queries'
 import type { NotificationEntry } from '@/features/notification/types'
-import type { NotificationTab } from '@/gql/graphql'
+import type { Role } from '@/gql/graphql'
 
-function useNotificationPanel(tab: NotificationTab | undefined) {
+function useNotificationPanel(role: Role | undefined) {
   const {
     data: notifications,
     isError,
@@ -15,7 +15,7 @@ function useNotificationPanel(tab: NotificationTab | undefined) {
     isFetchingNextPage,
     isFetchNextPageError,
     fetchNextPage,
-  } = useNotificationsInfiniteQuery(tab)
+  } = useNotificationsInfiniteQuery(role)
   const { data: unreadCount } = useNotificationUnreadCountQuery()
   const { mutate: markNotificationsRead } = useMarkNotificationsReadMutation()
 
