@@ -84,9 +84,10 @@ function PostingDetailPreview({
           />
         </TabsContent>
 
-        {/* 단체 링크·다른 모집으로 이동 차단 */}
-        <TabsContent value="organization" inert>
-          {organization && <OrganizationIntroPanel organization={organization} now={now} />}
+        <TabsContent value="organization">
+          {organization && (
+            <OrganizationIntroPanel organization={organization} now={now} isPreview />
+          )}
         </TabsContent>
 
         <TabsContent value="questions">

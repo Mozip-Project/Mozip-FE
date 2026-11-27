@@ -15,9 +15,15 @@ import { RecruitRow } from './recruitRow'
 type OrganizationIntroPanelProps = {
   organization: PostingOrganization
   now: Date
+  // 공고 미리보기는 단체 링크·다른 모집으로 이동하지 않고 내용만 표시
+  isPreview?: boolean
 }
 
-function OrganizationIntroPanel({ organization, now }: OrganizationIntroPanelProps) {
+function OrganizationIntroPanel({
+  organization,
+  now,
+  isPreview = false,
+}: OrganizationIntroPanelProps) {
   const { name, logoUrl, tagline, fields, keywords, links, ongoingPostings } = organization
   const activityFieldLabels = fields.map((field) => ACTIVITY_CATEGORY_BY_FIELD[field]).join(', ')
 
@@ -49,7 +55,15 @@ function OrganizationIntroPanel({ organization, now }: OrganizationIntroPanelPro
               <ul className="flex flex-col gap-gap-s">
                 {links.map((url) => (
                   <li key={url} className="flex">
-                    {isHttpUrl(url) ? (
+                    {isHttpUrl(url) && isPreview && (
+                      <span className="flex min-w-0 items-center gap-gap-xs">
+                        <span className="shrink-0 underline">{getOrganizationLinkLabel(url)}</span>
+                        <span className="min-w-0 truncate text-label2 font-medium text-neutral-subtle">
+                          {formatLinkAddress(url)}
+                        </span>
+                      </span>
+                    )}
+                    {isHttpUrl(url) && !isPreview && (
                       <a
                         href={url}
                         target="_blank"
@@ -62,10 +76,9 @@ function OrganizationIntroPanel({ organization, now }: OrganizationIntroPanelPro
                         </span>
                         <span className="sr-only">(새 탭)</span>
                       </a>
-                    ) : (
-                      // 주소 형식이 아니면 상대 경로로 깨지지 않도록 글자만 표시
-                      <span className="min-w-0 truncate">{url}</span>
                     )}
+                    {/* 주소 형식이 아니면 상대 경로로 깨지지 않도록 글자만 표시 */}
+                    {!isHttpUrl(url) && <span className="min-w-0 truncate">{url}</span>}
                   </li>
                 ))}
               </ul>
@@ -80,7 +93,7 @@ function OrganizationIntroPanel({ organization, now }: OrganizationIntroPanelPro
                 ({ postingId, title, recruitmentStartsAt, recruitmentEndsAt }) => (
                   <li key={postingId}>
                     <RecruitRow
-                      href={getPostingDetailPath(postingId)}
+                      href={isPreview ? undefined : getPostingDetailPath(postingId)}
                       title={title}
                       phase={getPostingRecruitmentPhase(
                         recruitmentStartsAt,
