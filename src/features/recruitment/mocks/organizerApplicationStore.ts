@@ -1,8 +1,11 @@
 import { getManagedPostingSample } from '@/features/posting/mocks/managedPostingHandlers'
 import {
   findOrganizationPostingSample,
+  ORGANIZATION_POSTING_ID,
   ORGANIZATION_POSTING_SAMPLES,
 } from '@/features/posting/mocks/organizationPostingSamples'
+import { POSTING_SAMPLE_ID } from '@/features/posting/mocks/postingDetailHandlers'
+import { getMockAccount } from '@/features/user/mocks/userHandlers'
 import type {
   DocResult,
   MyDocEvaluationFieldsFragment,
@@ -10,6 +13,7 @@ import type {
   Opinion,
   PostingStatus,
 } from '@/gql/graphql'
+import { applicantApplications, type MockApplication } from './applicantApplicationStore'
 import { getSampleAnswers } from './documentEvaluationSample'
 import { DOCUMENT_RESULT_SAMPLE } from './documentResultSample'
 
@@ -39,7 +43,21 @@ type PostingApplication = {
   positionId: string
   submittedAt: string
   sample: SampleApplicant
+  // 지원서 작성 화면에서 낸 지원서, 샘플 지원자는 null
+  submitted: MockApplication | null
 }
+
+// 전체 공고의 시연용 공고에 낸 지원서가 들어오는 운영진 공고(같은 제목)
+const APPLY_POSTING_ID_BY_POSTING_ID: Partial<Record<string, string>> = {
+  [ORGANIZATION_POSTING_ID.docReview]: POSTING_SAMPLE_ID.open,
+}
+
+// 낸 지원서에 채우는 다른 운영진 두 명의 평가, 내 평가는 직접 하도록 비움
+const SUBMITTED_APPLICANT_SAMPLE = {
+  opinionCounts: { pass: 3, hold: 0, fail: 0 },
+  averageScore: 4.2,
+  result: 'pass',
+} satisfies Pick<SampleApplicant, 'opinionCounts' | 'averageScore' | 'result'>
 
 const SAMPLE_OPINIONS = ['pass', 'hold', 'fail'] as const satisfies readonly SampleOpinion[]
 
@@ -80,7 +98,35 @@ function toPostingApplications(postingId: string, applicantCount: number): Posti
       SAMPLE_FIRST_SUBMITTED_AT - index * SAMPLE_SUBMIT_INTERVAL_MS,
     ).toISOString(),
     sample,
+    submitted: null,
   }))
+}
+
+// 브라우저 MSW 메모리의 지원서라 새로고침하면 사라짐
+function toSubmittedApplications(postingId: string): PostingApplication[] {
+  const applyPostingId = APPLY_POSTING_ID_BY_POSTING_ID[postingId]
+  const { name } = getMockAccount()
+
+  return [...applicantApplications].flatMap(([id, submitted]): PostingApplication[] => {
+    const { positionId, submittedAt } = submitted
+    const position = DOCUMENT_RESULT_SAMPLE.find((sample) => sample.position === positionId)
+    if (submitted.postingId !== applyPostingId || !submittedAt || !position) {
+      return []
+    }
+
+    const sampleId = `my-${position.position}`
+    return [
+      {
+        id,
+        sampleId,
+        name,
+        positionId: position.position,
+        submittedAt,
+        sample: { ...SUBMITTED_APPLICANT_SAMPLE, id: sampleId, name, position: position.position },
+        submitted,
+      },
+    ]
+  })
 }
 
 // 운영진 홈 공고 상태를 따르는 공고와 지원자, 삭제됐거나 단체 공고가 아니면 null
@@ -91,7 +137,14 @@ function getPostingApplications(postingId: string) {
   if (!posting || !sample) {
     return null
   }
-  return { posting, sample, applications: toPostingApplications(postingId, sample.applicantCount) }
+  return {
+    posting,
+    sample,
+    applications: [
+      ...toSubmittedApplications(postingId),
+      ...toPostingApplications(postingId, sample.applicantCount),
+    ],
+  }
 }
 
 function findApplication(applicationId: string) {
@@ -113,13 +166,16 @@ function getMyInitialOpinion({ result, opinionCounts }: SampleApplicant): Sample
   return SAMPLE_OPINIONS.find((opinion) => opinionCounts[opinion] > 0) ?? result
 }
 
-function isMyInitiallyEvaluated({ sampleId }: PostingApplication, status: PostingStatus) {
+function isMyInitiallyEvaluated(
+  { sampleId, submitted }: PostingApplication,
+  status: PostingStatus,
+) {
   switch (status) {
     case 'DRAFT':
     case 'RECRUITING':
       return false
     case 'DOC_REVIEW':
-      return sampleId !== MY_UNEVALUATED_SAMPLE_ID
+      return !submitted && sampleId !== MY_UNEVALUATED_SAMPLE_ID
     case 'DOC_RESULT_NOTICE':
     case 'INTERVIEW':
     case 'FINAL_RESULT':

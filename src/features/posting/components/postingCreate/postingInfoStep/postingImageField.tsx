@@ -4,25 +4,18 @@ import { useId, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import InfoIcon from '@/assets/icons/info.svg'
 import { FieldLabel } from '@/components/ui/FieldLabel/fieldLabel'
-import { FileUpload } from '@/components/ui/FileUpload/fileUpload'
 import { InfoPopover } from '@/components/ui/InfoPopover/infoPopover'
-import {
-  POSTING_IMAGE_MAX_SIZE_BYTES,
-  POSTING_IMAGE_TYPES,
-} from '@/features/posting/schemas/postingInfoSchema'
 import { useObjectUrl } from '@/hooks/useObjectUrl'
-import { useToast } from '@/providers/toastProvider'
-import type { FileRejection } from '@/utils/file'
 import { ImageThumbnail } from './imageThumbnail'
 import { PostingImageCameraDialog } from './postingImageCameraDialog'
 
 const INFO_POPOVER_OFFSET_PX = 9
 const INFO_POPOVER_ALIGN_OFFSET_PX = 1
 
-const REJECTION_MESSAGE = {
-  invalidType: 'JPG, PNG, WEBP 이미지만 업로드 가능해요',
-  oversized: '10MB 이하의 이미지만 업로드 가능해요',
-} satisfies Record<FileRejection, string>
+// const REJECTION_MESSAGE = {
+//  invalidType: 'JPG, PNG, WEBP 이미지만 업로드 가능해요',
+// oversized: '10MB 이하의 이미지만 업로드 가능해요',
+//} satisfies Record<FileRejection, string>
 
 type PostingImageFieldProps = {
   value: File | null
@@ -35,7 +28,7 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
   const labelId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const previewUrl = useObjectUrl(value) ?? savedImageUrl
-  const { showToast } = useToast()
+  //  const { showToast } = useToast()
 
   function handleRemove() {
     // 썸네일이 사라지며 잃는 포커스를 업로드 입력으로 이동
@@ -77,7 +70,8 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
         <ImageThumbnail src={previewUrl} alt="대표 이미지" onRemove={handleRemove} />
       ) : (
         <div data-track-target="posting_image_upload" className="contents">
-          <FileUpload
+          {/**
+           *  <FileUpload
             inputRef={inputRef}
             acceptedTypes={POSTING_IMAGE_TYPES}
             maxSizeBytes={POSTING_IMAGE_MAX_SIZE_BYTES}
@@ -87,6 +81,9 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
               showToast({ title: REJECTION_MESSAGE[rejection], icon: 'alert' })
             }
           />
+           * 
+           */}
+
           <PostingImageCameraDialog onCapture={onChange} />
         </div>
       )}

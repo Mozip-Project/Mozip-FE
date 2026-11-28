@@ -1,6 +1,7 @@
 import { delay, HttpResponse } from 'msw'
 import { MOZIP_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_REVIEW_PAGE_SIZE } from '@/features/recruitment/types'
+import { getMockAccount } from '@/features/user/mocks/userHandlers'
 import type {
   ApplicationSort,
   DocEvaluationApplicationChipsQuery,
@@ -25,6 +26,7 @@ import {
   getApplicationDetailSample,
   getSampleAnswers,
   SAMPLE_POSTING_QUESTIONS,
+  SAMPLE_QUESTION_ID_BY_APPLY_QUESTION_ID,
 } from './documentEvaluationSample'
 import {
   findApplication,
@@ -34,9 +36,64 @@ import {
   saveMyEvaluation,
   type PostingApplication,
 } from './organizerApplicationStore'
+import type { MockApplication } from './applicantApplicationStore'
 
 // 학교 인증 전이라 제출 시점 프로필에 학교가 없는 지원자(샘플 번호)
 const UNVERIFIED_SCHOOL_SAMPLE_ID = '2'
+
+type DetailApplication = DocEvaluationApplicationDetailQuery['application']
+
+// 낸 지원서의 답변을 샘플 공고 문항 모양으로, 비운 답과 샘플 공고에 없는 문항은 뺌
+function toSubmittedAnswers(answers: MockApplication['answers']): DetailApplication['answers'] {
+  return answers.flatMap(({ question, content, attachments }) => {
+    const questionId = SAMPLE_QUESTION_ID_BY_APPLY_QUESTION_ID[question.id] ?? question.id
+    const postingQuestion = SAMPLE_POSTING_QUESTIONS.find(({ id }) => id === questionId)
+    if (!postingQuestion || (!content && attachments.length === 0)) {
+      return []
+    }
+
+    const { position: _position, ...sampleQuestion } = postingQuestion
+    return [
+      {
+        id: questionId,
+        question: sampleQuestion,
+        content,
+        attachments: attachments.map(({ type, url }, index) => ({
+          id: `${questionId}-${index}`,
+          type,
+          url,
+          fileName: null,
+        })),
+      },
+    ]
+  })
+}
+
+// 낸 지원서는 작성한 답변·면접 가능 시간과 내 계정 프로필, 샘플 지원자는 샘플 값
+function getDetailContent({
+  sampleId,
+  name,
+  submitted,
+}: PostingApplication): Pick<DetailApplication, 'profileSnapshot' | 'availableTimes' | 'answers'> {
+  if (submitted) {
+    const { phone, school } = getMockAccount()
+    return {
+      profileSnapshot: { name, phone, school: school?.name ?? null },
+      availableTimes: submitted.availableTimes,
+      answers: toSubmittedAnswers(submitted.answers),
+    }
+  }
+
+  return {
+    profileSnapshot: {
+      name,
+      phone: '01000000000',
+      school: sampleId === UNVERIFIED_SCHOOL_SAMPLE_ID ? null : '성균관대학교',
+    },
+    availableTimes: getApplicationDetailSample(sampleId).availableTimes,
+    answers: getSampleAnswers(sampleId),
+  }
+}
 
 function matchesTab(status: MyDocEvaluationStatus, tab: DocEvaluationTab) {
   const isSaved = status === 'SAVED'
@@ -188,7 +245,6 @@ const documentReviewHandlers = [
     }
 
     const { application, sample } = found
-    const detail = getApplicationDetailSample(application.sampleId)
     const position = sample.noPosition
       ? undefined
       : MOZIP_POSITIONS.find(({ id }) => id === application.positionId)
@@ -199,13 +255,7 @@ const documentReviewHandlers = [
           id: application.id,
           user: { name: application.name },
           position: position ? { id: position.id, name: position.name } : null,
-          profileSnapshot: {
-            name: application.name,
-            phone: '01000000000',
-            school: application.sampleId === UNVERIFIED_SCHOOL_SAMPLE_ID ? null : '성균관대학교',
-          },
-          availableTimes: detail.availableTimes,
-          answers: getSampleAnswers(application.sampleId),
+          ...getDetailContent(application),
         },
       },
     })

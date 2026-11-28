@@ -130,6 +130,13 @@ const SAMPLE_TEXT_QUESTION_IDS = ['motivation', 'conflict', 'strength', 'failure
 const ACTIVITY_QUESTION_ID = 'activity'
 const FILE_LINK_QUESTION_IDS = ['work-files', 'reference-links'] as const
 
+// 지원서 작성 공고의 포지션별 문항을 운영진 샘플 공고의 공통 문항에 맞춤, 없는 id는 같은 id
+const SAMPLE_QUESTION_ID_BY_APPLY_QUESTION_ID: Partial<Record<string, string>> = {
+  'planning-experience': ACTIVITY_QUESTION_ID,
+  'design-portfolio': FILE_LINK_QUESTION_IDS[1],
+  'planning-portfolio': FILE_LINK_QUESTION_IDS[1],
+}
+
 // 활동 경험(선택)을 비운 지원자, 백엔드처럼 비운 문항은 answers에서 뺌
 const SKIPPED_ANSWER_APPLICANT_ID = '4'
 
@@ -252,4 +259,9 @@ function getSampleAnswers(applicantId: string) {
     : answers
 }
 
-export { getApplicationDetailSample, getSampleAnswers, SAMPLE_POSTING_QUESTIONS }
+export {
+  getApplicationDetailSample,
+  getSampleAnswers,
+  SAMPLE_POSTING_QUESTIONS,
+  SAMPLE_QUESTION_ID_BY_APPLY_QUESTION_ID,
+}

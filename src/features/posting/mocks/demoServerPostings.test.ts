@@ -3,7 +3,7 @@ import { ClientError } from 'graphql-request'
 import { describe, expect, it } from 'vitest'
 import type { ManagedPostingFieldsFragment, PostingsQuery } from '@/gql/graphql'
 import {
-  EMPTY_POSTING_PAGE,
+  getServerPagesToFetch,
   mergeServerPostingPage,
   mergeServerPostings,
   toServerErrorBody,
@@ -70,36 +70,39 @@ describe('mergeServerPostingPage', () => {
   }
 
   const SERVER = cards('server', 5)
-  const SAMPLES = cards('sample', 4)
+  const SAMPLES = cards('sample', 3)
   const SIZE = 2
 
-  // 서버가 같은 page·size로 자른 응답
+  // 서버가 요청받은 page·size로 자른 응답
   function mergePage(page: number) {
-    const serverPage = {
+    const serverPages = getServerPagesToFetch(SAMPLES.length, page, SIZE).map((serverPage) => ({
       totalCount: SERVER.length,
-      items: SERVER.slice(page * SIZE, (page + 1) * SIZE),
-    }
-    return mergeServerPostingPage(serverPage, SAMPLES, page, SIZE)
+      items: SERVER.slice(serverPage * SIZE, (serverPage + 1) * SIZE),
+    }))
+    return mergeServerPostingPage(SAMPLES, serverPages, page, SIZE)
   }
 
-  it('실서버 공고를 모두 보여 준 뒤 샘플을 이어서 채우고, 페이지마다 size개', () => {
-    const pages = [0, 1, 2, 3, 4].map((page) => mergePage(page).items.map(({ id }) => id))
+  it('샘플을 모두 보여 준 뒤 실서버 공고를 이어서 채우고, 페이지마다 size개', () => {
+    const pages = [0, 1, 2, 3].map((page) => mergePage(page).items.map(({ id }) => id))
 
     expect(pages).toEqual([
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'sample-1'],
-      ['sample-2', 'sample-3'],
-      ['sample-4'],
+      ['sample-1', 'sample-2'],
+      ['sample-3', 'server-1'],
+      ['server-2', 'server-3'],
+      ['server-4', 'server-5'],
     ])
-    expect(mergePage(0).totalCount).toBe(9)
+    expect(mergePage(0).totalCount).toBe(8)
   })
 
-  it('실서버 조회가 비면 샘플만 페이지대로', () => {
-    const merged = mergeServerPostingPage(EMPTY_POSTING_PAGE, SAMPLES, 1, SIZE)
+  it('샘플만 들어가는 페이지도 전체 개수를 알기 위해 서버 한 페이지는 조회', () => {
+    expect(getServerPagesToFetch(SAMPLES.length, 0, SIZE)).toEqual([0])
+  })
 
-    expect(merged.items.map(({ id }) => id)).toEqual(['sample-3', 'sample-4'])
-    expect(merged.totalCount).toBe(4)
+  it('실서버 조회가 없으면 샘플만 페이지대로', () => {
+    const merged = mergeServerPostingPage(SAMPLES, [], 1, SIZE)
+
+    expect(merged.items.map(({ id }) => id)).toEqual(['sample-3'])
+    expect(merged.totalCount).toBe(3)
   })
 })
 
