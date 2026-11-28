@@ -11,10 +11,8 @@ import type {
 } from '@/gql/graphql'
 import { getUploadedFileUrl } from '@/mocks/fileUploadHandlers'
 import { graphqlApi } from '@/mocks/graphqlApi'
-import { MOCK_ORGANIZATION_ID } from '@/mocks/mockOrganization'
 import { MOCK_RESPONSE_DELAY_MS } from '@/mocks/responseDelay'
 import { isManagingOrganization, saveManagedPosting } from './managedPostingHandlers'
-import { ORGANIZATION_POSTING_SAMPLES } from './organizationPostingSamples'
 
 type DraftRecord = {
   organizationId: string
@@ -76,28 +74,6 @@ function createEmptyPosting(
     maxApplicantsPerInterview: null,
     maxParallelInterviews: null,
   }
-}
-
-// 운영진 홈의 작성 중 샘플은 처음 열 때 제목만 있는 공고로 생성
-function findDraft(postingId: string) {
-  const saved = drafts.get(postingId)
-  if (saved) {
-    return saved
-  }
-
-  const sample = ORGANIZATION_POSTING_SAMPLES.find(
-    ({ id, status }) => id === postingId && status === 'DRAFT',
-  )
-  if (!sample) {
-    return null
-  }
-
-  const record = {
-    organizationId: MOCK_ORGANIZATION_ID,
-    posting: createEmptyPosting(sample.id, MOCK_ORGANIZATION_ID, sample.title, sample.hasInterview),
-  }
-  drafts.set(sample.id, record)
-  return record
 }
 
 // 지역·회비 등 지울 수 있는 값은 생략하면 유지, null이면 지움
@@ -280,7 +256,7 @@ const postingDraftHandlers = [
     'PostingDraft',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      const record = findDraft(String(variables.id))
+      const record = drafts.get(String(variables.id))
 
       if (!record) {
         return HttpResponse.json(errorBody(...NOT_FOUND_ERROR))
@@ -310,7 +286,7 @@ const postingDraftHandlers = [
           posting: createEmptyPosting(postingId, organization, input.title, false),
         }
       } else {
-        const found = findDraft(String(id))
+        const found = drafts.get(String(id))
         if (!found || found.organizationId !== organization) {
           return HttpResponse.json(errorBody(...NOT_FOUND_ERROR))
         }
@@ -335,7 +311,7 @@ const postingDraftHandlers = [
     'PublishPosting',
     async ({ variables }) => {
       await delay(MOCK_RESPONSE_DELAY_MS)
-      const record = findDraft(String(variables.id))
+      const record = drafts.get(String(variables.id))
 
       if (!record) {
         return HttpResponse.json(errorBody(...NOT_FOUND_ERROR))

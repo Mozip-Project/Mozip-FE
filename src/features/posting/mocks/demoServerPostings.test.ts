@@ -32,7 +32,7 @@ const SAMPLE: ManagedPostingFieldsFragment = {
 }
 
 describe('mergeServerPostings', () => {
-  it('실서버 공고를 샘플 앞에 두고, 지원 접수 중 공고는 최근 게시 순으로 1위부터 순위를 채움', () => {
+  it('샘플을 실서버 공고 앞에 두고, 지원 접수 중 공고는 최근 게시 순으로 1위부터 순위를 채움', () => {
     const merged = mergeServerPostings(
       [SAMPLE],
       [
@@ -43,10 +43,10 @@ describe('mergeServerPostings', () => {
     )
 
     expect(merged.map(({ id, bumpRank }) => [id, bumpRank])).toEqual([
+      ['uxux-14-staff', 18],
       ['4', 2],
       ['5', 1],
       ['3', null],
-      ['uxux-14-staff', 18],
     ])
   })
 

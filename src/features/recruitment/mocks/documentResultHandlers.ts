@@ -1,5 +1,5 @@
 import { delay, HttpResponse } from 'msw'
-import { UXUX_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
+import { MOZIP_POSITIONS } from '@/features/posting/mocks/postingDetailHandlers'
 import { DOCUMENT_RESULT_PAGE_SIZE } from '@/features/recruitment/types'
 import type {
   ConfirmDocResultMutation,
@@ -199,7 +199,7 @@ const documentResultHandlers = [
                   ? null
                   : {
                       id: row.positionId,
-                      name: UXUX_POSITIONS.find(({ id }) => id === row.positionId)?.name ?? '',
+                      name: MOZIP_POSITIONS.find(({ id }) => id === row.positionId)?.name ?? '',
                     },
                 docResult: row.docResult,
               },
@@ -216,7 +216,7 @@ const documentResultHandlers = [
             },
             positionCounts: sample.noPosition
               ? []
-              : UXUX_POSITIONS.map((position) => ({
+              : MOZIP_POSITIONS.map((position) => ({
                   position: { id: position.id, name: position.name },
                   count: searched.filter((row) => row.positionId === position.id).length,
                 })),

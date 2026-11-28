@@ -37,7 +37,9 @@ describe('PostingManageEntryContent', () => {
   it('진행 중 공고가 있으면 첫 공고 관리 상세로 이동', async () => {
     renderEntry('1')
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/manage/postings/uxux-14-staff'))
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith('/manage/postings/mozip-team-doc-review'),
+    )
     expect(screen.queryByText('아직 관리할 모집이 없어요')).not.toBeInTheDocument()
   })
 

@@ -70,7 +70,7 @@ const INTERVIEW_BLOCKS = [
   { startTime: '13:00:00', endTime: '15:00:00' },
 ]
 
-// 공고 상세 MSW 응답에 지원서 작성에만 쓰는 문항 설정·면접 블록·사진 필수를 더함
+// 공고 상세 MSW 응답에 지원서 작성에만 쓰는 문항 설정·면접 블록을 더함
 function createApplicationFormSample(postingId: string): PostingResponse | undefined {
   const detail = createPostingSample(postingId, getSeoulIsoDate(new Date()))
 
@@ -83,7 +83,7 @@ function createApplicationFormSample(postingId: string): PostingResponse | undef
     title: detail.title,
     noPosition: detail.noPosition,
     hasInterview: detail.hasInterview,
-    profilePhotoRequired: postingId === POSTING_SAMPLE_ID.photoRequired,
+    profilePhotoRequired: false,
     positions: detail.positions,
     questions: detail.questions.map((question) => ({
       ...question,
@@ -104,14 +104,8 @@ type MockApplication = Omit<MyApplicationResponse, 'id' | 'position'> & {
 
 // 공고 상세 MSW의 지원 완료 공고에 맞춘 제출 지원서
 const SUBMITTED_POSITION_IDS_BY_POSTING_ID: Record<string, (string | null)[]> = {
-  [POSTING_SAMPLE_ID.partiallyApplied]: ['design'],
-  [POSTING_SAMPLE_ID.fullyApplied]: ['design', 'development', 'planning'],
   [POSTING_SAMPLE_ID.directApplied]: [null],
 }
-
-// 이어 쓰기 확인용 임시 저장, 장문형·활동 경험·링크·면접 시간이 모두 있는 기획 포지션
-const DRAFT_POSTING_ID = POSTING_SAMPLE_ID.photoRequired
-const DRAFT_POSITION_ID = 'planning'
 
 // 명세상 공고당 1개지만 포지션별 지원 완료를 보여 주려고 포지션마다 지원서 생성
 function toApplicationId(postingId: string, positionId: string | null) {
@@ -133,27 +127,6 @@ const DEFAULT_PROGRESS = {
 
 // 내 지원 카드의 단계별 모습 확인용, 공고 상세와 달리 지원서마다 다른 모집 단계
 const PROGRESS_SAMPLE_BY_APPLICATION_ID: Partial<Record<string, ProgressSample>> = {
-  [toApplicationId(POSTING_SAMPLE_ID.partiallyApplied, 'design')]: {
-    ...DEFAULT_PROGRESS,
-    submittedAt: '2026-10-10T14:32:00+09:00',
-  },
-  [toApplicationId(POSTING_SAMPLE_ID.fullyApplied, 'development')]: {
-    ...DEFAULT_PROGRESS,
-    submittedAt: '2026-10-08T10:05:00+09:00',
-    postingStatus: 'DOC_REVIEW',
-  },
-  [toApplicationId(POSTING_SAMPLE_ID.fullyApplied, 'planning')]: {
-    ...DEFAULT_PROGRESS,
-    submittedAt: '2026-10-05T21:40:00+09:00',
-    postingStatus: 'INTERVIEW',
-    docResult: 'PASS',
-  },
-  [toApplicationId(POSTING_SAMPLE_ID.fullyApplied, 'design')]: {
-    ...DEFAULT_PROGRESS,
-    submittedAt: '2026-10-04T16:20:00+09:00',
-    postingStatus: 'DOC_RESULT_NOTICE',
-    docResult: 'FAIL',
-  },
   // 면접 없는 모집, 최종 발표일 미정
   [toApplicationId(POSTING_SAMPLE_ID.directApplied, null)]: {
     ...DEFAULT_PROGRESS,
@@ -165,40 +138,6 @@ const PROGRESS_SAMPLE_BY_APPLICATION_ID: Partial<Record<string, ProgressSample>>
 // 화면에서 새로 제출한 지원서는 모집 중·결과 전
 function getApplicationProgress(applicationId: string) {
   return PROGRESS_SAMPLE_BY_APPLICATION_ID[applicationId] ?? DEFAULT_PROGRESS
-}
-
-function createDraftSample(): MockApplication {
-  const firstInterviewDate =
-    createApplicationFormSample(DRAFT_POSTING_ID)?.interviewTimeRanges[0]?.date
-
-  return {
-    postingId: DRAFT_POSTING_ID,
-    positionId: DRAFT_POSITION_ID,
-    submittedAt: null,
-    updatedAt: new Date().toISOString(),
-    availableTimes: firstInterviewDate
-      ? [`${firstInterviewDate}T13:00:00+09:00`, `${firstInterviewDate}T13:30:00+09:00`]
-      : [],
-    answers: [
-      {
-        question: { id: 'motivation' },
-        content: '서비스 기획을 직접 해 보고 싶어 지원했어요.',
-        attachments: [],
-      },
-      {
-        question: { id: 'planning-experience' },
-        content: JSON.stringify([
-          { name: '교내 해커톤', period: '2026.05 ~ 2026.06', role: '기획', achievement: '' },
-        ]),
-        attachments: [],
-      },
-      {
-        question: { id: 'planning-portfolio' },
-        content: null,
-        attachments: [{ type: 'LINK', url: 'https://example.com/portfolio' }],
-      },
-    ],
-  }
 }
 
 // 장문형 답변은 서류 평가 기본 샘플에서, 없는 문항은 공통 문구
@@ -272,10 +211,7 @@ function createInitialApplications() {
       ]),
   )
 
-  return new Map<string, MockApplication>([
-    ...submitted,
-    [toApplicationId(DRAFT_POSTING_ID, DRAFT_POSITION_ID), createDraftSample()],
-  ])
+  return new Map<string, MockApplication>(submitted)
 }
 
 // 서버를 다시 시작하면 초기화, 브라우저 MSW는 새로고침마다 초기화
