@@ -246,16 +246,16 @@ function setInterviewLocation(
 }
 
 // 열의 모든 면접 장소를 한 번에 바꿈, 따로 정한 장소도 덮어씀
+// 날짜마다 같은 열은 같은 면접실이라 모든 날짜에 덮어씀
 function setTrackLocation(
   timetable: InterviewTimetable,
-  date: string,
   track: number,
   location: string,
 ): InterviewTimetable {
   return {
     ...timetable,
     interviews: timetable.interviews.map((interview) =>
-      interview.date === date && interview.track === track ? { ...interview, location } : interview,
+      interview.track === track ? { ...interview, location } : interview,
     ),
   }
 }

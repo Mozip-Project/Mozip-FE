@@ -142,9 +142,7 @@ function InterviewTimetableContent() {
               onAddTrack={() => addTrack(day.date)}
               onInterviewersChange={changeInterviewers}
               onInterviewLocationChange={changeInterviewLocation}
-              onTrackLocationChange={(track, location) =>
-                changeTrackLocation(day.date, track, location)
-              }
+              onTrackLocationChange={changeTrackLocation}
             />
           </TabsContent>
         ))}

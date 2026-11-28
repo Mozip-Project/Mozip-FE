@@ -148,8 +148,8 @@ function useInterviewTimetable({ initialTimetable, applicants }: UseInterviewTim
     // TODO: 면접 장소 저장 API 연결
     changeInterviewLocation: (interviewId: string, location: string) =>
       setTimetable((current) => setInterviewLocation(current, interviewId, location)),
-    changeTrackLocation: (date: string, track: number, location: string) =>
-      setTimetable((current) => setTrackLocation(current, date, track, location)),
+    changeTrackLocation: (track: number, location: string) =>
+      setTimetable((current) => setTrackLocation(current, track, location)),
     mode: getTimetableMode(isConfirmed, editSnapshot !== null),
     // TODO: 타임테이블 확정·다시 확정 API 연결
     confirm: () => {
