@@ -247,18 +247,19 @@ describe('면접 장소', () => {
     expect(result.interviews.map(({ location }) => location)).toEqual(['명륜관 33101', null])
   })
 
-  it('한 번에 입력은 같은 날짜·열의 면접 장소를 모두 덮어씀', () => {
+  it('한 번에 입력은 모든 날짜의 같은 열 면접 장소를 덮어씀', () => {
     const timetable = createTimetable({
       interviews: [
         createInterview({ id: 'a', applicantIds: ['kim'], location: '공학관' }),
         createInterview({ id: 'b', time: '13:25', applicantIds: ['lee'] }),
         createInterview({ id: 'c', track: 2, applicantIds: ['park'] }),
+        createInterview({ id: 'd', date: DAY_2, applicantIds: ['choi'], location: '학생회관' }),
       ],
     })
 
     expect(
-      setTrackLocation(timetable, DAY_1, 1, '명륜관').interviews.map(({ location }) => location),
-    ).toEqual(['명륜관', '명륜관', null])
+      setTrackLocation(timetable, 1, '명륜관').interviews.map(({ location }) => location),
+    ).toEqual(['명륜관', '명륜관', null, '명륜관'])
   })
 
   it('머리글은 모두 같으면 장소명, 섞이면 가장 많은 장소 외 n곳, 없으면 null', () => {
