@@ -72,6 +72,47 @@ function getMessageKey(postingId: string, target: ResultTarget) {
   return `${postingId}:${target}`
 }
 
+// 시연에서 바로 발송할 수 있게 채워 두는 초안
+function createDefaultMessage(
+  postingId: string,
+  target: ResultTarget,
+  { title, hasInterview, noPosition }: PostingApplications['sample'],
+): ResultMessageFieldsFragment {
+  const applied = noPosition ? title : `${title} {포지션} 포지션`
+  const passNextStep = hasInterview
+    ? '면접 일정과 장소는 별도로 안내드릴 예정이니 조금만 기다려 주세요.'
+    : '이후 일정은 별도로 안내드릴 예정이니 조금만 기다려 주세요.'
+  const content = {
+    PASS: {
+      subject: `[${title}] 서류 전형 합격을 축하드립니다`,
+      body: `안녕하세요, {이름}님.\n\n${applied}에 지원해 주셔서 감사합니다.\n{이름}님께서 서류 전형에 합격하셨음을 기쁜 마음으로 알려드립니다.\n\n${passNextStep}\n\n감사합니다.`,
+    },
+    FAIL: {
+      subject: `[${title}] 서류 전형 결과 안내`,
+      body: `안녕하세요, {이름}님.\n\n${applied}에 지원해 주셔서 진심으로 감사합니다.\n신중하게 검토했지만 아쉽게도 이번에는 함께하지 못하게 되었습니다.\n\n보내 주신 관심에 다시 한번 감사드리며, {이름}님의 앞날을 응원하겠습니다.\n\n감사합니다.`,
+    },
+  } satisfies Record<ResultTarget, Pick<ResultMessageFieldsFragment, 'subject' | 'body'>>
+
+  return { id: `message-${postingId}-${target}`, status: 'DRAFT', ...content[target] }
+}
+
+// 저장한 적 없으면 기본 초안으로 시작
+function getMessage(
+  postingId: string,
+  target: ResultTarget,
+  sample: PostingApplications['sample'],
+) {
+  const key = getMessageKey(postingId, target)
+  const saved = messages.get(key)
+  if (saved) {
+    return saved
+  }
+
+  const message = createDefaultMessage(postingId, target, sample)
+  messages.set(key, message)
+  return message
+}
+
 function errorBody(code: string, message: string) {
   return { errors: [{ message, extensions: { code } }], data: null }
 }
@@ -174,13 +215,15 @@ function buildResultMessages(
     const processedCount = deliveredCount + failedCount
 
     // 보낼 사람을 모두 처리하면 발송 완료
-    const message = messages.get(key)
-    if (message?.status === 'SENDING' && processedCount === progress?.applicationIds.length) {
+    const message = getMessage(postingId, target, sample)
+    const isSendFinished =
+      message.status === 'SENDING' && processedCount === progress?.applicationIds.length
+    if (isSendFinished) {
       messages.set(key, { ...message, status: 'SENT' })
     }
 
     return {
-      message: messages.get(key) ?? null,
+      message: isSendFinished ? { ...message, status: 'SENT' } : message,
       variables: [
         'NAME',
         ...(sample.noPosition ? [] : POSITION_VARIABLES),
@@ -229,8 +272,8 @@ function getSendBlockError(
   const current = buildResultMessages(postingId, found)
 
   for (const target of targets) {
-    const message = messages.get(getMessageKey(postingId, target))
-    if (message?.status !== 'DRAFT') {
+    const message = getMessage(postingId, target, found.sample)
+    if (message.status !== 'DRAFT') {
       return { code: 'MESSAGE_409', message: '저장된 초안이 없거나 이미 발송했습니다.' }
     }
     if (current[target === 'PASS' ? 'pass' : 'fail'].recipientCount === 0) {
@@ -336,8 +379,7 @@ const resultNoticeHandlers = [
       }
 
       const key = getMessageKey(postingId, target)
-      const savedStatus = messages.get(key)?.status
-      if (savedStatus && savedStatus !== 'DRAFT') {
+      if (getMessage(postingId, target, found.sample).status !== 'DRAFT') {
         return HttpResponse.json(errorBody('MESSAGE_409', '이미 발송한 메시지입니다.'))
       }
 
@@ -388,10 +430,7 @@ const resultNoticeHandlers = [
       const startedAt = Date.now()
       resultTargets.forEach((target) => {
         const key = getMessageKey(postingId, target)
-        const message = messages.get(key)
-        if (message) {
-          messages.set(key, { ...message, status: 'SENDING' })
-        }
+        messages.set(key, { ...getMessage(postingId, target, found.sample), status: 'SENDING' })
         sendProgresses.set(key, {
           startedAt,
           applicationIds: current[target === 'PASS' ? 'pass' : 'fail'].recipients
