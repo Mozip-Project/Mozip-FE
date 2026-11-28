@@ -14,6 +14,7 @@ import { useObjectUrl } from '@/hooks/useObjectUrl'
 import { useToast } from '@/providers/toastProvider'
 import type { FileRejection } from '@/utils/file'
 import { ImageThumbnail } from './imageThumbnail'
+import { PostingImageCameraDialog } from './postingImageCameraDialog'
 
 const INFO_POPOVER_OFFSET_PX = 9
 const INFO_POPOVER_ALIGN_OFFSET_PX = 1
@@ -75,16 +76,19 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
       {previewUrl ? (
         <ImageThumbnail src={previewUrl} alt="대표 이미지" onRemove={handleRemove} />
       ) : (
-        <FileUpload
-          inputRef={inputRef}
-          acceptedTypes={POSTING_IMAGE_TYPES}
-          maxSizeBytes={POSTING_IMAGE_MAX_SIZE_BYTES}
-          description="JPG, PNG, WEBP, 장당 10MB 이하"
-          onFileSelect={onChange}
-          onReject={(rejection) =>
-            showToast({ title: REJECTION_MESSAGE[rejection], icon: 'alert' })
-          }
-        />
+        <>
+          <FileUpload
+            inputRef={inputRef}
+            acceptedTypes={POSTING_IMAGE_TYPES}
+            maxSizeBytes={POSTING_IMAGE_MAX_SIZE_BYTES}
+            description="JPG, PNG, WEBP, 장당 10MB 이하"
+            onFileSelect={onChange}
+            onReject={(rejection) =>
+              showToast({ title: REJECTION_MESSAGE[rejection], icon: 'alert' })
+            }
+          />
+          <PostingImageCameraDialog onCapture={onChange} />
+        </>
       )}
     </div>
   )
