@@ -22,10 +22,8 @@ const OTHER_EVALUATOR_COUNT = EVALUATOR_COUNT - 1
 const SAMPLE_FIRST_SUBMITTED_AT = Date.UTC(2026, 9, 15, 12)
 const SAMPLE_SUBMIT_INTERVAL_MS = 60 * 60 * 1000
 
-// 서류 평가 중 공고에서 내가 아직 평가하지 않은 지원자(샘플 번호), 3번은 작성 중
-const MY_UNEVALUATED_SAMPLE_IDS = ['1', '2', '3']
-const MY_DRAFT_SAMPLE_ID = '3'
-const MY_DRAFT_SCORE = { questionId: 'motivation', score: 4 }
+// 서류 평가 중 공고에서 내가 아직 평가하지 않은 지원자(샘플 번호)
+const MY_UNEVALUATED_SAMPLE_ID = '1'
 
 const MIN_SCORE = 1
 const MAX_SCORE = 5
@@ -121,7 +119,7 @@ function isMyInitiallyEvaluated({ sampleId }: PostingApplication, status: Postin
     case 'RECRUITING':
       return false
     case 'DOC_REVIEW':
-      return !MY_UNEVALUATED_SAMPLE_IDS.includes(sampleId)
+      return sampleId !== MY_UNEVALUATED_SAMPLE_ID
     case 'DOC_RESULT_NOTICE':
     case 'INTERVIEW':
     case 'FINAL_RESULT':
@@ -135,36 +133,25 @@ function createMyInitialEvaluation(
   application: PostingApplication,
   status: PostingStatus,
 ): MyDocEvaluationFieldsFragment | null {
-  const base = {
+  if (!isMyInitiallyEvaluated(application, status)) {
+    return null
+  }
+
+  const score = Math.min(
+    Math.max(Math.round(application.sample.averageScore), MIN_SCORE),
+    MAX_SCORE,
+  )
+  return {
     id: `evaluation-${application.id}`,
     memo: null,
     updatedAt: application.submittedAt,
+    status: 'SAVED',
+    opinion: OPINION[getMyInitialOpinion(application.sample)],
+    scores: getSampleAnswers(application.sampleId).map(({ question }) => ({
+      question: { id: question.id },
+      score,
+    })),
   }
-
-  if (isMyInitiallyEvaluated(application, status)) {
-    const score = Math.min(
-      Math.max(Math.round(application.sample.averageScore), MIN_SCORE),
-      MAX_SCORE,
-    )
-    return {
-      ...base,
-      status: 'SAVED',
-      opinion: OPINION[getMyInitialOpinion(application.sample)],
-      scores: getSampleAnswers(application.sampleId).map(({ question }) => ({
-        question: { id: question.id },
-        score,
-      })),
-    }
-  }
-  if (status === 'DOC_REVIEW' && application.sampleId === MY_DRAFT_SAMPLE_ID) {
-    return {
-      ...base,
-      status: 'DRAFT',
-      opinion: 'HOLD',
-      scores: [{ question: { id: MY_DRAFT_SCORE.questionId }, score: MY_DRAFT_SCORE.score }],
-    }
-  }
-  return null
 }
 
 function getMyEvaluation(application: PostingApplication, status: PostingStatus) {
