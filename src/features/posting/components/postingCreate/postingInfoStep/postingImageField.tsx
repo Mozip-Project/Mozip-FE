@@ -76,7 +76,7 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
       {previewUrl ? (
         <ImageThumbnail src={previewUrl} alt="대표 이미지" onRemove={handleRemove} />
       ) : (
-        <>
+        <div data-track-target="posting_image_upload" className="contents">
           <FileUpload
             inputRef={inputRef}
             acceptedTypes={POSTING_IMAGE_TYPES}
@@ -88,7 +88,7 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
             }
           />
           <PostingImageCameraDialog onCapture={onChange} />
-        </>
+        </div>
       )}
     </div>
   )

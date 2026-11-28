@@ -289,6 +289,7 @@ function PostingCreateForm({
                     size="m"
                     disabled={!canGoNext || !canSave || isSaving}
                     onClick={handleNext}
+                    data-track-target="posting_next"
                   >
                     다음
                     <ArrowRightIcon aria-hidden />

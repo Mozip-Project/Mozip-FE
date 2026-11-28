@@ -52,7 +52,9 @@ function PostingManageHomeContent({ savedOrganizationId }: PostingManageHomeCont
         title={organization.name}
         actions={
           <PostingStartDialog>
-            <Button size="m">새 공고 만들기</Button>
+            <Button size="m" data-track-target="home_new_posting">
+              새 공고 만들기
+            </Button>
           </PostingStartDialog>
         }
       />

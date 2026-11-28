@@ -55,7 +55,11 @@ function TimetableSlotCell({
   const canJoinBySelect = activeMove?.mode === 'select' && interview && !isOwnInterview
 
   return (
-    <div {...dropTargetProps} className="relative flex min-w-56 flex-1">
+    <div
+      {...dropTargetProps}
+      data-track-drop="timetable_slot_assign"
+      className="relative flex min-w-56 flex-1"
+    >
       {interview ? (
         <>
           <TimetableSlotCard
@@ -75,6 +79,7 @@ function TimetableSlotCell({
             <button
               type="button"
               aria-label={`${slotLabel}에 함께 배정`}
+              data-track-target="timetable_slot_assign"
               onClick={() => moveActions.onMoveTo({ type: 'slot', slot })}
               className={cn(
                 'absolute inset-0 z-2 cursor-pointer rounded-m hover:ring-2 hover:ring-(--border-color-brand-solid) hover:ring-inset',
@@ -130,6 +135,7 @@ function TimetableEmptySlot({
     <button
       type="button"
       aria-label={`${slotLabel}에 배정`}
+      data-track-target="timetable_slot_assign"
       onClick={onSelect}
       className={cn(
         className,

@@ -93,7 +93,11 @@ function DocumentResultConfirmDialog({
             <Button variant="secondary">취소</Button>
           </DialogClose>
           {/* 요청 중 focus 유지를 위해 disabled 대신 aria-disabled 사용 */}
-          <Button aria-disabled={isPending} onClick={handleConfirm}>
+          <Button
+            aria-disabled={isPending}
+            onClick={handleConfirm}
+            data-track-target="doc_result_confirm"
+          >
             {isPending ? '확정 중' : '확정하기'}
           </Button>
         </DialogFooter>
