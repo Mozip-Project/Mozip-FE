@@ -28,19 +28,17 @@ function renderReview(postingId: string, searchParams: Record<string, string> = 
 }
 
 describe('useDocumentReview (MSW)', () => {
-  it('내 평가 없음·임시저장은 평가하기, 저장 완료는 평가 수정으로 표시', async () => {
+  it('내 평가 없음은 평가하기, 저장 완료는 평가 수정으로 표시', async () => {
     const { result } = renderReview(ORGANIZATION_POSTING_ID.docReview)
     await waitFor(() => expect(result.current.data).toBeDefined())
 
     expect(
-      result.current.data?.applicants.slice(0, 4).map(({ name, action }) => [name, action]),
+      result.current.data?.applicants.slice(0, 2).map(({ name, action }) => [name, action]),
     ).toEqual([
       ['정세나', 'evaluate'],
-      ['이지원', 'evaluate'],
-      ['김모집', 'evaluate'],
-      ['한결', 'edit'],
+      ['이지원', 'edit'],
     ])
-    expect(result.current.data?.statusCounts).toEqual({ all: 48, pending: 3, done: 45 })
+    expect(result.current.data?.statusCounts).toEqual({ all: 48, pending: 1, done: 47 })
   })
 
   it('결과 확정 후에는 모든 지원자의 버튼이 평가 보기', async () => {
@@ -54,10 +52,10 @@ describe('useDocumentReview (MSW)', () => {
 
   it('평가 완료 탭이 비면 같은 조건의 첫 평가 전 지원자로 안내', async () => {
     const postingId = ORGANIZATION_POSTING_ID.docReview
-    const { result } = renderReview(postingId, { status: 'done', q: '김모집' })
+    const { result } = renderReview(postingId, { status: 'done', q: '정세나' })
     await waitFor(() =>
       expect(result.current.startReviewHref).toBe(
-        `/manage/postings/${postingId}/documents/application-${postingId}-3`,
+        `/manage/postings/${postingId}/documents/application-${postingId}-1`,
       ),
     )
 
