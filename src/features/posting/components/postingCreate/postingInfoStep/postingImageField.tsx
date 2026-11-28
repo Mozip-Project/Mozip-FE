@@ -14,6 +14,7 @@ import { useObjectUrl } from '@/hooks/useObjectUrl'
 import { useToast } from '@/providers/toastProvider'
 import type { FileRejection } from '@/utils/file'
 import { ImageThumbnail } from './imageThumbnail'
+import { PostingImageCameraDialog } from './postingImageCameraDialog'
 
 const INFO_POPOVER_OFFSET_PX = 9
 const INFO_POPOVER_ALIGN_OFFSET_PX = 1
@@ -86,6 +87,7 @@ function PostingImageField({ value, savedImageUrl, onChange }: PostingImageField
               showToast({ title: REJECTION_MESSAGE[rejection], icon: 'alert' })
             }
           />
+          <PostingImageCameraDialog onCapture={onChange} />
         </div>
       )}
     </div>
