@@ -84,6 +84,7 @@ function DocumentResultSummaryBar({
             ) : (
               <Button
                 ref={primaryActionRef}
+                data-track-target="doc_result_confirm_open"
                 size="m"
                 // 저장 전 결과로 확정 요청이 먼저 가지 않도록 저장이 끝날 때까지 막음
                 disabled={!canConfirm || isSaving}

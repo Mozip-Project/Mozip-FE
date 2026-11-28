@@ -48,6 +48,7 @@ function LocationPopoverContent({
                 <button
                   type="button"
                   onClick={() => onApply(recentLocation)}
+                  data-track-target="timetable_location_apply"
                   className={cn(
                     CHIP_SHAPE_CLASS,
                     'cursor-pointer hover:bg-layer-default-pressed',

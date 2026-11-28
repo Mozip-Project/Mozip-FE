@@ -277,7 +277,10 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
           </div>
           <span aria-hidden className="h-4 w-px bg-(--border-color-neutral-weak)" />
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex cursor-pointer items-center gap-1.5 rounded-m px-2.5 py-padding-xs text-label2 font-semibold text-brand outline-none focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-solid">
+            <DropdownMenuTrigger
+              data-track-target="question_template_open"
+              className="flex cursor-pointer items-center gap-1.5 rounded-m px-2.5 py-padding-xs text-label2 font-semibold text-brand outline-none focus-visible:outline-2 focus-visible:outline-focus-ring focus-visible:outline-solid"
+            >
               템플릿으로 추가
               <ChevronDownIcon aria-hidden className="size-4 shrink-0" />
             </DropdownMenuTrigger>
@@ -288,7 +291,11 @@ function QuestionBuilder({ control, setIndex, tabs, profilePhotoField }: Questio
               className="flex w-50 flex-col gap-gap-xxs rounded-m border-neutral-muted bg-layer-default p-padding-xs"
             >
               {QUESTION_TEMPLATE_IDS.map((templateId) => (
-                <DropdownMenuItem key={templateId} onSelect={() => handleApplyTemplate(templateId)}>
+                <DropdownMenuItem
+                  key={templateId}
+                  onSelect={() => handleApplyTemplate(templateId)}
+                  data-track-target="question_template_select"
+                >
                   {QUESTION_TEMPLATE_LABEL[templateId]}
                 </DropdownMenuItem>
               ))}

@@ -93,6 +93,7 @@ function DocumentReviewApplicantTable({
                   >
                     <Link
                       href={getApplicantReviewPath(postingId, id)}
+                      data-track-target="doc_applicant_select"
                       aria-label={`${name} ${actionLabel}`}
                     >
                       {actionLabel}

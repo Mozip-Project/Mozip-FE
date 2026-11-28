@@ -118,6 +118,7 @@ function DocumentResultTable({
                   ) : (
                     // TODO: 평가 진행 중이라 선택할 수 없는 이유 안내 디자인 확인 필요
                     <ResultSelector
+                      data-track-target="doc_result_change"
                       aria-label={`${name} 최종 결과`}
                       value={result}
                       disabled={!applicant.isEvaluationComplete}

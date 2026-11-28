@@ -142,7 +142,10 @@ function TimetableSummaryBar({
             actions={
               // TODO: 안내 화면에 면접 일시·장소 자동 입력은 안내 화면 연동 때 처리
               <Button asChild size="m">
-                <Link href={getInterviewResultNoticePath(postingId)}>
+                <Link
+                  href={getInterviewResultNoticePath(postingId)}
+                  data-track-target="timetable_notice"
+                >
                   서류 결과 및 면접 정보 안내하기
                 </Link>
               </Button>
@@ -167,7 +170,11 @@ function TimetableSummaryBar({
                   description={copy.dialogDescription}
                   summary={summary}
                   onConfirm={() => handleConfirm(copy.toast)}
-                  trigger={<Button size="m">{copy.action}</Button>}
+                  trigger={
+                    <Button size="m" data-track-target="timetable_confirm_open">
+                      {copy.action}
+                    </Button>
+                  }
                 />
               )
             }

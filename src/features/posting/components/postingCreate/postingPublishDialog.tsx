@@ -37,7 +37,9 @@ function PostingPublishDialog({ isPublishing, onPublish }: PostingPublishDialogP
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="m">공고 게시</Button>
+        <Button size="m" data-track-target="posting_publish_open">
+          공고 게시
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader
@@ -51,7 +53,11 @@ function PostingPublishDialog({ isPublishing, onPublish }: PostingPublishDialogP
               취소
             </Button>
           </DialogClose>
-          <Button disabled={isPublishing} onClick={() => void handlePublish()}>
+          <Button
+            disabled={isPublishing}
+            onClick={() => void handlePublish()}
+            data-track-target="posting_publish_confirm"
+          >
             {isPublishing ? '게시 중' : '게시하기'}
           </Button>
         </DialogFooter>

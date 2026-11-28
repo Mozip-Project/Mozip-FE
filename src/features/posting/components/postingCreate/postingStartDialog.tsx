@@ -110,6 +110,7 @@ function PostingStartDialog({ children, onNext }: PostingStartDialogProps) {
               <RadioGroupPrimitive.Item
                 key={value}
                 value={value}
+                data-track-target="start_interview_option"
                 className={cn(
                   'flex min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-gap-xxs rounded-m border border-neutral-muted bg-layer-default p-padding-m transition-colors motion-reduce:transition-none',
                   'outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-ring focus-visible:outline-solid',
@@ -137,7 +138,7 @@ function PostingStartDialog({ children, onNext }: PostingStartDialogProps) {
           <DialogClose asChild>
             <Button variant="secondary">취소</Button>
           </DialogClose>
-          <Button disabled={!selectedValue} onClick={handleNext}>
+          <Button disabled={!selectedValue} onClick={handleNext} data-track-target="start_next">
             다음
           </Button>
         </DialogFooter>

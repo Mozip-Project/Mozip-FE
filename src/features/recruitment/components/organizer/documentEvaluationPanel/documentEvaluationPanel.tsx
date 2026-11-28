@@ -130,6 +130,7 @@ function DocumentEvaluationForm({
               control={control}
               render={({ field, fieldState }) => (
                 <SegmentGroup
+                  data-track-target="doc_opinion"
                   aria-labelledby={opinionLabelId}
                   value={field.value}
                   onValueChange={field.onChange}
@@ -150,7 +151,9 @@ function DocumentEvaluationForm({
             />
           </div>
           {scoreQuestions.length > 0 && (
-            <ScoreField questions={scoreQuestions} control={control} disabled={isInputLocked} />
+            <div data-track-target="doc_score" className="contents">
+              <ScoreField questions={scoreQuestions} control={control} disabled={isInputLocked} />
+            </div>
           )}
           <div className="flex flex-col gap-gap-s">
             <label htmlFor={memoId} className="text-label1 font-semibold text-neutral-muted">
@@ -174,6 +177,7 @@ function DocumentEvaluationForm({
         {!isConfirmed && (
           <div className="shrink-0 px-padding-xl pt-padding-s pb-padding-xl">
             <EvaluationPanelFooter
+              data-track-target="doc_save"
               mode={isSaved ? 'revisit' : 'next'}
               type="submit"
               disabled={!canSubmit || formState.isSubmitting}
